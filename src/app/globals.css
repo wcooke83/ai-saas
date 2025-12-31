@@ -6,14 +6,47 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
+    color-scheme: light;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    color-scheme: dark;
   }
 
   * {
-    @apply border-secondary-200;
+    @apply border-secondary-200 dark:border-secondary-700;
   }
 
   body {
-    @apply bg-white text-secondary-900 antialiased;
+    @apply bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 antialiased;
+  }
+
+  /* Dark mode text color adjustments */
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+    @apply text-secondary-100;
+  }
+
+  /* Fix native select options in dark mode */
+  .dark select,
+  .dark select option {
+    background-color: rgb(30 41 59); /* secondary-800 */
+    color: rgb(241 245 249); /* secondary-100 */
+  }
+
+  /* Fix textarea and input in dark mode */
+  .dark textarea,
+  .dark input[type="text"],
+  .dark input[type="email"],
+  .dark input[type="password"] {
+    background-color: rgb(30 41 59); /* secondary-800 */
+    color: rgb(241 245 249); /* secondary-100 */
+  }
+
+  .dark textarea::placeholder,
+  .dark input::placeholder {
+    color: rgb(100 116 139); /* secondary-500 */
   }
 }
 
@@ -39,4 +72,53 @@
 
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-secondary-400;
+}
+
+/* Dark mode scrollbar */
+.dark::-webkit-scrollbar-track {
+  @apply bg-secondary-800;
+}
+
+.dark::-webkit-scrollbar-thumb {
+  @apply bg-secondary-600;
+}
+
+.dark::-webkit-scrollbar-thumb:hover {
+  @apply bg-secondary-500;
+}
+
+/* Ripple animation for buttons */
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-pulse,
+  .animate-spin,
+  .animate-bounce {
+    animation: none !important;
+  }
+}
+
+/* Focus visible styles */
+.focus-visible:focus-visible {
+  @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+}
+
+/* Skip link styles */
+.skip-link {
+  @apply sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-500 focus:text-white focus:rounded-md;
 }
