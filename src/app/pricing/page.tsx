@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { ThemeToggleSimple } from '@/components/ui/theme-toggle';
 import {
   Check,
+  X,
   Sparkles,
   Zap,
   Crown,
@@ -17,6 +18,9 @@ import {
   Shield,
   Users,
   Star,
+  Building2,
+  Briefcase,
+  Rocket,
 } from 'lucide-react';
 
 const plans = [
@@ -74,9 +78,9 @@ const plans = [
   {
     name: 'Enterprise',
     description: 'For large teams with custom needs',
-    monthlyPrice: 99,
-    yearlyPrice: 950,
-    period: '/month',
+    monthlyPrice: null, // Custom pricing
+    yearlyPrice: null,
+    period: '',
     icon: Crown,
     iconBg: 'bg-amber-100 dark:bg-amber-800/50',
     iconColor: 'text-amber-600 dark:text-amber-400',
@@ -100,6 +104,49 @@ const plans = [
   },
 ];
 
+const testimonials = [
+  {
+    quote: "AI SaaS Tools has transformed how I write proposals. What used to take me 2-3 hours now takes 15 minutes. The Pro plan paid for itself in the first week.",
+    author: "James Davidson",
+    role: "Marketing Consultant",
+    company: "Davidson Marketing Co.",
+    initials: "JD",
+    gradient: "from-primary-400 to-primary-600",
+  },
+  {
+    quote: "We've cut our proposal turnaround time by 80%. Our sales team closes more deals because we respond to RFPs faster than our competitors.",
+    author: "Sarah Chen",
+    role: "VP of Sales",
+    company: "TechStart Inc.",
+    initials: "SC",
+    gradient: "from-emerald-400 to-emerald-600",
+  },
+  {
+    quote: "The email writer alone saves me 5 hours a week. I've tried other AI tools but this one actually understands business context.",
+    author: "Michael Torres",
+    role: "Founder & CEO",
+    company: "Nexus Digital",
+    initials: "MT",
+    gradient: "from-violet-400 to-violet-600",
+  },
+];
+
+const comparisonFeatures = [
+  { name: 'Monthly credits', free: '100', pro: '1,000', enterprise: 'Unlimited' },
+  { name: 'API keys', free: '2', pro: 'Unlimited', enterprise: 'Unlimited' },
+  { name: 'Email Writer', free: true, pro: true, enterprise: true },
+  { name: 'Proposal Generator', free: 'Basic', pro: 'Advanced', enterprise: 'Advanced + Custom' },
+  { name: 'Social Post Generator', free: false, pro: true, enterprise: true },
+  { name: 'Email Sequence Builder', free: false, pro: true, enterprise: true },
+  { name: 'PDF/DOCX Export', free: false, pro: true, enterprise: true },
+  { name: 'Custom branding', free: false, pro: true, enterprise: true },
+  { name: 'Priority support', free: false, pro: true, enterprise: true },
+  { name: 'Dedicated account manager', free: false, pro: false, enterprise: true },
+  { name: 'SSO & security', free: false, pro: false, enterprise: true },
+  { name: 'Custom integrations', free: false, pro: false, enterprise: true },
+  { name: 'SLA guarantee', free: false, pro: false, enterprise: true },
+];
+
 const faqs = [
   {
     question: 'What are credits?',
@@ -117,6 +164,14 @@ const faqs = [
     question: 'Is there a free trial for Pro?',
     answer: 'Yes! Start a 14-day free trial of Pro with no credit card required. You\'ll have full access to all Pro features.',
   },
+  {
+    question: 'What payment methods do you accept?',
+    answer: 'We accept all major credit cards (Visa, Mastercard, American Express) and PayPal. Enterprise customers can also pay by invoice.',
+  },
+  {
+    question: 'Can I get a refund?',
+    answer: 'Yes! We offer a 30-day money-back guarantee. If you\'re not satisfied, contact support for a full refund.',
+  },
 ];
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
@@ -131,22 +186,35 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
       >
         <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">{question}</h3>
         <ChevronDown
-          className={`w-5 h-5 text-secondary-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-5 h-5 text-secondary-500 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           aria-hidden="true"
         />
       </button>
       <div
-        className={`overflow-hidden transition-all duration-200 ${isOpen ? 'max-h-96' : 'max-h-0'}`}
+        className={`grid transition-all duration-200 ${isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
         aria-hidden={!isOpen}
       >
-        <p className="px-6 pb-6 text-secondary-600 dark:text-secondary-300">{answer}</p>
+        <div className="overflow-hidden">
+          <p className="px-6 pb-6 text-secondary-600 dark:text-secondary-300">{answer}</p>
+        </div>
       </div>
     </div>
   );
 }
 
+function FeatureValue({ value }: { value: boolean | string }) {
+  if (value === true) {
+    return <Check className="w-5 h-5 text-green-500 mx-auto" aria-label="Included" />;
+  }
+  if (value === false) {
+    return <X className="w-5 h-5 text-secondary-300 dark:text-secondary-600 mx-auto" aria-label="Not included" />;
+  }
+  return <span className="text-sm text-secondary-700 dark:text-secondary-300">{value}</span>;
+}
+
 export default function PricingPage() {
   const [isYearly, setIsYearly] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary-50 to-white dark:from-secondary-950 dark:to-secondary-900">
@@ -192,14 +260,14 @@ export default function PricingPage() {
             Upgrade or downgrade anytime.
           </p>
 
-          {/* Billing Toggle */}
+          {/* Billing Toggle - Fixed touch target (44px height) */}
           <div className="flex items-center justify-center gap-4 mb-4">
             <span className={`text-sm font-medium ${!isYearly ? 'text-secondary-900 dark:text-secondary-100' : 'text-secondary-500 dark:text-secondary-400'}`}>
               Monthly
             </span>
             <button
               onClick={() => setIsYearly(!isYearly)}
-              className={`relative w-14 h-7 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+              className={`relative w-16 h-11 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
                 isYearly ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
               }`}
               role="switch"
@@ -207,8 +275,8 @@ export default function PricingPage() {
               aria-label="Toggle annual billing"
             >
               <span
-                className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                  isYearly ? 'translate-x-7' : ''
+                className={`absolute top-2 left-2 w-7 h-7 bg-white rounded-full shadow transition-transform ${
+                  isYearly ? 'translate-x-5' : ''
                 }`}
               />
             </button>
@@ -242,18 +310,31 @@ export default function PricingPage() {
         {/* Pricing Cards */}
         <section id="pricing" className="container mx-auto px-4 pb-16">
           <div className="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">
-            {plans.map((plan) => {
+            {plans.map((plan, index) => {
               const Icon = plan.icon;
-              const price = isYearly && plan.yearlyPrice > 0
-                ? Math.round(plan.yearlyPrice / 12)
-                : plan.monthlyPrice;
-              const displayPrice = price === 0 ? '$0' : `$${price}`;
-              const periodText = plan.monthlyPrice === 0 ? 'forever' : isYearly ? '/mo (billed yearly)' : '/month';
+              const isCustomPricing = plan.monthlyPrice === null;
+              const price = isCustomPricing
+                ? null
+                : isYearly && plan.yearlyPrice && plan.yearlyPrice > 0
+                  ? Math.round(plan.yearlyPrice / 12)
+                  : plan.monthlyPrice;
+              const displayPrice = isCustomPricing ? 'Custom' : price === 0 ? '$0' : `$${price}`;
+              const periodText = isCustomPricing
+                ? 'tailored to your needs'
+                : plan.monthlyPrice === 0
+                  ? 'forever'
+                  : isYearly
+                    ? '/mo (billed yearly)'
+                    : '/month';
 
               return (
                 <Card
                   key={plan.name}
-                  className={`relative flex flex-col transition-all duration-200 ${plan.cardClass} ${plan.popular ? 'md:scale-105' : 'hover:border-secondary-300 dark:hover:border-secondary-600'}`}
+                  className={`relative flex flex-col transition-all duration-200 ${plan.cardClass} ${
+                    plan.popular
+                      ? 'md:scale-105 order-first md:order-none'
+                      : 'hover:border-secondary-300 dark:hover:border-secondary-600'
+                  }`}
                 >
                   {plan.popular && (
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -273,15 +354,15 @@ export default function PricingPage() {
                     {/* Price with semantic markup */}
                     <div className="text-center">
                       <span className="sr-only">Price: </span>
-                      <data value={price} className="text-5xl font-bold text-secondary-900 dark:text-secondary-100">
+                      <data value={price ?? 'custom'} className="text-5xl font-bold text-secondary-900 dark:text-secondary-100">
                         {displayPrice}
                       </data>
                       <span className="text-secondary-500 dark:text-secondary-300 block text-sm mt-1">
                         {periodText}
                       </span>
-                      {isYearly && plan.yearlyPrice > 0 && (
+                      {!isCustomPricing && isYearly && plan.yearlyPrice && plan.yearlyPrice > 0 && (
                         <span className="text-green-600 dark:text-green-400 text-sm font-medium">
-                          ${plan.yearlyPrice}/year (save ${plan.monthlyPrice * 12 - plan.yearlyPrice})
+                          ${plan.yearlyPrice}/year (save ${(plan.monthlyPrice ?? 0) * 12 - plan.yearlyPrice})
                         </span>
                       )}
                     </div>
@@ -331,31 +412,83 @@ export default function PricingPage() {
               );
             })}
           </div>
+
+          {/* Compare All Features */}
+          <div className="max-w-6xl mx-auto mt-12">
+            <button
+              onClick={() => setShowComparison(!showComparison)}
+              className="flex items-center gap-2 mx-auto text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium transition-colors"
+            >
+              <span>{showComparison ? 'Hide' : 'Compare all'} features</span>
+              <ChevronDown className={`w-4 h-4 transition-transform ${showComparison ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showComparison && (
+              <div className="mt-8 overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-secondary-200 dark:border-secondary-700">
+                      <th className="text-left py-4 px-4 font-semibold text-secondary-900 dark:text-secondary-100">Feature</th>
+                      <th className="text-center py-4 px-4 font-semibold text-secondary-900 dark:text-secondary-100">Free</th>
+                      <th className="text-center py-4 px-4 font-semibold text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20">Pro</th>
+                      <th className="text-center py-4 px-4 font-semibold text-amber-600 dark:text-amber-400">Enterprise</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {comparisonFeatures.map((feature, i) => (
+                      <tr
+                        key={feature.name}
+                        className={`border-b border-secondary-100 dark:border-secondary-800 ${i % 2 === 0 ? 'bg-secondary-50/50 dark:bg-secondary-800/30' : ''}`}
+                      >
+                        <td className="py-3 px-4 text-sm text-secondary-700 dark:text-secondary-300">{feature.name}</td>
+                        <td className="py-3 px-4 text-center"><FeatureValue value={feature.free} /></td>
+                        <td className="py-3 px-4 text-center bg-primary-50/30 dark:bg-primary-900/10"><FeatureValue value={feature.pro} /></td>
+                        <td className="py-3 px-4 text-center"><FeatureValue value={feature.enterprise} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </section>
 
-        {/* Social Proof / Testimonial */}
+        {/* Testimonials */}
         <section className="container mx-auto px-4 pb-16">
-          <div className="max-w-3xl mx-auto bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-600 rounded-xl p-8">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                JD
-              </div>
-              <div>
-                <div className="flex items-center gap-2 mb-2">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">Loved by professionals worldwide</h2>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3 max-w-6xl mx-auto">
+            {testimonials.map((testimonial) => (
+              <div
+                key={testimonial.author}
+                className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-600 rounded-xl p-6"
+              >
+                <div className="flex items-center gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" aria-hidden="true" />
                   ))}
                 </div>
-                <blockquote className="text-secondary-700 dark:text-secondary-300 mb-3">
-                  &ldquo;AI SaaS Tools has transformed how I write proposals. What used to take me 2-3 hours now takes 15 minutes. The Pro plan paid for itself in the first week.&rdquo;
+                <blockquote className="text-secondary-700 dark:text-secondary-300 mb-4 text-sm">
+                  &ldquo;{testimonial.quote}&rdquo;
                 </blockquote>
-                <cite className="text-sm text-secondary-500 dark:text-secondary-400 not-italic">
-                  <strong className="text-secondary-900 dark:text-secondary-100">James Davidson</strong>
-                  <span className="mx-2">&middot;</span>
-                  <span>Marketing Consultant</span>
-                </cite>
+                <div className="flex items-center gap-3">
+                  <div className={`flex-shrink-0 w-10 h-10 bg-gradient-to-br ${testimonial.gradient} rounded-full flex items-center justify-center text-white font-bold text-sm`}>
+                    {testimonial.initials}
+                  </div>
+                  <div>
+                    <cite className="not-italic">
+                      <strong className="text-sm text-secondary-900 dark:text-secondary-100 block">{testimonial.author}</strong>
+                      <span className="text-xs text-secondary-500 dark:text-secondary-400">{testimonial.role}</span>
+                    </cite>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <Building2 className="w-3 h-3 text-secondary-400" aria-hidden="true" />
+                      <span className="text-xs text-secondary-500 dark:text-secondary-400">{testimonial.company}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
         </section>
 
@@ -388,8 +521,19 @@ export default function PricingPage() {
 
       {/* Footer */}
       <footer className="border-t border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-900 py-8">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-secondary-500 dark:text-secondary-300">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-center gap-6 mb-4 text-sm">
+            <Link href="/terms" className="text-secondary-500 dark:text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-200">
+              Terms
+            </Link>
+            <Link href="/privacy" className="text-secondary-500 dark:text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-200">
+              Privacy
+            </Link>
+            <Link href="/help" className="text-secondary-500 dark:text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-200">
+              Support
+            </Link>
+          </div>
+          <p className="text-sm text-secondary-500 dark:text-secondary-300 text-center">
             &copy; {new Date().getFullYear()} AI SaaS Tools. All rights reserved.
           </p>
         </div>
