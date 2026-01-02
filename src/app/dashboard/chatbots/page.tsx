@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, Bot, MessageSquare, Users, MoreVertical, Settings, Trash2, Eye, ExternalLink } from 'lucide-react';
+import { Plus, Bot, MessageSquare, Users, MoreVertical, Palette, Trash2, Eye, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -199,12 +199,12 @@ function ChatbotCard({ chatbot, onDelete }: ChatbotCardProps) {
                     View Details
                   </Link>
                   <Link
-                    href={`/dashboard/chatbots/${chatbot.id}/settings`}
+                    href={`/dashboard/chatbots/${chatbot.id}/customize`}
                     className="flex items-center gap-2 px-4 py-2 text-sm text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-700"
                     onClick={() => setMenuOpen(false)}
                   >
-                    <Settings className="w-4 h-4" />
-                    Settings
+                    <Palette className="w-4 h-4" />
+                    Customize
                   </Link>
                   {chatbot.is_published && (
                     <a
