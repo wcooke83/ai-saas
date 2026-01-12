@@ -67,6 +67,11 @@ export interface APIResponse<T = unknown> {
     timestamp?: string;
     usage?: {
       tokensUsed?: number;
+      tokensInput?: number;
+      tokensOutput?: number;
+      tokensRaw?: number;
+      tokensBilled?: number;
+      multiplier?: number;
       creditsUsed?: number;
       remaining?: number;
     };

@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useId } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
   Loader2,
   Copy,
@@ -56,7 +56,20 @@ export function EmailWriter({
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState<'subject' | 'body' | 'full' | null>(null);
   const [result, setResult] = useState<GeneratedEmail | null>(null);
-  const [error, setError] = useState<string | null>(null);
+
+  // Generate unique IDs for form fields
+  const formId = useId();
+  const typeId = `${formId}-type`;
+  const toneId = `${formId}-tone`;
+  const senderNameId = `${formId}-sender-name`;
+  const senderRoleId = `${formId}-sender-role`;
+  const senderCompanyId = `${formId}-sender-company`;
+  const recipientNameId = `${formId}-recipient-name`;
+  const recipientRoleId = `${formId}-recipient-role`;
+  const recipientCompanyId = `${formId}-recipient-company`;
+  const purposeId = `${formId}-purpose`;
+  const keyPointsId = `${formId}-key-points`;
+  const ctaId = `${formId}-cta`;
 
   // Form state
   const [formData, setFormData] = useState({
@@ -79,7 +92,6 @@ export function EmailWriter({
 
   const handleGenerate = async () => {
     setIsLoading(true);
-    setError(null);
 
     try {
       const headers: Record<string, string> = {
@@ -105,7 +117,7 @@ export function EmailWriter({
       setResult(data.data);
       onGenerate?.(data.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      toast.error(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setIsLoading(false);
     }
@@ -128,7 +140,7 @@ export function EmailWriter({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5 text-primary-500" />
+            <Mail className="h-5 w-5 text-primary-500" aria-hidden="true" />
             Email Details
           </CardTitle>
         </CardHeader>
@@ -136,16 +148,22 @@ export function EmailWriter({
           {/* Email Type & Tone */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Email Type</label>
+              <label htmlFor={typeId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+                Email Type
+              </label>
               <Select
+                id={typeId}
                 options={EMAIL_TYPES}
                 value={formData.type}
                 onChange={(e) => updateField('type', e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Tone</label>
+              <label htmlFor={toneId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+                Tone
+              </label>
               <Select
+                id={toneId}
                 options={EMAIL_TONES}
                 value={formData.tone}
                 onChange={(e) => updateField('tone', e.target.value)}
@@ -155,26 +173,36 @@ export function EmailWriter({
 
           {/* Sender Info */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Your Name *</label>
+            <label htmlFor={senderNameId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+              Your Name <span className="text-red-500">*</span>
+            </label>
             <Input
+              id={senderNameId}
               placeholder="John Smith"
               value={formData.senderName}
               onChange={(e) => updateField('senderName', e.target.value)}
+              aria-required="true"
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Your Role</label>
+              <label htmlFor={senderRoleId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+                Your Role
+              </label>
               <Input
+                id={senderRoleId}
                 placeholder="Sales Manager"
                 value={formData.senderRole}
                 onChange={(e) => updateField('senderRole', e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Your Company</label>
+              <label htmlFor={senderCompanyId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+                Your Company
+              </label>
               <Input
+                id={senderCompanyId}
                 placeholder="Acme Inc"
                 value={formData.senderCompany}
                 onChange={(e) => updateField('senderCompany', e.target.value)}
@@ -184,26 +212,36 @@ export function EmailWriter({
 
           {/* Recipient Info */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Recipient Name *</label>
+            <label htmlFor={recipientNameId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+              Recipient Name <span className="text-red-500">*</span>
+            </label>
             <Input
+              id={recipientNameId}
               placeholder="Jane Doe"
               value={formData.recipientName}
               onChange={(e) => updateField('recipientName', e.target.value)}
+              aria-required="true"
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Recipient Role</label>
+              <label htmlFor={recipientRoleId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+                Recipient Role
+              </label>
               <Input
+                id={recipientRoleId}
                 placeholder="Marketing Director"
                 value={formData.recipientRole}
                 onChange={(e) => updateField('recipientRole', e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Recipient Company</label>
+              <label htmlFor={recipientCompanyId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+                Recipient Company
+              </label>
               <Input
+                id={recipientCompanyId}
                 placeholder="Tech Corp"
                 value={formData.recipientCompany}
                 onChange={(e) => updateField('recipientCompany', e.target.value)}
@@ -213,28 +251,37 @@ export function EmailWriter({
 
           {/* Purpose */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Purpose of Email *
-              <span className="ml-1 text-xs text-secondary-400">
+            <label htmlFor={purposeId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+              Purpose of Email <span className="text-red-500">*</span>
+              <span className="ml-1 text-xs text-secondary-500 dark:text-secondary-400 font-normal">
                 (min 10 characters)
               </span>
             </label>
             <Textarea
+              id={purposeId}
               placeholder="I want to introduce our new product that helps marketing teams save 10 hours per week on reporting..."
               rows={3}
               value={formData.purpose}
               onChange={(e) => updateField('purpose', e.target.value)}
+              aria-required="true"
+              aria-describedby={`${purposeId}-hint`}
             />
+            <p id={`${purposeId}-hint`} className="text-xs text-secondary-500 dark:text-secondary-400">
+              {formData.purpose.length}/10 characters minimum
+            </p>
           </div>
 
           {/* Key Points */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">
+            <label htmlFor={keyPointsId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
               Key Points to Include
-              <span className="ml-1 text-xs text-secondary-400">(optional)</span>
+              <span className="ml-1 text-xs text-secondary-500 dark:text-secondary-400 font-normal">(optional)</span>
             </label>
             <Textarea
-              placeholder="• Mention our 30-day free trial&#10;• Reference their recent LinkedIn post&#10;• Highlight case study with similar company"
+              id={keyPointsId}
+              placeholder="• Mention our 30-day free trial
+• Reference their recent LinkedIn post
+• Highlight case study with similar company"
               rows={3}
               value={formData.keyPoints}
               onChange={(e) => updateField('keyPoints', e.target.value)}
@@ -243,11 +290,12 @@ export function EmailWriter({
 
           {/* Call to Action */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">
+            <label htmlFor={ctaId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
               Desired Call to Action
-              <span className="ml-1 text-xs text-secondary-400">(optional)</span>
+              <span className="ml-1 text-xs text-secondary-500 dark:text-secondary-400 font-normal">(optional)</span>
             </label>
             <Input
+              id={ctaId}
               placeholder="Schedule a 15-minute demo call"
               value={formData.callToAction}
               onChange={(e) => updateField('callToAction', e.target.value)}
@@ -263,22 +311,16 @@ export function EmailWriter({
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                 Generating...
               </>
             ) : (
               <>
-                <Sparkles className="mr-2 h-4 w-4" />
+                <Sparkles className="mr-2 h-4 w-4" aria-hidden="true" />
                 Generate Email
               </>
             )}
           </Button>
-
-          {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
-              {error}
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -287,7 +329,7 @@ export function EmailWriter({
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary-500" />
+              <Sparkles className="h-5 w-5 text-primary-500" aria-hidden="true" />
               Generated Email
             </CardTitle>
             {result && (
@@ -296,8 +338,9 @@ export function EmailWriter({
                 size="sm"
                 onClick={handleGenerate}
                 disabled={isLoading}
+                aria-label="Regenerate email"
               >
-                <RefreshCw className={cn('h-4 w-4', isLoading && 'animate-spin')} />
+                <RefreshCw className={cn('h-4 w-4', isLoading && 'animate-spin')} aria-hidden="true" />
               </Button>
             )}
           </div>
@@ -308,20 +351,21 @@ export function EmailWriter({
               {/* Subject */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Subject Line</label>
+                  <span className="text-sm font-medium text-secondary-700 dark:text-secondary-300">Subject Line</span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => copyToClipboard(result.subject, 'subject')}
+                    aria-label={copied === 'subject' ? 'Copied!' : 'Copy subject'}
                   >
                     {copied === 'subject' ? (
-                      <Check className="h-4 w-4 text-green-500" />
+                      <Check className="h-4 w-4 text-green-500" aria-hidden="true" />
                     ) : (
-                      <Copy className="h-4 w-4" />
+                      <Copy className="h-4 w-4" aria-hidden="true" />
                     )}
                   </Button>
                 </div>
-                <div className="rounded-md bg-secondary-50 p-3 text-sm">
+                <div className="rounded-md bg-secondary-50 dark:bg-secondary-800 p-3 text-sm text-secondary-900 dark:text-secondary-100">
                   {result.subject}
                 </div>
               </div>
@@ -329,20 +373,21 @@ export function EmailWriter({
               {/* Body */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Email Body</label>
+                  <span className="text-sm font-medium text-secondary-700 dark:text-secondary-300">Email Body</span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => copyToClipboard(result.body, 'body')}
+                    aria-label={copied === 'body' ? 'Copied!' : 'Copy body'}
                   >
                     {copied === 'body' ? (
-                      <Check className="h-4 w-4 text-green-500" />
+                      <Check className="h-4 w-4 text-green-500" aria-hidden="true" />
                     ) : (
-                      <Copy className="h-4 w-4" />
+                      <Copy className="h-4 w-4" aria-hidden="true" />
                     )}
                   </Button>
                 </div>
-                <div className="rounded-md bg-secondary-50 p-4 text-sm whitespace-pre-wrap">
+                <div className="rounded-md bg-secondary-50 dark:bg-secondary-800 p-4 text-sm text-secondary-900 dark:text-secondary-100 whitespace-pre-wrap">
                   {result.body}
                 </div>
               </div>
@@ -357,20 +402,20 @@ export function EmailWriter({
               >
                 {copied === 'full' ? (
                   <>
-                    <Check className="mr-2 h-4 w-4 text-green-500" />
+                    <Check className="mr-2 h-4 w-4 text-green-500" aria-hidden="true" />
                     Copied!
                   </>
                 ) : (
                   <>
-                    <Copy className="mr-2 h-4 w-4" />
+                    <Copy className="mr-2 h-4 w-4" aria-hidden="true" />
                     Copy Full Email
                   </>
                 )}
               </Button>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center text-secondary-400">
-              <Mail className="mb-4 h-12 w-12" />
+            <div className="flex flex-col items-center justify-center py-12 text-center text-secondary-500 dark:text-secondary-400">
+              <Mail className="mb-4 h-12 w-12" aria-hidden="true" />
               <p className="text-sm">
                 Fill in the details and click Generate to create your email
               </p>

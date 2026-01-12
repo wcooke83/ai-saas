@@ -109,3 +109,6 @@ export async function logAuditEvent(event: {
     console.error('Audit log error:', error);
   }
 }
+
+// Alias for clarity when importing in chatbot modules
+export const createAdminClient = createClient;

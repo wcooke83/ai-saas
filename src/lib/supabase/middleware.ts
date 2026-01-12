@@ -44,8 +44,13 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Refresh session if expired
-  await supabase.auth.getSession();
+  // Refresh session if expired and get user
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Add user info to response headers for middleware to check
+  if (user) {
+    response.headers.set('x-user-id', user.id);
+  }
 
   return response;
 }
@@ -55,9 +60,7 @@ export async function updateSession(request: NextRequest) {
  */
 export const protectedRoutes = [
   '/dashboard',
-  '/settings',
-  '/billing',
-  '/api-keys',
+  '/admin',
 ];
 
 export const authRoutes = ['/login', '/signup', '/forgot-password'];

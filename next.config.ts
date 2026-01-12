@@ -14,6 +14,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack: (config, { dev }) => {
+    if (dev) {
+      // Use memory cache in dev to reduce disk I/O
+      config.cache = {
+        type: 'memory',
+      };
+    }
+    return config;
+  },
   async headers() {
     return [
       {

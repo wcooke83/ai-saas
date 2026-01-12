@@ -1,10 +1,84 @@
 /**
  * AI Provider Abstraction
- * Unified interface for Claude and OpenAI with automatic fallback
+ * Unified interface for Claude, OpenAI, Local API with automatic fallback
+ * Uses database configuration from /dashboard/admin/ai-config
  */
 
-import { anthropic, CLAUDE_MODELS, type ClaudeModel } from './providers/anthropic';
-import { openai, OPENAI_MODELS, type OpenAIModel } from './providers/openai';
+import { anthropic } from './providers/anthropic';
+import { openai } from './providers/openai';
+import { executeLocalAI, isLocalAIAvailable } from './providers/local';
+import { getDefaultModel, getAIModels } from '@/lib/settings';
+import type { AIModelWithProvider } from '@/types/ai-models';
+
+// ===================
+// DATABASE MODEL SELECTION
+// ===================
+
+// Cache for active model
+let activeModelCache: AIModelWithProvider | null = null;
+let activeModelCacheTime = 0;
+const MODEL_CACHE_TTL = 30 * 1000; // 30 seconds
+
+/**
+ * Get the active AI model from database configuration
+ * Uses the default model, falling back to first enabled model
+ */
+async function getActiveModel(): Promise<AIModelWithProvider | null> {
+  const now = Date.now();
+
+  // Return cached model if still valid
+  if (activeModelCache && now - activeModelCacheTime < MODEL_CACHE_TTL) {
+    return activeModelCache;
+  }
+
+  try {
+    // Get default model first
+    let model = await getDefaultModel();
+
+    // If no default, get first enabled model
+    if (!model) {
+      const models = await getAIModels();
+      model = models[0] || null;
+    }
+
+    activeModelCache = model;
+    activeModelCacheTime = now;
+
+    return model;
+  } catch (error) {
+    console.error('Failed to get active model:', error);
+    return activeModelCache; // Return stale cache on error
+  }
+}
+
+/**
+ * Map provider slug to internal Provider type
+ */
+function mapProviderSlugToType(slug: string): Provider | null {
+  switch (slug) {
+    case 'anthropic':
+      return 'claude';
+    case 'openai':
+      return 'openai';
+    case 'local':
+      return 'local';
+    case 'xai':
+    case 'google':
+    case 'meta':
+      // These could be added in the future
+      return null;
+    default:
+      return null;
+  }
+}
+
+/**
+ * Clear the active model cache
+ */
+export function clearActiveModelCache(): void {
+  activeModelCache = null;
+  activeModelCacheTime = 0;
+}
 
 // ===================
 // MOCK MODE
@@ -199,7 +273,7 @@ Key elements that would be included:
 // TYPES
 // ===================
 
-export type Provider = 'claude' | 'openai' | 'mock';
+export type Provider = 'claude' | 'openai' | 'local' | 'mock';
 export type ModelTier = 'fast' | 'balanced' | 'powerful';
 
 export interface GenerateOptions {
@@ -233,6 +307,35 @@ export function isMockMode(): boolean {
   return MOCK_MODE;
 }
 
+/**
+ * Get the currently active model and its provider from the database
+ * This is the primary way to determine which AI to use
+ */
+export async function getActiveModelAndProvider(): Promise<{
+  model: AIModelWithProvider;
+  provider: Provider;
+} | null> {
+  if (MOCK_MODE) return null;
+
+  const model = await getActiveModel();
+  if (!model || !model.provider) return null;
+
+  const providerType = mapProviderSlugToType(model.provider.slug);
+  if (!providerType) return null;
+
+  // Check if the provider is actually available
+  if (providerType === 'local') {
+    const available = await isLocalAIAvailable();
+    if (!available) return null;
+  } else if (providerType === 'claude' && !anthropic) {
+    return null;
+  } else if (providerType === 'openai' && !openai) {
+    return null;
+  }
+
+  return { model, provider: providerType };
+}
+
 export function getAvailableProvider(): Provider | null {
   if (MOCK_MODE) return 'mock';
   if (anthropic) return 'claude';
@@ -240,10 +343,33 @@ export function getAvailableProvider(): Provider | null {
   return null;
 }
 
+export async function getAvailableProviderAsync(): Promise<Provider | null> {
+  if (MOCK_MODE) return 'mock';
+
+  // Get provider from database configuration
+  const activeModelInfo = await getActiveModelAndProvider();
+  if (activeModelInfo) {
+    return activeModelInfo.provider;
+  }
+
+  // No enabled providers in database
+  return null;
+}
+
 export function isProviderAvailable(provider: Provider): boolean {
   if (provider === 'mock') return MOCK_MODE;
   if (provider === 'claude') return !!anthropic && !MOCK_MODE;
   if (provider === 'openai') return !!openai && !MOCK_MODE;
+  // Local provider availability is async, use isProviderAvailableAsync for accurate check
+  if (provider === 'local') return true; // Optimistic, will fail at runtime if not available
+  return false;
+}
+
+export async function isProviderAvailableAsync(provider: Provider): Promise<boolean> {
+  if (provider === 'mock') return MOCK_MODE;
+  if (provider === 'claude') return !!anthropic && !MOCK_MODE;
+  if (provider === 'openai') return !!openai && !MOCK_MODE;
+  if (provider === 'local') return await isLocalAIAvailable();
   return false;
 }
 
@@ -256,8 +382,6 @@ export async function generate(
   options: GenerateOptions = {}
 ): Promise<GenerateResult> {
   const {
-    provider = 'claude',
-    model = 'balanced',
     maxTokens = 4096,
     temperature = 0.7,
     systemPrompt,
@@ -266,13 +390,40 @@ export async function generate(
 
   const startTime = Date.now();
 
-  // Try preferred provider, fallback if unavailable
-  const activeProvider = isProviderAvailable(provider)
-    ? provider
-    : getAvailableProvider();
+  // Get model and provider from database configuration
+  const activeModelInfo = await getActiveModelAndProvider();
+  const activeProvider = activeModelInfo?.provider ?? (MOCK_MODE ? 'mock' : null);
+  const activeModel = activeModelInfo?.model;
 
   if (!activeProvider) {
-    throw new Error('No AI provider available. Check API keys.');
+    throw new Error('No AI provider available. Enable a provider and model in AI Config settings.');
+  }
+
+  // Use model's max_tokens if not specified, or the passed value
+  const effectiveMaxTokens = activeModel?.max_tokens && maxTokens === 4096
+    ? activeModel.max_tokens
+    : maxTokens;
+
+  // Local provider
+  if (activeProvider === 'local') {
+    const fullPrompt = systemPrompt
+      ? `${systemPrompt}\n\n---\n\n${prompt}`
+      : prompt;
+
+    const response = await executeLocalAI(fullPrompt);
+
+    if (!response.success) {
+      throw new Error(response.error || 'Local AI request failed');
+    }
+
+    return {
+      content: response.text,
+      tokensInput: Math.ceil(fullPrompt.length / 4),
+      tokensOutput: Math.ceil(response.text.length / 4),
+      model: activeModel?.api_model_id || `local-${response.provider || 'unknown'}`,
+      provider: 'local',
+      durationMs: Date.now() - startTime,
+    };
   }
 
   // Mock mode for testing
@@ -298,10 +449,11 @@ export async function generate(
     };
   }
 
-  if (activeProvider === 'claude' && anthropic) {
+  // Claude/Anthropic provider
+  if (activeProvider === 'claude' && anthropic && activeModel) {
     const response = await anthropic.messages.create({
-      model: CLAUDE_MODELS[model as ClaudeModel],
-      max_tokens: maxTokens,
+      model: activeModel.api_model_id,
+      max_tokens: effectiveMaxTokens,
       temperature,
       system: systemPrompt,
       stop_sequences: stopSequences,
@@ -314,16 +466,17 @@ export async function generate(
       content: textContent?.text || '',
       tokensInput: response.usage.input_tokens,
       tokensOutput: response.usage.output_tokens,
-      model: CLAUDE_MODELS[model as ClaudeModel],
+      model: activeModel.api_model_id,
       provider: 'claude',
       durationMs: Date.now() - startTime,
     };
   }
 
-  if (activeProvider === 'openai' && openai) {
+  // OpenAI provider
+  if (activeProvider === 'openai' && openai && activeModel) {
     const response = await openai.chat.completions.create({
-      model: OPENAI_MODELS[model as OpenAIModel],
-      max_tokens: maxTokens,
+      model: activeModel.api_model_id,
+      max_tokens: effectiveMaxTokens,
       temperature,
       stop: stopSequences,
       messages: [
@@ -338,13 +491,13 @@ export async function generate(
       content: response.choices[0]?.message?.content || '',
       tokensInput: response.usage?.prompt_tokens || 0,
       tokensOutput: response.usage?.completion_tokens || 0,
-      model: OPENAI_MODELS[model as OpenAIModel],
+      model: activeModel.api_model_id,
       provider: 'openai',
       durationMs: Date.now() - startTime,
     };
   }
 
-  throw new Error('No AI provider available');
+  throw new Error('No AI provider available. Enable a provider and model in AI Config settings.');
 }
 
 // ===================
@@ -356,8 +509,6 @@ export async function* generateStream(
   options: GenerateOptions = {}
 ): AsyncGenerator<string, GenerateResult> {
   const {
-    provider = 'claude',
-    model = 'balanced',
     maxTokens = 4096,
     temperature = 0.7,
     systemPrompt,
@@ -368,12 +519,49 @@ export async function* generateStream(
   let tokensOutput = 0;
   let fullContent = '';
 
-  const activeProvider = isProviderAvailable(provider)
-    ? provider
-    : getAvailableProvider();
+  // Get model and provider from database configuration
+  const activeModelInfo = await getActiveModelAndProvider();
+  const activeProvider = activeModelInfo?.provider ?? (MOCK_MODE ? 'mock' : null);
+  const activeModel = activeModelInfo?.model;
 
   if (!activeProvider) {
-    throw new Error('No AI provider available');
+    throw new Error('No AI provider available. Enable a provider and model in AI Config settings.');
+  }
+
+  // Use model's max_tokens if not specified, or the passed value
+  const effectiveMaxTokens = activeModel?.max_tokens && maxTokens === 4096
+    ? activeModel.max_tokens
+    : maxTokens;
+
+  // Local provider (simulated streaming - yields chunks of the full response)
+  if (activeProvider === 'local') {
+    const fullPrompt = systemPrompt
+      ? `${systemPrompt}\n\n---\n\n${prompt}`
+      : prompt;
+
+    const response = await executeLocalAI(fullPrompt);
+
+    if (!response.success) {
+      throw new Error(response.error || 'Local AI request failed');
+    }
+
+    // Simulate streaming by yielding words
+    const words = response.text.split(' ');
+    for (const word of words) {
+      await delay(20);
+      fullContent += (fullContent ? ' ' : '') + word;
+      tokensOutput++;
+      yield word + ' ';
+    }
+
+    return {
+      content: fullContent,
+      tokensInput: Math.ceil(fullPrompt.length / 4),
+      tokensOutput,
+      model: activeModel?.api_model_id || `local-${response.provider || 'unknown'}`,
+      provider: 'local',
+      durationMs: Date.now() - startTime,
+    };
   }
 
   // Mock mode for testing (simulated streaming)
@@ -398,10 +586,11 @@ export async function* generateStream(
     };
   }
 
-  if (activeProvider === 'claude' && anthropic) {
+  // Claude/Anthropic provider
+  if (activeProvider === 'claude' && anthropic && activeModel) {
     const stream = anthropic.messages.stream({
-      model: CLAUDE_MODELS[model as ClaudeModel],
-      max_tokens: maxTokens,
+      model: activeModel.api_model_id,
+      max_tokens: effectiveMaxTokens,
       temperature,
       system: systemPrompt,
       messages: [{ role: 'user', content: prompt }],
@@ -429,16 +618,17 @@ export async function* generateStream(
       content: fullContent,
       tokensInput,
       tokensOutput,
-      model: CLAUDE_MODELS[model as ClaudeModel],
+      model: activeModel.api_model_id,
       provider: 'claude',
       durationMs: Date.now() - startTime,
     };
   }
 
-  if (activeProvider === 'openai' && openai) {
+  // OpenAI provider
+  if (activeProvider === 'openai' && openai && activeModel) {
     const stream = await openai.chat.completions.create({
-      model: OPENAI_MODELS[model as OpenAIModel],
-      max_tokens: maxTokens,
+      model: activeModel.api_model_id,
+      max_tokens: effectiveMaxTokens,
       temperature,
       stream: true,
       messages: [
@@ -465,13 +655,13 @@ export async function* generateStream(
       content: fullContent,
       tokensInput,
       tokensOutput,
-      model: OPENAI_MODELS[model as OpenAIModel],
+      model: activeModel.api_model_id,
       provider: 'openai',
       durationMs: Date.now() - startTime,
     };
   }
 
-  throw new Error('No AI provider available');
+  throw new Error('No AI provider available. Enable a provider and model in AI Config settings.');
 }
 
 // ===================

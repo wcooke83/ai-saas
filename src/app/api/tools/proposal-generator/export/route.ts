@@ -5,7 +5,7 @@
 
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { authenticate } from '@/lib/auth/session';
+import { authenticate, requireToolAccess } from '@/lib/auth/session';
 import { errorResponse, APIError, parseBody } from '@/lib/api/utils';
 import {
   type ProposalSection,
@@ -55,6 +55,11 @@ export async function POST(req: NextRequest) {
   try {
     // 1. Authenticate
     const user = await authenticate(req);
+
+    // 1.5. Check tool access (if authenticated)
+    if (user) {
+      await requireToolAccess(user, 'proposal-generator');
+    }
 
     // 2. Validate input
     const input = await parseBody(req, exportInputSchema);

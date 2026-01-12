@@ -41,3 +41,14 @@ screenshots/
 # Misc
 *.log
 *.tsbuildinfo
+.mcp.json
+
+# Test artifacts
+*.png
+playwright-report/
+playwright.config.ts
+tests/
+*.mjs
+capture-*.ts
+debug-*.ts
+test-*.ts

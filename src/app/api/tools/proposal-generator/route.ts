@@ -11,9 +11,10 @@ import {
   PROPOSAL_SYSTEM_PROMPT,
   DEFAULT_SECTIONS_BY_TYPE,
 } from '@/lib/ai/prompts/proposal-generator';
-import { authenticate } from '@/lib/auth/session';
+import { authenticate, requireToolAccess } from '@/lib/auth/session';
 import { rateLimit, getRateLimitForTier, type RateLimitTier } from '@/lib/api/rate-limit';
-import { checkUsageLimit, incrementUsage } from '@/lib/usage/tracker';
+import { checkUsageLimit, incrementTokenUsage, logGeneration } from '@/lib/usage/tracker';
+import { logAPICall } from '@/lib/api/logging';
 import { successResponse, errorResponse, APIError, parseBody, getClientIP } from '@/lib/api/utils';
 import {
   type ProposalType,
@@ -79,6 +80,11 @@ export async function POST(req: NextRequest) {
   try {
     // 1. Authenticate (session or API key)
     const user = await authenticate(req);
+
+    // 1.5. Check tool access (if authenticated)
+    if (user) {
+      await requireToolAccess(user, 'proposal-generator');
+    }
 
     // 2. Rate limiting
     const rateLimitKey = user?.id || getClientIP(req);
@@ -147,7 +153,6 @@ export async function POST(req: NextRequest) {
 
     // 8. Generate proposal
     const result = await generate(prompt, {
-      provider: 'claude',
       model: 'powerful', // Use powerful model for proposals
       systemPrompt: PROPOSAL_SYSTEM_PROMPT,
       temperature: 0.7,
@@ -157,12 +162,54 @@ export async function POST(req: NextRequest) {
     // 9. Parse response
     const sections = parseProposalResponse(result.content, selectedSections);
 
-    // 10. Track usage
+    // 10. Track usage with provider-specific token multiplier
+    let usageInfo = { rawTokens: 0, billedTokens: 0, multiplier: 1 };
     if (user) {
-      await incrementUsage(user.id, 2);
+      usageInfo = await incrementTokenUsage(
+        user.id,
+        result.tokensInput,
+        result.tokensOutput,
+        result.provider
+      );
+
+      // Log to generations table for usage history
+      await logGeneration({
+        userId: user.id,
+        toolId: 'proposal-generator',
+        type: 'proposal',
+        prompt: prompt,
+        output: result.content,
+        model: result.model,
+        tokensInput: result.tokensInput,
+        tokensOutput: result.tokensOutput,
+        durationMs: result.durationMs,
+        status: 'completed',
+        metadata: {
+          proposalType: input.proposalType,
+          industry: input.industry,
+          sectionCount: sections.length,
+        },
+      });
     }
 
-    // 11. Return response
+    // 11. Log the API call
+    await logAPICall({
+      user_id: user?.id,
+      endpoint: '/api/tools/proposal-generator',
+      method: 'POST',
+      request_body: { ...input, selectedSections } as Record<string, unknown>,
+      status_code: 200,
+      provider: result.provider,
+      model: result.model,
+      tokens_input: result.tokensInput,
+      tokens_output: result.tokensOutput,
+      tokens_billed: usageInfo.billedTokens,
+      duration_ms: result.durationMs,
+      ip_address: getClientIP(req),
+      user_agent: req.headers.get('user-agent') || undefined,
+    });
+
+    // 12. Return response
     return successResponse(
       {
         sections,
@@ -175,8 +222,11 @@ export async function POST(req: NextRequest) {
       },
       {
         usage: {
-          tokensUsed: result.tokensInput + result.tokensOutput,
-          creditsUsed: 2,
+          tokensInput: result.tokensInput,
+          tokensOutput: result.tokensOutput,
+          tokensRaw: usageInfo.rawTokens,
+          tokensBilled: usageInfo.billedTokens,
+          multiplier: usageInfo.multiplier,
         },
       }
     );

@@ -29,7 +29,6 @@ export function ProposalGenerator({
     sections,
     isGenerating,
     regeneratingSection,
-    error,
     hasGenerated,
     updateInput,
     setProposalType,
@@ -40,7 +39,6 @@ export function ProposalGenerator({
     reorderSections,
     toggleSectionSelection,
     resetProposal,
-    clearError,
   } = useProposalState(apiEndpoint);
 
   const handleGenerate = async () => {
@@ -82,7 +80,6 @@ export function ProposalGenerator({
           regeneratingSection={regeneratingSection}
           hasGenerated={hasGenerated}
           isGenerating={isGenerating}
-          error={error}
           isPro={isPro}
           branding={branding || {
             companyName: input.senderCompany || 'Your Company',
@@ -102,7 +99,6 @@ export function ProposalGenerator({
           onRegenerate={handleRegenerate}
           onReorder={reorderSections}
           onReset={resetProposal}
-          onClearError={clearError}
         />
       </div>
     </div>

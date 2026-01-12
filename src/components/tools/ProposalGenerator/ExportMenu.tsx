@@ -1,10 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { pdf } from '@react-pdf/renderer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ProposalDocument } from '@/lib/pdf/templates/proposal';
 import { generateProposalDocx } from '@/lib/docx/proposal-generator';
 import type { ProposalSection, ExportFormat } from '@/types/proposal';
 import { Download, FileText, File, FileType, ChevronDown, Loader2 } from 'lucide-react';
@@ -61,7 +59,10 @@ export function ExportMenu({
         const markdown = generateMarkdownForPDF(title, enabledSections, branding);
         downloadBlob(new Blob([markdown], { type: 'text/markdown' }), `${sanitizeFilename(title)}.md`);
       } else if (format === 'pdf') {
-        // Generate PDF client-side using react-pdf
+        // Dynamically import react-pdf to reduce initial bundle size
+        const { pdf } = await import('@react-pdf/renderer');
+        const { ProposalDocument } = await import('@/lib/pdf/templates/proposal');
+
         const doc = (
           <ProposalDocument
             title={title}
@@ -137,25 +138,28 @@ export function ExportMenu({
           />
 
           {/* Dropdown */}
-          <div className="absolute right-0 top-full z-20 mt-2 w-56 rounded-md border bg-white p-2 shadow-lg">
+          <div
+            className="absolute right-0 top-full z-20 mt-2 w-56 rounded-md border p-2 shadow-lg"
+            style={{ backgroundColor: 'rgb(var(--modal-bg))', borderColor: 'rgb(var(--modal-border))' }}
+          >
             {/* Markdown */}
             <button
-              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm hover:bg-secondary-50"
+              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-800"
               onClick={() => handleExport('markdown')}
               disabled={!!isExporting}
             >
               <FileText className="h-4 w-4" />
               <div className="flex-1">
                 <div>Markdown</div>
-                <div className="text-xs text-secondary-400">.md file</div>
+                <div className="text-xs text-secondary-400 dark:text-secondary-500">.md file</div>
               </div>
             </button>
 
             {/* PDF */}
             <button
-              className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm ${
+              className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-secondary-700 dark:text-secondary-300 ${
                 canExportPDF
-                  ? 'hover:bg-secondary-50'
+                  ? 'hover:bg-secondary-50 dark:hover:bg-secondary-800'
                   : 'cursor-not-allowed opacity-50'
               }`}
               onClick={() => handleExport('pdf')}
@@ -167,15 +171,15 @@ export function ExportMenu({
                   PDF
                   {!isPro && <Badge variant="secondary" className="text-xs">Watermarked</Badge>}
                 </div>
-                <div className="text-xs text-secondary-400">.pdf file</div>
+                <div className="text-xs text-secondary-400 dark:text-secondary-500">.pdf file</div>
               </div>
             </button>
 
             {/* DOCX */}
             <button
-              className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm ${
+              className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-secondary-700 dark:text-secondary-300 ${
                 canExportDOCX
-                  ? 'hover:bg-secondary-50'
+                  ? 'hover:bg-secondary-50 dark:hover:bg-secondary-800'
                   : 'cursor-not-allowed opacity-50'
               }`}
               onClick={() => handleExport('docx')}
@@ -187,15 +191,15 @@ export function ExportMenu({
                   Word Document
                   {!canExportDOCX && <Badge variant="secondary" className="text-xs">Pro</Badge>}
                 </div>
-                <div className="text-xs text-secondary-400">.docx file</div>
+                <div className="text-xs text-secondary-400 dark:text-secondary-500">.docx file</div>
               </div>
             </button>
 
-            <div className="my-2 border-t" />
+            <div className="my-2" style={{ borderTop: '1px solid rgb(var(--modal-border))' }} />
 
             {/* Copy All */}
             <button
-              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm hover:bg-secondary-50"
+              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-800"
               onClick={handleCopyAll}
             >
               <FileText className="h-4 w-4" />

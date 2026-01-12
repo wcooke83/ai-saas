@@ -55,7 +55,7 @@ function ProposalGeneratorEmbed() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-4">
+    <div className="min-h-screen p-4" style={{ backgroundColor: 'rgb(var(--card-bg))' }}>
       <ProposalGenerator
         apiKey={apiKey || undefined}
         isPro={isPro}
@@ -63,13 +63,13 @@ function ProposalGeneratorEmbed() {
       />
 
       {/* Branding */}
-      <div className="mt-6 text-center text-xs text-secondary-400">
+      <div className="mt-6 text-center text-xs text-secondary-400 dark:text-secondary-500">
         Powered by{' '}
         <a
           href="https://yourdomain.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary-500 hover:underline"
+          className="text-primary-500 dark:text-primary-400 hover:underline dark:hover:text-primary-300"
         >
           AI SaaS Tools
         </a>
@@ -80,7 +80,7 @@ function ProposalGeneratorEmbed() {
 
 export default function ProposalGeneratorEmbedPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen p-8 text-center text-secondary-500 dark:text-secondary-400" style={{ backgroundColor: 'rgb(var(--card-bg))' }}>Loading...</div>}>
       <ProposalGeneratorEmbed />
     </Suspense>
   );

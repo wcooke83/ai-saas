@@ -95,7 +95,7 @@ export function SectionEditor({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {canReorder && (
-              <GripVertical className="h-5 w-5 cursor-move text-secondary-400" />
+              <GripVertical className="h-5 w-5 cursor-move text-secondary-400 dark:text-secondary-500" />
             )}
             <h3 className="font-medium">{section.title}</h3>
             {section.isEdited && (
@@ -199,8 +199,8 @@ export function SectionEditor({
         <CardContent className="pt-0">
           {/* Regenerate instructions */}
           {showRegenerateInput && (
-            <div className="mb-4 space-y-2 rounded-md bg-secondary-50 p-3">
-              <label className="text-sm font-medium">
+            <div className="mb-4 space-y-2 rounded-md bg-secondary-50 dark:bg-secondary-800 p-3">
+              <label className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
                 Regeneration Instructions (optional)
               </label>
               <Textarea
@@ -250,8 +250,8 @@ export function SectionEditor({
               </div>
             </div>
           ) : (
-            <div className="prose prose-sm max-w-none">
-              <div className="whitespace-pre-wrap text-sm text-secondary-700">
+            <div className="prose prose-sm max-w-none dark:prose-invert">
+              <div className="whitespace-pre-wrap text-sm text-secondary-700 dark:text-secondary-300">
                 {section.content}
               </div>
             </div>

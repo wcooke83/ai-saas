@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useId } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,7 +15,6 @@ import {
   Mail,
   Sparkles,
   RefreshCw,
-  AlertCircle,
   ChevronDown,
   ChevronUp,
   Download,
@@ -67,7 +67,6 @@ export function EmailSequenceBuilder({
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [result, setResult] = useState<GeneratedSequence | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [expandedEmails, setExpandedEmails] = useState<Set<number>>(new Set([0]));
 
   const formId = useId();
@@ -95,7 +94,6 @@ export function EmailSequenceBuilder({
 
   const handleGenerate = async () => {
     setIsLoading(true);
-    setError(null);
 
     try {
       const headers: Record<string, string> = {
@@ -122,7 +120,7 @@ export function EmailSequenceBuilder({
       setExpandedEmails(new Set([0]));
       onGenerate?.(data.data.sequence);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      toast.error(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setIsLoading(false);
     }
@@ -469,17 +467,6 @@ export function EmailSequenceBuilder({
               </>
             )}
           </Button>
-
-          {error && (
-            <div
-              role="alert"
-              aria-live="polite"
-              className="flex items-center gap-2 rounded-md bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-700 dark:text-red-400"
-            >
-              <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-              {error}
-            </div>
-          )}
         </CardContent>
       </Card>
 

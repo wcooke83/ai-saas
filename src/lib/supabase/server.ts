@@ -38,18 +38,20 @@ export async function createClient() {
 }
 
 /**
- * Get current session (convenience helper)
+ * Get current user (convenience helper)
+ * Uses getUser() for security - validates with Supabase Auth server
  */
 export async function getSession() {
   const supabase = await createClient();
-  const { data: { session }, error } = await supabase.auth.getSession();
+  const { data: { user }, error } = await supabase.auth.getUser();
 
-  if (error) {
-    console.error('Session error:', error);
+  if (error || !user) {
+    if (error) console.error('Auth error:', error);
     return null;
   }
 
-  return session;
+  // Return a session-like object for backwards compatibility
+  return { user };
 }
 
 /**

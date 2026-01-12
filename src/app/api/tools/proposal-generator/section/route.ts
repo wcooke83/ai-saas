@@ -10,7 +10,7 @@ import {
   buildSectionRegenerationPrompt,
   PROPOSAL_SYSTEM_PROMPT,
 } from '@/lib/ai/prompts/proposal-generator';
-import { authenticate } from '@/lib/auth/session';
+import { authenticate, requireToolAccess } from '@/lib/auth/session';
 import { rateLimit, getRateLimitForTier, type RateLimitTier } from '@/lib/api/rate-limit';
 import { checkUsageLimit, incrementUsage } from '@/lib/usage/tracker';
 import { successResponse, errorResponse, APIError, parseBody, getClientIP } from '@/lib/api/utils';
@@ -71,6 +71,9 @@ export async function POST(req: NextRequest) {
     if (!user) {
       throw APIError.unauthorized('Authentication required for section regeneration');
     }
+
+    // 1.5. Check tool access
+    await requireToolAccess(user, 'proposal-generator');
 
     // 2. Check tier (Pro feature)
     const userTier = user.plan === 'pro' || user.plan === 'enterprise' ? 'pro' : 'free';

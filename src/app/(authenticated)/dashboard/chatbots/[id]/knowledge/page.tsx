@@ -1,0 +1,399 @@
+'use client';
+
+import { useState, useEffect, use } from 'react';
+import Link from 'next/link';
+import { toast } from 'sonner';
+import {
+  ArrowLeft,
+  FileText,
+  Globe,
+  MessageSquare,
+  Type,
+  Plus,
+  Trash2,
+  Loader2,
+  CheckCircle,
+  XCircle,
+  Clock,
+  RefreshCw,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { KnowledgeSource } from '@/lib/chatbots/types';
+
+interface KnowledgePageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function KnowledgePage({ params }: KnowledgePageProps) {
+  const { id } = use(params);
+  const [sources, setSources] = useState<KnowledgeSource[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [addMode, setAddMode] = useState<'url' | 'text' | 'qa' | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Form states
+  const [urlInput, setUrlInput] = useState('');
+  const [textInput, setTextInput] = useState('');
+  const [textName, setTextName] = useState('');
+  const [qaQuestion, setQaQuestion] = useState('');
+  const [qaAnswer, setQaAnswer] = useState('');
+
+  const fetchSources = async () => {
+    try {
+      const response = await fetch(`/api/chatbots/${id}/knowledge`);
+      if (!response.ok) throw new Error('Failed to fetch sources');
+      const data = await response.json();
+      setSources(data.data.sources);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSources();
+    // Poll for processing status
+    const interval = setInterval(() => {
+      if (sources.some((s) => s.status === 'pending' || s.status === 'processing')) {
+        fetchSources();
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [id]);
+
+  const handleAddSource = async () => {
+    setSubmitting(true);
+
+    try {
+      let body: Record<string, unknown> = {};
+
+      switch (addMode) {
+        case 'url':
+          if (!urlInput.trim()) throw new Error('URL is required');
+          body = { type: 'url', url: urlInput.trim() };
+          break;
+        case 'text':
+          if (!textInput.trim()) throw new Error('Content is required');
+          body = { type: 'text', content: textInput.trim(), name: textName.trim() || undefined };
+          break;
+        case 'qa':
+          if (!qaQuestion.trim() || !qaAnswer.trim()) throw new Error('Both question and answer are required');
+          body = { type: 'qa_pair', question: qaQuestion.trim(), answer: qaAnswer.trim() };
+          break;
+      }
+
+      const response = await fetch(`/api/chatbots/${id}/knowledge`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error?.message || 'Failed to add source');
+      }
+
+      // Reset form and refresh
+      setAddMode(null);
+      setUrlInput('');
+      setTextInput('');
+      setTextName('');
+      setQaQuestion('');
+      setQaAnswer('');
+      await fetchSources();
+      toast.success('Knowledge source added');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to add source');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteSource = async (sourceId: string) => {
+    if (!confirm('Are you sure you want to delete this source?')) return;
+
+    try {
+      const response = await fetch(`/api/chatbots/${id}/knowledge/${sourceId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete source');
+      setSources(sources.filter((s) => s.id !== sourceId));
+      toast.success('Knowledge source deleted');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete source');
+    }
+  };
+
+  const sourceTypeIcons = {
+    document: FileText,
+    url: Globe,
+    qa_pair: MessageSquare,
+    text: Type,
+  };
+
+  const statusStyles = {
+    pending: { icon: Clock, color: 'text-yellow-500', bg: 'bg-yellow-100 dark:bg-yellow-900/30' },
+    processing: { icon: Loader2, color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-900/30' },
+    completed: { icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-100 dark:bg-green-900/30' },
+    failed: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-100 dark:bg-red-900/30' },
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <div className="grid gap-4">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-24" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <Link
+            href={`/dashboard/chatbots/${id}`}
+            className="inline-flex items-center text-sm text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100 mb-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Back to Chatbot
+          </Link>
+          <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+            Knowledge Base
+          </h1>
+          <p className="text-secondary-600 dark:text-secondary-400 mt-1">
+            Train your chatbot with custom knowledge
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={fetchSources}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      {/* Add Source Cards */}
+      {!addMode && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button
+            onClick={() => setAddMode('url')}
+            className="p-6 text-left rounded-lg border-2 border-dashed border-secondary-300 dark:border-secondary-700 hover:border-primary-500 dark:hover:border-primary-500 transition-colors"
+          >
+            <Globe className="w-8 h-8 text-primary-500 mb-3" />
+            <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">
+              Add Website URL
+            </h3>
+            <p className="text-sm text-secondary-500 mt-1">
+              Scrape content from a webpage
+            </p>
+          </button>
+
+          <button
+            onClick={() => setAddMode('text')}
+            className="p-6 text-left rounded-lg border-2 border-dashed border-secondary-300 dark:border-secondary-700 hover:border-primary-500 dark:hover:border-primary-500 transition-colors"
+          >
+            <Type className="w-8 h-8 text-primary-500 mb-3" />
+            <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">
+              Add Text Content
+            </h3>
+            <p className="text-sm text-secondary-500 mt-1">
+              Paste text or documentation
+            </p>
+          </button>
+
+          <button
+            onClick={() => setAddMode('qa')}
+            className="p-6 text-left rounded-lg border-2 border-dashed border-secondary-300 dark:border-secondary-700 hover:border-primary-500 dark:hover:border-primary-500 transition-colors"
+          >
+            <MessageSquare className="w-8 h-8 text-primary-500 mb-3" />
+            <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">
+              Add Q&A Pair
+            </h3>
+            <p className="text-sm text-secondary-500 mt-1">
+              Add a specific question and answer
+            </p>
+          </button>
+        </div>
+      )}
+
+      {/* Add Form */}
+      {addMode && (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {addMode === 'url' && 'Add Website URL'}
+              {addMode === 'text' && 'Add Text Content'}
+              {addMode === 'qa' && 'Add Q&A Pair'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {addMode === 'url' && (
+              <div className="space-y-2">
+                <Label htmlFor="url">Website URL</Label>
+                <Input
+                  id="url"
+                  type="url"
+                  placeholder="https://example.com/page"
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                />
+              </div>
+            )}
+
+            {addMode === 'text' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="textName">Name (optional)</Label>
+                  <Input
+                    id="textName"
+                    placeholder="e.g., Product FAQ"
+                    value={textName}
+                    onChange={(e) => setTextName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="textContent">Content</Label>
+                  <textarea
+                    id="textContent"
+                    placeholder="Paste your text content here..."
+                    value={textInput}
+                    onChange={(e) => setTextInput(e.target.value)}
+                    className="w-full min-h-[200px] px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-y"
+                    style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+                  />
+                </div>
+              </>
+            )}
+
+            {addMode === 'qa' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="question">Question</Label>
+                  <Input
+                    id="question"
+                    placeholder="What is your return policy?"
+                    value={qaQuestion}
+                    onChange={(e) => setQaQuestion(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="answer">Answer</Label>
+                  <textarea
+                    id="answer"
+                    placeholder="We offer a 30-day return policy..."
+                    value={qaAnswer}
+                    onChange={(e) => setQaAnswer(e.target.value)}
+                    className="w-full min-h-[120px] px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-y"
+                    style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="flex gap-3">
+              <Button onClick={handleAddSource} disabled={submitting}>
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Source
+                  </>
+                )}
+              </Button>
+              <Button variant="outline" onClick={() => setAddMode(null)} disabled={submitting}>
+                Cancel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Source List */}
+      {sources.length > 0 ? (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">
+            Sources ({sources.length})
+          </h2>
+          {sources.map((source) => {
+            const TypeIcon = sourceTypeIcons[source.type];
+            const status = statusStyles[source.status];
+            const StatusIcon = status.icon;
+
+            return (
+              <Card key={source.id}>
+                <CardContent className="flex items-center justify-between py-4">
+                  <div className="flex items-center gap-4">
+                    <div className="p-2 bg-secondary-100 dark:bg-secondary-800 rounded-lg">
+                      <TypeIcon className="w-5 h-5 text-secondary-600 dark:text-secondary-400" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-secondary-900 dark:text-secondary-100">
+                        {source.name}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge className={status.bg}>
+                          <StatusIcon className={`w-3 h-3 mr-1 ${status.color} ${source.status === 'processing' ? 'animate-spin' : ''}`} />
+                          {source.status}
+                        </Badge>
+                        {source.chunks_count > 0 && (
+                          <span className="text-xs text-secondary-500">
+                            {source.chunks_count} chunks
+                          </span>
+                        )}
+                        {source.error_message && (
+                          <span className="text-xs text-red-500" title={source.error_message}>
+                            Error: {source.error_message.substring(0, 50)}...
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteSource(source.id)}
+                    className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        !addMode && (
+          <Card className="py-12">
+            <CardContent className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-secondary-100 dark:bg-secondary-800 rounded-full flex items-center justify-center mb-4">
+                <FileText className="w-8 h-8 text-secondary-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-2">
+                No knowledge sources yet
+              </h3>
+              <p className="text-secondary-500 max-w-md">
+                Add knowledge sources to train your chatbot. It will use this information to answer questions more accurately.
+              </p>
+            </CardContent>
+          </Card>
+        )
+      )}
+    </div>
+  );
+}

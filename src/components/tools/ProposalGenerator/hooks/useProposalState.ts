@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { toast } from 'sonner';
 import type {
   ProposalInput,
   ProposalSection,
@@ -47,7 +48,6 @@ export interface ProposalState {
   sections: ProposalSection[];
   isGenerating: boolean;
   regeneratingSection: string | null;
-  error: string | null;
   hasGenerated: boolean;
 }
 
@@ -61,7 +61,6 @@ export interface ProposalActions {
   reorderSections: (startIndex: number, endIndex: number) => void;
   toggleSectionSelection: (sectionType: SectionType) => void;
   resetProposal: () => void;
-  clearError: () => void;
 }
 
 export function useProposalState(apiEndpoint = '/api/tools/proposal-generator'): ProposalState & ProposalActions {
@@ -69,7 +68,6 @@ export function useProposalState(apiEndpoint = '/api/tools/proposal-generator'):
   const [sections, setSections] = useState<ProposalSection[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [regeneratingSection, setRegeneratingSection] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
 
   // ===================
@@ -108,7 +106,6 @@ export function useProposalState(apiEndpoint = '/api/tools/proposal-generator'):
 
   const generateProposal = useCallback(async (apiKey?: string) => {
     setIsGenerating(true);
-    setError(null);
 
     try {
       const headers: Record<string, string> = {
@@ -134,7 +131,7 @@ export function useProposalState(apiEndpoint = '/api/tools/proposal-generator'):
       setSections(data.data.sections);
       setHasGenerated(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsGenerating(false);
     }
@@ -149,7 +146,6 @@ export function useProposalState(apiEndpoint = '/api/tools/proposal-generator'):
     if (!section) return;
 
     setRegeneratingSection(sectionId);
-    setError(null);
 
     try {
       const headers: Record<string, string> = {
@@ -196,7 +192,7 @@ export function useProposalState(apiEndpoint = '/api/tools/proposal-generator'):
           : s
       ));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setRegeneratingSection(null);
     }
@@ -239,12 +235,7 @@ export function useProposalState(apiEndpoint = '/api/tools/proposal-generator'):
   const resetProposal = useCallback(() => {
     setInput(initialInput);
     setSections([]);
-    setError(null);
     setHasGenerated(false);
-  }, []);
-
-  const clearError = useCallback(() => {
-    setError(null);
   }, []);
 
   return {
@@ -253,7 +244,6 @@ export function useProposalState(apiEndpoint = '/api/tools/proposal-generator'):
     sections,
     isGenerating,
     regeneratingSection,
-    error,
     hasGenerated,
     // Actions
     updateInput,
@@ -265,6 +255,5 @@ export function useProposalState(apiEndpoint = '/api/tools/proposal-generator'):
     reorderSections,
     toggleSectionSelection,
     resetProposal,
-    clearError,
   };
 }

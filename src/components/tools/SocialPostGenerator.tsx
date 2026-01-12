@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useId } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,7 +13,6 @@ import {
   Copy,
   Check,
   Sparkles,
-  AlertCircle,
   ChevronDown,
   ChevronUp,
   Download,
@@ -87,7 +87,6 @@ export function SocialPostGenerator({
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [result, setResult] = useState<SocialPostResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [showRepurpose, setShowRepurpose] = useState(false);
   const [platformFilter, setPlatformFilter] = useState<Platform | 'all'>('all');
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -123,7 +122,6 @@ export function SocialPostGenerator({
 
   const handleGenerate = async () => {
     setIsLoading(true);
-    setError(null);
 
     try {
       const headers: Record<string, string> = {
@@ -150,7 +148,7 @@ export function SocialPostGenerator({
       setPlatformFilter('all');
       onGenerate?.(data.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      toast.error(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setIsLoading(false);
     }
@@ -456,17 +454,6 @@ export function SocialPostGenerator({
               />
             </div>
           </div>
-
-          {/* Error Display */}
-          {error && (
-            <div
-              className="flex items-center gap-2 rounded-lg bg-red-50 dark:bg-red-900/20 p-4 text-red-700 dark:text-red-400"
-              role="alert"
-            >
-              <AlertCircle className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
-              <p className="text-sm">{error}</p>
-            </div>
-          )}
 
           {/* Generate Button */}
           <Button

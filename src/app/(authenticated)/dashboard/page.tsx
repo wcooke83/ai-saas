@@ -1,0 +1,405 @@
+import Link from 'next/link';
+import { createClient } from '@/lib/supabase/server';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  CreditCard,
+  Sparkles,
+  Key,
+  BarChart3,
+  Mail,
+  FileText,
+  Clock,
+  ArrowRight,
+  TrendingUp,
+  Share2,
+  Megaphone,
+  PenTool,
+  MessageSquare,
+  ClipboardList,
+  Plug,
+  Code,
+  Bot,
+} from 'lucide-react';
+import type { Database } from '@/types/database';
+
+type Subscription = Database['public']['Tables']['subscriptions']['Row'];
+type SubscriptionPlan = Database['public']['Tables']['subscription_plans']['Row'];
+type Usage = Database['public']['Tables']['usage']['Row'];
+type Generation = Database['public']['Tables']['generations']['Row'];
+
+async function getDashboardData() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const [
+    subscriptionResult,
+    usageResult,
+    generationsResult,
+    generationsCountResult,
+    apiKeysResult,
+  ] = await Promise.all([
+    supabase.from('subscriptions').select('*').eq('user_id', user.id).single(),
+    supabase.from('usage').select('*').eq('user_id', user.id).order('period_start', { ascending: false }).limit(1).single(),
+    supabase.from('generations').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
+    supabase.from('generations').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+    supabase.from('api_keys').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+  ]);
+
+  // Fetch subscription plan details if user has a plan
+  const subscription = subscriptionResult.data as Subscription | null;
+  let subscriptionPlan: SubscriptionPlan | null = null;
+  if (subscription?.plan) {
+    const planResult = await supabase
+      .from('subscription_plans')
+      .select('*')
+      .eq('slug', subscription.plan)
+      .single();
+    subscriptionPlan = planResult.data as SubscriptionPlan | null;
+  }
+
+  return {
+    subscription,
+    subscriptionPlan: subscriptionPlan as SubscriptionPlan | null,
+    usage: usageResult.data as Usage | null,
+    recentGenerations: (generationsResult.data || []) as Generation[],
+    totalGenerations: generationsCountResult.count || 0,
+    apiKeysCount: apiKeysResult.count || 0,
+  };
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-8 animate-pulse">
+      <div>
+        <div className="h-8 w-48 bg-secondary-200 rounded mb-2" />
+        <div className="h-4 w-96 bg-secondary-100 rounded" />
+      </div>
+
+      {/* Stats grid skeleton */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i}>
+            <CardHeader className="pb-2">
+              <div className="h-4 w-20 bg-secondary-100 rounded mb-2" />
+              <div className="h-8 w-16 bg-secondary-200 rounded" />
+            </CardHeader>
+            <CardContent>
+              <div className="h-4 w-24 bg-secondary-100 rounded" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Quick actions skeleton */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {[...Array(2)].map((_, i) => (
+          <Card key={i}>
+            <CardHeader>
+              <div className="h-6 w-32 bg-secondary-200 rounded mb-2" />
+              <div className="h-4 w-48 bg-secondary-100 rounded" />
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-3">
+                <div className="h-10 w-24 bg-secondary-200 rounded" />
+                <div className="h-10 w-24 bg-secondary-100 rounded" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default async function DashboardPage() {
+  const data = await getDashboardData();
+
+  if (!data) {
+    return <DashboardSkeleton />;
+  }
+
+  const { subscription, subscriptionPlan, usage, recentGenerations, totalGenerations, apiKeysCount } = data;
+
+  // Get credits limit from subscription plan, falling back to usage table, then default
+  const creditsLimit = subscriptionPlan?.credits_monthly || usage?.credits_limit || 100;
+  const creditsUsed = usage?.credits_used || 0;
+  const creditsRemaining = Math.max(0, creditsLimit - creditsUsed);
+  const creditPercentage = creditsLimit > 0 ? (creditsUsed / creditsLimit) * 100 : 0;
+
+  // Get plan display name from subscription_plans or format the slug
+  const planDisplayName = subscriptionPlan?.name || (subscription?.plan ? subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1) : 'Free');
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">Dashboard</h1>
+        <p className="text-secondary-600 dark:text-secondary-400">Welcome back! Here&apos;s an overview of your account.</p>
+      </div>
+
+      {/* Stats grid */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardDescription>Current Plan</CardDescription>
+              <CreditCard className="w-4 h-4 text-secondary-400" aria-hidden="true" />
+            </div>
+            <CardTitle className="text-2xl">{planDisplayName}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Link
+              href="/dashboard/settings"
+              className="text-sm text-primary-500 hover:text-primary-600 hover:underline inline-flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
+            >
+              Manage subscription
+              <ArrowRight className="w-3 h-3" aria-hidden="true" />
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardDescription>Credits Remaining</CardDescription>
+              <Sparkles className="w-4 h-4 text-secondary-400" aria-hidden="true" />
+            </div>
+            <CardTitle className="text-2xl">{creditsRemaining.toLocaleString()}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div
+              className="w-full bg-secondary-100 dark:bg-secondary-700 rounded-full h-2 overflow-hidden"
+              role="progressbar"
+              aria-valuenow={creditsUsed}
+              aria-valuemin={0}
+              aria-valuemax={creditsLimit}
+              aria-label="Credit usage"
+            >
+              <div
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  creditPercentage > 80 ? 'bg-red-500' : creditPercentage > 50 ? 'bg-yellow-500' : 'bg-primary-500'
+                }`}
+                style={{ width: `${Math.min(creditPercentage, 100)}%` }}
+              />
+            </div>
+            <p className="text-xs text-secondary-500 mt-1">
+              {creditsUsed.toLocaleString()} of {creditsLimit.toLocaleString()} used
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardDescription>API Keys</CardDescription>
+              <Key className="w-4 h-4 text-secondary-400" aria-hidden="true" />
+            </div>
+            <CardTitle className="text-2xl">{apiKeysCount}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Link
+              href="/dashboard/api-keys"
+              className="text-sm text-primary-500 hover:text-primary-600 hover:underline inline-flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
+            >
+              Manage keys
+              <ArrowRight className="w-3 h-3" aria-hidden="true" />
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardDescription>Total Generations</CardDescription>
+              <TrendingUp className="w-4 h-4 text-secondary-400" aria-hidden="true" />
+            </div>
+            <CardTitle className="text-2xl">{totalGenerations.toLocaleString()}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Link
+              href="/dashboard/usage"
+              className="text-sm text-primary-500 hover:text-primary-600 hover:underline inline-flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
+            >
+              View history
+              <ArrowRight className="w-3 h-3" aria-hidden="true" />
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Integrate on Your Website */}
+      <Card className="border-primary-200 dark:border-primary-800 bg-gradient-to-r from-primary-50 to-white dark:from-primary-950/50 dark:to-secondary-900">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
+              <Plug className="w-6 h-6 text-primary-600 dark:text-primary-400" aria-hidden="true" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">
+                Add AI Tools to Your Website
+              </h3>
+              <p className="text-sm text-secondary-600 dark:text-secondary-400 mt-1">
+                Embed our AI tools on your site with a simple code snippet, or integrate via REST API.
+              </p>
+            </div>
+            <Button asChild>
+              <Link href="/dashboard/integrations">
+                <Code className="w-4 h-4 mr-2" aria-hidden="true" />
+                View Integrations
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Quick actions */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary-500" aria-hidden="true" />
+              Quick Actions
+            </CardTitle>
+            <CardDescription>Get started with our AI tools</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <Button asChild size="sm">
+                <Link href="/tools/email-writer">
+                  <Mail className="w-4 h-4 mr-2" aria-hidden="true" />
+                  Email Writer
+                </Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link href="/tools/proposal-generator">
+                  <ClipboardList className="w-4 h-4 mr-2" aria-hidden="true" />
+                  Proposal
+                </Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link href="/tools/social-post">
+                  <Share2 className="w-4 h-4 mr-2" aria-hidden="true" />
+                  Social Post
+                </Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link href="/dashboard/chatbots">
+                  <Bot className="w-4 h-4 mr-2" aria-hidden="true" />
+                  Chatbots
+                </Link>
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild size="sm" variant="outline">
+                <Link href="/tools/ad-copy">
+                  <Megaphone className="w-4 h-4 mr-2" aria-hidden="true" />
+                  Ad Copy
+                </Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link href="/tools/blog-writer">
+                  <PenTool className="w-4 h-4 mr-2" aria-hidden="true" />
+                  Blog Post
+                </Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link href="/tools/meeting-notes">
+                  <MessageSquare className="w-4 h-4 mr-2" aria-hidden="true" />
+                  Meeting Notes
+                </Link>
+              </Button>
+            </div>
+            <div className="pt-2 border-t border-secondary-100 dark:border-secondary-800">
+              <Button asChild size="sm" variant="ghost" className="w-full justify-start text-secondary-600 dark:text-secondary-400">
+                <Link href="/tools">
+                  View all tools
+                  <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-primary-500" aria-hidden="true" />
+              Recent Activity
+            </CardTitle>
+            <CardDescription>Your latest generations</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {recentGenerations.length > 0 ? (
+              <ul className="space-y-2">
+                {recentGenerations.map((gen) => (
+                  <li
+                    key={gen.id}
+                    className="flex items-center justify-between py-2 border-b border-secondary-100 dark:border-secondary-800 last:border-0"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-1.5 bg-secondary-100 dark:bg-secondary-800 rounded">
+                        {gen.type === 'email' && (
+                          <Mail className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
+                        )}
+                        {gen.type === 'proposal' && (
+                          <ClipboardList className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
+                        )}
+                        {gen.type === 'social-post' && (
+                          <Share2 className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
+                        )}
+                        {gen.type === 'ad-copy' && (
+                          <Megaphone className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
+                        )}
+                        {gen.type === 'blog-post' && (
+                          <PenTool className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
+                        )}
+                        {gen.type === 'meeting-notes' && (
+                          <MessageSquare className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
+                        )}
+                        {!['email', 'proposal', 'social-post', 'ad-copy', 'blog-post', 'meeting-notes'].includes(gen.type) && (
+                          <FileText className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 capitalize">{gen.type}</p>
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                          {gen.created_at ? new Date(gen.created_at).toLocaleDateString() : 'Unknown'}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge
+                      variant={
+                        gen.status === 'completed' ? 'success' :
+                        gen.status === 'failed' ? 'destructive' :
+                        'warning'
+                      }
+                    >
+                      {gen.status}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-center py-8">
+                <div className="mx-auto w-12 h-12 bg-secondary-100 dark:bg-secondary-800 rounded-full flex items-center justify-center mb-3">
+                  <BarChart3 className="w-6 h-6 text-secondary-400" aria-hidden="true" />
+                </div>
+                <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">No generations yet</p>
+                <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-4">Try one of our AI tools to get started</p>
+                <Button asChild size="sm" variant="outline">
+                  <Link href="/tools/email-writer">
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5" aria-hidden="true" />
+                    Try Email Writer
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

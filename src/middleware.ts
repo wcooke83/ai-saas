@@ -49,13 +49,12 @@ export async function middleware(request: NextRequest) {
   // Update Supabase session
   const response = await updateSession(request);
 
+  // Check auth status from response header
+  const isAuthenticated = response.headers.get('x-user-id') !== null;
+
   // Check if trying to access protected route without auth
   if (isProtectedRoute(pathname)) {
-    const supabaseResponse = response.headers.get('x-supabase-auth');
-
-    // If no session and trying to access protected route, redirect to login
-    // Note: This is a simplified check. In production, parse the session properly.
-    if (!request.cookies.get('sb-access-token')?.value) {
+    if (!isAuthenticated) {
       const redirectUrl = new URL('/login', request.url);
       redirectUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(redirectUrl);
@@ -64,7 +63,7 @@ export async function middleware(request: NextRequest) {
 
   // If authenticated and trying to access auth routes, redirect to dashboard
   if (isAuthRoute(pathname)) {
-    if (request.cookies.get('sb-access-token')?.value) {
+    if (isAuthenticated) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
