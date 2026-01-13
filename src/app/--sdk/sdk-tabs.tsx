@@ -35,6 +35,14 @@ import {
   Upload,
   Sun,
   Moon,
+  MessageSquare,
+  Globe,
+  Terminal,
+  Zap,
+  ExternalLink,
+  HelpCircle,
+  BookOpen,
+  FileCode,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUISettings, BackdropBlurValue } from '@/contexts/ui-settings-context';
@@ -1790,6 +1798,7 @@ const tabs = [
   { id: 'design-system', label: 'Design System', icon: Palette },
   { id: 'components', label: 'UI Components', icon: Layout },
   { id: 'patterns', label: 'Patterns', icon: Code },
+  { id: 'chatbots', label: 'Chatbot SDK', icon: MessageSquare },
   { id: 'accessibility', label: 'Accessibility', icon: Accessibility },
   { id: 'ui-settings', label: 'UI Settings', icon: Settings },
 ];
@@ -2812,6 +2821,489 @@ export function SDKTabs() {
                   </div>
                 </CardContent>
               </Card>
+            </section>
+          </div>
+        )}
+
+        {activeTab === 'chatbots' && (
+          <div className="space-y-8" id="chatbots">
+            {/* Overview */}
+            <section>
+              <h2 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-primary-500" aria-hidden="true" />
+                Chatbot Integration SDK
+              </h2>
+              <Card>
+                <CardContent className="pt-6">
+                  <p className="text-secondary-600 dark:text-secondary-400 mb-4">
+                    Embed AI-powered chatbots on any website with our JavaScript SDK. The SDK provides a
+                    floating chat widget that handles conversations, session management, and responsive
+                    behavior automatically.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="flex items-start gap-3 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+                      <Zap className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-secondary-900 dark:text-secondary-100 text-sm">Quick Setup</p>
+                        <p className="text-xs text-secondary-600 dark:text-secondary-400 mt-0.5">Add 2 lines of code to any website</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <Globe className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-secondary-900 dark:text-secondary-100 text-sm">Fully Responsive</p>
+                        <p className="text-xs text-secondary-600 dark:text-secondary-400 mt-0.5">Works on desktop, tablet, and mobile</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <Settings className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-secondary-900 dark:text-secondary-100 text-sm">Customizable</p>
+                        <p className="text-xs text-secondary-600 dark:text-secondary-400 mt-0.5">Match your brand colors and style</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* JavaScript SDK */}
+            <section>
+              <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
+                <Globe className="w-5 h-5 text-primary-500" aria-hidden="true" />
+                JavaScript SDK
+                <Badge className="bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300 text-xs">
+                  Recommended
+                </Badge>
+              </h3>
+              <Card>
+                <CardContent className="pt-6 space-y-6">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300">Basic Installation</p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(`<script src="https://your-domain.com/widget/sdk.js"></script>
+<script>
+  ChatWidget.init({
+    chatbotId: 'YOUR_CHATBOT_ID'
+  });
+</script>`, 'chatbot-basic')}
+                        className="h-7"
+                      >
+                        {copied === 'chatbot-basic' ? (
+                          <><Check className="w-3.5 h-3.5 mr-1.5" /> Copied</>
+                        ) : (
+                          <><Copy className="w-3.5 h-3.5 mr-1.5" /> Copy</>
+                        )}
+                      </Button>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute top-2 left-3">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-secondary-500">html</span>
+                      </div>
+                      <pre className="pt-8 pb-4 px-4 bg-secondary-900 dark:bg-secondary-950 text-secondary-100 rounded-lg text-sm overflow-x-auto font-mono leading-relaxed border border-secondary-800">
+                        <code>{`<script src="https://your-domain.com/widget/sdk.js"></script>
+<script>
+  ChatWidget.init({
+    chatbotId: 'YOUR_CHATBOT_ID'
+  });
+</script>`}</code>
+                      </pre>
+                    </div>
+                    <div className="mt-3 p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                      <div className="flex items-start gap-2">
+                        <FileCode className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Where to place this code</p>
+                          <p className="text-xs text-secondary-600 dark:text-secondary-400 mt-1">
+                            Add these script tags just before the closing <code className="bg-secondary-200 dark:bg-secondary-700 px-1 py-0.5 rounded text-[11px]">&lt;/body&gt;</code> tag
+                            in your HTML file. This ensures the page loads before the widget initializes.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-secondary-200 dark:border-secondary-700 pt-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300">With Custom Options</p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(`<script src="https://your-domain.com/widget/sdk.js"></script>
+<script>
+  ChatWidget.init({
+    chatbotId: 'YOUR_CHATBOT_ID',
+    position: 'bottom-right',     // or 'bottom-left'
+    primaryColor: '#6366f1',      // Match your brand
+    greeting: 'Hi! How can I help you today?',
+    placeholder: 'Type your message...',
+    autoOpen: false,              // Don't open on page load
+    showOnMobile: true,           // Show on mobile devices
+    zIndex: 9999                  // CSS z-index value
+  });
+</script>`, 'chatbot-advanced')}
+                        className="h-7"
+                      >
+                        {copied === 'chatbot-advanced' ? (
+                          <><Check className="w-3.5 h-3.5 mr-1.5" /> Copied</>
+                        ) : (
+                          <><Copy className="w-3.5 h-3.5 mr-1.5" /> Copy</>
+                        )}
+                      </Button>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute top-2 left-3">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-secondary-500">html</span>
+                      </div>
+                      <pre className="pt-8 pb-4 px-4 bg-secondary-900 dark:bg-secondary-950 text-secondary-100 rounded-lg text-sm overflow-x-auto font-mono leading-relaxed border border-secondary-800">
+                        <code>{`<script src="https://your-domain.com/widget/sdk.js"></script>
+<script>
+  ChatWidget.init({
+    chatbotId: 'YOUR_CHATBOT_ID',
+    position: 'bottom-right',     // or 'bottom-left'
+    primaryColor: '#6366f1',      // Match your brand
+    greeting: 'Hi! How can I help you today?',
+    placeholder: 'Type your message...',
+    autoOpen: false,              // Don't open on page load
+    showOnMobile: true,           // Show on mobile devices
+    zIndex: 9999                  // CSS z-index value
+  });
+</script>`}</code>
+                      </pre>
+                    </div>
+                  </div>
+
+                  {/* Configuration Options Table */}
+                  <div className="border-t border-secondary-200 dark:border-secondary-700 pt-6">
+                    <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-3">Configuration Options</p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-secondary-200 dark:border-secondary-700">
+                            <th className="text-left py-2 pr-4 font-medium text-secondary-900 dark:text-secondary-100">Option</th>
+                            <th className="text-left py-2 pr-4 font-medium text-secondary-900 dark:text-secondary-100">Type</th>
+                            <th className="text-left py-2 pr-4 font-medium text-secondary-900 dark:text-secondary-100">Default</th>
+                            <th className="text-left py-2 font-medium text-secondary-900 dark:text-secondary-100">Description</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-secondary-100 dark:divide-secondary-800">
+                          <tr>
+                            <td className="py-2 pr-4"><code className="text-xs bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded">chatbotId</code></td>
+                            <td className="py-2 pr-4 text-secondary-600 dark:text-secondary-400">string</td>
+                            <td className="py-2 pr-4 text-secondary-600 dark:text-secondary-400">Required</td>
+                            <td className="py-2 text-secondary-600 dark:text-secondary-400">Your chatbot's unique identifier</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2 pr-4"><code className="text-xs bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded">position</code></td>
+                            <td className="py-2 pr-4 text-secondary-600 dark:text-secondary-400">string</td>
+                            <td className="py-2 pr-4 text-secondary-600 dark:text-secondary-400">'bottom-right'</td>
+                            <td className="py-2 text-secondary-600 dark:text-secondary-400">Widget position: 'bottom-right' or 'bottom-left'</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2 pr-4"><code className="text-xs bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded">primaryColor</code></td>
+                            <td className="py-2 pr-4 text-secondary-600 dark:text-secondary-400">string</td>
+                            <td className="py-2 pr-4 text-secondary-600 dark:text-secondary-400">'#6366f1'</td>
+                            <td className="py-2 text-secondary-600 dark:text-secondary-400">Hex color for the chat button and accents</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2 pr-4"><code className="text-xs bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded">greeting</code></td>
+                            <td className="py-2 pr-4 text-secondary-600 dark:text-secondary-400">string</td>
+                            <td className="py-2 pr-4 text-secondary-600 dark:text-secondary-400">null</td>
+                            <td className="py-2 text-secondary-600 dark:text-secondary-400">Initial greeting message shown to users</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2 pr-4"><code className="text-xs bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded">autoOpen</code></td>
+                            <td className="py-2 pr-4 text-secondary-600 dark:text-secondary-400">boolean</td>
+                            <td className="py-2 pr-4 text-secondary-600 dark:text-secondary-400">false</td>
+                            <td className="py-2 text-secondary-600 dark:text-secondary-400">Automatically open chat on page load</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2 pr-4"><code className="text-xs bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded">showOnMobile</code></td>
+                            <td className="py-2 pr-4 text-secondary-600 dark:text-secondary-400">boolean</td>
+                            <td className="py-2 pr-4 text-secondary-600 dark:text-secondary-400">true</td>
+                            <td className="py-2 text-secondary-600 dark:text-secondary-400">Display widget on mobile devices</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* iFrame Embed */}
+            <section>
+              <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
+                <Code className="w-5 h-5 text-secondary-500" aria-hidden="true" />
+                iFrame Embed
+              </h3>
+              <Card>
+                <CardContent className="pt-6 space-y-4">
+                  <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                    Use an iFrame when you want to embed the chat in a specific location on your page,
+                    such as a dedicated support section, rather than as a floating widget.
+                  </p>
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-secondary-500">html</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(`<iframe
+  src="https://your-domain.com/widget/YOUR_CHATBOT_ID"
+  style="border:none;position:fixed;bottom:20px;right:20px;width:400px;height:600px;z-index:9999;"
+  allow="clipboard-write"
+></iframe>`, 'chatbot-iframe')}
+                        className="h-7"
+                      >
+                        {copied === 'chatbot-iframe' ? (
+                          <><Check className="w-3.5 h-3.5 mr-1.5" /> Copied</>
+                        ) : (
+                          <><Copy className="w-3.5 h-3.5 mr-1.5" /> Copy</>
+                        )}
+                      </Button>
+                    </div>
+                    <pre className="pt-4 pb-4 px-4 bg-secondary-900 dark:bg-secondary-950 text-secondary-100 rounded-lg text-sm overflow-x-auto font-mono leading-relaxed border border-secondary-800">
+                      <code>{`<iframe
+  src="https://your-domain.com/widget/YOUR_CHATBOT_ID"
+  style="border:none;position:fixed;bottom:20px;right:20px;width:400px;height:600px;z-index:9999;"
+  allow="clipboard-write"
+></iframe>`}</code>
+                    </pre>
+                  </div>
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-start gap-2">
+                      <Info className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-blue-700 dark:text-blue-300">
+                        <strong>Tip:</strong> Remove <code className="bg-blue-100 dark:bg-blue-900/50 px-1 py-0.5 rounded text-xs">position:fixed</code> from
+                        the style attribute to embed the chat inline within your page layout.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* REST API */}
+            <section>
+              <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
+                <Terminal className="w-5 h-5 text-green-500" aria-hidden="true" />
+                REST API
+              </h3>
+              <Card>
+                <CardContent className="pt-6 space-y-6">
+                  <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                    Use the REST API for server-side integrations, custom chat interfaces, mobile apps,
+                    or to connect your chatbot to other services like Slack or Discord.
+                  </p>
+
+                  {/* Endpoint */}
+                  <div>
+                    <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">API Endpoint</p>
+                    <div className="flex items-center gap-3 p-3 bg-secondary-100 dark:bg-secondary-800 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                      <Badge className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 font-mono text-xs">POST</Badge>
+                      <code className="text-sm font-mono text-secondary-800 dark:text-secondary-200">https://your-domain.com/api/chat/YOUR_CHATBOT_ID</code>
+                    </div>
+                  </div>
+
+                  {/* Request Body */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300">Request Body</p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(`{
+  "message": "Hello, I have a question",
+  "session_id": "unique-session-id"
+}`, 'chatbot-request')}
+                        className="h-7"
+                      >
+                        {copied === 'chatbot-request' ? (
+                          <><Check className="w-3.5 h-3.5 mr-1.5" /> Copied</>
+                        ) : (
+                          <><Copy className="w-3.5 h-3.5 mr-1.5" /> Copy</>
+                        )}
+                      </Button>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute top-2 left-3">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-secondary-500">json</span>
+                      </div>
+                      <pre className="pt-8 pb-4 px-4 bg-secondary-900 dark:bg-secondary-950 text-secondary-100 rounded-lg text-sm overflow-x-auto font-mono leading-relaxed border border-secondary-800">
+                        <code>{`{
+  "message": "Hello, I have a question",
+  "session_id": "unique-session-id"
+}`}</code>
+                      </pre>
+                    </div>
+                  </div>
+
+                  {/* cURL Example */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300">cURL Example</p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(`curl -X POST "https://your-domain.com/api/chat/YOUR_CHATBOT_ID" \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -d '{
+    "message": "Hello, I have a question",
+    "session_id": "unique-session-id"
+  }'`, 'chatbot-curl')}
+                        className="h-7"
+                      >
+                        {copied === 'chatbot-curl' ? (
+                          <><Check className="w-3.5 h-3.5 mr-1.5" /> Copied</>
+                        ) : (
+                          <><Copy className="w-3.5 h-3.5 mr-1.5" /> Copy</>
+                        )}
+                      </Button>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute top-2 left-3">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-secondary-500">bash</span>
+                      </div>
+                      <pre className="pt-8 pb-4 px-4 bg-secondary-900 dark:bg-secondary-950 text-secondary-100 rounded-lg text-sm overflow-x-auto font-mono leading-relaxed border border-secondary-800">
+                        <code>{`curl -X POST "https://your-domain.com/api/chat/YOUR_CHATBOT_ID" \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -d '{
+    "message": "Hello, I have a question",
+    "session_id": "unique-session-id"
+  }'`}</code>
+                      </pre>
+                    </div>
+                  </div>
+
+                  {/* Response */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300">Response</p>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute top-2 left-3">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-secondary-500">json</span>
+                      </div>
+                      <pre className="pt-8 pb-4 px-4 bg-secondary-900 dark:bg-secondary-950 text-secondary-100 rounded-lg text-sm overflow-x-auto font-mono leading-relaxed border border-secondary-800">
+                        <code>{`{
+  "success": true,
+  "data": {
+    "message": "I'd be happy to help! What would you like to know?",
+    "session_id": "unique-session-id"
+  }
+}`}</code>
+                      </pre>
+                    </div>
+                  </div>
+
+                  {/* API Key Warning */}
+                  <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                    <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-amber-900 dark:text-amber-100">API Key Security</p>
+                      <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                        Never expose your API key in client-side code. The API is designed for server-to-server
+                        communication. For browser-based integrations, use the JavaScript SDK instead.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* Platform Integration Guides */}
+            <section>
+              <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-blue-500" aria-hidden="true" />
+                Platform Integration Guides
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="hover:border-primary-300 dark:hover:border-primary-700 transition-colors">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-secondary-100 dark:bg-secondary-800 rounded-lg">
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.341-3.369-1.341-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-secondary-900 dark:text-secondary-100">WordPress</h4>
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400">Add to theme footer or use a plugin</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                      Add the SDK code to your theme's <code className="bg-secondary-100 dark:bg-secondary-800 px-1 py-0.5 rounded text-xs">footer.php</code> file,
+                      or use a plugin like "Insert Headers and Footers" to inject the scripts.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="hover:border-primary-300 dark:hover:border-primary-700 transition-colors">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-secondary-100 dark:bg-secondary-800 rounded-lg">
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M11.572 0c-.176 0-.31.001-.358.007a19.76 19.76 0 0 1-.364.033C7.443.346 4.25 2.185 2.228 5.012a11.875 11.875 0 0 0-2.119 5.243c-.096.659-.108.854-.108 1.747s.012 1.089.108 1.748c.652 4.506 3.86 8.292 8.209 9.695.779.251 1.6.422 2.534.525.363.04 1.935.04 2.299 0 1.611-.178 2.977-.577 4.323-1.264.207-.106.247-.134.219-.158-.02-.013-.9-1.193-1.955-2.62l-1.919-2.592-2.404-3.558a338.739 338.739 0 0 0-2.422-3.556c-.009-.002-.018 1.579-.023 3.51-.007 3.38-.01 3.515-.052 3.595a.426.426 0 0 1-.206.214c-.075.037-.14.044-.495.044H7.81l-.108-.068a.438.438 0 0 1-.157-.171l-.05-.106.006-4.703.007-4.705.072-.092a.645.645 0 0 1 .174-.143c.096-.047.134-.051.54-.051.478 0 .558.018.682.154.035.038 1.337 1.999 2.895 4.361a10760.433 10760.433 0 0 0 4.735 7.17l1.9 2.879.096-.063a12.317 12.317 0 0 0 2.466-2.163 11.944 11.944 0 0 0 2.824-6.134c.096-.66.108-.854.108-1.748 0-.893-.012-1.088-.108-1.747-.652-4.506-3.859-8.292-8.208-9.695a12.597 12.597 0 0 0-2.499-.523A33.119 33.119 0 0 0 11.573 0zm4.069 7.217c.347 0 .408.005.486.047a.473.473 0 0 1 .237.277c.018.06.023 1.365.018 4.304l-.006 4.218-.744-1.14-.746-1.14v-3.066c0-1.982.01-3.097.023-3.15a.478.478 0 0 1 .233-.296c.096-.05.13-.054.5-.054z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-secondary-900 dark:text-secondary-100">Next.js / React</h4>
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400">Add via Script component</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                      Use Next.js <code className="bg-secondary-100 dark:bg-secondary-800 px-1 py-0.5 rounded text-xs">Script</code> component in your
+                      layout or _app file with <code className="bg-secondary-100 dark:bg-secondary-800 px-1 py-0.5 rounded text-xs">strategy="lazyOnload"</code>.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="hover:border-primary-300 dark:hover:border-primary-700 transition-colors">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-secondary-100 dark:bg-secondary-800 rounded-lg">
+                        <svg className="w-5 h-5 text-green-600" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12.001 4.8c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624C13.666 10.618 15.027 12 18.001 12c3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C16.337 6.182 14.976 4.8 12.001 4.8zm-6 7.2c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624 1.177 1.194 2.538 2.576 5.512 2.576 3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C10.337 13.382 8.976 12 6.001 12z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-secondary-900 dark:text-secondary-100">Shopify</h4>
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400">Add to theme.liquid</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                      In your Shopify admin, go to Online Store → Themes → Edit code, then add the SDK
+                      scripts before <code className="bg-secondary-100 dark:bg-secondary-800 px-1 py-0.5 rounded text-xs">&lt;/body&gt;</code> in theme.liquid.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="hover:border-primary-300 dark:hover:border-primary-700 transition-colors">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-secondary-100 dark:bg-secondary-800 rounded-lg">
+                        <svg className="w-5 h-5 text-orange-500" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M11.77 11.24H9.956V8.202h2.152c1.17 0 1.834.522 1.834 1.466 0 1.008-.773 1.572-2.174 1.572zm.324 1.206H9.957v3.348h2.231c1.459 0 2.232-.585 2.232-1.685s-.795-1.663-2.326-1.663zM24 11.39v1.218c-1.128.108-1.817.944-2.226 2.268-.407 1.319-.463 2.937-.42 4.186.045 1.3-.968 2.5-2.337 2.5H4.985c-1.37 0-2.383-1.2-2.337-2.5.043-1.249-.013-2.867-.42-4.186-.41-1.324-1.1-2.16-2.228-2.268V11.39c1.128-.108 1.819-.944 2.227-2.268.408-1.319.464-2.937.42-4.186-.045-1.3.968-2.5 2.338-2.5h14.032c1.37 0 2.382 1.2 2.337 2.5-.043 1.249.013 2.867.42 4.186.409 1.324 1.098 2.16 2.226 2.268zm-7.927 2.817c0-1.354-.953-2.333-2.368-2.488v-.057c1.04-.169 1.856-1.135 1.856-2.213 0-1.537-1.213-2.538-3.062-2.538h-4.16v10.172h4.181c2.218 0 3.553-1.086 3.553-2.876z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-secondary-900 dark:text-secondary-100">Webflow</h4>
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400">Use custom code embed</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                      Go to Project Settings → Custom Code → Footer Code, and paste the SDK scripts.
+                      Or use an Embed element on specific pages.
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
             </section>
           </div>
         )}

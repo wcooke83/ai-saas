@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { Header } from '@/components/layout';
@@ -37,9 +37,35 @@ const iconMap: Record<string, LucideIcon> = {
   Share2,
 };
 
+// Section IDs for scroll tracking
+const sectionIds = ['quick-start', 'tools', 'custom-solutions'];
+
 export default function SDKDocsPage() {
   const [copied, setCopied] = useState<string | null>(null);
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState('quick-start');
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Track active section on scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: '-20% 0px -70% 0px' }
+    );
+
+    sectionIds.forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   const copyToClipboard = async (text: string, id: string) => {
     await navigator.clipboard.writeText(text);
@@ -49,6 +75,23 @@ export default function SDKDocsPage() {
   };
 
   const selectedToolConfig = selectedTool ? toolsConfig[selectedTool] : null;
+
+  // Scroll to content when tool is selected
+  const handleToolSelect = (toolId: string | null) => {
+    setSelectedTool(toolId);
+    // Small delay to ensure state update, then scroll
+    setTimeout(() => {
+      if (contentRef.current) {
+        const headerOffset = 96; // Account for fixed header
+        const elementPosition = contentRef.current.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.scrollY - headerOffset;
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    }, 0);
+  };
 
   return (
     <PageBackground>
@@ -72,15 +115,15 @@ export default function SDKDocsPage() {
       />
 
       <main className="container mx-auto px-4 py-8">
-        <div className="grid md:grid-cols-[220px_1fr] gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-[220px_1fr] gap-8 max-w-6xl mx-auto md:items-start">
           {/* Sidebar - Tool Selection */}
-          <aside className="space-y-4">
-            <div>
+          <aside className="space-y-4 md:sticky md:top-24 md:self-start">
+            <div id="quick-start">
               <h2 className="text-sm font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wide mb-3">
                 Quick Start
               </h2>
               <button
-                onClick={() => setSelectedTool(null)}
+                onClick={() => handleToolSelect(null)}
                 className={cn(
                   'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors',
                   selectedTool === null
@@ -92,7 +135,7 @@ export default function SDKDocsPage() {
               </button>
             </div>
 
-            <div>
+            <div id="tools">
               <h2 className="text-sm font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wide mb-3">
                 Tools
               </h2>
@@ -102,7 +145,7 @@ export default function SDKDocsPage() {
                   return (
                     <button
                       key={tool.id}
-                      onClick={() => setSelectedTool(tool.id)}
+                      onClick={() => handleToolSelect(tool.id)}
                       className={cn(
                         'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2',
                         selectedTool === tool.id
@@ -118,22 +161,27 @@ export default function SDKDocsPage() {
               </div>
             </div>
 
-            <div>
+            <div id="custom-solutions">
               <h2 className="text-sm font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wide mb-3">
                 Custom Solutions
               </h2>
-              <Link
-                href="/dashboard/chatbots"
-                className="w-full text-left px-3 py-2 rounded-lg text-sm text-secondary-600 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-800 flex items-center gap-2"
+              <button
+                onClick={() => handleToolSelect('custom-chatbots')}
+                className={cn(
+                  'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2',
+                  selectedTool === 'custom-chatbots'
+                    ? 'bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 font-medium'
+                    : 'text-secondary-600 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-800'
+                )}
               >
                 <MessageSquare className="w-4 h-4" />
                 Custom Chatbots
-              </Link>
+              </button>
             </div>
           </aside>
 
           {/* Main Content */}
-          <div className="space-y-8 min-w-0">
+          <div ref={contentRef} className="space-y-8 min-w-0">
             {selectedTool === null ? (
               /* Getting Started */
               <>
@@ -231,7 +279,7 @@ export default function SDKDocsPage() {
                         return (
                           <button
                             key={tool.id}
-                            onClick={() => setSelectedTool(tool.id)}
+                            onClick={() => handleToolSelect(tool.id)}
                             className="flex items-start gap-3 p-4 rounded-lg border border-secondary-200 dark:border-secondary-700 hover:border-primary-300 dark:hover:border-primary-700 transition-colors text-left"
                           >
                             <div className={cn('p-2 rounded-lg', tool.iconBg)}>
@@ -254,6 +302,123 @@ export default function SDKDocsPage() {
                           </button>
                         );
                       })}
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            ) : selectedTool === 'custom-chatbots' ? (
+              /* Custom Chatbots documentation */
+              <>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-3 rounded-lg bg-primary-100 dark:bg-primary-900/50">
+                    <MessageSquare className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                      Custom Chatbots
+                    </h1>
+                    <p className="text-secondary-600 dark:text-secondary-400">
+                      Build AI chatbots trained on your own content with RAG (Retrieval-Augmented Generation).
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 mb-6">
+                  <Badge variant="success">Embed Available</Badge>
+                  <Badge variant="success">API Available</Badge>
+                </div>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Code className="w-5 h-5 text-primary-500" />
+                      Embed Your Chatbot
+                    </CardTitle>
+                    <CardDescription>
+                      Add your custom chatbot to any website with a simple embed code.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                      Replace <code className="bg-secondary-100 dark:bg-secondary-800 px-1 rounded">CHATBOT_ID</code> with your chatbot's ID from the dashboard.
+                    </p>
+                    <div className="relative">
+                      <pre className="text-sm bg-secondary-900 text-secondary-100 p-4 rounded-lg overflow-x-auto">
+{`<script
+  src="https://yoursite.com/widget.js"
+  data-chatbot-id="CHATBOT_ID"
+  async
+></script>`}
+                      </pre>
+                      <button
+                        onClick={() => copyToClipboard(`<script\n  src="https://yoursite.com/widget.js"\n  data-chatbot-id="CHATBOT_ID"\n  async\n></script>`, 'chatbot-embed')}
+                        className="absolute top-2 right-2 p-2 hover:bg-secondary-700 rounded"
+                        aria-label="Copy embed code"
+                      >
+                        {copied === 'chatbot-embed' ? (
+                          <Check className="w-4 h-4 text-green-400" />
+                        ) : (
+                          <Copy className="w-4 h-4 text-secondary-400" />
+                        )}
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Code className="w-5 h-5 text-primary-500" />
+                      Chat API
+                    </CardTitle>
+                    <CardDescription>
+                      Send messages to your chatbot programmatically via the API.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="relative">
+                      <pre className="text-sm bg-secondary-900 text-secondary-100 p-4 rounded-lg overflow-x-auto">
+{`POST /api/chat/CHATBOT_ID
+Content-Type: application/json
+Authorization: Bearer YOUR_API_KEY
+
+{
+  "message": "Hello, how can you help?",
+  "sessionId": "optional-session-id"
+}`}
+                      </pre>
+                      <button
+                        onClick={() => copyToClipboard(`POST /api/chat/CHATBOT_ID\nContent-Type: application/json\nAuthorization: Bearer YOUR_API_KEY\n\n{\n  "message": "Hello, how can you help?",\n  "sessionId": "optional-session-id"\n}`, 'chatbot-api')}
+                        className="absolute top-2 right-2 p-2 hover:bg-secondary-700 rounded"
+                        aria-label="Copy API example"
+                      >
+                        {copied === 'chatbot-api' ? (
+                          <Check className="w-4 h-4 text-green-400" />
+                        ) : (
+                          <Copy className="w-4 h-4 text-secondary-400" />
+                        )}
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-secondary-900 dark:text-secondary-100">
+                          Create Your Chatbot
+                        </p>
+                        <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                          Build and train custom chatbots with your own knowledge sources
+                        </p>
+                      </div>
+                      <Button asChild>
+                        <Link href="/dashboard/chatbots">
+                          Go to Dashboard
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Link>
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
