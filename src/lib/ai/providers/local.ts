@@ -38,16 +38,29 @@ export async function executeLocalAI(
   const venvActivate = `${scriptDir}/venv/bin/activate`;
 
   return new Promise((resolve, reject) => {
-    const args: string[] = ['--json', '--timeout', timeout.toString()];
+    const args: string[] = ['--json', '--response-timeout', timeout.toString()];
 
     // Only add provider flag if not 'default'
     if (provider && provider !== 'default') {
       args.push('--provider', provider);
     }
 
+    // Escape the prompt for shell (handle quotes, newlines, special chars)
+    const escapedPrompt = prompt
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/\$/g, '\\$')
+      .replace(/`/g, '\\`');
+
     // Build command that activates venv first
     const scriptArgs = args.map(a => `"${a}"`).join(' ');
-    const command = `source "${venvActivate}" && python3 "${scriptPath}" ${scriptArgs} "${prompt.replace(/"/g, '\\"')}"`;
+    const command = `source "${venvActivate}" && python3 "${scriptPath}" ${scriptArgs} "${escapedPrompt}"`;
+
+    // Log the exact command being executed (copy-paste ready)
+    console.log('[Local AI] Executing command (copy-paste ready):');
+    console.log('---');
+    console.log(command);
+    console.log('---');
 
     const process = spawn('bash', ['-c', command], {
       timeout: (timeout + 10) * 1000, // Add buffer to script timeout

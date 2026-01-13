@@ -30,6 +30,7 @@ const updateSchema = z.object({
   trialCredits: z.number().min(0).optional().nullable(),
   isActive: z.boolean().optional().nullable(),
   isFeatured: z.boolean().optional().nullable(),
+  isHidden: z.boolean().optional().nullable(),
   displayOrder: z.number().optional().nullable(),
 });
 
@@ -113,6 +114,7 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     if (input.trialCredits !== undefined) updateData.trial_credits = input.trialCredits;
     if (input.isActive !== undefined) updateData.is_active = input.isActive;
     if (input.isFeatured !== undefined) updateData.is_featured = input.isFeatured;
+    if (input.isHidden !== undefined) updateData.is_hidden = input.isHidden;
     if (input.displayOrder !== undefined) updateData.display_order = input.displayOrder;
 
     const { data, error } = await supabase

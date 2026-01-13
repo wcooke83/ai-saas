@@ -350,9 +350,10 @@ export async function getOrCreateConversation(
   chatbotId: string,
   sessionId: string,
   channel: Conversation['channel'] = 'widget',
-  visitorId?: string
+  visitorId?: string,
+  supabaseClient?: SupabaseAny
 ): Promise<Conversation> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = supabaseClient || await createClient() as SupabaseAny;
 
   // Try to find existing conversation
   const { data: existing } = await supabase
@@ -385,8 +386,8 @@ export async function getOrCreateConversation(
 // MESSAGES
 // ============================================
 
-export async function getMessages(conversationId: string): Promise<Message[]> {
-  const supabase = await createClient() as SupabaseAny;
+export async function getMessages(conversationId: string, supabaseClient?: SupabaseAny): Promise<Message[]> {
+  const supabase = supabaseClient || await createClient() as SupabaseAny;
 
   const { data, error } = await supabase
     .from('messages')
@@ -398,8 +399,8 @@ export async function getMessages(conversationId: string): Promise<Message[]> {
   return (data || []) as Message[];
 }
 
-export async function createMessage(message: MessageInsert): Promise<Message> {
-  const supabase = await createClient() as SupabaseAny;
+export async function createMessage(message: MessageInsert, supabaseClient?: SupabaseAny): Promise<Message> {
+  const supabase = supabaseClient || await createClient() as SupabaseAny;
 
   const { data, error } = await supabase
     .from('messages')

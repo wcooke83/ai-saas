@@ -4,7 +4,7 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/admin';
-import { generateQueryEmbedding } from './knowledge/embeddings';
+import { generateQueryEmbedding, isEmbeddingsAvailable } from './knowledge/embeddings';
 import type { Chatbot, Message, KnowledgeChunkMatch } from './types';
 
 export interface RAGContext {
@@ -22,6 +22,16 @@ export async function getRAGContext(
   maxChunks: number = 5,
   similarityThreshold: number = 0.7
 ): Promise<RAGContext> {
+  // Skip RAG if embeddings are not available (no valid OpenAI key)
+  if (!isEmbeddingsAvailable()) {
+    console.log('[RAG] Skipping RAG - embeddings not available (no valid OpenAI API key)');
+    return {
+      chunks: [],
+      systemPrompt: chatbot.system_prompt,
+      contextText: '',
+    };
+  }
+
   const supabase = createAdminClient() as any;
 
   // Generate embedding for the query

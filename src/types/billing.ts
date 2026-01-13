@@ -24,6 +24,7 @@ export interface SubscriptionPlan {
   trial_credits: number | null;
   is_active: boolean;
   is_featured: boolean;
+  is_hidden: boolean;
   display_order: number;
   created_at: string;
   updated_at: string;
@@ -231,6 +232,7 @@ export interface UpdatePlanInput {
   trialCredits?: number;
   isActive?: boolean;
   isFeatured?: boolean;
+  isHidden?: boolean;
   displayOrder?: number;
 }
 

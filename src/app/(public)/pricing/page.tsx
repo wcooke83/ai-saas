@@ -46,17 +46,6 @@ const toolConfig: Record<string, { name: string; icon: typeof Mail }> = {
   custom_chatbots: { name: 'Custom Chatbots', icon: Bot },
 };
 
-// Non-tool features that should display their value as-is
-const nonToolFeatures = new Set([
-  'priority_support',
-  'dedicated_support',
-  'pdf_export',
-  'docx_export',
-  'sso',
-  'sla',
-  'custom_integrations',
-]);
-
 // Plan styling configuration based on slug
 const planStyles: Record<string, {
   icon: typeof Sparkles | typeof Zap | typeof Crown;
@@ -145,21 +134,88 @@ const testimonials = [
   },
 ];
 
-const comparisonFeatures = [
-  { name: 'Monthly credits', free: '100', pro: '1,000', enterprise: 'Unlimited' },
-  { name: 'API keys', free: '2', pro: 'Unlimited', enterprise: 'Unlimited' },
-  { name: 'Email Writer', free: true, pro: true, enterprise: true },
-  { name: 'Proposal Generator', free: 'Basic', pro: 'Advanced', enterprise: 'Advanced + Custom' },
-  { name: 'Social Post Generator', free: false, pro: true, enterprise: true },
-  { name: 'Email Sequence Builder', free: false, pro: true, enterprise: true },
-  { name: 'PDF/DOCX Export', free: false, pro: true, enterprise: true },
-  { name: 'Custom branding', free: false, pro: true, enterprise: true },
-  { name: 'Priority support', free: false, pro: true, enterprise: true },
-  { name: 'Dedicated account manager', free: false, pro: false, enterprise: true },
-  { name: 'SSO & security', free: false, pro: false, enterprise: true },
-  { name: 'Custom integrations', free: false, pro: false, enterprise: true },
-  { name: 'SLA guarantee', free: false, pro: false, enterprise: true },
-];
+// Feature display names for non-tool features
+const featureDisplayNames: Record<string, string> = {
+  priority_support: 'Priority Support',
+  dedicated_support: 'Dedicated Account Manager',
+  pdf_export: 'PDF Export',
+  docx_export: 'DOCX Export',
+  sso: 'SSO & Security',
+  sla: 'SLA Guarantee',
+  custom_integrations: 'Custom Integrations',
+  custom_branding: 'Custom Branding',
+};
+
+// Helper to build comparison features from plans
+function buildComparisonFeatures(plans: SubscriptionPlan[]) {
+  if (!plans.length) return [];
+
+  const sortedPlans = sortPlansByDisplayOrder(plans);
+
+  // Start with credits and API keys
+  const features: { name: string; values: Record<string, boolean | string> }[] = [
+    {
+      name: 'Monthly Credits',
+      values: Object.fromEntries(
+        sortedPlans.map(p => [
+          p.slug,
+          p.credits_monthly === -1 ? 'Unlimited' : p.credits_monthly.toLocaleString()
+        ])
+      ),
+    },
+    {
+      name: 'API Keys',
+      values: Object.fromEntries(
+        sortedPlans.map(p => [
+          p.slug,
+          p.api_keys_limit === -1 ? 'Unlimited' : p.api_keys_limit.toString()
+        ])
+      ),
+    },
+  ];
+
+  // Collect all unique feature keys across all plans
+  const allFeatureKeys = new Set<string>();
+  sortedPlans.forEach(plan => {
+    if (plan.features && typeof plan.features === 'object') {
+      Object.keys(plan.features).forEach(key => allFeatureKeys.add(key));
+    }
+  });
+
+  // Add tool features first
+  const toolKeys = Array.from(allFeatureKeys).filter(key => toolConfig[key]);
+  toolKeys.forEach(key => {
+    features.push({
+      name: toolConfig[key].name,
+      values: Object.fromEntries(
+        sortedPlans.map(plan => {
+          const featureValue = (plan.features as Record<string, any>)?.[key];
+          if (featureValue === true) return [plan.slug, true];
+          if (typeof featureValue === 'string') return [plan.slug, featureValue];
+          return [plan.slug, false];
+        })
+      ),
+    });
+  });
+
+  // Add non-tool features
+  const nonToolKeys = Array.from(allFeatureKeys).filter(key => !toolConfig[key]);
+  nonToolKeys.forEach(key => {
+    features.push({
+      name: featureDisplayNames[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+      values: Object.fromEntries(
+        sortedPlans.map(plan => {
+          const featureValue = (plan.features as Record<string, any>)?.[key];
+          if (featureValue === true) return [plan.slug, true];
+          if (typeof featureValue === 'string') return [plan.slug, featureValue];
+          return [plan.slug, false];
+        })
+      ),
+    });
+  });
+
+  return features;
+}
 
 const faqs = [
   {
@@ -236,7 +292,8 @@ export default function PricingPage() {
   useEffect(() => {
     async function fetchPlans() {
       try {
-        const response = await fetch('/api/billing/plans');
+        // Use public API that filters out hidden plans
+        const response = await fetch('/api/plans');
         if (!response.ok) {
           throw new Error('Failed to fetch plans');
         }
@@ -515,7 +572,9 @@ export default function PricingPage() {
                                 ? 'bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 dark:from-primary-500 dark:to-primary-400 dark:hover:from-primary-600 dark:hover:to-primary-500 shadow-lg shadow-primary-500/25 dark:shadow-primary-400/40 text-white font-semibold'
                                 : plan.slug === 'enterprise'
                                   ? 'border-amber-400 dark:border-amber-500 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30 font-medium'
-                                  : 'text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100'
+                                  : plan.slug === 'base'
+                                    ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-medium'
+                                    : 'text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100'
                             }`}
                             size="lg"
                             asChild
@@ -546,29 +605,60 @@ export default function PricingPage() {
 
                 {showComparison && (
                   <div className="mt-8 overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="border-b border-secondary-200 dark:border-secondary-700">
-                          <th className="text-left py-4 px-4 font-semibold text-secondary-900 dark:text-secondary-100">Feature</th>
-                          <th className="text-center py-4 px-4 font-semibold text-secondary-900 dark:text-secondary-100">Free</th>
-                          <th className="text-center py-4 px-4 font-semibold text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20">Pro</th>
-                          <th className="text-center py-4 px-4 font-semibold text-amber-600 dark:text-amber-400">Enterprise</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {comparisonFeatures.map((feature, i) => (
-                          <tr
-                            key={feature.name}
-                            className={`border-b border-secondary-100 dark:border-secondary-800 ${i % 2 === 0 ? 'bg-secondary-50/50 dark:bg-secondary-800/30' : ''}`}
-                          >
-                            <td className="py-3 px-4 text-sm text-secondary-700 dark:text-secondary-300">{feature.name}</td>
-                            <td className="py-3 px-4 text-center"><FeatureValue value={feature.free} /></td>
-                            <td className="py-3 px-4 text-center bg-primary-50/30 dark:bg-primary-900/10"><FeatureValue value={feature.pro} /></td>
-                            <td className="py-3 px-4 text-center"><FeatureValue value={feature.enterprise} /></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    {(() => {
+                      const sortedPlans = sortPlansByDisplayOrder(plans);
+                      const comparisonFeatures = buildComparisonFeatures(plans);
+
+                      return (
+                        <table className="w-full border-collapse">
+                          <thead>
+                            <tr className="border-b border-secondary-200 dark:border-secondary-700">
+                              <th className="text-left py-4 px-4 font-semibold text-secondary-900 dark:text-secondary-100">Feature</th>
+                              {sortedPlans.map(plan => {
+                                const style = planStyles[plan.slug] || defaultPlanStyle;
+                                const isFeatured = plan.is_featured || style.popular;
+                                return (
+                                  <th
+                                    key={plan.slug}
+                                    className={`text-center py-4 px-4 font-semibold ${
+                                      isFeatured
+                                        ? 'text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20'
+                                        : plan.slug === 'enterprise'
+                                          ? 'text-amber-600 dark:text-amber-400'
+                                          : 'text-secondary-900 dark:text-secondary-100'
+                                    }`}
+                                  >
+                                    {plan.name}
+                                  </th>
+                                );
+                              })}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {comparisonFeatures.map((feature, i) => (
+                              <tr
+                                key={feature.name}
+                                className={`border-b border-secondary-100 dark:border-secondary-800 ${i % 2 === 0 ? 'bg-secondary-50/50 dark:bg-secondary-800/30' : ''}`}
+                              >
+                                <td className="py-3 px-4 text-sm text-secondary-700 dark:text-secondary-300">{feature.name}</td>
+                                {sortedPlans.map(plan => {
+                                  const style = planStyles[plan.slug] || defaultPlanStyle;
+                                  const isFeatured = plan.is_featured || style.popular;
+                                  return (
+                                    <td
+                                      key={plan.slug}
+                                      className={`py-3 px-4 text-center ${isFeatured ? 'bg-primary-50/30 dark:bg-primary-900/10' : ''}`}
+                                    >
+                                      <FeatureValue value={feature.values[plan.slug] ?? false} />
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      );
+                    })()}
                   </div>
                 )}
               </div>

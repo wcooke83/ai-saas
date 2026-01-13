@@ -25,6 +25,7 @@ export interface UserAPILog {
   duration_ms: number | null;
   error_message: string | null;
   request_body: Record<string, unknown> | null;
+  response_body: Record<string, unknown> | null;
   created_at: string;
 }
 
@@ -165,6 +166,29 @@ export function UserLogEntry({ log, isExpanded, onToggle }: UserLogEntryProps) {
               </div>
               <pre className="p-3 bg-secondary-100 dark:bg-secondary-800 rounded-lg text-xs font-mono text-secondary-800 dark:text-secondary-200 overflow-x-auto max-h-48">
                 {JSON.stringify(log.request_body, null, 2)}
+              </pre>
+            </div>
+          )}
+
+          {/* Response Body */}
+          {log.response_body && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300">Response</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    copyToClipboard(JSON.stringify(log.response_body, null, 2), 'response');
+                  }}
+                >
+                  {copiedField === 'response' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                </Button>
+              </div>
+              <pre className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg text-xs font-mono text-green-800 dark:text-green-300 overflow-x-auto max-h-64">
+                {JSON.stringify(log.response_body, null, 2)}
               </pre>
             </div>
           )}

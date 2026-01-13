@@ -7,6 +7,16 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const EMBEDDING_MODEL = 'text-embedding-ada-002';
 const EMBEDDING_DIMENSIONS = 1536;
 
+// Check if we have a valid OpenAI API key (not a placeholder)
+const hasValidOpenAIKey = OPENAI_API_KEY?.startsWith('sk-') && OPENAI_API_KEY.length > 20;
+
+/**
+ * Check if embeddings are available
+ */
+export function isEmbeddingsAvailable(): boolean {
+  return !!hasValidOpenAIKey;
+}
+
 export interface EmbeddingResult {
   embedding: number[];
   tokens: number;
@@ -16,8 +26,8 @@ export interface EmbeddingResult {
  * Generate embeddings for multiple texts (batched)
  */
 export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
-  if (!OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY is not configured');
+  if (!hasValidOpenAIKey) {
+    throw new Error('Valid OPENAI_API_KEY is required for embeddings. Current key appears to be a placeholder.');
   }
 
   if (texts.length === 0) {

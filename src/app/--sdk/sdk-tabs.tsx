@@ -37,13 +37,13 @@ import {
   Moon,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Toaster } from '@/components/ui/toaster';
 import { useUISettings, BackdropBlurValue } from '@/contexts/ui-settings-context';
 
 // ============================================================================
 // Cookie Constants
 // ============================================================================
 const COOKIE_NAME = 'theme-color-overrides-v2';
+const COLOR_STORAGE_KEY = 'theme-color-overrides-v3'; // Match provider's localStorage key
 const COOKIE_MAX_AGE = 31536000; // 1 year
 const GRADIENT_COOKIE_NAME = 'theme-gradient-enabled';
 const CARD_GRADIENT_COOKIE_NAME = 'theme-card-gradient-enabled';
@@ -114,6 +114,11 @@ const INNER_SUCCESS_CARD_BG_COLOR_COOKIE_NAME = 'theme-inner-success-card-bg-col
 const INNER_WARNING_CARD_BORDER_COOKIE_NAME = 'theme-inner-warning-card-border-enabled';
 const INNER_WARNING_CARD_GRADIENT_COOKIE_NAME = 'theme-inner-warning-card-gradient-enabled';
 const INNER_WARNING_CARD_BG_COLOR_COOKIE_NAME = 'theme-inner-warning-card-bg-color-enabled';
+
+// Action Card toggle cookies
+const ACTION_CARD_BORDER_COOKIE_NAME = 'theme-action-card-border-enabled';
+const ACTION_CARD_GRADIENT_COOKIE_NAME = 'theme-action-card-gradient-enabled';
+const ACTION_CARD_BG_COLOR_COOKIE_NAME = 'theme-action-card-bg-color-enabled';
 
 // ============================================================================
 // Theme Color Variables Definition
@@ -281,6 +286,35 @@ const themeColorVariables = {
       { name: '--inner-card-secondary-btn-hover-bg', label: 'Secondary Btn Hover Bg', defaultValue: '248 250 252' },
       { name: '--inner-card-secondary-btn-hover-border', label: 'Secondary Btn Hover Border', defaultValue: '203 213 225' },
       { name: '--inner-card-secondary-btn-hover-text', label: 'Secondary Btn Hover Text', defaultValue: '15 23 42' },
+    ],
+    // Action Card (clickable/linkable cards)
+    actionCard: [
+      { name: '--action-card-bg', label: 'Background', defaultValue: '255 255 255' },
+      { name: '--action-card-border', label: 'Border', defaultValue: '226 232 240' },
+      { name: '--action-card-heading', label: 'Heading', defaultValue: '15 23 42' },
+      { name: '--action-card-text-primary', label: 'Primary Text', defaultValue: '71 85 105' },
+      { name: '--action-card-text-secondary', label: 'Secondary Text', defaultValue: '100 116 139' },
+    ],
+    actionCardGradient: [
+      { name: '--action-card-bg-gradient-from', label: 'Gradient Start', defaultValue: '255 255 255' },
+      { name: '--action-card-bg-gradient-to', label: 'Gradient End', defaultValue: '248 250 252' },
+    ],
+    actionCardHover: [
+      { name: '--action-card-hover-bg', label: 'Hover Background', defaultValue: '240 249 255' },
+      { name: '--action-card-hover-border', label: 'Hover Border', defaultValue: '14 165 233' },
+    ],
+    actionCardHoverGradient: [
+      { name: '--action-card-hover-bg-gradient-from', label: 'Hover Gradient Start', defaultValue: '248 250 252' },
+      { name: '--action-card-hover-bg-gradient-to', label: 'Hover Gradient End', defaultValue: '240 249 255' },
+    ],
+    actionCardIcon: [
+      { name: '--action-card-icon-bg', label: 'Icon Background', defaultValue: '241 245 249' },
+      { name: '--action-card-icon-color', label: 'Icon Color', defaultValue: '100 116 139' },
+      { name: '--action-card-icon-hover-bg', label: 'Icon Hover Background', defaultValue: '224 242 254' },
+      { name: '--action-card-icon-hover-color', label: 'Icon Hover Color', defaultValue: '14 165 233' },
+    ],
+    actionCardRadius: [
+      { name: '--action-card-radius', label: 'Border Radius', defaultValue: '0.75rem', isSize: true },
     ],
     // Code Card
     codeCard: [
@@ -616,6 +650,35 @@ const themeColorVariables = {
       { name: '--inner-card-secondary-btn-hover-border', label: 'Secondary Btn Hover Border', defaultValue: '100 116 139' },
       { name: '--inner-card-secondary-btn-hover-text', label: 'Secondary Btn Hover Text', defaultValue: '248 250 252' },
     ],
+    // Action Card (clickable/linkable cards)
+    actionCard: [
+      { name: '--action-card-bg', label: 'Background', defaultValue: '15 23 42' },
+      { name: '--action-card-border', label: 'Border', defaultValue: '51 65 85' },
+      { name: '--action-card-heading', label: 'Heading', defaultValue: '241 245 249' },
+      { name: '--action-card-text-primary', label: 'Primary Text', defaultValue: '203 213 225' },
+      { name: '--action-card-text-secondary', label: 'Secondary Text', defaultValue: '148 163 184' },
+    ],
+    actionCardGradient: [
+      { name: '--action-card-bg-gradient-from', label: 'Gradient Start', defaultValue: '15 23 42' },
+      { name: '--action-card-bg-gradient-to', label: 'Gradient End', defaultValue: '23 32 52' },
+    ],
+    actionCardHover: [
+      { name: '--action-card-hover-bg', label: 'Hover Background', defaultValue: '23 32 52' },
+      { name: '--action-card-hover-border', label: 'Hover Border', defaultValue: '56 189 248' },
+    ],
+    actionCardHoverGradient: [
+      { name: '--action-card-hover-bg-gradient-from', label: 'Hover Gradient Start', defaultValue: '23 32 52' },
+      { name: '--action-card-hover-bg-gradient-to', label: 'Hover Gradient End', defaultValue: '30 41 59' },
+    ],
+    actionCardIcon: [
+      { name: '--action-card-icon-bg', label: 'Icon Background', defaultValue: '30 41 59' },
+      { name: '--action-card-icon-color', label: 'Icon Color', defaultValue: '148 163 184' },
+      { name: '--action-card-icon-hover-bg', label: 'Icon Hover Background', defaultValue: '7 89 133' },
+      { name: '--action-card-icon-hover-color', label: 'Icon Hover Color', defaultValue: '125 211 252' },
+    ],
+    actionCardRadius: [
+      { name: '--action-card-radius', label: 'Border Radius', defaultValue: '0.75rem', isSize: true },
+    ],
     // Code Card
     codeCard: [
       { name: '--code-card-bg', label: 'Background', defaultValue: '2 6 14' },
@@ -802,14 +865,33 @@ const themeColorVariables = {
 };
 
 // ============================================================================
-// Cookie Helper Functions
+// Storage Helper Functions (using localStorage to match provider and avoid cookie size limits)
 // ============================================================================
 function getColorOverridesFromCookie(): ColorOverridesByMode {
   if (typeof window === 'undefined') return { light: {}, dark: {} };
   try {
+    // First try localStorage (preferred - no size limit issues)
+    const stored = localStorage.getItem(COLOR_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return {
+        light: parsed.light || {},
+        dark: parsed.dark || {},
+      };
+    }
+    // Fallback: try old cookie format for migration
     const match = document.cookie.match(new RegExp(`(^| )${COOKIE_NAME}=([^;]+)`));
     if (match) {
-      return JSON.parse(decodeURIComponent(match[2]));
+      const parsed = JSON.parse(decodeURIComponent(match[2]));
+      const migrated = {
+        light: parsed.light || {},
+        dark: parsed.dark || {},
+      };
+      // Migrate to localStorage
+      localStorage.setItem(COLOR_STORAGE_KEY, JSON.stringify(migrated));
+      // Clear the old cookie
+      document.cookie = `${COOKIE_NAME}=; path=/; max-age=0`;
+      return migrated;
     }
   } catch (e) {
     console.error('Failed to parse color overrides:', e);
@@ -819,7 +901,7 @@ function getColorOverridesFromCookie(): ColorOverridesByMode {
 
 function saveColorOverridesToCookie(overrides: ColorOverridesByMode): void {
   if (typeof window === 'undefined') return;
-  document.cookie = `${COOKIE_NAME}=${encodeURIComponent(JSON.stringify(overrides))}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+  localStorage.setItem(COLOR_STORAGE_KEY, JSON.stringify(overrides));
 }
 
 function getCurrentThemeMode(): 'light' | 'dark' {
@@ -1093,6 +1175,38 @@ function saveInnerCardBgColorEnabledToCookie(enabled: boolean): void {
   if (typeof window === 'undefined') return;
   document.cookie = `${INNER_CARD_BG_COLOR_COOKIE_NAME}=${enabled}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
   document.documentElement.setAttribute('data-inner-card-bg-color-enabled', String(enabled));
+}
+
+// Action Card cookie helpers
+function getActionCardBorderEnabledFromCookie(): boolean {
+  if (typeof window === 'undefined') return true;
+  const match = document.cookie.match(new RegExp(`(^| )${ACTION_CARD_BORDER_COOKIE_NAME}=([^;]+)`));
+  return match ? match[2] === 'true' : true;
+}
+function saveActionCardBorderEnabledToCookie(enabled: boolean): void {
+  if (typeof window === 'undefined') return;
+  document.cookie = `${ACTION_CARD_BORDER_COOKIE_NAME}=${enabled}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+  document.documentElement.setAttribute('data-action-card-border-enabled', String(enabled));
+}
+function getActionCardGradientEnabledFromCookie(): boolean {
+  if (typeof window === 'undefined') return false;
+  const match = document.cookie.match(new RegExp(`(^| )${ACTION_CARD_GRADIENT_COOKIE_NAME}=([^;]+)`));
+  return match ? match[2] === 'true' : false;
+}
+function saveActionCardGradientEnabledToCookie(enabled: boolean): void {
+  if (typeof window === 'undefined') return;
+  document.cookie = `${ACTION_CARD_GRADIENT_COOKIE_NAME}=${enabled}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+  document.documentElement.setAttribute('data-action-card-gradient-enabled', String(enabled));
+}
+function getActionCardBgColorEnabledFromCookie(): boolean {
+  if (typeof window === 'undefined') return true;
+  const match = document.cookie.match(new RegExp(`(^| )${ACTION_CARD_BG_COLOR_COOKIE_NAME}=([^;]+)`));
+  return match ? match[2] === 'true' : true;
+}
+function saveActionCardBgColorEnabledToCookie(enabled: boolean): void {
+  if (typeof window === 'undefined') return;
+  document.cookie = `${ACTION_CARD_BG_COLOR_COOKIE_NAME}=${enabled}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+  document.documentElement.setAttribute('data-action-card-bg-color-enabled', String(enabled));
 }
 
 // Code Card cookie helpers
@@ -1745,6 +1859,11 @@ export function SDKTabs() {
   const [innerCardGradientEnabled, setInnerCardGradientEnabled] = useState(false);
   const [innerCardBgColorEnabled, setInnerCardBgColorEnabled] = useState(true);
 
+  // Action Card toggle states
+  const [actionCardBorderEnabled, setActionCardBorderEnabled] = useState(true);
+  const [actionCardGradientEnabled, setActionCardGradientEnabled] = useState(false);
+  const [actionCardBgColorEnabled, setActionCardBgColorEnabled] = useState(true);
+
   // Code Card toggle states
   const [codeCardBorderEnabled, setCodeCardBorderEnabled] = useState(true);
   const [codeCardGradientEnabled, setCodeCardGradientEnabled] = useState(false);
@@ -1819,6 +1938,11 @@ export function SDKTabs() {
     setInnerCardBorderEnabled(getInnerCardBorderEnabledFromCookie());
     setInnerCardGradientEnabled(getInnerCardGradientEnabledFromCookie());
     setInnerCardBgColorEnabled(getInnerCardBgColorEnabledFromCookie());
+
+    // Action Card
+    setActionCardBorderEnabled(getActionCardBorderEnabledFromCookie());
+    setActionCardGradientEnabled(getActionCardGradientEnabledFromCookie());
+    setActionCardBgColorEnabled(getActionCardBgColorEnabledFromCookie());
 
     // Code Card
     setCodeCardBorderEnabled(getCodeCardBorderEnabledFromCookie());
@@ -2368,7 +2492,6 @@ export function SDKTabs() {
 
   return (
     <div>
-      <Toaster />
       {/* Tab Navigation */}
       <div className="flex gap-2 border-b border-secondary-200 dark:border-secondary-800 mb-8 overflow-x-auto pb-px">
         {tabs.map((tab) => {
@@ -3738,8 +3861,8 @@ export function SDKTabs() {
               </Subsection>
             </SectionGroup>
 
-            {/* Card Types */}
-            <SectionGroup title="Card Types">
+            {/* Secondary Card */}
+            <SectionGroup title="Secondary Card">
               <Subsection
                 title="Secondary Card"
                 icon={FileText}
@@ -3867,7 +3990,10 @@ export function SDKTabs() {
                   </div>
                 </div>
               </Subsection>
+            </SectionGroup>
 
+            {/* Specialty Card */}
+            <SectionGroup title="Specialty Card">
               <Subsection
                 title="Specialty Card"
                 icon={FileText}
@@ -4005,7 +4131,10 @@ export function SDKTabs() {
                   </div>
                 </div>
               </Subsection>
+            </SectionGroup>
 
+            {/* Inner Card */}
+            <SectionGroup title="Inner Card">
               <Subsection
                 title="Inner Card"
                 icon={FileText}
@@ -4137,7 +4266,154 @@ export function SDKTabs() {
                   </div>
                 </div>
               </Subsection>
+            </SectionGroup>
 
+            {/* Action Card */}
+            <SectionGroup title="Action Card">
+              <Subsection
+                title="Action Card"
+                icon={MousePointer}
+                onReset={() => {
+                  handleResetGroup('Action Card', lightVars.actionCard, darkVars.actionCard);
+                  handleResetGroup('Action Card Gradient', lightVars.actionCardGradient, darkVars.actionCardGradient);
+                  handleResetGroup('Action Card Hover', lightVars.actionCardHover, darkVars.actionCardHover);
+                  handleResetGroup('Action Card Hover Gradient', lightVars.actionCardHoverGradient, darkVars.actionCardHoverGradient);
+                  handleResetGroup('Action Card Icon', lightVars.actionCardIcon, darkVars.actionCardIcon);
+                  handleResetGroup('Action Card Radius', lightVars.actionCardRadius, darkVars.actionCardRadius);
+                  setActionCardBorderEnabled(true);
+                  saveActionCardBorderEnabledToCookie(true);
+                  setActionCardGradientEnabled(false);
+                  saveActionCardGradientEnabledToCookie(false);
+                  setActionCardBgColorEnabled(true);
+                  saveActionCardBgColorEnabledToCookie(true);
+                }}
+              >
+                <div className="mb-4 p-4 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg space-y-4">
+                  {/* Show Border Toggle */}
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-sm">Show Border</Label>
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400">Display border around action cards</p>
+                      </div>
+                      <ToggleSwitch
+                        label=""
+                        checked={actionCardBorderEnabled}
+                        onChange={(v) => {
+                          setActionCardBorderEnabled(v);
+                          saveActionCardBorderEnabledToCookie(v);
+                        }}
+                      />
+                    </div>
+                    <AnimatedCollapse isOpen={actionCardBorderEnabled}>
+                      <div className="mt-3 pl-4 border-l-2 border-secondary-200 dark:border-secondary-700">
+                        <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider mb-2">Border Color</p>
+                        <DualModeVariables
+                          lightVars={lightVars.actionCard.filter(v => v.name === '--action-card-border')}
+                          darkVars={darkVars.actionCard.filter(v => v.name === '--action-card-border')}
+                          updateKey={updateKey}
+                          onUpdate={forceUpdate}
+                        />
+                      </div>
+                    </AnimatedCollapse>
+                  </div>
+
+                  {/* Use Background Gradient Toggle */}
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-sm">Use Background Gradient</Label>
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400">Apply gradient to card background</p>
+                      </div>
+                      <ToggleSwitch
+                        label=""
+                        checked={actionCardGradientEnabled}
+                        onChange={(v) => {
+                          setActionCardGradientEnabled(v);
+                          saveActionCardGradientEnabledToCookie(v);
+                        }}
+                      />
+                    </div>
+                    <AnimatedCollapse isOpen={actionCardGradientEnabled}>
+                      <div className="mt-3 pl-4 border-l-2 border-secondary-200 dark:border-secondary-700">
+                        <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider mb-2">Gradient Colors</p>
+                        <DualModeVariables lightVars={lightVars.actionCardGradient} darkVars={darkVars.actionCardGradient} updateKey={updateKey} onUpdate={forceUpdate} />
+                      </div>
+                    </AnimatedCollapse>
+                  </div>
+
+                  {/* Use Background Color Toggle */}
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-sm">Use Background Color</Label>
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400">Apply solid color to card background</p>
+                      </div>
+                      <ToggleSwitch
+                        label=""
+                        checked={actionCardBgColorEnabled}
+                        onChange={(v) => {
+                          setActionCardBgColorEnabled(v);
+                          saveActionCardBgColorEnabledToCookie(v);
+                        }}
+                      />
+                    </div>
+                    <AnimatedCollapse isOpen={actionCardBgColorEnabled}>
+                      <div className="mt-3 pl-4 border-l-2 border-secondary-200 dark:border-secondary-700">
+                        <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider mb-2">Background Color</p>
+                        <DualModeVariables
+                          lightVars={lightVars.actionCard.filter(v => v.name === '--action-card-bg')}
+                          darkVars={darkVars.actionCard.filter(v => v.name === '--action-card-bg')}
+                          updateKey={updateKey}
+                          onUpdate={forceUpdate}
+                        />
+                      </div>
+                    </AnimatedCollapse>
+                  </div>
+
+                  {/* Text Colors */}
+                  <div>
+                    <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider mb-2">Text Colors</p>
+                    <DualModeVariables
+                      lightVars={lightVars.actionCard.filter(v => v.name.includes('heading') || v.name.includes('text'))}
+                      darkVars={darkVars.actionCard.filter(v => v.name.includes('heading') || v.name.includes('text'))}
+                      updateKey={updateKey}
+                      onUpdate={forceUpdate}
+                    />
+                  </div>
+                </div>
+
+                {/* Hover States */}
+                <div className="mt-4 p-4 bg-primary-50/50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
+                  <p className="text-sm font-medium text-primary-700 dark:text-primary-300 mb-3">Hover States</p>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider mb-2">Hover Background & Border</p>
+                      <DualModeVariables lightVars={lightVars.actionCardHover} darkVars={darkVars.actionCardHover} updateKey={updateKey} onUpdate={forceUpdate} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider mb-2">Hover Gradient</p>
+                      <DualModeVariables lightVars={lightVars.actionCardHoverGradient} darkVars={darkVars.actionCardHoverGradient} updateKey={updateKey} onUpdate={forceUpdate} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Icon Colors */}
+                <div className="mt-4">
+                  <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider mb-2">Icon Colors</p>
+                  <DualModeVariables lightVars={lightVars.actionCardIcon} darkVars={darkVars.actionCardIcon} updateKey={updateKey} onUpdate={forceUpdate} />
+                </div>
+
+                {/* Border Radius */}
+                <div className="mt-4">
+                  <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider mb-2">Border Radius</p>
+                  <DualModeVariables lightVars={lightVars.actionCardRadius} darkVars={darkVars.actionCardRadius} updateKey={updateKey} onUpdate={forceUpdate} />
+                </div>
+              </Subsection>
+            </SectionGroup>
+
+            {/* Code Card */}
+            <SectionGroup title="Code Card">
               <Subsection
                 title="Code Card"
                 icon={FileText}

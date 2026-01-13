@@ -20,7 +20,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import {
   Package, Plus, Edit2, Trash2, X, Loader2, GripVertical, Building2,
-  Mail, FileText, Share2, Megaphone, PenTool, ClipboardList, Send, Bot
+  Mail, FileText, Share2, Megaphone, PenTool, ClipboardList, Send, Bot, EyeOff
 } from 'lucide-react';
 import { Tooltip } from '@/components/ui/tooltip';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -58,6 +58,7 @@ interface PlanFormData {
   rateLimitIsHardCap: boolean;
   trialDays: number;
   isFeatured: boolean;
+  isHidden: boolean;
   includedTools: Record<ToolId, boolean>;
 }
 
@@ -77,6 +78,7 @@ const defaultFormData: PlanFormData = {
   rateLimitIsHardCap: true,
   trialDays: 0,
   isFeatured: false,
+  isHidden: false,
   includedTools: {
     email_writer: true,
     proposal_generator: true,
@@ -127,7 +129,9 @@ function SortablePlanCard({
       style={style}
       className={`relative p-6 rounded-xl border transition-all flex flex-col group ${
         plan.is_active
-          ? 'bg-white dark:bg-secondary-800 border-secondary-200 dark:border-secondary-700'
+          ? plan.is_hidden
+            ? 'bg-white dark:bg-secondary-800 border-secondary-300 dark:border-secondary-600 border-dashed'
+            : 'bg-white dark:bg-secondary-800 border-secondary-200 dark:border-secondary-700'
           : 'bg-secondary-50 dark:bg-secondary-900 border-secondary-200 dark:border-secondary-800 opacity-60'
       } ${plan.is_featured ? 'ring-2 ring-primary-500' : ''} ${
         isDragging ? 'shadow-xl scale-[1.02] ring-2 ring-primary-500/30' : ''
@@ -148,6 +152,13 @@ function SortablePlanCard({
       {plan.is_featured && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary-500 text-white text-xs font-medium rounded-full">
           Featured
+        </div>
+      )}
+
+      {plan.is_hidden && (
+        <div className="absolute -top-3 left-4 px-3 py-1 bg-secondary-500 dark:bg-secondary-600 text-white text-xs font-medium rounded-full flex items-center gap-1.5 shadow-sm">
+          <EyeOff className="w-3 h-3" />
+          Hidden
         </div>
       )}
 
@@ -442,6 +453,7 @@ export default function PlansAdminPage() {
       rateLimitIsHardCap: plan.rate_limit_is_hard_cap,
       trialDays: plan.trial_days,
       isFeatured: plan.is_featured,
+      isHidden: plan.is_hidden ?? false,
       includedTools,
     });
     setActiveTab('general');
@@ -482,6 +494,7 @@ export default function PlansAdminPage() {
         rateLimitIsHardCap: formData.rateLimitIsHardCap,
         trialDays: formData.isCustomPricing ? 0 : formData.trialDays,
         isFeatured: formData.isFeatured,
+        isHidden: formData.isHidden,
         features,
       };
 
@@ -1019,23 +1032,46 @@ export default function PlansAdminPage() {
                       </div>
                     </div>
 
-                    {/* Featured Flag */}
+                    {/* Display Options */}
                     <div className="pt-4 border-t border-secondary-200 dark:border-secondary-700">
                       <h3 className="text-sm font-semibold text-secondary-900 dark:text-secondary-100 mb-3">Display Options</h3>
-                      <Tooltip content="Featured plans are highlighted on the pricing page" side="right">
-                        <label className="inline-flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-secondary-200 dark:border-secondary-600 hover:border-secondary-300 dark:hover:border-secondary-500 transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={formData.isFeatured}
-                            onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                            className="w-5 h-5 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
-                          />
-                          <div>
-                            <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Featured Plan</span>
-                            <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">Highlight this plan on the pricing page</p>
-                          </div>
-                        </label>
-                      </Tooltip>
+                      <div className="flex gap-3">
+                        {/* Featured Plan */}
+                        <Tooltip content="Featured plans are highlighted on the pricing page" side="right">
+                          <label className="flex-1 flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-secondary-200 dark:border-secondary-600 hover:border-secondary-300 dark:hover:border-secondary-500 transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={formData.isFeatured}
+                              onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+                              className="w-5 h-5 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
+                            />
+                            <div>
+                              <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Featured Plan</span>
+                              <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">Highlight on pricing page</p>
+                            </div>
+                          </label>
+                        </Tooltip>
+
+                        {/* Hidden Plan */}
+                        <Tooltip
+                          content="Hidden plans are not shown on public pages. Dashboard users only see them if currently subscribed. Always visible in admin."
+                          side="right"
+                        >
+                          <label className="flex-1 flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-amber-200 dark:border-amber-700/50 bg-amber-50/50 dark:bg-amber-900/10 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={formData.isHidden}
+                              onChange={(e) => setFormData({ ...formData, isHidden: e.target.checked })}
+                              className="w-5 h-5 rounded border-amber-400 dark:border-amber-600 text-amber-600 focus:ring-amber-500"
+                            />
+                            <EyeOff className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                            <div>
+                              <span className="text-sm font-medium text-amber-900 dark:text-amber-100">Hidden Plan</span>
+                              <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">Not visible unless subscribed</p>
+                            </div>
+                          </label>
+                        </Tooltip>
+                      </div>
                     </div>
                   </div>
                 )}

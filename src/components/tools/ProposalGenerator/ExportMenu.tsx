@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { generateProposalDocx } from '@/lib/docx/proposal-generator';
 import type { ProposalSection, ExportFormat } from '@/types/proposal';
 import { Download, FileText, File, FileType, ChevronDown, Loader2 } from 'lucide-react';
@@ -10,9 +9,6 @@ import { Download, FileText, File, FileType, ChevronDown, Loader2 } from 'lucide
 interface ExportMenuProps {
   title: string;
   sections: ProposalSection[];
-  canExportPDF: boolean;
-  canExportDOCX: boolean;
-  isPro: boolean;
   branding?: {
     companyName: string;
     primaryColor?: string;
@@ -32,9 +28,6 @@ interface ExportMenuProps {
 export function ExportMenu({
   title,
   sections,
-  canExportPDF,
-  canExportDOCX,
-  isPro,
   branding,
   clientInfo,
   senderInfo,
@@ -47,9 +40,6 @@ export function ExportMenu({
   const enabledSections = sections.filter(s => s.isEnabled);
 
   const handleExport = async (format: ExportFormat) => {
-    if (format === 'docx' && !canExportDOCX) return;
-    if (format === 'pdf' && !canExportPDF) return;
-
     setIsExporting(format);
     setIsOpen(false);
 
@@ -75,7 +65,7 @@ export function ExportMenu({
               includeCoverPage: true,
               includeTableOfContents: enabledSections.length > 4,
               includePageNumbers: true,
-              addWatermark: !isPro,
+              addWatermark: false,
             }}
           />
         );
@@ -157,40 +147,26 @@ export function ExportMenu({
 
             {/* PDF */}
             <button
-              className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-secondary-700 dark:text-secondary-300 ${
-                canExportPDF
-                  ? 'hover:bg-secondary-50 dark:hover:bg-secondary-800'
-                  : 'cursor-not-allowed opacity-50'
-              }`}
+              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-800"
               onClick={() => handleExport('pdf')}
-              disabled={!canExportPDF || !!isExporting}
+              disabled={!!isExporting}
             >
               <File className="h-4 w-4" />
               <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  PDF
-                  {!isPro && <Badge variant="secondary" className="text-xs">Watermarked</Badge>}
-                </div>
+                <div>PDF</div>
                 <div className="text-xs text-secondary-400 dark:text-secondary-500">.pdf file</div>
               </div>
             </button>
 
             {/* DOCX */}
             <button
-              className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-secondary-700 dark:text-secondary-300 ${
-                canExportDOCX
-                  ? 'hover:bg-secondary-50 dark:hover:bg-secondary-800'
-                  : 'cursor-not-allowed opacity-50'
-              }`}
+              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-800"
               onClick={() => handleExport('docx')}
-              disabled={!canExportDOCX || !!isExporting}
+              disabled={!!isExporting}
             >
               <FileType className="h-4 w-4" />
               <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  Word Document
-                  {!canExportDOCX && <Badge variant="secondary" className="text-xs">Pro</Badge>}
-                </div>
+                <div>Word Document</div>
                 <div className="text-xs text-secondary-400 dark:text-secondary-500">.docx file</div>
               </div>
             </button>

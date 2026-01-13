@@ -29,6 +29,7 @@ import type { Database } from '@/types/database';
 
 type Usage = Database['public']['Tables']['usage']['Row'];
 type Generation = Database['public']['Tables']['generations']['Row'];
+type SubscriptionPlan = Database['public']['Tables']['subscription_plans']['Row'];
 
 function formatRelativeTime(dateString: string): string {
   const date = new Date(dateString);
@@ -47,8 +48,10 @@ function formatRelativeTime(dateString: string): string {
 
 export default function UsagePage() {
   const [usage, setUsage] = useState<Usage | null>(null);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan | null>(null);
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [apiLogs, setApiLogs] = useState<UserAPILog[]>([]);
+  const [totalTokensUsed, setTotalTokensUsed] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<'all' | 'email' | 'proposal' | 'social-post'>('all');
@@ -70,7 +73,7 @@ export default function UsagePage() {
       return;
     }
 
-    const [usageResult, generationsResult, logsResult] = await Promise.all([
+    const [usageResult, generationsResult, logsResult, subscriptionResult] = await Promise.all([
       supabase
         .from('usage')
         .select('*')
@@ -86,10 +89,15 @@ export default function UsagePage() {
         .limit(50),
       supabase
         .from('api_logs')
-        .select('id, endpoint, status_code, provider, model, tokens_input, tokens_output, tokens_billed, duration_ms, error_message, request_body, created_at')
+        .select('id, endpoint, status_code, provider, model, tokens_input, tokens_output, tokens_billed, duration_ms, error_message, request_body, response_body, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50),
+      supabase
+        .from('subscriptions')
+        .select('plan')
+        .eq('user_id', user.id)
+        .single(),
     ]);
 
     if (usageResult.data) {
@@ -102,6 +110,33 @@ export default function UsagePage() {
 
     if (logsResult.data) {
       setApiLogs(logsResult.data);
+    }
+
+    // Get subscription plan details
+    if (subscriptionResult.data?.plan) {
+      const { data: planData } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('slug', subscriptionResult.data.plan)
+        .single();
+      if (planData) {
+        setSubscriptionPlan(planData);
+      }
+    }
+
+    // Calculate total tokens used from api_logs for this billing period
+    const periodStart = usageResult.data?.period_start;
+    if (periodStart) {
+      const { data: tokenData } = await supabase
+        .from('api_logs')
+        .select('tokens_total')
+        .eq('user_id', user.id)
+        .gte('created_at', periodStart);
+
+      if (tokenData) {
+        const total = tokenData.reduce((sum: number, log: { tokens_total: number | null }) => sum + (log.tokens_total || 0), 0);
+        setTotalTokensUsed(total);
+      }
     }
 
     setLoading(false);
@@ -167,17 +202,28 @@ export default function UsagePage() {
     });
   };
 
+  // Use api_logs count if generations table is empty
+  const totalGenerationsCount = generations.length > 0 ? generations.length : apiLogs.length;
+
   const stats = {
-    totalGenerations: generations.length,
-    emailGenerations: generations.filter((g) => g.type === 'email').length,
-    proposalGenerations: generations.filter((g) => g.type === 'proposal').length,
-    socialPostGenerations: generations.filter((g) => g.type === 'social-post').length,
+    totalGenerations: totalGenerationsCount,
+    emailGenerations: generations.length > 0
+      ? generations.filter((g) => g.type === 'email').length
+      : apiLogs.filter((l) => l.endpoint.includes('email-writer')).length,
+    proposalGenerations: generations.length > 0
+      ? generations.filter((g) => g.type === 'proposal').length
+      : apiLogs.filter((l) => l.endpoint.includes('proposal')).length,
+    socialPostGenerations: generations.length > 0
+      ? generations.filter((g) => g.type === 'social-post').length
+      : apiLogs.filter((l) => l.endpoint.includes('social-post')).length,
     apiCalls: apiLogs.length,
     avgDuration: apiLogs.length > 0
       ? Math.round(apiLogs.reduce((sum, l) => sum + (l.duration_ms || 0), 0) / apiLogs.length)
       : 0,
     successRate: generations.length > 0
       ? Math.round((generations.filter((g) => g.status === 'completed').length / generations.length) * 100)
+      : apiLogs.length > 0
+      ? Math.round((apiLogs.filter((l) => l.status_code < 400).length / apiLogs.length) * 100)
       : 0,
   };
 
@@ -208,9 +254,11 @@ export default function UsagePage() {
     );
   }
 
-  const creditPercentage = usage
-    ? ((usage.credits_used ?? 0) / (usage.credits_limit ?? 1)) * 100
-    : 0;
+  // Get credits limit from subscription plan, falling back to usage table, then default
+  const creditsLimit = subscriptionPlan?.credits_monthly || usage?.credits_limit || 100;
+  // Use actual token count from api_logs instead of credits_used counter
+  const creditsUsed = totalTokensUsed;
+  const creditPercentage = creditsLimit > 0 ? (creditsUsed / creditsLimit) * 100 : 0;
 
   return (
     <div className="space-y-6">
@@ -272,11 +320,11 @@ export default function UsagePage() {
                 <Sparkles className="w-6 h-6 text-primary-600 dark:text-primary-400" aria-hidden="true" />
               </div>
               <div>
-                <p className="text-sm text-secondary-500 dark:text-secondary-400">Credits Used</p>
+                <p className="text-sm text-secondary-500 dark:text-secondary-400">Tokens Used</p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
-                  {usage?.credits_used || 0}
+                  {creditsUsed.toLocaleString()}
                   <span className="text-sm font-normal text-secondary-500 dark:text-secondary-400">
-                    /{usage?.credits_limit || 100}
+                    /{creditsLimit.toLocaleString()}
                   </span>
                 </p>
               </div>
@@ -285,9 +333,9 @@ export default function UsagePage() {
               <div
                 className="w-full bg-secondary-100 dark:bg-secondary-700 rounded-full h-2"
                 role="progressbar"
-                aria-valuenow={usage?.credits_used || 0}
+                aria-valuenow={creditsUsed}
                 aria-valuemin={0}
-                aria-valuemax={usage?.credits_limit || 100}
+                aria-valuemax={creditsLimit}
               >
                 <div
                   className={`h-2 rounded-full transition-all ${
@@ -503,6 +551,60 @@ export default function UsagePage() {
                       </Badge>
                     </div>
                   ))}
+                </div>
+              ) : apiLogs.length > 0 ? (
+                // Show api_logs as generation history when generations table is empty
+                <div className="space-y-3">
+                  {apiLogs.filter((log) => {
+                    if (filter === 'all') return true;
+                    if (filter === 'email') return log.endpoint.includes('email-writer');
+                    if (filter === 'proposal') return log.endpoint.includes('proposal');
+                    if (filter === 'social-post') return log.endpoint.includes('social-post');
+                    return true;
+                  }).map((log) => {
+                    // Extract tool type from endpoint
+                    const toolMatch = log.endpoint.match(/\/api\/tools\/([^/]+)/);
+                    const toolType = toolMatch ? toolMatch[1] : 'api';
+                    const displayType = toolType.replace(/-/g, ' ');
+                    return (
+                      <div
+                        key={log.id}
+                        className="flex items-center justify-between p-4 border border-secondary-100 dark:border-secondary-800 rounded-lg hover:bg-secondary-50 dark:hover:bg-secondary-800/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className={`p-2 rounded-lg ${
+                            toolType.includes('email') ? 'bg-green-100 dark:bg-green-900/30' :
+                            toolType.includes('social') ? 'bg-blue-100 dark:bg-blue-900/30' :
+                            'bg-purple-100 dark:bg-purple-900/30'
+                          }`}>
+                            {toolType.includes('email') ? (
+                              <Mail className="w-4 h-4 text-green-600 dark:text-green-400" aria-hidden="true" />
+                            ) : toolType.includes('social') ? (
+                              <Share2 className="w-4 h-4 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                            ) : (
+                              <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" aria-hidden="true" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium text-secondary-900 dark:text-secondary-100 capitalize">{displayType}</p>
+                            <div className="flex items-center gap-3 text-sm text-secondary-500 dark:text-secondary-400">
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5" aria-hidden="true" />
+                                {formatRelativeTime(log.created_at)}
+                              </span>
+                              {log.duration_ms && (
+                                <span>{(log.duration_ms / 1000).toFixed(1)}s</span>
+                              )}
+                              <span>{((log.tokens_input ?? 0) + (log.tokens_output ?? 0)).toLocaleString()} tokens</span>
+                            </div>
+                          </div>
+                        </div>
+                        <Badge variant={log.status_code < 400 ? 'success' : 'destructive'}>
+                          {log.status_code < 400 ? 'completed' : 'failed'}
+                        </Badge>
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-12">

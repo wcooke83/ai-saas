@@ -8,7 +8,6 @@ interface ProposalGeneratorProps {
   className?: string;
   apiEndpoint?: string;
   apiKey?: string;
-  isPro?: boolean;
   branding?: {
     companyName: string;
     primaryColor?: string;
@@ -20,7 +19,6 @@ export function ProposalGenerator({
   className = '',
   apiEndpoint = '/api/tools/proposal-generator',
   apiKey,
-  isPro = false,
   branding,
   onGenerate,
 }: ProposalGeneratorProps) {
@@ -80,7 +78,6 @@ export function ProposalGenerator({
           regeneratingSection={regeneratingSection}
           hasGenerated={hasGenerated}
           isGenerating={isGenerating}
-          isPro={isPro}
           branding={branding || {
             companyName: input.senderCompany || 'Your Company',
           }}

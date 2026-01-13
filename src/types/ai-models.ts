@@ -149,6 +149,7 @@ export interface UserAvailableModel {
   provider_slug: string;
   name: string;
   tier: 'fast' | 'balanced' | 'powerful' | null;
+  grade: string;
   input_per_mtok: number;   // Based on user type (retail or wholesale)
   output_per_mtok: number;
   cost_indicator: '$' | '$$' | '$$$';  // Visual cost level

@@ -22,8 +22,6 @@ import {
 interface SectionEditorProps {
   section: ProposalSection;
   isRegenerating: boolean;
-  canRegenerate: boolean;
-  canReorder: boolean;
   dragProps?: {
     draggable: boolean;
     onDragStart: (e: React.DragEvent<HTMLElement>) => void;
@@ -41,8 +39,6 @@ interface SectionEditorProps {
 export function SectionEditor({
   section,
   isRegenerating,
-  canRegenerate,
-  canReorder,
   dragProps,
   onContentChange,
   onToggle,
@@ -82,7 +78,7 @@ export function SectionEditor({
       className={`transition-all ${
         !section.isEnabled ? 'opacity-50' : ''
       } ${dragProps?.className || ''}`}
-      {...(canReorder && dragProps ? {
+      {...(dragProps ? {
         draggable: dragProps.draggable,
         onDragStart: dragProps.onDragStart,
         onDragEnd: dragProps.onDragEnd,
@@ -94,9 +90,7 @@ export function SectionEditor({
       <CardHeader className="py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {canReorder && (
-              <GripVertical className="h-5 w-5 cursor-move text-secondary-400 dark:text-secondary-500" />
-            )}
+            <GripVertical className="h-5 w-5 cursor-move text-secondary-400 dark:text-secondary-500" />
             <h3 className="font-medium">{section.title}</h3>
             {section.isEdited && (
               <Badge variant="secondary" className="text-xs">
@@ -142,7 +136,7 @@ export function SectionEditor({
             </Button>
 
             {/* Regenerate */}
-            {canRegenerate && section.isEnabled && (
+            {section.isEnabled && (
               <Button
                 variant="ghost"
                 size="sm"

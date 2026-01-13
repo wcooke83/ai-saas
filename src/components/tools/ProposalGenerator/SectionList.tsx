@@ -7,8 +7,6 @@ import { useSectionReorder } from './hooks/useSectionReorder';
 interface SectionListProps {
   sections: ProposalSection[];
   regeneratingSection: string | null;
-  canRegenerate: boolean;
-  canReorder: boolean;
   onContentChange: (sectionId: string, content: string) => void;
   onToggle: (sectionId: string) => void;
   onRegenerate: (sectionId: string, instructions?: string) => void;
@@ -18,14 +16,12 @@ interface SectionListProps {
 export function SectionList({
   sections,
   regeneratingSection,
-  canRegenerate,
-  canReorder,
   onContentChange,
   onToggle,
   onRegenerate,
   onReorder,
 }: SectionListProps) {
-  const { getDragProps } = useSectionReorder(sections, onReorder, canReorder);
+  const { getDragProps } = useSectionReorder(sections, onReorder, true);
 
   const sortedSections = [...sections].sort((a, b) => a.order - b.order);
 
@@ -36,9 +32,7 @@ export function SectionList({
           key={section.id}
           section={section}
           isRegenerating={regeneratingSection === section.id}
-          canRegenerate={canRegenerate}
-          canReorder={canReorder}
-          dragProps={canReorder ? getDragProps(section.id) : undefined}
+          dragProps={getDragProps(section.id)}
           onContentChange={(content) => onContentChange(section.id, content)}
           onToggle={() => onToggle(section.id)}
           onRegenerate={(instructions) => onRegenerate(section.id, instructions)}

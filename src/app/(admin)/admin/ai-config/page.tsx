@@ -58,6 +58,7 @@ interface Model {
   name: string;
   api_model_id: string;
   tier: 'fast' | 'balanced' | 'powerful';
+  grade: string;
   max_tokens: number;
   enabled: boolean;
   is_default: boolean;
@@ -72,6 +73,7 @@ interface ModelFormData {
   name: string;
   api_model_id: string;
   tier: 'fast' | 'balanced' | 'powerful';
+  grade: string;
   max_tokens: number;
   enabled: boolean;
   is_default: boolean;
@@ -84,12 +86,37 @@ interface ModelFormData {
   retail_out: string;
 }
 
+// Grade options grouped by category
+const gradeOptions = [
+  {
+    group: 'Simple / Clear',
+    options: ['Lite', 'Standard', 'Pro', 'Elite', 'Ultra'],
+  },
+  {
+    group: 'Tech / AI-style',
+    options: ['Core', 'Prime', 'Apex', 'Zenith', 'Omega'],
+  },
+  {
+    group: 'Power / Compute',
+    options: ['Nano', 'Micro', 'Macro', 'Mega', 'Titan'],
+  },
+  {
+    group: 'Numeric-inspired',
+    options: ['Alpha', 'Beta', 'Gamma', 'Delta', 'Sigma'],
+  },
+  {
+    group: 'Luxury / Premium',
+    options: ['Base', 'Plus', 'Max', 'Signature', 'Sovereign'],
+  },
+];
+
 const initialFormData: ModelFormData = {
   provider_id: '',
   slug: '',
   name: '',
   api_model_id: '',
   tier: 'balanced',
+  grade: '',
   max_tokens: 4096,
   enabled: true,
   is_default: false,
@@ -215,6 +242,7 @@ export default function AIConfigPage() {
         name: m.name,
         api_model_id: m.api_model_id,
         tier: m.tier || 'balanced',
+        grade: m.grade || '',
         max_tokens: m.max_tokens,
         enabled: m.is_enabled ?? true,
         is_default: m.is_default ?? false,
@@ -308,6 +336,7 @@ export default function AIConfigPage() {
       name: model.name,
       api_model_id: model.api_model_id,
       tier: model.tier,
+      grade: model.grade,
       max_tokens: model.max_tokens,
       enabled: model.enabled,
       is_default: model.is_default,
@@ -349,6 +378,7 @@ export default function AIConfigPage() {
       name: formData.name,
       api_model_id: formData.api_model_id,
       tier: formData.tier,
+      grade: formData.grade,
       max_tokens: formData.max_tokens,
       is_enabled: formData.enabled,
       is_default: formData.is_default,
@@ -376,6 +406,7 @@ export default function AIConfigPage() {
         name: formData.name,
         api_model_id: formData.api_model_id,
         tier: formData.tier,
+        grade: formData.grade,
         max_tokens: formData.max_tokens,
         enabled: formData.enabled,
         is_default: formData.is_default,
@@ -1209,6 +1240,32 @@ export default function AIConfigPage() {
                     <option value="fast">Fast</option>
                     <option value="balanced">Balanced</option>
                     <option value="powerful">Powerful</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <Label htmlFor="grade">Grade</Label>
+                    <InfoTooltip content="Marketing tier name for the model" />
+                  </div>
+                  <select
+                    id="grade"
+                    name="grade"
+                    value={formData.grade}
+                    onChange={handleFormChange}
+                    required
+                    className="flex h-10 w-full appearance-none rounded-md border border-secondary-300 dark:border-secondary-700 px-3 py-2 text-sm text-secondary-900 dark:text-secondary-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                    style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+                  >
+                    <option value="">Select grade</option>
+                    {gradeOptions.map((group) => (
+                      <optgroup key={group.group} label={group.group}>
+                        {group.options.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
                   </select>
                 </div>
                 <div className="space-y-2">

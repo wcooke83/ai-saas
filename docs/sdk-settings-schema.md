@@ -12,10 +12,13 @@ SDK settings files contain a complete snapshot of all theme colors, UI settings,
 {
   "version": 1,
   "exportedAt": "2026-01-10T16:19:03.366Z",
+  "name": "Custom Theme",
+  "description": "Exported from UI Settings",
   "colorOverrides": { ... },
   "allColors": { ... },
   "uiSettings": { ... },
-  "gradientToggles": { ... }
+  "gradientToggles": { ... },
+  "blurSettings": { ... }
 }
 ```
 
@@ -25,10 +28,13 @@ SDK settings files contain a complete snapshot of all theme colors, UI settings,
 |----------|------|-------------|
 | `version` | number | Schema version (currently `1`) |
 | `exportedAt` | string | ISO 8601 timestamp of when the file was created |
+| `name` | string | Optional theme name (displayed in toast on import) |
+| `description` | string | Optional theme description |
 | `colorOverrides` | object | Colors that differ from defaults (for backwards compatibility) |
 | `allColors` | object | **Complete snapshot of all color values** - use this when creating themes |
 | `uiSettings` | object | Blur, opacity, and UI behavior settings |
 | `gradientToggles` | object | Enable/disable flags for gradient features |
+| `blurSettings` | object | Legacy alias for `uiSettings` (for backwards compatibility) |
 
 ---
 
@@ -125,6 +131,8 @@ The `allColors` object contains two sub-objects: `light` and `dark`, each contai
 |----------|-------------|---------------|--------------|
 | `--modal-bg` | Modal background | `255 255 255` | `15 23 42` |
 | `--modal-border` | Modal border | `226 232 240` | `51 65 85` |
+| `--modal-gradient-from` | Modal gradient start | `255 255 255` | `15 23 42` |
+| `--modal-gradient-to` | Modal gradient end | `248 250 252` | `23 32 52` |
 
 ### Primary Card Colors
 
@@ -212,6 +220,27 @@ Similar structure to specialty card buttons with `--inner-card-primary-btn-*` an
 | `--code-card-bg-gradient-to` | Gradient end | `30 41 59` | `15 23 42` |
 | `--code-card-border` | Border | `51 65 85` | `30 41 59` |
 | `--code-card-text` | Code text | `241 245 249` | `226 232 240` |
+
+### Action Card Colors
+
+| Variable | Description | Typical Light | Typical Dark |
+|----------|-------------|---------------|--------------|
+| `--action-card-bg` | Background | `255 255 255` | `23 32 52` |
+| `--action-card-border` | Border | `226 232 240` | `51 65 85` |
+| `--action-card-heading` | Heading text | `15 23 42` | `241 245 249` |
+| `--action-card-text-primary` | Primary text | `71 85 105` | `203 213 225` |
+| `--action-card-text-secondary` | Secondary text | `100 116 139` | `148 163 184` |
+| `--action-card-bg-gradient-from` | Gradient start | `255 255 255` | `30 41 59` |
+| `--action-card-bg-gradient-to` | Gradient end | `248 250 252` | `23 32 52` |
+| `--action-card-hover-bg` | Hover background | `240 249 255` | `30 58 138` |
+| `--action-card-hover-border` | Hover border | `14 165 233` | `59 130 246` |
+| `--action-card-hover-bg-gradient-from` | Hover gradient start | `248 250 252` | `30 58 138` |
+| `--action-card-hover-bg-gradient-to` | Hover gradient end | `240 249 255` | `23 37 84` |
+| `--action-card-icon-bg` | Icon background | `241 245 249` | `30 41 59` |
+| `--action-card-icon-color` | Icon color | `100 116 139` | `148 163 184` |
+| `--action-card-icon-hover-bg` | Icon hover background | `224 242 254` | `30 58 138` |
+| `--action-card-icon-hover-color` | Icon hover color | `14 165 233` | `59 130 246` |
+| `--action-card-radius` | Border radius (CSS size) | `0.75rem` | `0.75rem` |
 
 ### Status Card Colors
 
@@ -321,6 +350,17 @@ Same variables as status cards above, with `--inner-` prefix.
 |----------|-------------|---------------|--------------|
 | `--form-element-bg` | Form input/textarea background | `255 255 255` | `12 19 37` |
 
+### Select Dropdown Option Colors
+
+| Variable | Description | Light Default | Dark Default |
+|----------|-------------|---------------|--------------|
+| `--select-option-bg` | Default option background | `255 255 255` | `12 19 37` |
+| `--select-option-hover-bg` | Option hover background | `243 244 246` | `30 41 59` |
+| `--select-option-selected-bg` | Selected option background | `219 234 254` | `30 58 138` |
+| `--select-option-text` | Default option text | `17 24 39` | `241 245 249` |
+| `--select-option-hover-text` | Option hover text | `17 24 39` | `241 245 249` |
+| `--select-option-selected-text` | Selected option text | `30 64 175` | `191 219 254` |
+
 ### Button Colors
 
 | Variable | Description | Light Default | Dark Default |
@@ -394,33 +434,37 @@ The secondary color scale defines the neutral/gray colors used for backgrounds, 
 
 | Variable | Light Default | Dark Default |
 |----------|---------------|--------------|
-| `--toast-success-bg` | `240 253 244` | `20 83 45` |
-| `--toast-success-text` | `22 101 52` | `187 247 208` |
+| `--toast-success-bg` | `240 253 244` | `5 46 22` |
 | `--toast-success-border` | `134 239 172` | `34 197 94` |
+| `--toast-success-text` | `21 128 61` | `187 247 208` |
+| `--toast-success-icon` | `34 197 94` | `74 222 128` |
 
 #### Error Toast (`--toast-error-*`)
 
 | Variable | Light Default | Dark Default |
 |----------|---------------|--------------|
-| `--toast-error-bg` | `254 242 242` | `127 29 29` |
-| `--toast-error-text` | `153 27 27` | `254 202 202` |
+| `--toast-error-bg` | `254 242 242` | `69 10 10` |
 | `--toast-error-border` | `252 165 165` | `239 68 68` |
+| `--toast-error-text` | `153 27 27` | `254 202 202` |
+| `--toast-error-icon` | `220 38 38` | `248 113 113` |
 
 #### Warning Toast (`--toast-warning-*`)
 
 | Variable | Light Default | Dark Default |
 |----------|---------------|--------------|
-| `--toast-warning-bg` | `254 252 232` | `113 63 18` |
-| `--toast-warning-text` | `133 77 14` | `254 240 138` |
-| `--toast-warning-border` | `253 224 71` | `234 179 8` |
+| `--toast-warning-bg` | `255 251 235` | `69 26 3` |
+| `--toast-warning-border` | `253 224 71` | `245 158 11` |
+| `--toast-warning-text` | `161 98 7` | `254 243 199` |
+| `--toast-warning-icon` | `217 119 6` | `250 204 21` |
 
 #### Info Toast (`--toast-info-*`)
 
 | Variable | Light Default | Dark Default |
 |----------|---------------|--------------|
-| `--toast-info-bg` | `238 242 255` | `49 46 129` |
-| `--toast-info-text` | `55 48 163` | `199 210 254` |
-| `--toast-info-border` | `165 180 252` | `99 102 241` |
+| `--toast-info-bg` | `239 246 255` | `23 37 84` |
+| `--toast-info-border` | `147 197 253` | `59 130 246` |
+| `--toast-info-text` | `30 64 175` | `191 219 254` |
+| `--toast-info-icon` | `59 130 246` | `96 165 250` |
 
 ### Accordion Colors (Collapsible Sections)
 
@@ -449,26 +493,64 @@ The secondary color scale defines the neutral/gray colors used for backgrounds, 
   "uiSettings": {
     "backdropBlur": "md",
     "headerBlurEnabled": true,
-    "headerBlurUseColor": true,
+    "headerBlurUseOpacity": true,
     "headerBlurOpacity": 85,
+    "headerBlurUseBackgroundColor": true,
+    "headerBlurUseGradient": false,
+    "headerBorderEnabled": true,
     "menuBlurEnabled": true,
     "menuBlurIntensity": "md",
-    "menuBlurUseColor": true,
-    "menuBlurOpacity": 85
+    "menuBlurUseOpacity": true,
+    "menuBlurOpacity": 85,
+    "menuBlurUseBackgroundColor": true,
+    "menuBlurUseGradient": false,
+    "menuBorderEnabled": true,
+    "modalBlurEnabled": true,
+    "modalBlurIntensity": "md",
+    "modalBlurUseOpacity": true,
+    "modalBlurOpacity": 50
   }
 }
 ```
+
+### Header Settings
 
 | Property | Type | Values | Description |
 |----------|------|--------|-------------|
 | `backdropBlur` | string | `none`, `sm`, `md`, `lg`, `xl`, `2xl`, `3xl` | Header blur intensity |
 | `headerBlurEnabled` | boolean | `true`/`false` | Enable blur effect on header |
-| `headerBlurUseColor` | boolean | `true`/`false` | Show background color behind blur |
+| `headerBlurUseOpacity` | boolean | `true`/`false` | Enable opacity control for header |
 | `headerBlurOpacity` | number | 0-100 | Opacity of header background |
+| `headerBlurUseBackgroundColor` | boolean | `true`/`false` | Show solid background color behind blur |
+| `headerBlurUseGradient` | boolean | `true`/`false` | Use gradient for header background |
+| `headerBorderEnabled` | boolean | `true`/`false` | Show bottom border on header |
+
+### Menu Settings
+
+| Property | Type | Values | Description |
+|----------|------|--------|-------------|
 | `menuBlurEnabled` | boolean | `true`/`false` | Enable blur on mobile menu |
 | `menuBlurIntensity` | string | `none`, `sm`, `md`, `lg`, `xl`, `2xl`, `3xl` | Menu blur intensity |
-| `menuBlurUseColor` | boolean | `true`/`false` | Show background color behind menu blur |
+| `menuBlurUseOpacity` | boolean | `true`/`false` | Enable opacity control for menu |
 | `menuBlurOpacity` | number | 0-100 | Opacity of menu background |
+| `menuBlurUseBackgroundColor` | boolean | `true`/`false` | Show solid background color behind blur |
+| `menuBlurUseGradient` | boolean | `true`/`false` | Use gradient for menu background |
+| `menuBorderEnabled` | boolean | `true`/`false` | Show border on menu |
+
+### Modal Backdrop Settings
+
+| Property | Type | Values | Description |
+|----------|------|--------|-------------|
+| `modalBlurEnabled` | boolean | `true`/`false` | Enable blur on modal backdrop overlay |
+| `modalBlurIntensity` | string | `none`, `sm`, `md`, `lg`, `xl`, `2xl`, `3xl` | Modal backdrop blur intensity |
+| `modalBlurUseOpacity` | boolean | `true`/`false` | Enable opacity control for modal backdrop |
+| `modalBlurOpacity` | number | 0-100 | Opacity of modal backdrop |
+
+### Legacy Property Names
+
+For backward compatibility, older theme files may use these deprecated property names:
+- `headerBlurUseColor` → use `headerBlurUseBackgroundColor`
+- `menuBlurUseColor` → use `menuBlurUseBackgroundColor`
 
 ### Blur Intensity Values
 
@@ -490,25 +572,148 @@ The secondary color scale defines the neutral/gray colors used for backgrounds, 
 {
   "gradientToggles": {
     "pageGradient": false,
-    "cardGradient": true,
+    "pageBgColor": true,
+    "cardGradient": false,
+    "cardBgColor": true,
     "cardBorder": true,
-    "modalBorder": true,
     "headerGradient": false,
     "menuGradient": false,
-    "footerGradient": false
+    "footerGradient": false,
+    "footerBgColor": true,
+    "footerBorder": true,
+    "modalBorder": true,
+    "modalGradient": false,
+    "modalBgColor": true,
+    "secondaryCardBorder": true,
+    "secondaryCardGradient": false,
+    "secondaryCardBgColor": true,
+    "specialtyCardBorder": true,
+    "specialtyCardGradient": false,
+    "specialtyCardBgColor": true,
+    "innerCardBorder": true,
+    "innerCardGradient": false,
+    "innerCardBgColor": true,
+    "codeCardBorder": true,
+    "codeCardGradient": false,
+    "codeCardBgColor": true,
+    "actionCardBorder": true,
+    "actionCardGradient": false,
+    "actionCardBgColor": true,
+    "infoCardBorder": true,
+    "infoCardGradient": false,
+    "infoCardBgColor": true,
+    "errorCardBorder": true,
+    "errorCardGradient": false,
+    "errorCardBgColor": true,
+    "successCardBorder": true,
+    "successCardGradient": false,
+    "successCardBgColor": true,
+    "warningCardBorder": true,
+    "warningCardGradient": false,
+    "warningCardBgColor": true,
+    "innerInfoCardBorder": true,
+    "innerInfoCardGradient": false,
+    "innerInfoCardBgColor": true,
+    "innerErrorCardBorder": true,
+    "innerErrorCardGradient": false,
+    "innerErrorCardBgColor": true,
+    "innerSuccessCardBorder": true,
+    "innerSuccessCardGradient": false,
+    "innerSuccessCardBgColor": true,
+    "innerWarningCardBorder": true,
+    "innerWarningCardGradient": false,
+    "innerWarningCardBgColor": true
   }
 }
 ```
 
+### Page & Layout Toggles
+
 | Property | Type | Description |
 |----------|------|-------------|
 | `pageGradient` | boolean | Use gradient for page background |
-| `cardGradient` | boolean | Use gradient for card backgrounds |
-| `cardBorder` | boolean | Show borders on cards |
-| `modalBorder` | boolean | Show borders on modals |
+| `pageBgColor` | boolean | Use solid background color for page |
 | `headerGradient` | boolean | Use gradient for header background |
 | `menuGradient` | boolean | Use gradient for mobile menu background |
 | `footerGradient` | boolean | Use gradient for footer background |
+| `footerBgColor` | boolean | Use solid background color for footer |
+| `footerBorder` | boolean | Show top border on footer |
+
+### Primary Card Toggles
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `cardGradient` | boolean | Use gradient for primary card backgrounds |
+| `cardBgColor` | boolean | Use solid background color for primary cards |
+| `cardBorder` | boolean | Show borders on primary cards |
+
+### Modal Toggles
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `modalGradient` | boolean | Use gradient for modal backgrounds |
+| `modalBgColor` | boolean | Use solid background color for modals |
+| `modalBorder` | boolean | Show borders on modals |
+
+### Secondary Card Toggles
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `secondaryCardGradient` | boolean | Use gradient for secondary card backgrounds |
+| `secondaryCardBgColor` | boolean | Use solid background color for secondary cards |
+| `secondaryCardBorder` | boolean | Show borders on secondary cards |
+
+### Specialty Card Toggles
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `specialtyCardGradient` | boolean | Use gradient for specialty (CTA) card backgrounds |
+| `specialtyCardBgColor` | boolean | Use solid background color for specialty cards |
+| `specialtyCardBorder` | boolean | Show borders on specialty cards |
+
+### Inner Card Toggles
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `innerCardGradient` | boolean | Use gradient for inner (nested) card backgrounds |
+| `innerCardBgColor` | boolean | Use solid background color for inner cards |
+| `innerCardBorder` | boolean | Show borders on inner cards |
+
+### Code Card Toggles
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `codeCardGradient` | boolean | Use gradient for code block backgrounds |
+| `codeCardBgColor` | boolean | Use solid background color for code blocks |
+| `codeCardBorder` | boolean | Show borders on code blocks |
+
+### Action Card Toggles
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `actionCardGradient` | boolean | Use gradient for action card backgrounds |
+| `actionCardBgColor` | boolean | Use solid background color for action cards |
+| `actionCardBorder` | boolean | Show borders on action cards |
+
+### Status Card Toggles (Info, Error, Success, Warning)
+
+Each status card type has three toggle properties:
+
+| Property Pattern | Type | Description |
+|------------------|------|-------------|
+| `{type}CardGradient` | boolean | Use gradient for card background |
+| `{type}CardBgColor` | boolean | Use solid background color |
+| `{type}CardBorder` | boolean | Show border on card |
+
+Where `{type}` is one of: `info`, `error`, `success`, `warning`
+
+### Inner Status Card Toggles
+
+Same as status card toggles but prefixed with `inner`:
+- `innerInfoCardGradient`, `innerInfoCardBgColor`, `innerInfoCardBorder`
+- `innerErrorCardGradient`, `innerErrorCardBgColor`, `innerErrorCardBorder`
+- `innerSuccessCardGradient`, `innerSuccessCardBgColor`, `innerSuccessCardBorder`
+- `innerWarningCardGradient`, `innerWarningCardBgColor`, `innerWarningCardBorder`
 
 ---
 
@@ -528,6 +733,8 @@ When creating a new theme JSON file:
 {
   "version": 1,
   "exportedAt": "2026-01-10T12:00:00.000Z",
+  "name": "Dark Blue Theme",
+  "description": "A professional dark blue color scheme",
   "colorOverrides": { "light": {}, "dark": {} },
   "allColors": {
     "light": {
@@ -586,21 +793,76 @@ When creating a new theme JSON file:
   "uiSettings": {
     "backdropBlur": "lg",
     "headerBlurEnabled": true,
-    "headerBlurUseColor": true,
+    "headerBlurUseOpacity": true,
     "headerBlurOpacity": 80,
+    "headerBlurUseBackgroundColor": true,
+    "headerBlurUseGradient": false,
+    "headerBorderEnabled": true,
     "menuBlurEnabled": true,
     "menuBlurIntensity": "lg",
-    "menuBlurUseColor": true,
-    "menuBlurOpacity": 80
+    "menuBlurUseOpacity": true,
+    "menuBlurOpacity": 80,
+    "menuBlurUseBackgroundColor": true,
+    "menuBlurUseGradient": false,
+    "menuBorderEnabled": true,
+    "modalBlurEnabled": true,
+    "modalBlurIntensity": "md",
+    "modalBlurUseOpacity": true,
+    "modalBlurOpacity": 50
   },
   "gradientToggles": {
     "pageGradient": true,
+    "pageBgColor": true,
     "cardGradient": true,
+    "cardBgColor": true,
     "cardBorder": true,
-    "modalBorder": true,
     "headerGradient": false,
     "menuGradient": false,
-    "footerGradient": false
+    "footerGradient": false,
+    "footerBgColor": true,
+    "footerBorder": true,
+    "modalBorder": true,
+    "modalGradient": false,
+    "modalBgColor": true,
+    "secondaryCardBorder": true,
+    "secondaryCardGradient": false,
+    "secondaryCardBgColor": true,
+    "specialtyCardBorder": true,
+    "specialtyCardGradient": false,
+    "specialtyCardBgColor": true,
+    "innerCardBorder": true,
+    "innerCardGradient": false,
+    "innerCardBgColor": true,
+    "codeCardBorder": true,
+    "codeCardGradient": false,
+    "codeCardBgColor": true,
+    "actionCardBorder": true,
+    "actionCardGradient": false,
+    "actionCardBgColor": true,
+    "infoCardBorder": true,
+    "infoCardGradient": false,
+    "infoCardBgColor": true,
+    "errorCardBorder": true,
+    "errorCardGradient": false,
+    "errorCardBgColor": true,
+    "successCardBorder": true,
+    "successCardGradient": false,
+    "successCardBgColor": true,
+    "warningCardBorder": true,
+    "warningCardGradient": false,
+    "warningCardBgColor": true,
+    "innerInfoCardBorder": true,
+    "innerInfoCardGradient": false,
+    "innerInfoCardBgColor": true,
+    "innerErrorCardBorder": true,
+    "innerErrorCardGradient": false,
+    "innerErrorCardBgColor": true,
+    "innerSuccessCardBorder": true,
+    "innerSuccessCardGradient": false,
+    "innerSuccessCardBgColor": true,
+    "innerWarningCardBorder": true,
+    "innerWarningCardGradient": false,
+    "innerWarningCardBgColor": true
   }
 }
 ```

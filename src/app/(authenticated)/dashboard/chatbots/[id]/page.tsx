@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ActionCard } from '@/components/ui/action-card';
 import type { Chatbot } from '@/lib/chatbots/types';
 
 interface ChatbotDetailProps {
@@ -278,25 +279,13 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
       {/* Quick actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {quickActions.map((action) => (
-          <Link key={action.href} href={action.href}>
-            <Card className="h-full hover:border-primary-300 dark:hover:border-primary-700 transition-colors cursor-pointer">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-secondary-100 dark:bg-secondary-800 rounded-lg">
-                    <action.icon className="w-5 h-5 text-secondary-600 dark:text-secondary-400" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-secondary-900 dark:text-secondary-100">
-                      {action.label}
-                    </p>
-                    <p className="text-sm text-secondary-500">
-                      {action.description}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+          <ActionCard
+            key={action.href}
+            href={action.href}
+            icon={action.icon}
+            title={action.label}
+            description={action.description}
+          />
         ))}
       </div>
 

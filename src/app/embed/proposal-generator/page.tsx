@@ -7,7 +7,6 @@ import { ProposalGenerator } from '@/components/tools/ProposalGenerator';
 function ProposalGeneratorEmbed() {
   const searchParams = useSearchParams();
   const apiKey = searchParams.get('key');
-  const isPro = searchParams.get('pro') === 'true';
 
   // Notify parent of ready state and handle auto-resize
   useEffect(() => {
@@ -58,7 +57,6 @@ function ProposalGeneratorEmbed() {
     <div className="min-h-screen p-4" style={{ backgroundColor: 'rgb(var(--card-bg))' }}>
       <ProposalGenerator
         apiKey={apiKey || undefined}
-        isPro={isPro}
         onGenerate={handleGenerate}
       />
 

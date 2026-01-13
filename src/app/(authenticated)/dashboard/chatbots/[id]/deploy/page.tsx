@@ -80,6 +80,7 @@ export default function DeployPage({ params }: DeployPageProps) {
 
   const apiExample = `curl -X POST "${baseUrl}/api/chat/${id}" \\
   -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
   -d '{
     "message": "Hello, I have a question",
     "session_id": "unique-session-id"
@@ -87,7 +88,10 @@ export default function DeployPage({ params }: DeployPageProps) {
 
   const jsApiExample = `fetch('${baseUrl}/api/chat/${id}', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_API_KEY'
+  },
   body: JSON.stringify({
     message: 'Hello, I have a question',
     session_id: 'unique-session-id'
@@ -313,6 +317,15 @@ export default function DeployPage({ params }: DeployPageProps) {
               </Button>
             </div>
           </div>
+
+          <p className="text-sm text-secondary-500 dark:text-secondary-400">
+            Replace <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-xs">YOUR_API_KEY</code> with
+            your API key from the{' '}
+            <Link href="/dashboard/api-keys" className="text-primary-500 hover:underline">
+              API Keys page
+            </Link>
+            . The Authorization header is required to use your preferred AI model settings.
+          </p>
         </CardContent>
       </Card>
     </div>

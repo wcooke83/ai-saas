@@ -50,6 +50,14 @@
     /* Form element backgrounds */
     --form-element-bg: 255 255 255; /* white */
 
+    /* Select dropdown option states */
+    --select-option-bg: 255 255 255; /* white - matches form-element-bg */
+    --select-option-hover-bg: 243 244 246; /* gray-100 - subtle hover */
+    --select-option-selected-bg: 219 234 254; /* primary-100 - clear active state */
+    --select-option-text: 17 24 39; /* gray-900 */
+    --select-option-hover-text: 17 24 39; /* gray-900 */
+    --select-option-selected-text: 30 64 175; /* primary-800 */
+
     /* Button backgrounds */
     --primary-button-bg: 14 165 233; /* primary-500 / sky-500 */
     --primary-button-hover-bg: 2 132 199; /* primary-600 / sky-600 */
@@ -312,6 +320,23 @@
     --inner-warning-card-text-primary: 161 98 7; /* yellow-700 */
     --inner-warning-card-text-secondary: 202 138 4; /* yellow-600 */
 
+    /* Action Card (clickable/linkable cards) */
+    --action-card-bg: 255 255 255; /* white */
+    --action-card-bg-gradient-from: 255 255 255; /* white */
+    --action-card-bg-gradient-to: 248 250 252; /* secondary-50 */
+    --action-card-border: 226 232 240; /* secondary-200 */
+    --action-card-heading: 15 23 42; /* secondary-900 */
+    --action-card-text-primary: 71 85 105; /* secondary-600 */
+    --action-card-text-secondary: 100 116 139; /* secondary-500 */
+    --action-card-hover-bg: 240 249 255; /* primary-50 */
+    --action-card-hover-bg-gradient-from: 248 250 252; /* secondary-50 */
+    --action-card-hover-bg-gradient-to: 240 249 255; /* primary-50 */
+    --action-card-hover-border: 14 165 233; /* primary-500 */
+    --action-card-icon-bg: 241 245 249; /* secondary-100 */
+    --action-card-icon-color: 100 116 139; /* secondary-500 */
+    --action-card-icon-hover-bg: 224 242 254; /* primary-100 */
+    --action-card-icon-hover-color: 14 165 233; /* primary-500 */
+
     /* Chart colors */
     --chart-primary: 14 165 233;        /* #0ea5e9 - sky-500 */
     --chart-secondary: 139 92 246;      /* #8b5cf6 - violet-500 */
@@ -338,6 +363,7 @@
     --inner-error-card-radius: 0.5rem; /* 8px */
     --inner-success-card-radius: 0.5rem; /* 8px */
     --inner-warning-card-radius: 0.5rem; /* 8px */
+    --action-card-radius: 0.75rem; /* 12px */
   }
 
   .dark {
@@ -354,6 +380,14 @@
 
     /* Form element backgrounds */
     --form-element-bg: 12 19 37; /* secondary-825 */
+
+    /* Select dropdown option states */
+    --select-option-bg: 12 19 37; /* secondary-825 - matches form-element-bg */
+    --select-option-hover-bg: 30 41 59; /* slate-800 - subtle hover lift */
+    --select-option-selected-bg: 30 58 138; /* primary-900 - rich accent */
+    --select-option-text: 241 245 249; /* slate-100 */
+    --select-option-hover-text: 241 245 249; /* slate-100 */
+    --select-option-selected-text: 191 219 254; /* primary-200 */
 
     /* Button backgrounds */
     --primary-button-bg: 14 165 233; /* primary-500 / sky-500 */
@@ -617,6 +651,23 @@
     --inner-warning-card-text-primary: 253 224 71; /* yellow-300 */
     --inner-warning-card-text-secondary: 250 204 21; /* yellow-400 */
 
+    /* Action Card (clickable/linkable cards) */
+    --action-card-bg: 15 23 42; /* secondary-900 */
+    --action-card-bg-gradient-from: 15 23 42; /* secondary-900 */
+    --action-card-bg-gradient-to: 23 32 52; /* between 800 and 900 */
+    --action-card-border: 51 65 85; /* secondary-700 */
+    --action-card-heading: 241 245 249; /* secondary-100 */
+    --action-card-text-primary: 203 213 225; /* secondary-300 */
+    --action-card-text-secondary: 148 163 184; /* secondary-400 */
+    --action-card-hover-bg: 23 32 52; /* between 800 and 900 */
+    --action-card-hover-bg-gradient-from: 23 32 52; /* between 800 and 900 */
+    --action-card-hover-bg-gradient-to: 30 41 59; /* secondary-800 */
+    --action-card-hover-border: 56 189 248; /* primary-400 */
+    --action-card-icon-bg: 30 41 59; /* secondary-800 */
+    --action-card-icon-color: 148 163 184; /* secondary-400 */
+    --action-card-icon-hover-bg: 7 89 133; /* primary-800 */
+    --action-card-icon-hover-color: 125 211 252; /* primary-300 */
+
     /* Chart colors */
     --chart-primary: 56 189 248;        /* #38bdf8 - sky-400 */
     --chart-secondary: 167 139 250;     /* #a78bfa - violet-400 */
@@ -643,6 +694,7 @@
     --inner-error-card-radius: 0.5rem;
     --inner-success-card-radius: 0.5rem;
     --inner-warning-card-radius: 0.5rem;
+    --action-card-radius: 0.75rem;
   }
 
   * {
@@ -697,6 +749,23 @@
     -webkit-box-shadow: 0 0 0 1000px rgb(12, 19, 37) inset !important;
     -webkit-text-fill-color: #f5f5f5 !important;
     transition: background-color 5000s ease-in-out 0s;
+  }
+
+  /* Select dropdown option styling */
+  select option {
+    background-color: rgb(var(--select-option-bg));
+    color: rgb(var(--select-option-text));
+    padding: 8px 12px;
+  }
+
+  select option:hover {
+    background-color: rgb(var(--select-option-hover-bg));
+    color: rgb(var(--select-option-hover-text));
+  }
+
+  select option:checked {
+    background-color: rgb(var(--select-option-selected-bg));
+    color: rgb(var(--select-option-selected-text));
   }
 }
 

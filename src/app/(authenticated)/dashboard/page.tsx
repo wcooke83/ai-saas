@@ -41,12 +41,18 @@ async function getDashboardData() {
     generationsResult,
     generationsCountResult,
     apiKeysResult,
+    apiLogsResult,
+    apiLogsCountResult,
   ] = await Promise.all([
     supabase.from('subscriptions').select('*').eq('user_id', user.id).single(),
     supabase.from('usage').select('*').eq('user_id', user.id).order('period_start', { ascending: false }).limit(1).single(),
     supabase.from('generations').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
     supabase.from('generations').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
     supabase.from('api_keys').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+    // Also fetch recent API logs to show in Recent Activity if no generations exist
+    supabase.from('api_logs').select('id, endpoint, status_code, tokens_input, tokens_output, tokens_total, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
+    // Get count for total generations (use api_logs if generations is empty)
+    supabase.from('api_logs').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
   ]);
 
   // Fetch subscription plan details if user has a plan
@@ -61,13 +67,38 @@ async function getDashboardData() {
     subscriptionPlan = planResult.data as SubscriptionPlan | null;
   }
 
+  // Calculate actual token usage from api_logs for this billing period
+  const usage = usageResult.data as Usage | null;
+  const periodStart = usage?.period_start;
+  let totalTokensUsed = 0;
+
+  if (periodStart) {
+    const { data: tokenData } = await supabase
+      .from('api_logs')
+      .select('tokens_total')
+      .eq('user_id', user.id)
+      .gte('created_at', periodStart);
+
+    if (tokenData && Array.isArray(tokenData)) {
+      totalTokensUsed = tokenData.reduce((sum: number, log: { tokens_total: number | null }) => sum + (log.tokens_total || 0), 0);
+    }
+  }
+
+  // Use api_logs for recent activity if generations is empty
+  const generations = (generationsResult.data || []) as Generation[];
+  const apiLogs = apiLogsResult.data || [];
+  const totalGenerationsCount = generationsCountResult.count || 0;
+  const totalApiLogsCount = apiLogsCountResult.count || 0;
+
   return {
     subscription,
     subscriptionPlan: subscriptionPlan as SubscriptionPlan | null,
-    usage: usageResult.data as Usage | null,
-    recentGenerations: (generationsResult.data || []) as Generation[],
-    totalGenerations: generationsCountResult.count || 0,
+    usage,
+    recentGenerations: generations,
+    recentApiLogs: apiLogs,
+    totalGenerations: totalGenerationsCount > 0 ? totalGenerationsCount : totalApiLogsCount,
     apiKeysCount: apiKeysResult.count || 0,
+    totalTokensUsed,
   };
 }
 
@@ -122,13 +153,18 @@ export default async function DashboardPage() {
     return <DashboardSkeleton />;
   }
 
-  const { subscription, subscriptionPlan, usage, recentGenerations, totalGenerations, apiKeysCount } = data;
+  const { subscription, subscriptionPlan, usage, recentGenerations, recentApiLogs, totalGenerations, apiKeysCount, totalTokensUsed } = data;
 
   // Get credits limit from subscription plan, falling back to usage table, then default
   const creditsLimit = subscriptionPlan?.credits_monthly || usage?.credits_limit || 100;
-  const creditsUsed = usage?.credits_used || 0;
+  // Use actual token count from api_logs instead of credits_used counter
+  const creditsUsed = totalTokensUsed;
   const creditsRemaining = Math.max(0, creditsLimit - creditsUsed);
   const creditPercentage = creditsLimit > 0 ? (creditsUsed / creditsLimit) * 100 : 0;
+
+  // Determine recent activity - use api_logs if no generations
+  const hasGenerations = recentGenerations.length > 0;
+  const recentActivity = hasGenerations ? recentGenerations : recentApiLogs;
 
   // Get plan display name from subscription_plans or format the slug
   const planDisplayName = subscriptionPlan?.name || (subscription?.plan ? subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1) : 'Free');
@@ -332,7 +368,7 @@ export default async function DashboardPage() {
             <CardDescription>Your latest generations</CardDescription>
           </CardHeader>
           <CardContent>
-            {recentGenerations.length > 0 ? (
+            {hasGenerations ? (
               <ul className="space-y-2">
                 {recentGenerations.map((gen) => (
                   <li
@@ -381,6 +417,57 @@ export default async function DashboardPage() {
                     </Badge>
                   </li>
                 ))}
+              </ul>
+            ) : recentApiLogs.length > 0 ? (
+              <ul className="space-y-2">
+                {recentApiLogs.map((log: { id: string; endpoint: string; status_code: number; tokens_total: number | null; created_at: string }) => {
+                  // Extract tool type from endpoint (e.g., /api/tools/email-writer -> email-writer)
+                  const toolMatch = log.endpoint.match(/\/api\/tools\/([^/]+)/);
+                  const toolType = toolMatch ? toolMatch[1] : 'api';
+                  return (
+                    <li
+                      key={log.id}
+                      className="flex items-center justify-between py-2 border-b border-secondary-100 dark:border-secondary-800 last:border-0"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-1.5 bg-secondary-100 dark:bg-secondary-800 rounded">
+                          {toolType === 'email-writer' && (
+                            <Mail className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
+                          )}
+                          {toolType === 'proposal-generator' && (
+                            <ClipboardList className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
+                          )}
+                          {toolType === 'social-post' && (
+                            <Share2 className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
+                          )}
+                          {toolType === 'ad-copy' && (
+                            <Megaphone className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
+                          )}
+                          {toolType === 'blog-writer' && (
+                            <PenTool className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
+                          )}
+                          {toolType === 'meeting-notes' && (
+                            <MessageSquare className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
+                          )}
+                          {!['email-writer', 'proposal-generator', 'social-post', 'ad-copy', 'blog-writer', 'meeting-notes'].includes(toolType) && (
+                            <FileText className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 capitalize">
+                            {toolType.replace(/-/g, ' ')}
+                          </p>
+                          <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                            {new Date(log.created_at).toLocaleDateString()} • {(log.tokens_total || 0).toLocaleString()} tokens
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant={log.status_code < 400 ? 'success' : 'destructive'}>
+                        {log.status_code < 400 ? 'completed' : 'failed'}
+                      </Badge>
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
               <div className="text-center py-8">

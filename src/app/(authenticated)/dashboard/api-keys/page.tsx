@@ -276,7 +276,7 @@ export default function APIKeysPage() {
               </code>
               <Button
                 variant="outline"
-                className="gap-2 border-green-300 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/30 dark:text-green-100"
+                className="h-auto gap-2 border-green-300 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/30 dark:text-green-100"
                 onClick={() => copyToClipboard(newKey, 'new-key')}
               >
                 {copiedId === 'new-key' ? (

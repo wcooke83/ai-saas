@@ -33,11 +33,22 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Fetch all active plans ordered by display_order
+    // Fetch user's current subscription first to know their plan
+    const { data: rawSubscription } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    const subscriptionData = rawSubscription as SubscriptionRow | null;
+    const userPlanId = subscriptionData?.plan_id;
+
+    // Fetch all active, non-hidden plans ordered by display_order
     const { data: rawPlans, error: plansError } = await supabase
       .from('subscription_plans')
       .select('*')
       .eq('is_active', true)
+      .eq('is_hidden', false)
       .order('display_order', { ascending: true });
 
     if (plansError) {
@@ -49,17 +60,20 @@ export async function GET() {
     }
 
     // Cast to proper type
-    const plans = (rawPlans || []) as SubscriptionPlanRow[];
+    let plans = (rawPlans || []) as SubscriptionPlanRow[];
 
-    // Fetch user's current subscription
-    const { data: rawSubscription } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', user.id)
-      .maybeSingle();
+    // If user is subscribed to a hidden plan, fetch and include it
+    if (userPlanId && !plans.some(p => p.id === userPlanId)) {
+      const { data: userPlan } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('id', userPlanId)
+        .single();
 
-    // Cast to proper type
-    const subscriptionData = rawSubscription as SubscriptionRow | null;
+      if (userPlan) {
+        plans = [...plans, userPlan as SubscriptionPlanRow];
+      }
+    }
 
     let subscription: SubscriptionDetails | null = null;
     let currentPlanId: string | null = null;

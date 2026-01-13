@@ -34,6 +34,7 @@ const createSchema = z.object({
   trialCredits: z.number().min(0).optional().nullable(),
   isActive: z.boolean().optional().nullable(),
   isFeatured: z.boolean().optional().nullable(),
+  isHidden: z.boolean().optional().nullable(),
   displayOrder: z.number().optional().nullable(),
 });
 
@@ -109,6 +110,7 @@ export async function POST(req: NextRequest) {
         trial_credits: input.trialCredits,
         is_active: input.isActive ?? true,
         is_featured: input.isFeatured ?? false,
+        is_hidden: input.isHidden ?? false,
         display_order: input.displayOrder ?? 0,
       })
       .select()

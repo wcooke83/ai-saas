@@ -55,12 +55,19 @@ async function getActiveModel(): Promise<AIModelWithProvider | null> {
  * Map provider slug to internal Provider type
  */
 function mapProviderSlugToType(slug: string): Provider | null {
-  switch (slug) {
+  const normalizedSlug = slug.toLowerCase();
+
+  switch (normalizedSlug) {
     case 'anthropic':
+    case 'claude':
       return 'claude';
     case 'openai':
+    case 'gpt':
       return 'openai';
     case 'local':
+    case 'nova':
+    case 'local-ai':
+    case 'localai':
       return 'local';
     case 'xai':
     case 'google':
@@ -68,6 +75,10 @@ function mapProviderSlugToType(slug: string): Provider | null {
       // These could be added in the future
       return null;
     default:
+      // Check if slug contains 'local' as fallback
+      if (normalizedSlug.includes('local')) {
+        return 'local';
+      }
       return null;
   }
 }
@@ -279,6 +290,8 @@ export type ModelTier = 'fast' | 'balanced' | 'powerful';
 export interface GenerateOptions {
   provider?: Provider;
   model?: ModelTier;
+  /** Specific model to use (overrides default model selection) */
+  specificModel?: AIModelWithProvider;
   maxTokens?: number;
   temperature?: number;
   systemPrompt?: string;
@@ -386,16 +399,42 @@ export async function generate(
     temperature = 0.7,
     systemPrompt,
     stopSequences,
+    specificModel,
   } = options;
 
   const startTime = Date.now();
 
-  // Get model and provider from database configuration
-  const activeModelInfo = await getActiveModelAndProvider();
-  const activeProvider = activeModelInfo?.provider ?? (MOCK_MODE ? 'mock' : null);
-  const activeModel = activeModelInfo?.model;
+  // Use specific model if provided, otherwise get from database configuration
+  let activeProvider: Provider | null;
+  let activeModel: AIModelWithProvider | null;
+
+  if (specificModel && specificModel.provider) {
+    activeModel = specificModel;
+    activeProvider = mapProviderSlugToType(specificModel.provider.slug);
+  } else {
+    const activeModelInfo = await getActiveModelAndProvider();
+    activeProvider = activeModelInfo?.provider ?? (MOCK_MODE ? 'mock' : null);
+    activeModel = activeModelInfo?.model ?? null;
+  }
+
+  // Debug logging
+  console.log('[AI Provider generate()] Model selection:', {
+    hasSpecificModel: !!specificModel,
+    specificModelName: specificModel?.name,
+    specificModelProviderSlug: specificModel?.provider?.slug,
+    specificModelProviderName: specificModel?.provider?.name,
+    mappedProvider: specificModel?.provider?.slug ? mapProviderSlugToType(specificModel.provider.slug) : null,
+    activeProvider,
+    activeModelName: activeModel?.name,
+    activeModelApiId: activeModel?.api_model_id,
+    activeModelProviderSlug: activeModel?.provider?.slug,
+  });
 
   if (!activeProvider) {
+    const providerSlug = specificModel?.provider?.slug || activeModel?.provider?.slug;
+    if (providerSlug) {
+      throw new Error(`Provider "${providerSlug}" is not supported. Supported providers: anthropic, openai, local, nova.`);
+    }
     throw new Error('No AI provider available. Enable a provider and model in AI Config settings.');
   }
 
@@ -512,6 +551,7 @@ export async function* generateStream(
     maxTokens = 4096,
     temperature = 0.7,
     systemPrompt,
+    specificModel,
   } = options;
 
   const startTime = Date.now();
@@ -519,10 +559,18 @@ export async function* generateStream(
   let tokensOutput = 0;
   let fullContent = '';
 
-  // Get model and provider from database configuration
-  const activeModelInfo = await getActiveModelAndProvider();
-  const activeProvider = activeModelInfo?.provider ?? (MOCK_MODE ? 'mock' : null);
-  const activeModel = activeModelInfo?.model;
+  // Use specific model if provided, otherwise get from database configuration
+  let activeProvider: Provider | null;
+  let activeModel: AIModelWithProvider | null;
+
+  if (specificModel && specificModel.provider) {
+    activeModel = specificModel;
+    activeProvider = mapProviderSlugToType(specificModel.provider.slug);
+  } else {
+    const activeModelInfo = await getActiveModelAndProvider();
+    activeProvider = activeModelInfo?.provider ?? (MOCK_MODE ? 'mock' : null);
+    activeModel = activeModelInfo?.model ?? null;
+  }
 
   if (!activeProvider) {
     throw new Error('No AI provider available. Enable a provider and model in AI Config settings.');

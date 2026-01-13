@@ -13,7 +13,6 @@ interface ProposalPreviewProps {
   regeneratingSection: string | null;
   hasGenerated: boolean;
   isGenerating: boolean;
-  isPro: boolean;
   branding?: {
     companyName: string;
     primaryColor?: string;
@@ -41,7 +40,6 @@ export function ProposalPreview({
   regeneratingSection,
   hasGenerated,
   isGenerating,
-  isPro,
   branding,
   clientInfo,
   senderInfo,
@@ -107,9 +105,6 @@ export function ProposalPreview({
               <ExportMenu
                 title={title || 'Proposal'}
                 sections={sections}
-                canExportPDF={true}
-                canExportDOCX={isPro}
-                isPro={isPro}
                 branding={branding}
                 clientInfo={clientInfo}
                 senderInfo={senderInfo}
@@ -125,25 +120,10 @@ export function ProposalPreview({
         </CardHeader>
       </Card>
 
-      {/* Pro features notice */}
-      {!isPro && (
-        <div className="rounded-md bg-gradient-to-r from-primary-50 to-accent-50 dark:from-primary-900/20 dark:to-accent-900/20 p-4 text-sm">
-          <p className="font-medium text-primary-700 dark:text-primary-400">
-            Upgrade to Pro for more features
-          </p>
-          <p className="mt-1 text-secondary-600 dark:text-secondary-400">
-            Unlock section regeneration, drag-and-drop reordering, DOCX export,
-            and custom branding.
-          </p>
-        </div>
-      )}
-
       {/* Section List */}
       <SectionList
         sections={sections}
         regeneratingSection={regeneratingSection}
-        canRegenerate={isPro}
-        canReorder={isPro}
         onContentChange={onContentChange}
         onToggle={onToggle}
         onRegenerate={onRegenerate}

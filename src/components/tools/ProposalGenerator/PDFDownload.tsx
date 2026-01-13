@@ -14,7 +14,6 @@ interface PDFDownloadProps {
   clientCompany: string;
   senderName: string;
   senderCompany: string;
-  isPro: boolean;
   disabled?: boolean;
 }
 
@@ -25,7 +24,6 @@ export function PDFDownload({
   clientCompany,
   senderName,
   senderCompany,
-  isPro,
   disabled = false,
 }: PDFDownloadProps) {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -48,7 +46,7 @@ export function PDFDownload({
             includeCoverPage: true,
             includeTableOfContents: sections.filter(s => s.isEnabled).length > 4,
             includePageNumbers: true,
-            addWatermark: !isPro,
+            addWatermark: false,
           }}
         />
       );
@@ -89,7 +87,6 @@ export function PDFDownload({
         <>
           <FileDown className="mr-2 h-4 w-4" />
           Download PDF
-          {!isPro && <span className="ml-1 text-xs opacity-60">(Watermarked)</span>}
         </>
       )}
     </Button>
