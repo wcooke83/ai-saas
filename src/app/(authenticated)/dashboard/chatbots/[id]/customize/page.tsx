@@ -103,8 +103,8 @@ function PositionSelector({
   onChange: (value: WidgetConfig['position']) => void;
 }) {
   const positions: Array<{ value: WidgetConfig['position']; label: string }> = [
-    { value: 'bottom-right', label: 'Bottom Right' },
     { value: 'bottom-left', label: 'Bottom Left' },
+    { value: 'bottom-right', label: 'Bottom Right' },
   ];
 
   return (
@@ -428,6 +428,42 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                 />
               </div>
               <div className="space-y-2">
+                <Label>Container Border Radius: {config.containerBorderRadius}px</Label>
+                <input
+                  type="range"
+                  min="0"
+                  max="32"
+                  step="2"
+                  value={config.containerBorderRadius}
+                  onChange={(e) => updateConfig('containerBorderRadius', parseInt(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Input Border Radius: {config.inputBorderRadius}px</Label>
+                <input
+                  type="range"
+                  min="0"
+                  max="32"
+                  step="2"
+                  value={config.inputBorderRadius}
+                  onChange={(e) => updateConfig('inputBorderRadius', parseInt(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Button Border Radius: {config.buttonBorderRadius}%</Label>
+                <input
+                  type="range"
+                  min="0"
+                  max="50"
+                  step="5"
+                  value={config.buttonBorderRadius}
+                  onChange={(e) => updateConfig('buttonBorderRadius', parseInt(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+              <div className="space-y-2">
                 <Label>Header Text</Label>
                 <Input
                   value={config.headerText}
@@ -538,7 +574,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                   }
                 `}</style>
                 <div
-                  className="absolute rounded-lg shadow-xl overflow-hidden"
+                  className="absolute shadow-xl overflow-hidden"
                   style={{
                     width: `${Math.min(config.width, 380)}px`,
                     height: `${Math.min(config.height, 550)}px`,
@@ -548,6 +584,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                     backgroundColor: config.backgroundColor,
                     fontFamily: config.fontFamily,
                     fontSize: `${config.fontSize}px`,
+                    borderRadius: `${config.containerBorderRadius}px`,
                   }}
                 >
                   {/* Header */}
@@ -600,17 +637,21 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                       <input
                         type="text"
                         placeholder={chatbot.placeholder_text || 'Type your message...'}
-                        className="preview-input flex-1 px-4 py-2 rounded-full border text-sm"
+                        className="preview-input flex-1 px-4 py-2 border text-sm"
                         style={{
                           backgroundColor: config.inputBackgroundColor,
                           borderColor: `${config.inputTextColor}30`,
                           color: config.inputTextColor,
+                          borderRadius: `${config.inputBorderRadius}px`,
                         }}
                         disabled
                       />
                       <button
-                        className="p-2 rounded-full"
-                        style={{ backgroundColor: config.sendButtonColor }}
+                        className="p-2"
+                        style={{ 
+                          backgroundColor: config.sendButtonColor,
+                          borderRadius: `${config.buttonBorderRadius}%`,
+                        }}
                         disabled
                       >
                         <svg

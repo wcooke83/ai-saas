@@ -267,7 +267,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Integrate on Your Website */}
-      <Card className="border-primary-200 dark:border-primary-800 bg-gradient-to-r from-primary-50 to-white dark:from-primary-950/50 dark:to-secondary-900">
+      <Card>
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-primary-100 dark:bg-primary-900/50 rounded-lg">

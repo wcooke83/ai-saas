@@ -10,9 +10,5 @@ export default function WidgetLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div style={{ margin: 0, padding: 0, backgroundColor: 'transparent', minHeight: '100vh' }}>
-      {children}
-    </div>
-  );
+  return children;
 }

@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/components/providers/theme-provider';
 import { ColorOverridesProvider } from '@/components/providers/color-overrides-provider';
 import { UISettingsProvider } from '@/contexts/ui-settings-context';
 import { Toaster } from '@/components/ui/toaster';
+import { ChatbotWidget } from '@/components/chatbot-widget';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -35,6 +36,8 @@ export default function RootLayout({
             </UISettingsProvider>
           </ColorOverridesProvider>
         </ThemeProvider>
+
+        <ChatbotWidget />
       </body>
     </html>
   );

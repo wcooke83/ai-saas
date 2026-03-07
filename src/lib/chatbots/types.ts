@@ -40,6 +40,11 @@ export interface WidgetConfig {
   fontFamily: string;
   fontSize: number;
 
+  // Border Radius
+  containerBorderRadius: number;
+  inputBorderRadius: number;
+  buttonBorderRadius: number;
+
   // Branding
   showBranding: boolean;
   headerText: string;
@@ -76,6 +81,9 @@ export const DEFAULT_WIDGET_CONFIG: WidgetConfig = {
   sendButtonIconColor: '#ffffff',
   fontFamily: 'Inter, system-ui, sans-serif',
   fontSize: 14,
+  containerBorderRadius: 16,
+  inputBorderRadius: 24,
+  buttonBorderRadius: 50,
   showBranding: true,
   headerText: 'Chat with us',
   autoOpen: false,

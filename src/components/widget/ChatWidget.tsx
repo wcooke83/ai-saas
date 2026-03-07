@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { MessageSquare, X, Send, ThumbsUp, ThumbsDown, Loader2 } from 'lucide-react';
+import { MessageSquare, X, Send, ThumbsUp, ThumbsDown, Loader2, MessageCircle } from 'lucide-react';
 import type { WidgetConfig, Chatbot } from '@/lib/chatbots/types';
 
 // Map of Google Font names to their URL-friendly versions
@@ -68,9 +68,12 @@ interface ChatWidgetProps {
 
 export function ChatWidget({ chatbotId, chatbot, config }: ChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(config.autoOpen);
+  const [showButton, setShowButton] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isInIframe, setIsInIframe] = useState(false);
+  const [widgetId, setWidgetId] = useState<string | null>(null);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -179,20 +182,47 @@ export function ChatWidget({ chatbotId, chatbot, config }: ChatWidgetProps) {
   };
 
   // Generate CSS from config
-  const styles = generateStyles(config);
+  const styles = generateStyles(config, isInIframe);
+
+  // When loaded in iframe, always show the chat (no button needed)
+  useEffect(() => {
+    const inIframe = window.self !== window.top;
+    setIsInIframe(inIframe);
+    if (inIframe) {
+      setIsOpen(true);
+      
+      // Listen for messages from parent
+      const handleMessage = (event: MessageEvent) => {
+        if (event.data && event.data.type === 'widget-id') {
+          console.log('[ChatWidget] Received widget ID:', event.data.widgetId);
+          setWidgetId(event.data.widgetId);
+        } else if (event.data && event.data.type === 'show-button') {
+          console.log('[ChatWidget] Received show-button message');
+          setIsOpen(false);
+          setShowButton(true);
+        }
+      };
+      
+      window.addEventListener('message', handleMessage);
+      return () => window.removeEventListener('message', handleMessage);
+    }
+  }, []);
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: styles }} />
 
-      {/* Chat bubble button */}
-      {!isOpen && (
+      {/* Floating button to reopen widget (only shown in iframe when closed) */}
+      {showButton && isInIframe && (
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            setShowButton(false);
+            setIsOpen(true);
+          }}
           className="chat-widget-button"
           aria-label="Open chat"
         >
-          <MessageSquare size={24} />
+          <MessageCircle size={24} />
         </button>
       )}
 
@@ -209,12 +239,37 @@ export function ChatWidget({ chatbotId, chatbot, config }: ChatWidgetProps) {
                   className="chat-widget-logo"
                 />
               )}
-              <span className="chat-widget-title">
-                {config.headerText || chatbot.name || 'Chat'}
-              </span>
+              <div className="chat-widget-header-text">
+                <span className="chat-widget-title">
+                  {config.headerText || chatbot.name || 'Chat'}
+                </span>
+                <span className="chat-widget-status">Online</span>
+              </div>
             </div>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                console.log('[ChatWidget] Close button clicked');
+                console.log('[ChatWidget] In iframe:', window.self !== window.top);
+                console.log('[ChatWidget] Widget ID:', widgetId);
+                
+                // If in iframe, notify parent and let parent decide what to do
+                if (window.self !== window.top) {
+                  const message = {
+                    type: 'close-chat-widget',
+                    widgetId: widgetId
+                  };
+                  console.log('[ChatWidget] Sending message to parent:', message);
+                  try {
+                    window.parent.postMessage(message, '*');
+                    console.log('[ChatWidget] Message sent successfully');
+                  } catch (error) {
+                    console.error('[ChatWidget] Error sending message:', error);
+                  }
+                } else {
+                  console.log('[ChatWidget] Not in iframe, setting isOpen to false');
+                  setIsOpen(false);
+                }
+              }}
               className="chat-widget-close"
               aria-label="Close chat"
             >
@@ -285,7 +340,7 @@ export function ChatWidget({ chatbotId, chatbot, config }: ChatWidgetProps) {
   );
 }
 
-function generateStyles(config: WidgetConfig): string {
+function generateStyles(config: WidgetConfig, isInIframe: boolean): string {
   const position = config.position || 'bottom-right';
   const [vertical, horizontal] = position.split('-');
 
@@ -316,14 +371,13 @@ function generateStyles(config: WidgetConfig): string {
 
     .chat-widget-container {
       position: fixed;
-      ${vertical}: ${config.offsetY}px;
-      ${horizontal}: ${config.offsetX}px;
-      width: ${config.width}px;
-      height: ${config.height}px;
-      max-height: calc(100vh - 40px);
+      ${isInIframe ? 'top: 0; left: 0; right: 0; bottom: 0;' : `${vertical}: ${config.offsetY}px; ${horizontal}: ${config.offsetX}px;`}
+      width: ${isInIframe ? '100%' : `${config.width}px`};
+      height: ${isInIframe ? '100vh' : `${config.height}px`};
+      max-height: ${isInIframe ? '100vh' : 'calc(100vh - 40px)'};
       background: ${config.backgroundColor};
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      border-radius: ${isInIframe ? '0' : `${config.containerBorderRadius}px`};
+      box-shadow: ${isInIframe ? 'none' : '0 8px 32px rgba(0, 0, 0, 0.15)'};
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -334,7 +388,7 @@ function generateStyles(config: WidgetConfig): string {
 
     .chat-widget-header {
       background: ${config.primaryColor};
-      color: white;
+      color: ${config.headerTextColor};
       padding: 16px;
       display: flex;
       align-items: center;
@@ -345,28 +399,44 @@ function generateStyles(config: WidgetConfig): string {
       display: flex;
       align-items: center;
       gap: 12px;
+      flex: 1;
     }
 
     .chat-widget-logo {
-      width: 32px;
-      height: 32px;
+      width: 48px;
+      height: 48px;
       border-radius: 8px;
       object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .chat-widget-header-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
 
     .chat-widget-title {
       font-weight: 600;
       font-size: 16px;
+      line-height: 1.2;
+    }
+
+    .chat-widget-status {
+      font-size: 12px;
+      opacity: 0.9;
+      line-height: 1;
     }
 
     .chat-widget-close {
       background: none;
       border: none;
-      color: white;
+      color: ${config.headerTextColor};
       cursor: pointer;
       padding: 4px;
       border-radius: 4px;
       transition: background 0.2s;
+      flex-shrink: 0;
     }
 
     .chat-widget-close:hover {
@@ -406,13 +476,13 @@ function generateStyles(config: WidgetConfig): string {
 
     .chat-widget-bubble-user {
       background: ${config.userBubbleColor};
-      color: white;
+      color: ${config.userBubbleTextColor};
       border-bottom-right-radius: 4px;
     }
 
     .chat-widget-bubble-assistant {
       background: ${config.botBubbleColor};
-      color: ${config.textColor};
+      color: ${config.botBubbleTextColor};
       border-bottom-left-radius: 4px;
     }
 
@@ -449,6 +519,7 @@ function generateStyles(config: WidgetConfig): string {
       padding: 12px 16px;
       border-top: 1px solid #e5e7eb;
       display: flex;
+      align-items: center;
       gap: 8px;
     }
 
@@ -456,27 +527,38 @@ function generateStyles(config: WidgetConfig): string {
       flex: 1;
       padding: 10px 14px;
       border: 1px solid #e5e7eb;
-      border-radius: 24px;
+      border-radius: ${config.inputBorderRadius}px;
       font-family: inherit;
       font-size: inherit;
       outline: none;
       transition: border-color 0.2s;
+      background: ${config.inputBackgroundColor} !important;
+      background-color: ${config.inputBackgroundColor} !important;
+      color: ${config.inputTextColor} !important;
+      -webkit-text-fill-color: ${config.inputTextColor} !important;
+      height: 40px;
+      line-height: 1.5;
+    }
+
+    .chat-widget-input::placeholder {
+      color: ${config.inputPlaceholderColor};
     }
 
     .chat-widget-input:focus {
       border-color: ${config.primaryColor};
+      background: ${config.inputBackgroundColor} !important;
     }
 
     .chat-widget-input:disabled {
-      background: #f9fafb;
+      opacity: 0.6;
     }
 
     .chat-widget-send {
       width: 40px;
       height: 40px;
-      border-radius: 50%;
-      background: ${config.primaryColor};
-      color: white;
+      border-radius: ${config.buttonBorderRadius}%;
+      background: ${config.sendButtonColor};
+      color: ${config.sendButtonIconColor};
       border: none;
       cursor: pointer;
       display: flex;

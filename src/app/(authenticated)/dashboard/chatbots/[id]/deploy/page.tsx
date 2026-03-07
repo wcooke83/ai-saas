@@ -96,6 +96,7 @@ export default function DeployPage({ params }: DeployPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [previewWidgetOpen, setPreviewWidgetOpen] = useState(true);
 
   useEffect(() => {
     async function fetchChatbot() {
@@ -113,6 +114,29 @@ export default function DeployPage({ params }: DeployPageProps) {
 
     fetchChatbot();
   }, [id]);
+
+  // Handle close messages from Live Preview iframe
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Handle close message from Live Preview iframe
+      if (event.data && event.data.type === 'close-chat-widget') {
+        console.log('[Deploy Page] Received close message from Live Preview iframe');
+        // Find the Live Preview iframe
+        const previewIframe = document.querySelector('iframe[title="Chatbot Preview"]') as HTMLIFrameElement;
+        if (previewIframe && event.source === previewIframe.contentWindow) {
+          console.log('[Deploy Page] Hiding Live Preview iframe');
+          setPreviewWidgetOpen(false);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  // Get widget position for preview alignment
+  const widgetPosition = chatbot?.widget_config?.position || 'bottom-right';
+  const isLeftAligned = widgetPosition.includes('left');
 
   const copyToClipboard = async (text: string, codeType: string) => {
     await navigator.clipboard.writeText(text);
@@ -154,6 +178,28 @@ export default function DeployPage({ params }: DeployPageProps) {
     chatbotId: '${id}'
   });
 </script>`;
+
+  const nextjsCode = `import Script from 'next/script';
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        {children}
+        
+        {/* Chatbot Widget */}
+        <Script src="${baseUrl}/widget/sdk.js" />
+        <Script id="chatbot-init" strategy="afterInteractive">
+          {\`
+            ChatWidget.init({
+              chatbotId: '${id}'
+            });
+          \`}
+        </Script>
+      </body>
+    </html>
+  );
+}`;
 
   const apiExample = `curl -X POST "${baseUrl}/api/chat/${id}" \\
   -H "Content-Type: application/json" \\
@@ -252,12 +298,71 @@ export default function DeployPage({ params }: DeployPageProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="bg-secondary-100 dark:bg-secondary-800 rounded-lg p-4 h-[400px] overflow-hidden">
+          <div className={`bg-secondary-100 dark:bg-secondary-800 rounded-lg p-4 h-[500px] flex items-center overflow-hidden relative ${isLeftAligned ? 'justify-start' : 'justify-end'}`}>
+            {/* Keep iframe mounted but toggle visibility for instant loading */}
             <iframe
               src={`/widget/${id}`}
-              className="w-full h-full rounded-lg border-0"
+              className="rounded-lg border-0"
+              style={{ 
+                width: '400px', 
+                height: '600px', 
+                maxWidth: '100%', 
+                maxHeight: '100%',
+                display: previewWidgetOpen ? 'block' : 'none',
+                visibility: previewWidgetOpen ? 'visible' : 'hidden',
+                pointerEvents: previewWidgetOpen ? 'auto' : 'none'
+              }}
               title="Chatbot Preview"
             />
+            
+            {/* Show button when widget is closed */}
+            {!previewWidgetOpen && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setPreviewWidgetOpen(true);
+                }}
+                className="absolute"
+                style={{
+                  [isLeftAligned ? 'left' : 'right']: '20px',
+                  bottom: '20px',
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  background: chatbot?.widget_config?.primaryColor || '#0ea5e9',
+                  color: 'white',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                }}
+                aria-label="Open chat preview"
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+              </button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -304,20 +409,83 @@ export default function DeployPage({ params }: DeployPageProps) {
               </p>
               <PlacementInstruction
                 icon={FileCode}
-                title="Before closing </body> tag"
+                title="HTML websites"
                 description="Add the script tags just before </body> in your HTML file. This ensures the page loads before the widget initializes."
-                recommended
               />
               <PlacementInstruction
                 icon={Code}
-                title="Or in your template footer"
-                description="If using a CMS like WordPress, add to your theme's footer.php or use a plugin to inject scripts."
+                title="WordPress / CMS"
+                description="Add to your theme's footer.php or use a plugin to inject scripts in the footer."
               />
             </div>
 
             <div className="text-sm text-secondary-600 dark:text-secondary-400 bg-secondary-50 dark:bg-secondary-800/50 p-3 rounded-lg">
               <strong className="text-secondary-900 dark:text-secondary-100">What happens:</strong> A chat button appears in the bottom-right corner.
               Users click to open the chat, and conversations are automatically saved.
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Next.js / TypeScript */}
+        <Card className="border-blue-200 dark:border-blue-800 ring-1 ring-blue-100 dark:ring-blue-900/50">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                  <FileCode className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <CardTitle>Next.js / TypeScript</CardTitle>
+                    <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-[10px]">
+                      React Apps
+                    </Badge>
+                  </div>
+                  <CardDescription>For Next.js, React, and TypeScript applications</CardDescription>
+                </div>
+              </div>
+              <Tooltip content="Use Next.js Script component to properly load external scripts in TypeScript/React applications. This approach works for Next.js, Create React App, and other React frameworks.">
+                <button className="p-1 text-secondary-400 hover:text-secondary-600 dark:hover:text-secondary-300">
+                  <HelpCircle className="w-4 h-4" />
+                </button>
+              </Tooltip>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <CodeBlock
+              code={nextjsCode}
+              language="tsx"
+              copyId="nextjs"
+              copiedCode={copiedCode}
+              onCopy={copyToClipboard}
+            />
+
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-secondary-700 dark:text-secondary-300 uppercase tracking-wider">
+                Where to add this code
+              </p>
+              <PlacementInstruction
+                icon={FileCode}
+                title="Next.js App Router"
+                description="Add to your root layout.tsx file (app/layout.tsx). Place the Script components before the closing </body> tag."
+                recommended
+              />
+              <PlacementInstruction
+                icon={Code}
+                title="Next.js Pages Router"
+                description="Add to _app.tsx or _document.tsx. Use the Script component from 'next/script'."
+              />
+              <PlacementInstruction
+                icon={Globe}
+                title="Other React frameworks"
+                description="Use react-helmet or your framework's script loading mechanism. The key is to load the SDK script first, then call ChatWidget.init()."
+              />
+            </div>
+
+            <div className="text-sm text-secondary-600 dark:text-secondary-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+              <strong className="text-blue-900 dark:text-blue-100">Important:</strong> Don't add raw <code className="bg-blue-100 dark:bg-blue-900/50 px-1 py-0.5 rounded text-xs">&lt;script&gt;</code> tags
+              directly in TSX files - they'll cause errors. Always use the <code className="bg-blue-100 dark:bg-blue-900/50 px-1 py-0.5 rounded text-xs">Script</code> component
+              from <code className="bg-blue-100 dark:bg-blue-900/50 px-1 py-0.5 rounded text-xs">next/script</code>.
             </div>
           </CardContent>
         </Card>
