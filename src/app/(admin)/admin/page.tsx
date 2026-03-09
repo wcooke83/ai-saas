@@ -24,7 +24,7 @@ import Link from 'next/link';
 
 interface AppSettings {
   ai_provider: 'claude' | 'local';
-  local_api_path: string;
+  local_api_url: string;
   local_api_timeout: number;
   local_api_provider: 'default' | 'chatgpt' | 'claude' | 'grok';
   token_multiplier: number;
@@ -42,7 +42,7 @@ export default function AdminSettingsPage() {
 
   // Form state
   const [aiProvider, setAiProvider] = useState<'claude' | 'local'>('claude');
-  const [localApiPath, setLocalApiPath] = useState('');
+  const [localApiUrl, setLocalApiUrl] = useState('http://localhost:8000');
   const [localApiTimeout, setLocalApiTimeout] = useState(120);
   const [localApiProvider, setLocalApiProvider] = useState<'default' | 'chatgpt' | 'claude' | 'grok'>('default');
   const [multiplierClaude, setMultiplierClaude] = useState(1);
@@ -72,7 +72,7 @@ export default function AdminSettingsPage() {
         if (settingsData.success && settingsData.data) {
           setSettings(settingsData.data);
           setAiProvider(settingsData.data.ai_provider);
-          setLocalApiPath(settingsData.data.local_api_path);
+          setLocalApiUrl(settingsData.data.local_api_path || 'http://localhost:8000');
           setLocalApiTimeout(settingsData.data.local_api_timeout);
           setLocalApiProvider(settingsData.data.local_api_provider);
           setMultiplierClaude(settingsData.data.multiplier_claude || 1);
@@ -100,7 +100,7 @@ export default function AdminSettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ai_provider: aiProvider,
-          local_api_path: localApiPath,
+          local_api_path: localApiUrl,
           local_api_timeout: localApiTimeout,
           local_api_provider: localApiProvider,
           multiplier_claude: multiplierClaude,
@@ -254,7 +254,7 @@ export default function AdminSettingsPage() {
                       <Badge variant="outline">Custom</Badge>
                     </div>
                     <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-1">
-                      Use a local script via browser extension. No API key required.
+                      Connect to ai-prompt-api for browser-based AI. No API key required.
                     </p>
                   </div>
                   {aiProvider === 'local' && (
@@ -273,19 +273,19 @@ export default function AdminSettingsPage() {
                   <Settings className="w-5 h-5 text-primary-500" aria-hidden="true" />
                   Local API Configuration
                 </CardTitle>
-                <CardDescription>Configure the local AI script settings</CardDescription>
+                <CardDescription>Configure the local AI API connection</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="localApiPath">Script Path</Label>
+                  <Label htmlFor="localApiUrl">API URL</Label>
                   <Input
-                    id="localApiPath"
-                    value={localApiPath}
-                    onChange={(e) => setLocalApiPath(e.target.value)}
-                    placeholder="/path/to/ai-prompt.py"
+                    id="localApiUrl"
+                    value={localApiUrl}
+                    onChange={(e) => setLocalApiUrl(e.target.value)}
+                    placeholder="http://localhost:8000"
                   />
                   <p className="text-xs text-secondary-500 dark:text-secondary-400">
-                    Full path to the ai-prompt.py script
+                    URL of the ai-prompt-api server (e.g. http://localhost:8000)
                   </p>
                 </div>
 
@@ -331,9 +331,9 @@ export default function AdminSettingsPage() {
                     <div>
                       <p className="font-medium text-amber-800 dark:text-amber-300">Requirements</p>
                       <ul className="text-sm text-amber-700 dark:text-amber-400 mt-1 list-disc list-inside">
-                        <li>Python 3.8+ with websockets package</li>
-                        <li>Firefox with AI Provider Automator extension</li>
-                        <li>Logged into the selected AI provider</li>
+                        <li>ai-prompt-api server running at the configured URL</li>
+                        <li>Browser extension connected to the API server</li>
+                        <li>Logged into the selected AI provider in the browser</li>
                       </ul>
                     </div>
                   </div>

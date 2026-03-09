@@ -1,15 +1,16 @@
 /**
  * Local AI Provider
- * Executes ai-prompt.py to send prompts via browser extension
+ * Sends prompts to ai-prompt-api (FastAPI) via HTTP
  */
 
-import { spawn } from 'child_process';
-import { getAppSettings, type AppSettings } from '@/lib/settings';
+import { getAppSettings } from '@/lib/settings';
+
+const DEFAULT_API_URL = 'http://localhost:8000';
 
 export interface LocalProviderOptions {
   timeout?: number;
   provider?: 'default' | 'chatgpt' | 'claude' | 'grok';
-  scriptPath?: string;
+  apiUrl?: string;
 }
 
 export interface LocalProviderResponse {
@@ -18,10 +19,13 @@ export interface LocalProviderResponse {
   error?: string;
   session_id?: string;
   provider?: string;
+  model?: string;
+  input_tokens?: number;
+  output_tokens?: number;
 }
 
 /**
- * Execute the local AI script and return the response
+ * Send a prompt to the local AI API
  */
 export async function executeLocalAI(
   prompt: string,
@@ -29,98 +33,87 @@ export async function executeLocalAI(
 ): Promise<LocalProviderResponse> {
   const settings = await getAppSettings();
 
-  const scriptPath = options.scriptPath || settings?.local_api_path || '/home/wcooke/projects/ai-prompt/ai-prompt-cli/ai-prompt.py';
+  const apiUrl = (options.apiUrl || settings?.local_api_path || DEFAULT_API_URL).replace(/\/+$/, '');
   const timeout = options.timeout || settings?.local_api_timeout || 120;
   const provider = options.provider || settings?.local_api_provider || undefined;
 
-  // Get the directory containing the script to find the venv
-  const scriptDir = scriptPath.substring(0, scriptPath.lastIndexOf('/'));
-  const venvActivate = `${scriptDir}/venv/bin/activate`;
+  const body: Record<string, unknown> = {
+    text: prompt,
+    timeout,
+  };
 
-  return new Promise((resolve, reject) => {
-    const args: string[] = ['--json', '--response-timeout', timeout.toString()];
+  // Only add provider if not 'default'
+  if (provider && provider !== 'default') {
+    body.provider = provider;
+  }
 
-    // Only add provider flag if not 'default'
-    if (provider && provider !== 'default') {
-      args.push('--provider', provider);
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), (timeout + 10) * 1000);
+
+    const response = await fetch(`${apiUrl}/prompt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      return {
+        success: false,
+        text: '',
+        error: errorData?.detail || `API returned ${response.status}`,
+      };
     }
 
-    // Escape the prompt for shell (handle quotes, newlines, special chars)
-    const escapedPrompt = prompt
-      .replace(/\\/g, '\\\\')
-      .replace(/"/g, '\\"')
-      .replace(/\$/g, '\\$')
-      .replace(/`/g, '\\`');
+    const data = await response.json();
 
-    // Build command that activates venv first
-    const scriptArgs = args.map(a => `"${a}"`).join(' ');
-    const command = `source "${venvActivate}" && python3 "${scriptPath}" ${scriptArgs} "${escapedPrompt}"`;
-
-    // Log the exact command being executed (copy-paste ready)
-    console.log('[Local AI] Executing command (copy-paste ready):');
-    console.log('---');
-    console.log(command);
-    console.log('---');
-
-    const process = spawn('bash', ['-c', command], {
-      timeout: (timeout + 10) * 1000, // Add buffer to script timeout
-      env: { ...global.process.env },
-    });
-
-    let stdout = '';
-    let stderr = '';
-
-    process.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-
-    process.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-
-    process.on('close', (code) => {
-      if (code !== 0) {
-        // Try to parse JSON error from stdout first
-        try {
-          const result = JSON.parse(stdout.trim());
-          if (!result.success) {
-            resolve(result);
-            return;
-          }
-        } catch {
-          // Not JSON, use stderr
-        }
-
-        reject(new Error(stderr || `Process exited with code ${code}`));
-        return;
-      }
-
-      try {
-        const result = JSON.parse(stdout.trim());
-        resolve(result);
-      } catch {
-        reject(new Error(`Invalid JSON response: ${stdout}`));
-      }
-    });
-
-    process.on('error', (err) => {
-      reject(new Error(`Failed to execute local AI: ${err.message}`));
-    });
-  });
+    return {
+      success: data.success ?? false,
+      text: data.text || '',
+      error: data.error,
+      session_id: data.session_id,
+      provider: data.provider,
+      model: data.model,
+      input_tokens: data.input_tokens,
+      output_tokens: data.output_tokens,
+    };
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      return { success: false, text: '', error: `Request timed out after ${timeout}s` };
+    }
+    return {
+      success: false,
+      text: '',
+      error: err instanceof Error ? err.message : 'Failed to reach local AI API',
+    };
+  }
 }
 
 /**
- * Check if local AI is available
+ * Check if local AI API is reachable and extension is connected
  */
 export async function isLocalAIAvailable(): Promise<boolean> {
   try {
     const settings = await getAppSettings();
-    if (!settings?.local_api_path) return false;
+    const apiUrl = (settings?.local_api_path || DEFAULT_API_URL).replace(/\/+$/, '');
 
-    // Check if script exists
-    const { access } = await import('fs/promises');
-    await access(settings.local_api_path);
-    return true;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    const response = await fetch(`${apiUrl}/health`, {
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) return false;
+
+    const data = await response.json();
+    return data.status === 'ok' && data.extension_connected === true;
   } catch {
     return false;
   }

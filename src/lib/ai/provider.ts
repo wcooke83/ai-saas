@@ -457,9 +457,9 @@ export async function generate(
 
     return {
       content: response.text,
-      tokensInput: Math.ceil(fullPrompt.length / 4),
-      tokensOutput: Math.ceil(response.text.length / 4),
-      model: activeModel?.api_model_id || `local-${response.provider || 'unknown'}`,
+      tokensInput: response.input_tokens ?? Math.ceil(fullPrompt.length / 4),
+      tokensOutput: response.output_tokens ?? Math.ceil(response.text.length / 4),
+      model: response.model || activeModel?.api_model_id || `local-${response.provider || 'unknown'}`,
       provider: 'local',
       durationMs: Date.now() - startTime,
     };
@@ -604,9 +604,9 @@ export async function* generateStream(
 
     return {
       content: fullContent,
-      tokensInput: Math.ceil(fullPrompt.length / 4),
-      tokensOutput,
-      model: activeModel?.api_model_id || `local-${response.provider || 'unknown'}`,
+      tokensInput: response.input_tokens ?? Math.ceil(fullPrompt.length / 4),
+      tokensOutput: response.output_tokens ?? tokensOutput,
+      model: response.model || activeModel?.api_model_id || `local-${response.provider || 'unknown'}`,
       provider: 'local',
       durationMs: Date.now() - startTime,
     };
