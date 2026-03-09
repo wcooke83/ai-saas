@@ -14,6 +14,7 @@ import { successResponse, errorResponse, parseBody } from '@/lib/api/utils';
 const updateSettingsSchema = z.object({
   ai_provider: z.enum(['claude', 'local']).optional(),
   local_api_path: z.string().min(1).optional(),
+  local_api_key: z.string().optional().nullable(),
   local_api_timeout: z.number().min(10).max(600).optional(),
   local_api_provider: z.enum(['default', 'chatgpt', 'claude', 'grok']).optional(),
   token_multiplier: z.number().min(0.01).max(100).optional(), // Legacy
@@ -35,6 +36,7 @@ export async function GET(req: NextRequest) {
     return successResponse({
       ai_provider: settings.ai_provider,
       local_api_path: settings.local_api_path,
+      local_api_key: settings.local_api_key,
       local_api_timeout: settings.local_api_timeout,
       local_api_provider: settings.local_api_provider,
       token_multiplier: settings.token_multiplier,
@@ -62,6 +64,7 @@ export async function PUT(req: NextRequest) {
     return successResponse({
       ai_provider: updated.ai_provider,
       local_api_path: updated.local_api_path,
+      local_api_key: updated.local_api_key,
       local_api_timeout: updated.local_api_timeout,
       local_api_provider: updated.local_api_provider,
       token_multiplier: updated.token_multiplier,

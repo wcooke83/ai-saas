@@ -11,6 +11,7 @@ export interface AppSettings {
   id: string;
   ai_provider: 'claude' | 'local';
   local_api_path: string;
+  local_api_key: string | null;
   local_api_timeout: number;
   local_api_provider: 'default' | 'chatgpt' | 'claude' | 'grok';
   token_multiplier: number; // Legacy - kept for backwards compatibility

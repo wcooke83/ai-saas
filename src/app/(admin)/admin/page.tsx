@@ -25,6 +25,7 @@ import Link from 'next/link';
 interface AppSettings {
   ai_provider: 'claude' | 'local';
   local_api_url: string;
+  local_api_key: string | null;
   local_api_timeout: number;
   local_api_provider: 'default' | 'chatgpt' | 'claude' | 'grok';
   token_multiplier: number;
@@ -43,6 +44,7 @@ export default function AdminSettingsPage() {
   // Form state
   const [aiProvider, setAiProvider] = useState<'claude' | 'local'>('claude');
   const [localApiUrl, setLocalApiUrl] = useState('http://localhost:8000');
+  const [localApiKey, setLocalApiKey] = useState('');
   const [localApiTimeout, setLocalApiTimeout] = useState(120);
   const [localApiProvider, setLocalApiProvider] = useState<'default' | 'chatgpt' | 'claude' | 'grok'>('default');
   const [multiplierClaude, setMultiplierClaude] = useState(1);
@@ -73,6 +75,7 @@ export default function AdminSettingsPage() {
           setSettings(settingsData.data);
           setAiProvider(settingsData.data.ai_provider);
           setLocalApiUrl(settingsData.data.local_api_path || 'http://localhost:8000');
+          setLocalApiKey(settingsData.data.local_api_key || '');
           setLocalApiTimeout(settingsData.data.local_api_timeout);
           setLocalApiProvider(settingsData.data.local_api_provider);
           setMultiplierClaude(settingsData.data.multiplier_claude || 1);
@@ -101,6 +104,7 @@ export default function AdminSettingsPage() {
         body: JSON.stringify({
           ai_provider: aiProvider,
           local_api_path: localApiUrl,
+          local_api_key: localApiKey || null,
           local_api_timeout: localApiTimeout,
           local_api_provider: localApiProvider,
           multiplier_claude: multiplierClaude,
@@ -289,6 +293,20 @@ export default function AdminSettingsPage() {
                   </p>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="localApiKey">API Key</Label>
+                  <Input
+                    id="localApiKey"
+                    type="password"
+                    value={localApiKey}
+                    onChange={(e) => setLocalApiKey(e.target.value)}
+                    placeholder="Leave empty for no auth (local dev only)"
+                  />
+                  <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                    Must match the AI_PROMPT_API_KEY env var on the API server. Leave empty to disable auth.
+                  </p>
+                </div>
+
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="localApiTimeout">Timeout (seconds)</Label>
@@ -320,7 +338,7 @@ export default function AdminSettingsPage() {
                       <option value="grok">Grok</option>
                     </select>
                     <p className="text-xs text-secondary-500 dark:text-secondary-400">
-                      Which AI provider the local script should use
+                      Which AI provider the API should target
                     </p>
                   </div>
                 </div>

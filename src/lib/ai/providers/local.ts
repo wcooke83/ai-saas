@@ -34,6 +34,7 @@ export async function executeLocalAI(
   const settings = await getAppSettings();
 
   const apiUrl = (options.apiUrl || settings?.local_api_path || DEFAULT_API_URL).replace(/\/+$/, '');
+  const apiKey = settings?.local_api_key || undefined;
   const timeout = options.timeout || settings?.local_api_timeout || 120;
   const provider = options.provider || settings?.local_api_provider || undefined;
 
@@ -51,9 +52,12 @@ export async function executeLocalAI(
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), (timeout + 10) * 1000);
 
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
     const response = await fetch(`${apiUrl}/prompt`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(body),
       signal: controller.signal,
     });
@@ -100,11 +104,16 @@ export async function isLocalAIAvailable(): Promise<boolean> {
   try {
     const settings = await getAppSettings();
     const apiUrl = (settings?.local_api_path || DEFAULT_API_URL).replace(/\/+$/, '');
+    const apiKey = settings?.local_api_key || undefined;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
+    const headers: Record<string, string> = {};
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
     const response = await fetch(`${apiUrl}/health`, {
+      headers,
       signal: controller.signal,
     });
 
