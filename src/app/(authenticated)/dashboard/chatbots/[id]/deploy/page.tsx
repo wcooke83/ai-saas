@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip, InfoTooltip } from '@/components/ui/tooltip';
+import { Tooltip } from '@/components/ui/tooltip';
 import type { Chatbot } from '@/lib/chatbots/types';
 
 // Code block component with syntax highlighting feel and copy button
@@ -56,35 +56,6 @@ function CodeBlock({
   );
 }
 
-// Placement instruction component
-function PlacementInstruction({
-  icon: Icon,
-  title,
-  description,
-  recommended,
-}: {
-  icon: React.ElementType;
-  title: string;
-  description: string;
-  recommended?: boolean;
-}) {
-  return (
-    <div className="flex items-start gap-3 p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg border border-secondary-200 dark:border-secondary-700">
-      <div className="flex-shrink-0 mt-0.5">
-        <Icon className="w-4 h-4 text-primary-500" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100">{title}</span>
-          {recommended && (
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Recommended</Badge>
-          )}
-        </div>
-        <p className="text-xs text-secondary-600 dark:text-secondary-400 mt-0.5">{description}</p>
-      </div>
-    </div>
-  );
-}
 
 interface DeployPageProps {
   params: Promise<{ id: string }>;
@@ -166,62 +137,45 @@ export default function DeployPage({ params }: DeployPageProps) {
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com';
 
-  const iframeCode = `<iframe
-  src="${baseUrl}/widget/${id}"
-  style="border:none;position:fixed;bottom:20px;right:20px;width:400px;height:600px;z-index:9999;"
-  allow="clipboard-write"
-></iframe>`;
+  const sdkCode = `<script src="${baseUrl}/widget/sdk.js" data-chatbot-id="${id}"></script>`;
 
-  const sdkCode = `<script src="${baseUrl}/widget/sdk.js"></script>
+  const sdkManualCode = `<script src="${baseUrl}/widget/sdk.js"></script>
 <script>
-  ChatWidget.init({
-    chatbotId: '${id}'
-  });
+  ChatWidget.init({ chatbotId: '${id}' });
 </script>`;
 
   const nextjsCode = `import Script from 'next/script';
 
-export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
-      <body>
-        {children}
-        
-        {/* Chatbot Widget */}
-        <Script src="${baseUrl}/widget/sdk.js" />
-        <Script id="chatbot-init" strategy="afterInteractive">
-          {\`
-            ChatWidget.init({
-              chatbotId: '${id}'
-            });
-          \`}
-        </Script>
-      </body>
-    </html>
-  );
-}`;
+// Add to your root layout (app/layout.tsx)
+<Script
+  src="${baseUrl}/widget/sdk.js"
+  data-chatbot-id="${id}"
+  strategy="afterInteractive"
+/>`;
+
+  const iframeCode = `<iframe
+  src="${baseUrl}/widget/${id}"
+  style="border:none;width:400px;height:600px;"
+  allow="clipboard-write"
+></iframe>`;
 
   const apiExample = `curl -X POST "${baseUrl}/api/chat/${id}" \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
-  -d '{
-    "message": "Hello, I have a question",
-    "session_id": "unique-session-id"
-  }'`;
+  -d '{"message": "Hello!", "session_id": "unique-session-id"}'`;
 
-  const jsApiExample = `fetch('${baseUrl}/api/chat/${id}', {
+  const jsApiExample = `const res = await fetch('${baseUrl}/api/chat/${id}', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
     'Authorization': 'Bearer YOUR_API_KEY'
   },
   body: JSON.stringify({
-    message: 'Hello, I have a question',
+    message: 'Hello!',
     session_id: 'unique-session-id'
   })
-})
-.then(res => res.json())
-.then(data => console.log(data.data.message));`;
+});
+const data = await res.json();`;
 
   return (
     <div className="space-y-6">
@@ -253,21 +207,6 @@ export default function RootLayout({ children }) {
         </div>
       </div>
 
-      {/* Quick Start Guide */}
-      <div className="p-4 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg">
-        <div className="flex items-start gap-3">
-          <Zap className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="font-medium text-primary-900 dark:text-primary-100">Quick Start</h3>
-            <p className="text-sm text-primary-700 dark:text-primary-300 mt-1">
-              Choose an integration method below. The <strong>JavaScript SDK</strong> is recommended for most websites
-              as it provides the best user experience with a floating chat widget. For custom integrations,
-              use the <strong>REST API</strong>.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Status */}
       {!chatbot.is_published && (
         <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
@@ -281,25 +220,127 @@ export default function RootLayout({ children }) {
         </div>
       )}
 
-      {/* Widget Preview */}
+      {/* Quick Start - One Liner */}
+      <Card className="border-primary-200 dark:border-primary-800 ring-1 ring-primary-100 dark:ring-primary-900/50">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
+                <Zap className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <CardTitle>Add to Your Website</CardTitle>
+                  <Badge className="bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300 text-[10px]">
+                    One Line
+                  </Badge>
+                </div>
+                <CardDescription>Paste this single line before <code className="text-xs">&lt;/body&gt;</code> in your HTML</CardDescription>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <a href={`/widget/${id}`} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="w-4 h-4 mr-1.5" />
+                Preview
+              </a>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <CodeBlock
+            code={sdkCode}
+            language="html"
+            copyId="sdk"
+            copiedCode={copiedCode}
+            onCopy={copyToClipboard}
+          />
+          <p className="text-sm text-secondary-600 dark:text-secondary-400">
+            That's it — a floating chat button will appear on your site. Works with any HTML website, WordPress, Shopify, Webflow, and more.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Framework-Specific & Alternative Methods */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Next.js / React */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2.5">
+              <FileCode className="w-4.5 h-4.5 text-blue-500" />
+              <CardTitle className="text-base">Next.js / React</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <CodeBlock
+              code={nextjsCode}
+              language="tsx"
+              copyId="nextjs"
+              copiedCode={copiedCode}
+              onCopy={copyToClipboard}
+            />
+            <p className="text-xs text-secondary-500 dark:text-secondary-400">
+              Use the <code className="bg-secondary-100 dark:bg-secondary-800 px-1 py-0.5 rounded text-[11px]">Script</code> component in your root layout.
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Manual Init */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2.5">
+              <Code className="w-4.5 h-4.5 text-secondary-500" />
+              <CardTitle className="text-base">Manual Init</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <CodeBlock
+              code={sdkManualCode}
+              language="html"
+              copyId="manual"
+              copiedCode={copiedCode}
+              onCopy={copyToClipboard}
+            />
+            <p className="text-xs text-secondary-500 dark:text-secondary-400">
+              Load the SDK separately if you need to control when it initializes.
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* iFrame */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2.5">
+              <Globe className="w-4.5 h-4.5 text-secondary-500" />
+              <CardTitle className="text-base">iFrame Embed</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <CodeBlock
+              code={iframeCode}
+              language="html"
+              copyId="iframe"
+              copiedCode={copiedCode}
+              onCopy={copyToClipboard}
+            />
+            <p className="text-xs text-secondary-500 dark:text-secondary-400">
+              Embed the chat inline on a specific page instead of as a floating widget.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Live Preview */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Live Preview</CardTitle>
-              <CardDescription>See how your chatbot looks</CardDescription>
+              <CardDescription>See how your chatbot looks and behaves</CardDescription>
             </div>
-            <Button variant="outline" asChild>
-              <a href={`/widget/${id}`} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Open in New Tab
-              </a>
-            </Button>
           </div>
         </CardHeader>
         <CardContent>
           <div className={`bg-secondary-100 dark:bg-secondary-800 rounded-lg p-4 h-[500px] flex items-center overflow-hidden relative ${isLeftAligned ? 'justify-start' : 'justify-end'}`}>
-            {/* Keep iframe mounted but toggle visibility for instant loading */}
             <iframe
               src={`/widget/${id}`}
               className="rounded-lg border-0"
@@ -314,14 +355,9 @@ export default function RootLayout({ children }) {
               }}
               title="Chatbot Preview"
             />
-            
-            {/* Show button when widget is closed */}
             {!previewWidgetOpen && (
               <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  setPreviewWidgetOpen(true);
-                }}
+                onClick={(e) => { e.preventDefault(); setPreviewWidgetOpen(true); }}
                 className="absolute"
                 style={{
                   [isLeftAligned ? 'left' : 'right']: '20px',
@@ -337,28 +373,10 @@ export default function RootLayout({ children }) {
                   alignItems: 'center',
                   justifyContent: 'center',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.05)';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
                 }}
                 aria-label="Open chat preview"
               >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
               </button>
@@ -366,177 +384,6 @@ export default function RootLayout({ children }) {
           </div>
         </CardContent>
       </Card>
-
-      {/* Embed Options */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* SDK Embed - Primary/Recommended */}
-        <Card className="border-primary-200 dark:border-primary-800 ring-1 ring-primary-100 dark:ring-primary-900/50">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
-                  <Globe className="w-5 h-5 text-primary-600 dark:text-primary-400" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <CardTitle>JavaScript SDK</CardTitle>
-                    <Badge className="bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300 text-[10px]">
-                      Recommended
-                    </Badge>
-                  </div>
-                  <CardDescription>Best experience with a floating chat widget</CardDescription>
-                </div>
-              </div>
-              <Tooltip content="The SDK creates a floating chat button that expands into a full chat interface. It handles positioning, animations, and mobile responsiveness automatically.">
-                <button className="p-1 text-secondary-400 hover:text-secondary-600 dark:hover:text-secondary-300">
-                  <HelpCircle className="w-4 h-4" />
-                </button>
-              </Tooltip>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <CodeBlock
-              code={sdkCode}
-              language="html"
-              copyId="sdk"
-              copiedCode={copiedCode}
-              onCopy={copyToClipboard}
-            />
-
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-secondary-700 dark:text-secondary-300 uppercase tracking-wider">
-                Where to add this code
-              </p>
-              <PlacementInstruction
-                icon={FileCode}
-                title="HTML websites"
-                description="Add the script tags just before </body> in your HTML file. This ensures the page loads before the widget initializes."
-              />
-              <PlacementInstruction
-                icon={Code}
-                title="WordPress / CMS"
-                description="Add to your theme's footer.php or use a plugin to inject scripts in the footer."
-              />
-            </div>
-
-            <div className="text-sm text-secondary-600 dark:text-secondary-400 bg-secondary-50 dark:bg-secondary-800/50 p-3 rounded-lg">
-              <strong className="text-secondary-900 dark:text-secondary-100">What happens:</strong> A chat button appears in the bottom-right corner.
-              Users click to open the chat, and conversations are automatically saved.
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Next.js / TypeScript */}
-        <Card className="border-blue-200 dark:border-blue-800 ring-1 ring-blue-100 dark:ring-blue-900/50">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                  <FileCode className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <CardTitle>Next.js / TypeScript</CardTitle>
-                    <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-[10px]">
-                      React Apps
-                    </Badge>
-                  </div>
-                  <CardDescription>For Next.js, React, and TypeScript applications</CardDescription>
-                </div>
-              </div>
-              <Tooltip content="Use Next.js Script component to properly load external scripts in TypeScript/React applications. This approach works for Next.js, Create React App, and other React frameworks.">
-                <button className="p-1 text-secondary-400 hover:text-secondary-600 dark:hover:text-secondary-300">
-                  <HelpCircle className="w-4 h-4" />
-                </button>
-              </Tooltip>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <CodeBlock
-              code={nextjsCode}
-              language="tsx"
-              copyId="nextjs"
-              copiedCode={copiedCode}
-              onCopy={copyToClipboard}
-            />
-
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-secondary-700 dark:text-secondary-300 uppercase tracking-wider">
-                Where to add this code
-              </p>
-              <PlacementInstruction
-                icon={FileCode}
-                title="Next.js App Router"
-                description="Add to your root layout.tsx file (app/layout.tsx). Place the Script components before the closing </body> tag."
-                recommended
-              />
-              <PlacementInstruction
-                icon={Code}
-                title="Next.js Pages Router"
-                description="Add to _app.tsx or _document.tsx. Use the Script component from 'next/script'."
-              />
-              <PlacementInstruction
-                icon={Globe}
-                title="Other React frameworks"
-                description="Use react-helmet or your framework's script loading mechanism. The key is to load the SDK script first, then call ChatWidget.init()."
-              />
-            </div>
-
-            <div className="text-sm text-secondary-600 dark:text-secondary-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
-              <strong className="text-blue-900 dark:text-blue-100">Important:</strong> Don't add raw <code className="bg-blue-100 dark:bg-blue-900/50 px-1 py-0.5 rounded text-xs">&lt;script&gt;</code> tags
-              directly in TSX files - they'll cause errors. Always use the <code className="bg-blue-100 dark:bg-blue-900/50 px-1 py-0.5 rounded text-xs">Script</code> component
-              from <code className="bg-blue-100 dark:bg-blue-900/50 px-1 py-0.5 rounded text-xs">next/script</code>.
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* iFrame Embed */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-secondary-100 dark:bg-secondary-800 rounded-lg">
-                  <Code className="w-5 h-5 text-secondary-600 dark:text-secondary-400" />
-                </div>
-                <div>
-                  <CardTitle>iFrame Embed</CardTitle>
-                  <CardDescription>Simple inline embed for specific locations</CardDescription>
-                </div>
-              </div>
-              <Tooltip content="iFrames are useful when you want the chat in a specific location on your page rather than a floating widget. Good for dedicated support pages.">
-                <button className="p-1 text-secondary-400 hover:text-secondary-600 dark:hover:text-secondary-300">
-                  <HelpCircle className="w-4 h-4" />
-                </button>
-              </Tooltip>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <CodeBlock
-              code={iframeCode}
-              language="html"
-              copyId="iframe"
-              copiedCode={copiedCode}
-              onCopy={copyToClipboard}
-            />
-
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-secondary-700 dark:text-secondary-300 uppercase tracking-wider">
-                Where to add this code
-              </p>
-              <PlacementInstruction
-                icon={FileCode}
-                title="Anywhere in your HTML body"
-                description="Place the iframe where you want the chat to appear. The default styles position it as a floating widget."
-              />
-            </div>
-
-            <div className="text-sm text-secondary-600 dark:text-secondary-400 bg-secondary-50 dark:bg-secondary-800/50 p-3 rounded-lg">
-              <strong className="text-secondary-900 dark:text-secondary-100">Tip:</strong> Modify the <code className="bg-secondary-200 dark:bg-secondary-700 px-1 py-0.5 rounded text-xs">style</code> attribute
-              to change size and position, or remove <code className="bg-secondary-200 dark:bg-secondary-700 px-1 py-0.5 rounded text-xs">position:fixed</code> to embed inline.
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* API Access */}
       <Card>
