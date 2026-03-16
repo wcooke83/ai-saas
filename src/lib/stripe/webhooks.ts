@@ -4,6 +4,7 @@
 
 import type Stripe from 'stripe';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getStripeClient } from './client';
 
 /**
  * Handle checkout.session.completed event
@@ -33,6 +34,7 @@ async function handleSubscriptionCheckout(
   session: Stripe.Checkout.Session,
   userId: string
 ): Promise<void> {
+  const stripe = getStripeClient();
   const supabase = createAdminClient();
   const planId = session.metadata?.plan_id;
   const planSlug = session.metadata?.plan_slug;
@@ -46,8 +48,22 @@ async function handleSubscriptionCheckout(
     .eq('id', planId)
     .single() : { data: null };
 
+  // Get subscription details from Stripe to get period dates
+  let currentPeriodStart: string | null = null;
+  let currentPeriodEnd: string | null = null;
+  
+  if (session.subscription) {
+    try {
+      const stripeSub = await stripe.subscriptions.retrieve(session.subscription as string);
+      currentPeriodStart = new Date(stripeSub.current_period_start * 1000).toISOString();
+      currentPeriodEnd = new Date(stripeSub.current_period_end * 1000).toISOString();
+    } catch (err) {
+      console.error('Failed to fetch subscription from Stripe:', err);
+    }
+  }
+
   // Update subscription in database
-  await supabase
+  const { error: updateError } = await supabase
     .from('subscriptions')
     .update({
       stripe_customer_id: session.customer as string,
@@ -57,9 +73,16 @@ async function handleSubscriptionCheckout(
       status: 'active',
       billing_interval: billingInterval,
       trial_link_id: trialLinkId || null,
+      current_period_start: currentPeriodStart,
+      current_period_end: currentPeriodEnd,
       updated_at: new Date().toISOString(),
     })
     .eq('user_id', userId);
+
+  if (updateError) {
+    console.error('Failed to update subscription:', updateError);
+    throw new Error(`Failed to update subscription: ${updateError.message}`);
+  }
 
   // Update usage limits based on plan
   if (plan) {
@@ -94,7 +117,7 @@ async function handleSubscriptionCheckout(
       .eq('id', trialLinkId);
   }
 
-  console.log(`Subscription activated for user ${userId}, plan: ${planSlug}`);
+  console.log(`Subscription activated for user ${userId}, plan: ${planSlug}, subscription: ${session.subscription}`);
 }
 
 /**
@@ -178,20 +201,20 @@ export async function handleSubscriptionDeleted(
 ): Promise<void> {
   const supabase = createAdminClient();
 
-  // Get free plan ID
-  const { data: freePlan } = await supabase
+  // Get base plan ID (lowest tier)
+  const { data: basePlan } = await supabase
     .from('subscription_plans')
     .select('id, credits_monthly')
-    .eq('slug', 'free')
+    .eq('slug', 'base')
     .single();
 
-  // Downgrade user to free plan
+  // Downgrade user to base plan
   const { data: updated } = await supabase
     .from('subscriptions')
     .update({
-      status: 'free',
-      plan: 'free',
-      plan_id: freePlan?.id,
+      status: 'canceled',
+      plan: 'base',
+      plan_id: basePlan?.id,
       stripe_subscription_id: null,
       cancel_at_period_end: false,
       updated_at: new Date().toISOString(),
@@ -200,18 +223,18 @@ export async function handleSubscriptionDeleted(
     .select('user_id')
     .single();
 
-  if (updated?.user_id && freePlan) {
-    // Reset usage limits to free plan
+  if (updated?.user_id && basePlan) {
+    // Reset usage limits to base plan
     await supabase
       .from('usage')
       .update({
-        credits_limit: freePlan.credits_monthly,
+        credits_limit: basePlan.credits_monthly,
         updated_at: new Date().toISOString(),
       })
       .eq('user_id', updated.user_id);
   }
 
-  console.log(`Subscription ${subscription.id} deleted, user downgraded to free`);
+  console.log(`Subscription ${subscription.id} deleted, user downgraded to base`);
 }
 
 /**
@@ -251,6 +274,18 @@ export async function handleInvoicePaid(
     .eq('id', sub.plan_id)
     .single() : { data: null };
 
+  // Clear any payment failure / grace period since payment succeeded
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase as any)
+    .from('subscriptions')
+    .update({
+      status: 'active',
+      payment_failed_at: null,
+      grace_period_ends_at: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('stripe_subscription_id', subscriptionId);
+
   // Reset usage for new billing period
   await supabase
     .from('usage')
@@ -271,11 +306,12 @@ export async function handleInvoicePaid(
     description: 'Monthly billing cycle reset',
   });
 
-  console.log(`Usage reset for user ${sub.user_id} (invoice paid)`);
+  console.log(`Usage reset for user ${sub.user_id} (invoice paid, grace period cleared)`);
 }
 
 /**
  * Handle invoice.payment_failed event
+ * Sets subscription to past_due and starts 7-day grace period
  */
 export async function handleInvoicePaymentFailed(
   invoice: Stripe.Invoice
@@ -290,16 +326,35 @@ export async function handleInvoicePaymentFailed(
     ? invoice.subscription
     : invoice.subscription?.id;
 
-  // Update subscription status
+  const GRACE_PERIOD_DAYS = 7;
+  const now = new Date();
+  const gracePeriodEnd = new Date(now.getTime() + GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000);
+
+  // Update subscription status with grace period
+  // Use COALESCE logic: only set payment_failed_at and grace_period_ends_at
+  // if they aren't already set (first failure in this cycle)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase as any)
+    .from('subscriptions')
+    .update({
+      status: 'past_due',
+      payment_failed_at: now.toISOString(),
+      grace_period_ends_at: gracePeriodEnd.toISOString(),
+      updated_at: now.toISOString(),
+    })
+    .eq('stripe_subscription_id', subscriptionId)
+    .is('payment_failed_at', null); // Only set if not already in a failure cycle
+
+  // Fallback: if payment_failed_at was already set, just update status
   await supabase
     .from('subscriptions')
     .update({
       status: 'past_due',
-      updated_at: new Date().toISOString(),
+      updated_at: now.toISOString(),
     })
     .eq('stripe_subscription_id', subscriptionId);
 
-  console.log(`Payment failed for subscription ${subscriptionId}`);
+  console.log(`Payment failed for subscription ${subscriptionId}, grace period ends: ${gracePeriodEnd.toISOString()}`);
 }
 
 /**

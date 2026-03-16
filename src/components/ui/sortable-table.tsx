@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpDown, ArrowUp, ArrowDown, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from './input';
@@ -173,7 +172,7 @@ export function SortableTable<T extends Record<string, unknown>>({
                 <th
                   key={String(column.key)}
                   className={cn(
-                    'text-left px-4 py-3 text-sm font-medium text-secondary-600 dark:text-secondary-300',
+                    'text-left px-5 py-3 text-sm font-medium text-secondary-600 dark:text-secondary-300',
                     column.sortable !== false && 'cursor-pointer select-none hover:bg-secondary-100 dark:hover:bg-secondary-700',
                     column.headerClassName
                   )}
@@ -188,47 +187,41 @@ export function SortableTable<T extends Record<string, unknown>>({
             </tr>
           </thead>
           <tbody>
-            <AnimatePresence mode="popLayout">
-              {paginatedData.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="px-4 py-12 text-center text-secondary-500"
-                  >
-                    {emptyMessage}
-                  </td>
+            {paginatedData.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  className="px-4 py-12 text-center text-secondary-500"
+                >
+                  {emptyMessage}
+                </td>
+              </tr>
+            ) : (
+              paginatedData.map((item, index) => (
+                <tr
+                  key={keyExtractor(item)}
+                  className={cn(
+                    'border-t border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-900',
+                    onRowClick && 'cursor-pointer hover:bg-secondary-50 dark:hover:bg-secondary-800',
+                    typeof rowClassName === 'function'
+                      ? rowClassName(item, index)
+                      : rowClassName
+                  )}
+                  onClick={() => onRowClick?.(item)}
+                >
+                  {columns.map((column) => (
+                    <td
+                      key={String(column.key)}
+                      className={cn('px-5 py-4 text-sm', column.className)}
+                    >
+                      {column.render
+                        ? column.render(item, index)
+                        : String(item[column.key as keyof T] ?? '')}
+                    </td>
+                  ))}
                 </tr>
-              ) : (
-                paginatedData.map((item, index) => (
-                  <motion.tr
-                    key={keyExtractor(item)}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                    className={cn(
-                      'border-t border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-900',
-                      onRowClick && 'cursor-pointer hover:bg-secondary-50 dark:hover:bg-secondary-800',
-                      typeof rowClassName === 'function'
-                        ? rowClassName(item, index)
-                        : rowClassName
-                    )}
-                    onClick={() => onRowClick?.(item)}
-                  >
-                    {columns.map((column) => (
-                      <td
-                        key={String(column.key)}
-                        className={cn('px-4 py-3 text-sm', column.className)}
-                      >
-                        {column.render
-                          ? column.render(item, index)
-                          : String(item[column.key as keyof T] ?? '')}
-                      </td>
-                    ))}
-                  </motion.tr>
-                ))
-              )}
-            </AnimatePresence>
+              ))
+            )}
           </tbody>
         </table>
       </div>

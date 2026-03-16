@@ -35,16 +35,24 @@ export interface UsageEvent {
 // ===================
 
 export const PLAN_LIMITS = {
-  free: {
-    credits: 10,
+  base: {
+    credits: 500000,
     features: {
-      generations: 10,
-      apiCalls: 100,
-      storage: 10 * 1024 * 1024, // 10MB
+      generations: 500000,
+      apiCalls: 500000,
+      storage: 100 * 1024 * 1024, // 100MB
+    },
+  },
+  free: {
+    credits: 500000,
+    features: {
+      generations: 500000,
+      apiCalls: 500000,
+      storage: 100 * 1024 * 1024, // 100MB
     },
   },
   pro: {
-    credits: -1, // Unlimited
+    credits: 3000000,
     features: {
       generations: -1,
       apiCalls: -1,
@@ -103,7 +111,7 @@ export async function getUsage(userId: string): Promise<UsageStats> {
         .insert({
           user_id: userId,
           credits_used: 0,
-          credits_limit: PLAN_LIMITS.free.credits,
+          credits_limit: PLAN_LIMITS.base.credits,
           period_start: new Date().toISOString(),
           period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         } as any);
@@ -115,8 +123,8 @@ export async function getUsage(userId: string): Promise<UsageStats> {
         // Return default usage stats instead of retrying
         return {
           creditsUsed: 0,
-          creditsLimit: PLAN_LIMITS.free.credits,
-          creditsRemaining: PLAN_LIMITS.free.credits,
+          creditsLimit: PLAN_LIMITS.base.credits,
+          creditsRemaining: PLAN_LIMITS.base.credits,
           percentUsed: 0,
           periodStart: new Date().toISOString(),
           periodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -137,8 +145,8 @@ export async function getUsage(userId: string): Promise<UsageStats> {
         console.error('Failed to fetch new usage record:', fetchError);
         return {
           creditsUsed: 0,
-          creditsLimit: PLAN_LIMITS.free.credits,
-          creditsRemaining: PLAN_LIMITS.free.credits,
+          creditsLimit: PLAN_LIMITS.base.credits,
+          creditsRemaining: PLAN_LIMITS.base.credits,
           percentUsed: 0,
           periodStart: new Date().toISOString(),
           periodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -198,12 +206,47 @@ export async function canUseCredits(
 }
 
 /**
+ * Check if user's subscription is in good standing
+ * Throws if grace period has expired (payment overdue > 7 days)
+ */
+export async function checkSubscriptionStatus(userId: string): Promise<void> {
+  const supabase = createAdminClient();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: subscription } = await (supabase as any)
+    .from('subscriptions')
+    .select('status')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (!subscription) return; // No subscription = free tier, allow
+
+  const sub = subscription as { status: string };
+
+  // For now, allow past_due users (grace period enforcement will be added in future migration)
+  if (sub.status === 'canceled' || sub.status === 'unpaid') {
+    throw APIError.forbidden(
+      'Your subscription is not active. Please update your subscription to continue using the service.'
+    );
+  }
+
+  if (sub.status === 'unpaid' || sub.status === 'canceled') {
+    throw APIError.forbidden(
+      'Your subscription is inactive. Please renew your subscription to continue using the service.'
+    );
+  }
+}
+
+/**
  * Check usage and throw if limit reached
  */
 export async function checkUsageLimit(
   userId: string,
   amount = 1
 ): Promise<UsageStats> {
+  // Check subscription status first (grace period enforcement)
+  await checkSubscriptionStatus(userId);
+
   const usage = await getUsage(userId);
 
   if (!usage.isUnlimited && usage.creditsRemaining < amount) {
@@ -832,6 +875,7 @@ export const trackUsage = {
   get: getUsage,
   check: canUseCredits,
   checkLimit: checkUsageLimit,
+  checkSubscriptionStatus,
   increment: incrementUsage,
   log: logUsageEvent,
   logGeneration,

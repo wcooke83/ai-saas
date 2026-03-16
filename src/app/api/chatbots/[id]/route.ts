@@ -15,7 +15,7 @@ import {
   deleteChatbot,
   generateUniqueSlug,
 } from '@/lib/chatbots/api';
-import { DEFAULT_WIDGET_CONFIG, type WidgetConfig } from '@/lib/chatbots/types';
+import { DEFAULT_WIDGET_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, type WidgetConfig, type FileUploadConfig } from '@/lib/chatbots/types';
 
 // Update chatbot validation schema
 const updateChatbotSchema = z.object({
@@ -25,11 +25,20 @@ const updateChatbotSchema = z.object({
   model: z.string().optional(),
   temperature: z.number().min(0).max(2).optional(),
   max_tokens: z.number().min(100).max(4096).optional(),
+  enable_prompt_protection: z.boolean().optional(),
   widget_config: z.record(z.unknown()).optional(),
   logo_url: z.string().url().nullable().optional(),
   welcome_message: z.string().max(500).optional(),
   placeholder_text: z.string().max(200).optional(),
+  pre_chat_form_config: z.record(z.unknown()).optional(),
+  post_chat_survey_config: z.record(z.unknown()).optional(),
   status: z.enum(['draft', 'active', 'paused', 'archived']).optional(),
+  language: z.string().max(10).optional(),
+  memory_enabled: z.boolean().optional(),
+  memory_days: z.number().min(0).max(365).optional(),
+  file_upload_config: z.record(z.unknown()).optional(),
+  proactive_messages_config: z.record(z.unknown()).optional(),
+  transcript_config: z.record(z.unknown()).optional(),
 });
 
 interface RouteParams {
@@ -102,12 +111,50 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       };
     }
 
-    // Update chatbot
-    const chatbot = await updateChatbot(id, {
-      ...input,
+    // Merge file upload config if provided
+    let fileUploadConfig = (existing as any).file_upload_config as FileUploadConfig | undefined;
+    if (input.file_upload_config) {
+      const existingUploadConfig = fileUploadConfig || DEFAULT_FILE_UPLOAD_CONFIG;
+      const inputConfig = input.file_upload_config as Partial<FileUploadConfig>;
+      fileUploadConfig = {
+        ...existingUploadConfig,
+        ...inputConfig,
+        allowed_types: {
+          ...existingUploadConfig.allowed_types,
+          ...(inputConfig.allowed_types || {}),
+        },
+      };
+    }
+
+    // Build update payload
+    const updates: Record<string, unknown> = {
+      ...(input as Record<string, unknown>),
       slug,
       widget_config: widgetConfig,
-    });
+      ...(fileUploadConfig ? { file_upload_config: fileUploadConfig } : {}),
+    };
+
+    // Use a single timestamp for consistency when both change in the same save
+    const now = new Date().toISOString();
+
+    // Detect if custom text actually changed (compare with existing values)
+    const textActuallyChanged =
+      (input.welcome_message !== undefined && input.welcome_message !== (existing.welcome_message ?? '')) ||
+      (input.placeholder_text !== undefined && input.placeholder_text !== (existing.placeholder_text ?? '')) ||
+      (input.pre_chat_form_config !== undefined && JSON.stringify(input.pre_chat_form_config) !== JSON.stringify(existing.pre_chat_form_config)) ||
+      (input.post_chat_survey_config !== undefined && JSON.stringify(input.post_chat_survey_config) !== JSON.stringify(existing.post_chat_survey_config));
+
+    if (textActuallyChanged) {
+      updates.custom_text_updated_at = now;
+    }
+
+    // Detect if language actually changed
+    if (input.language !== undefined && input.language !== existing.language) {
+      updates.language_updated_at = now;
+    }
+
+    // Update chatbot
+    const chatbot = await updateChatbot(id, updates as Parameters<typeof updateChatbot>[1]);
 
     return successResponse({ chatbot });
   } catch (error) {

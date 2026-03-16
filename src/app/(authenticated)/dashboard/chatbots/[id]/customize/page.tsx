@@ -137,6 +137,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [previewMode, setPreviewMode] = useState<'chat' | 'form'>('form'); // Add preview mode state
 
   useEffect(() => {
     async function fetchChatbot() {
@@ -352,6 +353,58 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                   />
                 </div>
               </div>
+
+              {/* Form Colors (Pre-Chat & Survey) */}
+              <div>
+                <h3 className="text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-3">Form Colors</h3>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <ColorPicker
+                    label="Form Background"
+                    value={config.formBackgroundColor || config.backgroundColor}
+                    onChange={(v) => updateConfig('formBackgroundColor', v)}
+                  />
+                  <ColorPicker
+                    label="Form Title Color"
+                    value={config.formTitleColor || config.textColor}
+                    onChange={(v) => updateConfig('formTitleColor', v)}
+                  />
+                  <ColorPicker
+                    label="Form Border Color"
+                    value={config.formBorderColor || '#e5e7eb'}
+                    onChange={(v) => updateConfig('formBorderColor', v)}
+                  />
+                  <ColorPicker
+                    label="Label Color"
+                    value={config.formLabelColor || config.textColor}
+                    onChange={(v) => updateConfig('formLabelColor', v)}
+                  />
+                  <ColorPicker
+                    label="Description Color"
+                    value={config.formDescriptionColor || '#6b7280'}
+                    onChange={(v) => updateConfig('formDescriptionColor', v)}
+                  />
+                  <ColorPicker
+                    label="Form Input Background"
+                    value={config.formInputBackgroundColor || config.inputBackgroundColor}
+                    onChange={(v) => updateConfig('formInputBackgroundColor', v)}
+                  />
+                  <ColorPicker
+                    label="Form Input Text"
+                    value={config.formInputTextColor || config.inputTextColor}
+                    onChange={(v) => updateConfig('formInputTextColor', v)}
+                  />
+                  <ColorPicker
+                    label="Form Placeholder Color"
+                    value={config.formPlaceholderColor || config.inputPlaceholderColor}
+                    onChange={(v) => updateConfig('formPlaceholderColor', v)}
+                  />
+                  <ColorPicker
+                    label="Submit Button Text"
+                    value={config.formSubmitButtonTextColor || '#ffffff'}
+                    onChange={(v) => updateConfig('formSubmitButtonTextColor', v)}
+                  />
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -555,8 +608,34 @@ export default function CustomizePage({ params }: CustomizePageProps) {
         <div className="lg:sticky lg:top-6 h-fit">
           <Card>
             <CardHeader>
-              <CardTitle>Live Preview</CardTitle>
-              <CardDescription>See how your widget will look</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Live Preview</CardTitle>
+                  <CardDescription>See how your widget will look</CardDescription>
+                </div>
+                <div className="flex bg-secondary-100 dark:bg-secondary-800 rounded-lg p-1">
+                  <button
+                    onClick={() => setPreviewMode('chat')}
+                    className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                      previewMode === 'chat'
+                        ? 'bg-white dark:bg-secondary-700 text-secondary-900 dark:text-secondary-100 shadow-sm'
+                        : 'text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100'
+                    }`}
+                  >
+                    Chat
+                  </button>
+                  <button
+                    onClick={() => setPreviewMode('form')}
+                    className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                      previewMode === 'form'
+                        ? 'bg-white dark:bg-secondary-700 text-secondary-900 dark:text-secondary-100 shadow-sm'
+                        : 'text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100'
+                    }`}
+                  >
+                    Pre-Chat
+                  </button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <div
@@ -569,8 +648,14 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                 {/* Widget Preview */}
                 <style>{`
                   .preview-input::placeholder {
-                    color: ${config.inputPlaceholderColor} !important;
-                    opacity: 1;
+                    color: ${config.formPlaceholderColor || config.inputPlaceholderColor} !important;
+                    -webkit-text-fill-color: ${config.formPlaceholderColor || config.inputPlaceholderColor} !important;
+                    opacity: 1 !important;
+                  }
+                  .preview-form-input::placeholder {
+                    color: ${config.formPlaceholderColor || config.inputPlaceholderColor} !important;
+                    -webkit-text-fill-color: ${config.formPlaceholderColor || config.inputPlaceholderColor} !important;
+                    opacity: 1 !important;
                   }
                 `}</style>
                 <div
@@ -601,80 +686,160 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                     </div>
                   </div>
 
-                  {/* Messages */}
-                  <div className="p-4 space-y-3" style={{ height: 'calc(100% - 140px)', overflowY: 'auto' }}>
-                    {/* Bot message */}
+                  {previewMode === 'form' ? (
+                    /* Pre-Chat Form Preview */
                     <div
-                      className="p-3 rounded-lg max-w-[80%]"
-                      style={{ backgroundColor: config.botBubbleColor, color: config.botBubbleTextColor }}
+                      className="p-4 space-y-4 flex flex-col"
+                      style={{
+                        height: 'calc(100% - 140px)',
+                        overflowY: 'auto',
+                        backgroundColor: config.formBackgroundColor || config.backgroundColor,
+                      }}
                     >
-                      {chatbot.welcome_message || 'Hello! How can I help you today?'}
-                    </div>
-
-                    {/* User message */}
-                    <div
-                      className="p-3 rounded-lg max-w-[80%] ml-auto"
-                      style={{ backgroundColor: config.userBubbleColor, color: config.userBubbleTextColor }}
-                    >
-                      I have a question about your services.
-                    </div>
-
-                    {/* Bot reply */}
-                    <div
-                      className="p-3 rounded-lg max-w-[80%]"
-                      style={{ backgroundColor: config.botBubbleColor, color: config.botBubbleTextColor }}
-                    >
-                      Of course! I&apos;d be happy to help. What would you like to know?
-                    </div>
-                  </div>
-
-                  {/* Input */}
-                  <div
-                    className="absolute bottom-0 left-0 right-0 p-4 border-t"
-                    style={{ borderColor: `${config.inputTextColor}20`, backgroundColor: config.backgroundColor }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        placeholder={chatbot.placeholder_text || 'Type your message...'}
-                        className="preview-input flex-1 px-4 py-2 border text-sm"
-                        style={{
-                          backgroundColor: config.inputBackgroundColor,
-                          borderColor: `${config.inputTextColor}30`,
-                          color: config.inputTextColor,
-                          borderRadius: `${config.inputBorderRadius}px`,
-                        }}
-                        disabled
-                      />
+                      <div>
+                        <h3
+                          className="font-semibold mb-1"
+                          style={{ color: config.formTitleColor || config.textColor }}
+                        >
+                          Before we start
+                        </h3>
+                        <p
+                          className="text-sm"
+                          style={{ color: config.formDescriptionColor || '#6b7280' }}
+                        >
+                          Please provide your details so we can assist you better.
+                        </p>
+                      </div>
+                      <div className="space-y-3 flex-1">
+                        <div>
+                          <label
+                            className="block text-sm font-medium mb-1"
+                            style={{ color: config.formLabelColor || config.textColor }}
+                          >
+                            Name <span style={{ color: '#ef4444' }}>*</span>
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Your name"
+                            disabled
+                            className="w-full px-3 py-2 text-sm rounded-lg preview-form-input"
+                            style={{
+                              backgroundColor: config.formInputBackgroundColor || config.inputBackgroundColor,
+                              color: config.formInputTextColor || config.inputTextColor,
+                              border: `1px solid ${config.formBorderColor || '#e5e7eb'}`,
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label
+                            className="block text-sm font-medium mb-1"
+                            style={{ color: config.formLabelColor || config.textColor }}
+                          >
+                            Email <span style={{ color: '#ef4444' }}>*</span>
+                          </label>
+                          <input
+                            type="email"
+                            placeholder="your@email.com"
+                            disabled
+                            className="w-full px-3 py-2 text-sm rounded-lg preview-form-input"
+                            style={{
+                              backgroundColor: config.formInputBackgroundColor || config.inputBackgroundColor,
+                              color: config.formInputTextColor || config.inputTextColor,
+                              border: `1px solid ${config.formBorderColor || '#e5e7eb'}`,
+                            }}
+                          />
+                        </div>
+                      </div>
                       <button
-                        className="p-2"
-                        style={{ 
-                          backgroundColor: config.sendButtonColor,
-                          borderRadius: `${config.buttonBorderRadius}%`,
+                        className="w-full py-2 px-4 rounded-lg font-medium text-sm"
+                        style={{
+                          backgroundColor: config.primaryColor,
+                          color: config.formSubmitButtonTextColor || '#ffffff',
                         }}
                         disabled
                       >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke={config.sendButtonIconColor}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                          />
-                        </svg>
+                        Start Chat
                       </button>
                     </div>
-                    {config.showBranding && (
-                      <p className="text-center text-xs mt-2 opacity-50" style={{ color: config.textColor }}>
-                        Powered by AI SaaS
-                      </p>
-                    )}
-                  </div>
+                  ) : (
+                    /* Chat Preview */
+                    <>
+                      {/* Messages */}
+                      <div className="p-4 space-y-3" style={{ height: 'calc(100% - 140px)', overflowY: 'auto' }}>
+                        {/* Bot message */}
+                        <div
+                          className="p-3 rounded-lg max-w-[80%]"
+                          style={{ backgroundColor: config.botBubbleColor, color: config.botBubbleTextColor }}
+                        >
+                          {chatbot.welcome_message || 'Hello! How can I help you today?'}
+                        </div>
+
+                        {/* User message */}
+                        <div
+                          className="p-3 rounded-lg max-w-[80%] ml-auto"
+                          style={{ backgroundColor: config.userBubbleColor, color: config.userBubbleTextColor }}
+                        >
+                          I have a question about your services.
+                        </div>
+
+                        {/* Bot reply */}
+                        <div
+                          className="p-3 rounded-lg max-w-[80%]"
+                          style={{ backgroundColor: config.botBubbleColor, color: config.botBubbleTextColor }}
+                        >
+                          Of course! I&apos;d be happy to help. What would you like to know?
+                        </div>
+                      </div>
+
+                      {/* Input */}
+                      <div
+                        className="absolute bottom-0 left-0 right-0 p-4 border-t"
+                        style={{ borderColor: `${config.inputTextColor}20`, backgroundColor: config.backgroundColor }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            placeholder={chatbot.placeholder_text || 'Type your message...'}
+                            className="preview-input flex-1 px-4 py-2 border text-sm"
+                            style={{
+                              backgroundColor: config.inputBackgroundColor,
+                              borderColor: `${config.inputTextColor}30`,
+                              color: config.inputTextColor,
+                              borderRadius: `${config.inputBorderRadius}px`,
+                            }}
+                            disabled
+                          />
+                          <button
+                            className="p-2"
+                            style={{ 
+                              backgroundColor: config.sendButtonColor,
+                              borderRadius: `${config.buttonBorderRadius}%`,
+                            }}
+                            disabled
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke={config.sendButtonIconColor}
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                        {config.showBranding && (
+                          <p className="text-center text-xs mt-2 opacity-50" style={{ color: config.textColor }}>
+                            Powered by AI SaaS
+                          </p>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </CardContent>

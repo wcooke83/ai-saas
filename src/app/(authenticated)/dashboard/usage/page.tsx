@@ -11,6 +11,7 @@ import { UserLogEntry, type UserAPILog } from '@/components/dashboard/UserLogEnt
 import {
   BarChart3,
   TrendingUp,
+  TrendingDown,
   Calendar,
   Sparkles,
   Mail,
@@ -23,6 +24,8 @@ import {
   ScrollText,
   RefreshCw,
   Activity,
+  Download,
+  Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Database } from '@/types/database';
@@ -30,6 +33,14 @@ import type { Database } from '@/types/database';
 type Usage = Database['public']['Tables']['usage']['Row'];
 type Generation = Database['public']['Tables']['generations']['Row'];
 type SubscriptionPlan = Database['public']['Tables']['subscription_plans']['Row'];
+
+interface CreditAdjustment {
+  id: string;
+  amount: number;
+  reason: string;
+  effective_at: string;
+  created_at: string;
+}
 
 function formatRelativeTime(dateString: string): string {
   const date = new Date(dateString);
@@ -51,6 +62,7 @@ export default function UsagePage() {
   const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan | null>(null);
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [apiLogs, setApiLogs] = useState<UserAPILog[]>([]);
+  const [creditAdjustments, setCreditAdjustments] = useState<CreditAdjustment[]>([]);
   const [totalTokensUsed, setTotalTokensUsed] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -59,6 +71,8 @@ export default function UsagePage() {
   const [activeTab, setActiveTab] = useState<'generations' | 'logs'>('generations');
   const [chartPeriod, setChartPeriod] = useState<'7d' | '14d' | '30d'>('14d');
   const [expandedLogIds, setExpandedLogIds] = useState<Set<string>>(new Set());
+  const [exporting, setExporting] = useState(false);
+  const [lastMonthTokens, setLastMonthTokens] = useState(0);
 
   const router = useRouter();
   const supabase = createClient() as any;
@@ -73,7 +87,7 @@ export default function UsagePage() {
       return;
     }
 
-    const [usageResult, generationsResult, logsResult, subscriptionResult] = await Promise.all([
+    const [usageResult, generationsResult, logsResult, subscriptionResult, adjustmentsResult] = await Promise.all([
       supabase
         .from('usage')
         .select('*')
@@ -98,6 +112,12 @@ export default function UsagePage() {
         .select('plan')
         .eq('user_id', user.id)
         .single(),
+      supabase
+        .from('credit_adjustments')
+        .select('id, amount, reason, effective_at, created_at')
+        .eq('user_id', user.id)
+        .order('effective_at', { ascending: false })
+        .limit(50),
     ]);
 
     if (usageResult.data) {
@@ -110,6 +130,10 @@ export default function UsagePage() {
 
     if (logsResult.data) {
       setApiLogs(logsResult.data);
+    }
+
+    if (adjustmentsResult.data) {
+      setCreditAdjustments(adjustmentsResult.data);
     }
 
     // Get subscription plan details
@@ -126,6 +150,7 @@ export default function UsagePage() {
 
     // Calculate total tokens used from api_logs for this billing period
     const periodStart = usageResult.data?.period_start;
+    const periodEnd = usageResult.data?.period_end;
     if (periodStart) {
       const { data: tokenData } = await supabase
         .from('api_logs')
@@ -139,8 +164,49 @@ export default function UsagePage() {
       }
     }
 
+    // Calculate last month's tokens for comparison
+    if (periodStart) {
+      const lastMonthStart = new Date(periodStart);
+      lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
+      const lastMonthEnd = new Date(periodStart);
+
+      const { data: lastMonthData } = await supabase
+        .from('api_logs')
+        .select('tokens_total')
+        .eq('user_id', user.id)
+        .gte('created_at', lastMonthStart.toISOString())
+        .lt('created_at', lastMonthEnd.toISOString());
+
+      if (lastMonthData) {
+        const lastTotal = lastMonthData.reduce((sum: number, log: { tokens_total: number | null }) => sum + (log.tokens_total || 0), 0);
+        setLastMonthTokens(lastTotal);
+      }
+    }
+
     setLoading(false);
     setRefreshing(false);
+  };
+
+  const handleExportCSV = async () => {
+    setExporting(true);
+    try {
+      const response = await fetch('/api/usage/export');
+      if (!response.ok) throw new Error('Export failed');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `usage-history-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Failed to export CSV:', error);
+    } finally {
+      setExporting(false);
+    }
   };
 
   useEffect(() => {
@@ -260,6 +326,12 @@ export default function UsagePage() {
   const creditsUsed = totalTokensUsed;
   const creditPercentage = creditsLimit > 0 ? (creditsUsed / creditsLimit) * 100 : 0;
 
+  // Calculate month-over-month change
+  const monthOverMonthChange = lastMonthTokens > 0 
+    ? ((creditsUsed - lastMonthTokens) / lastMonthTokens) * 100 
+    : creditsUsed > 0 ? 100 : 0;
+  const isIncreasing = monthOverMonthChange > 0;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -267,12 +339,22 @@ export default function UsagePage() {
           <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">Usage & History</h1>
           <p className="text-secondary-600 dark:text-secondary-400">Track your AI generations and credit usage</p>
         </div>
-        <Button variant="outline" asChild>
-          <a href="/dashboard/upgrade">
-            <ArrowUpRight className="w-4 h-4 mr-2" aria-hidden="true" />
-            Upgrade Plan
-          </a>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handleExportCSV}
+            disabled={exporting}
+          >
+            <Download className="w-4 h-4 mr-2" aria-hidden="true" />
+            {exporting ? 'Exporting...' : 'Export CSV'}
+          </Button>
+          <Button variant="outline" asChild>
+            <a href="/dashboard/upgrade">
+              <ArrowUpRight className="w-4 h-4 mr-2" aria-hidden="true" />
+              Upgrade Plan
+            </a>
+          </Button>
+        </div>
       </div>
 
       {/* Usage Chart */}
@@ -312,7 +394,7 @@ export default function UsagePage() {
       </Card>
 
       {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
@@ -353,8 +435,39 @@ export default function UsagePage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
+              <div className={`p-3 rounded-lg ${
+                isIncreasing 
+                  ? 'bg-green-100 dark:bg-green-900/30' 
+                  : monthOverMonthChange < 0 
+                  ? 'bg-red-100 dark:bg-red-900/30'
+                  : 'bg-blue-100 dark:bg-blue-900/30'
+              }`}>
+                {isIncreasing ? (
+                  <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" aria-hidden="true" />
+                ) : monthOverMonthChange < 0 ? (
+                  <TrendingDown className="w-6 h-6 text-red-600 dark:text-red-400" aria-hidden="true" />
+                ) : (
+                  <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm text-secondary-500 dark:text-secondary-400">vs Last Month</p>
+                <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  {monthOverMonthChange > 0 ? '+' : ''}{monthOverMonthChange.toFixed(1)}%
+                </p>
+                <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-1">
+                  {lastMonthTokens.toLocaleString()} tokens
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
               <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                <BarChart3 className="w-6 h-6 text-blue-600 dark:text-blue-400" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-sm text-secondary-500 dark:text-secondary-400">Total Generations</p>
@@ -563,9 +676,20 @@ export default function UsagePage() {
                     return true;
                   }).map((log) => {
                     // Extract tool type from endpoint
-                    const toolMatch = log.endpoint.match(/\/api\/tools\/([^/]+)/);
-                    const toolType = toolMatch ? toolMatch[1] : 'api';
-                    const displayType = toolType.replace(/-/g, ' ');
+                    let toolType = 'api';
+                    let displayType = 'Api';
+                    
+                    if (log.endpoint.includes('/api/chat/')) {
+                      toolType = 'chat';
+                      displayType = 'Chat Message';
+                    } else {
+                      const toolMatch = log.endpoint.match(/\/api\/tools\/([^/]+)/);
+                      if (toolMatch) {
+                        toolType = toolMatch[1];
+                        displayType = toolType.replace(/-/g, ' ');
+                      }
+                    }
+                    
                     return (
                       <div
                         key={log.id}
@@ -575,18 +699,21 @@ export default function UsagePage() {
                           <div className={`p-2 rounded-lg ${
                             toolType.includes('email') ? 'bg-green-100 dark:bg-green-900/30' :
                             toolType.includes('social') ? 'bg-blue-100 dark:bg-blue-900/30' :
+                            toolType === 'chat' ? 'bg-indigo-100 dark:bg-indigo-900/30' :
                             'bg-purple-100 dark:bg-purple-900/30'
                           }`}>
                             {toolType.includes('email') ? (
                               <Mail className="w-4 h-4 text-green-600 dark:text-green-400" aria-hidden="true" />
                             ) : toolType.includes('social') ? (
                               <Share2 className="w-4 h-4 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                            ) : toolType === 'chat' ? (
+                              <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
                             ) : (
                               <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" aria-hidden="true" />
                             )}
                           </div>
                           <div>
-                            <p className="font-medium text-secondary-900 dark:text-secondary-100 capitalize">{displayType}</p>
+                            <p className="font-medium text-secondary-900 dark:text-secondary-100">{displayType}</p>
                             <div className="flex items-center gap-3 text-sm text-secondary-500 dark:text-secondary-400">
                               <span className="flex items-center gap-1">
                                 <Clock className="w-3.5 h-3.5" aria-hidden="true" />
@@ -605,6 +732,66 @@ export default function UsagePage() {
                       </div>
                     );
                   })}
+                  {/* Credit adjustments in generation history */}
+                  {creditAdjustments.map((adj) => (
+                    <div
+                      key={`adj-${adj.id}`}
+                      className="flex items-center justify-between p-4 border border-amber-200 dark:border-amber-800/50 rounded-lg bg-amber-50/50 dark:bg-amber-900/10"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30">
+                          <Shield className="w-4 h-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-secondary-900 dark:text-secondary-100">
+                            Admin Adjustment
+                          </p>
+                          <div className="flex items-center gap-3 text-sm text-secondary-500 dark:text-secondary-400">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5" aria-hidden="true" />
+                              {formatRelativeTime(adj.effective_at)}
+                            </span>
+                            <span className={adj.amount > 0 ? 'text-red-500' : 'text-green-500'}>
+                              {adj.amount > 0 ? '+' : ''}{adj.amount.toLocaleString()} tokens
+                            </span>
+                          </div>
+                          <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-0.5">{adj.reason}</p>
+                        </div>
+                      </div>
+                      <Badge variant="warning">manual</Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : creditAdjustments.length > 0 ? (
+                <div className="space-y-3">
+                  {creditAdjustments.map((adj) => (
+                    <div
+                      key={`adj-${adj.id}`}
+                      className="flex items-center justify-between p-4 border border-amber-200 dark:border-amber-800/50 rounded-lg bg-amber-50/50 dark:bg-amber-900/10"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30">
+                          <Shield className="w-4 h-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-secondary-900 dark:text-secondary-100">
+                            Admin Adjustment
+                          </p>
+                          <div className="flex items-center gap-3 text-sm text-secondary-500 dark:text-secondary-400">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5" aria-hidden="true" />
+                              {formatRelativeTime(adj.effective_at)}
+                            </span>
+                            <span className={adj.amount > 0 ? 'text-red-500' : 'text-green-500'}>
+                              {adj.amount > 0 ? '+' : ''}{adj.amount.toLocaleString()} tokens
+                            </span>
+                          </div>
+                          <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-0.5">{adj.reason}</p>
+                        </div>
+                      </div>
+                      <Badge variant="warning">manual</Badge>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="text-center py-12">
@@ -627,7 +814,7 @@ export default function UsagePage() {
           {/* API Logs Tab */}
           {activeTab === 'logs' && (
             <div role="tabpanel">
-              {filteredLogs.length > 0 ? (
+              {(filteredLogs.length > 0 || creditAdjustments.length > 0) ? (
                 <div className="space-y-2">
                   {filteredLogs.map((log) => (
                     <UserLogEntry
@@ -636,6 +823,36 @@ export default function UsagePage() {
                       isExpanded={expandedLogIds.has(log.id)}
                       onToggle={() => toggleLogExpanded(log.id)}
                     />
+                  ))}
+                  {/* Credit adjustments in API logs */}
+                  {creditAdjustments.map((adj) => (
+                    <div
+                      key={`adj-log-${adj.id}`}
+                      className="p-3 border border-amber-200 dark:border-amber-800/50 rounded-lg bg-amber-50/50 dark:bg-amber-900/10"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="p-1.5 rounded-md bg-amber-100 dark:bg-amber-900/30">
+                            <Shield className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100">
+                                Admin Adjustment
+                              </span>
+                              <Badge variant="warning" className="text-xs">manual</Badge>
+                            </div>
+                            <div className="flex items-center gap-3 text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">
+                              <span>{new Date(adj.effective_at).toLocaleString()}</span>
+                              <span className={adj.amount > 0 ? 'text-red-500 font-medium' : 'text-green-500 font-medium'}>
+                                {adj.amount > 0 ? '+' : ''}{adj.amount.toLocaleString()} tokens
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-2 ml-10">{adj.reason}</p>
+                    </div>
                   ))}
                 </div>
               ) : (

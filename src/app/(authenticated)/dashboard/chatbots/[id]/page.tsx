@@ -17,6 +17,10 @@ import {
   Play,
   Pause,
   Loader2,
+  Settings,
+  Inbox,
+  ClipboardList,
+  Brain,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -122,6 +126,12 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
 
   const quickActions = [
     {
+      href: `/dashboard/chatbots/${id}/settings`,
+      icon: Settings,
+      label: 'Settings',
+      description: 'Edit chatbot config',
+    },
+    {
       href: `/dashboard/chatbots/${id}/knowledge`,
       icon: Database,
       label: 'Knowledge Base',
@@ -138,6 +148,24 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
       icon: BarChart3,
       label: 'Analytics',
       description: 'View performance',
+    },
+    {
+      href: `/dashboard/chatbots/${id}/leads`,
+      icon: Inbox,
+      label: 'Leads & Chat',
+      description: 'View conversations',
+    },
+    {
+      href: `/dashboard/chatbots/${id}/surveys`,
+      icon: ClipboardList,
+      label: 'Surveys',
+      description: 'View survey results',
+    },
+    {
+      href: `/dashboard/chatbots/${id}/sentiment`,
+      icon: Brain,
+      label: 'Sentiment & Loyalty',
+      description: 'Analyze outcomes',
     },
     {
       href: `/dashboard/chatbots/${id}/deploy`,
@@ -312,7 +340,7 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <pre className="p-4 bg-secondary-50 dark:bg-secondary-800 rounded-lg text-sm text-secondary-700 dark:text-secondary-300 whitespace-pre-wrap overflow-auto max-h-48">
+          <pre className="p-4 bg-secondary-50 dark:bg-secondary-800 rounded-lg text-sm text-secondary-700 dark:text-secondary-300 whitespace-pre-wrap overflow-auto max-h-96">
             {chatbot.system_prompt}
           </pre>
         </CardContent>

@@ -11,6 +11,7 @@ export interface SubscriptionPlan {
   usage_description: string | null;
   price_monthly_cents: number;
   price_yearly_cents: number | null;
+  price_lifetime_cents: number | null;
   stripe_price_id_monthly: string | null;
   stripe_price_id_yearly: string | null;
   credits_monthly: number;
@@ -219,6 +220,7 @@ export interface UpdatePlanInput {
   usageDescription?: string;
   priceMonthly?: number;
   priceYearly?: number;
+  priceLifetime?: number;
   stripePriceIdMonthly?: string;
   stripePriceIdYearly?: string;
   creditsMonthly?: number;
@@ -247,4 +249,38 @@ export interface UpdateAutoTopupInput {
   threshold?: number;
   amount?: number;
   maxMonthly?: number | null;
+}
+
+// License Key (for AppSumo / marketplace redemption)
+export interface LicenseKey {
+  id: string;
+  key: string;
+  source: string;
+  plan_slug: string;
+  max_redemptions: number;
+  redemptions_count: number;
+  tier: number;
+  is_active: boolean;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// License Key Redemption
+export interface LicenseKeyRedemption {
+  id: string;
+  license_key_id: string;
+  user_id: string;
+  redeemed_at: string;
+  previous_plan_slug: string | null;
+  new_plan_slug: string;
+  stacked_tier: number;
+}
+
+// Redeem License Key Response
+export interface RedeemLicenseKeyResponse {
+  planSlug: string;
+  planName: string;
+  tier: number;
+  message: string;
 }

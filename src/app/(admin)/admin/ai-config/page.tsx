@@ -168,6 +168,8 @@ export default function AIConfigPage() {
   const [models, setModels] = useState<Model[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [embeddingModelId, setEmbeddingModelId] = useState<string | null>(null);
+  const [savingEmbeddingModel, setSavingEmbeddingModel] = useState(false);
 
   // Loading states for individual operations
   const [togglingProvider, setTogglingProvider] = useState<string | null>(null);
@@ -200,7 +202,7 @@ export default function AIConfigPage() {
         }
 
         setIsAdmin(true);
-        await Promise.all([loadProviders(), loadModels()]);
+        await Promise.all([loadProviders(), loadModels(), loadSettings()]);
       } catch (err) {
         console.error('Failed to load admin data:', err);
         toast.error('Failed to load configuration');
@@ -226,6 +228,18 @@ export default function AIConfigPage() {
         model_count: p.models_count || 0,
       }));
       setProviders(transformed);
+    }
+  };
+
+  const loadSettings = async () => {
+    try {
+      const response = await fetch('/api/admin/settings');
+      const data = await response.json();
+      if (data.success && data.data) {
+        setEmbeddingModelId(data.data.embedding_model_id || null);
+      }
+    } catch (err) {
+      console.error('Failed to load settings:', err);
     }
   };
 
@@ -571,6 +585,38 @@ export default function AIConfigPage() {
     }
   };
 
+  const handleSetEmbeddingModel = async (modelId: string | null) => {
+    setSavingEmbeddingModel(true);
+    const previousValue = embeddingModelId;
+
+    // Optimistic update
+    setEmbeddingModelId(modelId);
+
+    try {
+      const response = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ embedding_model_id: modelId }),
+      });
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error?.message || 'Failed to update embedding model');
+      }
+
+      const modelName = modelId 
+        ? models.find((m) => m.id === modelId)?.name || 'Model'
+        : 'Auto-select';
+      toast.success(`Embedding model set to ${modelName}`);
+    } catch (err) {
+      // Revert on failure
+      setEmbeddingModelId(previousValue);
+      toast.error(err instanceof Error ? err.message : 'Failed to update embedding model');
+    } finally {
+      setSavingEmbeddingModel(false);
+    }
+  };
+
   // Handle column sort
   const handleSort = useCallback((column: SortColumn) => {
     if (sortColumn === column) {
@@ -594,6 +640,17 @@ export default function AIConfigPage() {
       <ArrowDown className="w-4 h-4 ml-1" />
     );
   }, [sortColumn, sortDirection]);
+
+  // Get embedding-capable models (models whose api_model_id contains "embedding")
+  const embeddingCapableModels = useMemo(() => {
+    console.log('[DEBUG] All models:', models.map(m => ({ name: m.name, api_model_id: m.api_model_id, slug: m.slug })));
+    const filtered = models.filter((m) => {
+      const modelId = m.api_model_id?.toLowerCase() || '';
+      return modelId.includes('embedding');
+    });
+    console.log('[DEBUG] Embedding models:', filtered.map(m => ({ name: m.name, api_model_id: m.api_model_id })));
+    return filtered;
+  }, [models]);
 
   // Filter and sort models
   const filteredModels = useMemo(() => {
@@ -774,6 +831,65 @@ export default function AIConfigPage() {
                 )}
               </div>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Embedding Provider Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-primary-500" aria-hidden="true" />
+            Embedding Provider
+          </CardTitle>
+          <CardDescription>
+            Choose which AI model to use for generating embeddings in knowledge bases. Leave as "Auto" to automatically select the best available provider (Gemini → OpenAI).
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <Label htmlFor="embedding-model" className="text-sm font-medium">
+              Embedding Model
+            </Label>
+            <div className="flex items-center gap-3">
+              <select
+                id="embedding-model"
+                value={embeddingModelId || ''}
+                onChange={(e) => handleSetEmbeddingModel(e.target.value || null)}
+                disabled={savingEmbeddingModel}
+                className="flex-1 px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">Auto-select (Recommended)</option>
+                {embeddingCapableModels.length > 0 && (
+                  <optgroup label="Embedding-Capable Models">
+                    {embeddingCapableModels.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.provider_name} - {model.name}
+                        {model.pricing.cost_in === 0 && model.pricing.cost_out === 0 ? ' (FREE)' : ''}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </select>
+              {savingEmbeddingModel && (
+                <Loader2 className="w-5 h-5 animate-spin text-primary-500" />
+              )}
+            </div>
+            <p className="text-xs text-secondary-500 dark:text-secondary-400">
+              {embeddingModelId ? (
+                <>
+                  Using{' '}
+                  <span className="font-medium">
+                    {embeddingCapableModels.find((m) => m.id === embeddingModelId)?.name || 'selected model'}
+                  </span>{' '}
+                  for all embedding generation
+                </>
+              ) : (
+                <>
+                  Auto-selecting best available provider: Gemini (free) → OpenAI (paid)
+                </>
+              )}
+            </p>
           </div>
         </CardContent>
       </Card>

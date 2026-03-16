@@ -1,0 +1,55 @@
+{
+  "categories": [
+    {
+      "id": "chatbot-features",
+      "title": "Chatbot Features",
+      "icon": "Bot",
+      "description": "Learn how to use advanced chatbot features",
+      "pages": [
+        {
+          "id": "passing-user-data",
+          "file": "passing-user-data-to-chatbot.md",
+          "title": "Passing User Data to Chatbot",
+          "description": "Learn how to pass customer orders, inventory, and account data to your chatbot for personalized conversations",
+          "order": 1
+        },
+        {
+          "id": "chatbot-memory-verification",
+          "file": "chatbot-memory-verification.md",
+          "title": "Chatbot Memory & Identity Verification",
+          "description": "Learn how conversation memory works and how to verify returning users with email OTP verification",
+          "order": 2
+        },
+        {
+          "id": "customizing-widget-appearance",
+          "file": "customizing-widget-appearance.md",
+          "title": "Customizing Widget Appearance",
+          "description": "Learn how to customize the chatbot widget to match your brand with colors, positioning, and styling options",
+          "order": 3
+        }
+      ]
+    },
+    {
+      "id": "getting-started",
+      "title": "Getting Started",
+      "icon": "Rocket",
+      "description": "Quick start guides and tutorials",
+      "pages": []
+    },
+    {
+      "id": "api-integration",
+      "title": "API Integration",
+      "icon": "Code",
+      "description": "Integrate with the AI SaaS API",
+      "pages": [
+        {
+          "id": "api-integration-guide",
+          "file": "api-integration-guide.md",
+          "title": "API Integration Guide",
+          "description": "Learn how to integrate with the AI SaaS API programmatically for custom implementations and server-side integrations",
+          "order": 1
+        }
+      ]
+    }
+  ]
+}

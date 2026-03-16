@@ -21,6 +21,7 @@ const updateSettingsSchema = z.object({
   multiplier_claude: z.number().min(0.01).max(100).optional(),
   multiplier_openai: z.number().min(0.01).max(100).optional(),
   multiplier_local: z.number().min(0.01).max(100).optional(),
+  embedding_model_id: z.string().uuid().optional().nullable(),
 });
 
 export async function GET(req: NextRequest) {
@@ -43,6 +44,7 @@ export async function GET(req: NextRequest) {
       multiplier_claude: settings.multiplier_claude ?? settings.token_multiplier ?? 1,
       multiplier_openai: settings.multiplier_openai ?? settings.token_multiplier ?? 1,
       multiplier_local: settings.multiplier_local ?? settings.token_multiplier ?? 1,
+      embedding_model_id: settings.embedding_model_id,
       updated_at: settings.updated_at,
     });
   } catch (error) {
@@ -71,6 +73,7 @@ export async function PUT(req: NextRequest) {
       multiplier_claude: updated.multiplier_claude ?? updated.token_multiplier ?? 1,
       multiplier_openai: updated.multiplier_openai ?? updated.token_multiplier ?? 1,
       multiplier_local: updated.multiplier_local ?? updated.token_multiplier ?? 1,
+      embedding_model_id: updated.embedding_model_id,
       updated_at: updated.updated_at,
     });
   } catch (error) {

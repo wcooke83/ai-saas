@@ -51,6 +51,9 @@ interface PlanFormData {
   isCustomPricing: boolean;
   priceMonthly: number;
   priceYearly: number;
+  priceLifetime: number;
+  stripePriceIdMonthly: string;
+  stripePriceIdYearly: string;
   creditsMonthly: number;
   apiKeysLimit: number;
   rateLimitTokens: number | null;
@@ -71,6 +74,9 @@ const defaultFormData: PlanFormData = {
   isCustomPricing: false,
   priceMonthly: 0,
   priceYearly: 0,
+  priceLifetime: 0,
+  stripePriceIdMonthly: '',
+  stripePriceIdYearly: '',
   creditsMonthly: 100,
   apiKeysLimit: 3,
   rateLimitTokens: null,
@@ -206,6 +212,16 @@ function SortablePlanCard({
               Custom
             </span>
           </div>
+        ) : plan.price_lifetime_cents ? (
+          <>
+            <div className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
+              {formatPrice(plan.price_lifetime_cents)}
+              <span className="text-sm font-normal text-secondary-500"> lifetime</span>
+            </div>
+            <div className="text-sm text-secondary-500">
+              One-time payment
+            </div>
+          </>
         ) : (
           <>
             <div className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
@@ -446,6 +462,9 @@ export default function PlansAdminPage() {
       isCustomPricing: isCustom,
       priceMonthly: plan.price_monthly_cents / 100,
       priceYearly: (plan.price_yearly_cents || 0) / 100,
+      priceLifetime: (plan.price_lifetime_cents || 0) / 100,
+      stripePriceIdMonthly: plan.stripe_price_id_monthly || '',
+      stripePriceIdYearly: plan.stripe_price_id_yearly || '',
       creditsMonthly: plan.credits_monthly,
       apiKeysLimit: plan.api_keys_limit,
       rateLimitTokens: plan.rate_limit_tokens,
@@ -487,6 +506,9 @@ export default function PlansAdminPage() {
         usageDescription: formData.usageDescription || null,
         priceMonthly: formData.isCustomPricing ? 0 : Math.round(formData.priceMonthly * 100),
         priceYearly: formData.isCustomPricing ? null : (formData.priceYearly ? Math.round(formData.priceYearly * 100) : null),
+        priceLifetime: formData.isCustomPricing ? null : (formData.priceLifetime ? Math.round(formData.priceLifetime * 100) : null),
+        stripePriceIdMonthly: formData.stripePriceIdMonthly || null,
+        stripePriceIdYearly: formData.stripePriceIdYearly || null,
         creditsMonthly: formData.isCustomPricing ? -1 : formData.creditsMonthly,
         apiKeysLimit: formData.isCustomPricing ? -1 : formData.apiKeysLimit,
         rateLimitTokens: formData.isCustomPricing ? null : formData.rateLimitTokens,
@@ -813,6 +835,26 @@ export default function PlansAdminPage() {
                         </div>
                         <div>
                           <label className={`block text-sm font-medium mb-1.5 flex items-center gap-1 transition-colors ${formData.isCustomPricing ? 'text-secondary-400 dark:text-secondary-500' : 'text-secondary-700 dark:text-secondary-300'}`}>
+                            Lifetime Price ($)
+                            <Tooltip content="One-time price for lifetime access (e.g., AppSumo deals). Leave at 0 for subscription plans." side="right">
+                              <span className="text-secondary-400 cursor-help">ⓘ</span>
+                            </Tooltip>
+                          </label>
+                          <input
+                            type="number"
+                            value={formData.priceLifetime}
+                            onChange={(e) => setFormData({ ...formData, priceLifetime: parseFloat(e.target.value) || 0 })}
+                            className={`w-full px-3 py-2 border rounded-lg text-secondary-900 dark:text-secondary-100 transition-all ${formData.isCustomPricing ? 'border-secondary-200 dark:border-secondary-700 bg-secondary-100 dark:bg-secondary-800 opacity-50 cursor-not-allowed' : 'border-secondary-300 dark:border-secondary-600 focus:ring-2 focus:ring-primary-500 focus:border-transparent'}`}
+                            style={!formData.isCustomPricing ? { backgroundColor: 'rgb(var(--form-element-bg))' } : undefined}
+                            min="0"
+                            step="0.01"
+                            placeholder="99.00"
+                            disabled={formData.isCustomPricing}
+                          />
+                          <p className="text-xs text-secondary-500 mt-1">For marketplace/AppSumo plans</p>
+                        </div>
+                        <div>
+                          <label className={`block text-sm font-medium mb-1.5 flex items-center gap-1 transition-colors ${formData.isCustomPricing ? 'text-secondary-400 dark:text-secondary-500' : 'text-secondary-700 dark:text-secondary-300'}`}>
                             Trial Days
                             <Tooltip content="Number of free trial days before charging" side="right">
                               <span className="text-secondary-400 cursor-help">ⓘ</span>
@@ -829,6 +871,50 @@ export default function PlansAdminPage() {
                             disabled={formData.isCustomPricing}
                           />
                           <p className="text-xs text-secondary-500 mt-1">Set to 0 for no trial</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Stripe Price IDs */}
+                    <div className="pt-5 border-t border-secondary-200 dark:border-secondary-700">
+                      <h3 className="text-sm font-semibold text-secondary-900 dark:text-secondary-100 mb-1">Stripe Configuration</h3>
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-3">Required for checkout to work. Get these from your Stripe Dashboard.</p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className={`block text-sm font-medium mb-1.5 flex items-center gap-1 transition-colors ${formData.isCustomPricing ? 'text-secondary-400 dark:text-secondary-500' : 'text-secondary-700 dark:text-secondary-300'}`}>
+                            Monthly Price ID
+                            <Tooltip content="Stripe Price ID for monthly subscription (starts with price_...)" side="right">
+                              <span className="text-secondary-400 cursor-help">ⓘ</span>
+                            </Tooltip>
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.isCustomPricing ? '' : formData.stripePriceIdMonthly}
+                            onChange={(e) => setFormData({ ...formData, stripePriceIdMonthly: e.target.value })}
+                            className={`w-full px-3 py-2 border rounded-lg text-secondary-900 dark:text-secondary-100 transition-all font-mono text-sm ${formData.isCustomPricing ? 'border-secondary-200 dark:border-secondary-700 bg-secondary-100 dark:bg-secondary-800 opacity-50 cursor-not-allowed' : 'border-secondary-300 dark:border-secondary-600 focus:ring-2 focus:ring-primary-500 focus:border-transparent'}`}
+                            style={!formData.isCustomPricing ? { backgroundColor: 'rgb(var(--form-element-bg))' } : undefined}
+                            placeholder="price_1ABC..."
+                            disabled={formData.isCustomPricing}
+                          />
+                          <p className="text-xs text-secondary-500 mt-1">Required for monthly billing</p>
+                        </div>
+                        <div>
+                          <label className={`block text-sm font-medium mb-1.5 flex items-center gap-1 transition-colors ${formData.isCustomPricing ? 'text-secondary-400 dark:text-secondary-500' : 'text-secondary-700 dark:text-secondary-300'}`}>
+                            Yearly Price ID
+                            <Tooltip content="Stripe Price ID for yearly subscription (starts with price_...)" side="right">
+                              <span className="text-secondary-400 cursor-help">ⓘ</span>
+                            </Tooltip>
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.isCustomPricing ? '' : formData.stripePriceIdYearly}
+                            onChange={(e) => setFormData({ ...formData, stripePriceIdYearly: e.target.value })}
+                            className={`w-full px-3 py-2 border rounded-lg text-secondary-900 dark:text-secondary-100 transition-all font-mono text-sm ${formData.isCustomPricing ? 'border-secondary-200 dark:border-secondary-700 bg-secondary-100 dark:bg-secondary-800 opacity-50 cursor-not-allowed' : 'border-secondary-300 dark:border-secondary-600 focus:ring-2 focus:ring-primary-500 focus:border-transparent'}`}
+                            style={!formData.isCustomPricing ? { backgroundColor: 'rgb(var(--form-element-bg))' } : undefined}
+                            placeholder="price_1XYZ..."
+                            disabled={formData.isCustomPricing}
+                          />
+                          <p className="text-xs text-secondary-500 mt-1">Required for yearly billing</p>
                         </div>
                       </div>
                     </div>

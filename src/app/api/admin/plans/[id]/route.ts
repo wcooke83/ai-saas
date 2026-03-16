@@ -17,6 +17,7 @@ const updateSchema = z.object({
   usageDescription: z.string().max(200).optional().nullable(),
   priceMonthly: z.number().min(0).optional().nullable(),
   priceYearly: z.number().min(0).optional().nullable(),
+  priceLifetime: z.number().min(0).optional().nullable(),
   stripePriceIdMonthly: z.string().optional().nullable(),
   stripePriceIdYearly: z.string().optional().nullable(),
   creditsMonthly: z.number().min(-1).optional().nullable(),
@@ -101,6 +102,7 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     if (input.usageDescription !== undefined) updateData.usage_description = input.usageDescription;
     if (input.priceMonthly !== undefined) updateData.price_monthly_cents = input.priceMonthly;
     if (input.priceYearly !== undefined) updateData.price_yearly_cents = input.priceYearly;
+    if (input.priceLifetime !== undefined) updateData.price_lifetime_cents = input.priceLifetime;
     if (input.stripePriceIdMonthly !== undefined) updateData.stripe_price_id_monthly = input.stripePriceIdMonthly;
     if (input.stripePriceIdYearly !== undefined) updateData.stripe_price_id_yearly = input.stripePriceIdYearly;
     if (input.creditsMonthly !== undefined) updateData.credits_monthly = input.creditsMonthly;

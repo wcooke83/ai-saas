@@ -36,6 +36,17 @@ export interface WidgetConfig {
   sendButtonColor: string;
   sendButtonIconColor: string;
 
+  // Form Colors (for Pre-Chat Form and Post-Chat Survey)
+  formBackgroundColor?: string;
+  formTitleColor?: string;
+  formDescriptionColor?: string;
+  formBorderColor?: string;
+  formLabelColor?: string;
+  formSubmitButtonTextColor?: string;
+  formPlaceholderColor?: string;
+  formInputBackgroundColor?: string;
+  formInputTextColor?: string;
+
   // Typography
   fontFamily: string;
   fontSize: number;
@@ -79,6 +90,17 @@ export const DEFAULT_WIDGET_CONFIG: WidgetConfig = {
   inputPlaceholderColor: '#94a3b8',
   sendButtonColor: '#0ea5e9',
   sendButtonIconColor: '#ffffff',
+
+  // Form Colors (defaults for backward compatibility)
+  formBackgroundColor: '#ffffff',
+  formTitleColor: '#0f172a',
+  formDescriptionColor: '#6b7280',
+  formBorderColor: '#e5e7eb',
+  formLabelColor: '#0f172a',
+  formSubmitButtonTextColor: '#ffffff',
+  formPlaceholderColor: '#94a3b8',
+  formInputBackgroundColor: '#ffffff',
+  formInputTextColor: '#0f172a',
   fontFamily: 'Inter, system-ui, sans-serif',
   fontSize: 14,
   containerBorderRadius: 16,
@@ -90,6 +112,261 @@ export const DEFAULT_WIDGET_CONFIG: WidgetConfig = {
   autoOpenDelay: 3000,
   soundEnabled: false,
   customCss: '',
+};
+
+// ============================================
+// PRE-CHAT FORM CONFIGURATION
+// ============================================
+
+export type PreChatFieldType = 'text' | 'email' | 'phone' | 'select' | 'textarea';
+
+export interface PreChatFormField {
+  id: string;
+  type: PreChatFieldType;
+  label: string;
+  placeholder?: string;
+  required: boolean;
+  options?: string[]; // For select type
+}
+
+export interface PreChatFormConfig {
+  enabled: boolean;
+  title: string;
+  description: string;
+  fields: PreChatFormField[];
+  submitButtonText: string;
+}
+
+export const DEFAULT_PRE_CHAT_FORM_CONFIG: PreChatFormConfig = {
+  enabled: false,
+  title: 'Before we start',
+  description: 'Please provide your details so we can assist you better.',
+  fields: [
+    { id: 'name', type: 'text', label: 'Name', placeholder: 'Your name', required: true },
+    { id: 'email', type: 'email', label: 'Email', placeholder: 'your@email.com', required: true },
+  ],
+  submitButtonText: 'Start Chat',
+};
+
+// ============================================
+// POST-CHAT SURVEY CONFIGURATION
+// ============================================
+
+export type SurveyQuestionType = 'rating' | 'text' | 'single_choice' | 'multi_choice';
+
+export interface SurveyQuestion {
+  id: string;
+  type: SurveyQuestionType;
+  label: string;
+  required: boolean;
+  options?: string[]; // For single_choice and multi_choice
+  minRating?: number; // For rating type
+  maxRating?: number; // For rating type
+}
+
+export interface PostChatSurveyConfig {
+  enabled: boolean;
+  title: string;
+  description: string;
+  questions: SurveyQuestion[];
+  submitButtonText: string;
+  thankYouMessage: string;
+}
+
+export const DEFAULT_POST_CHAT_SURVEY_CONFIG: PostChatSurveyConfig = {
+  enabled: false,
+  title: 'How did we do?',
+  description: 'We\'d love your feedback to improve our service.',
+  questions: [
+    { id: 'rating', type: 'rating', label: 'How would you rate your experience?', required: true, minRating: 1, maxRating: 5 },
+    { id: 'feedback', type: 'text', label: 'Any additional feedback?', required: false },
+  ],
+  submitButtonText: 'Submit Feedback',
+  thankYouMessage: 'Thank you for your feedback!',
+};
+
+// ============================================
+// SURVEY RESPONSES
+// ============================================
+
+export interface SurveyResponse {
+  id: string;
+  chatbot_id: string;
+  conversation_id: string | null;
+  session_id: string | null;
+  responses: Record<string, string | number | string[]>;
+  created_at: string;
+}
+
+export interface SurveyStats {
+  total_responses: number;
+  avg_rating: number | null;
+  rating_distribution: Record<number, number>;
+  rating_count: number;
+}
+
+// ============================================
+// FILE UPLOAD CONFIGURATION
+// ============================================
+
+export interface FileUploadAllowedTypes {
+  images: boolean;
+  documents: boolean;
+  spreadsheets: boolean;
+  archives: boolean;
+}
+
+export interface FileUploadConfig {
+  enabled: boolean;
+  allowed_types: FileUploadAllowedTypes;
+  max_file_size_mb: number;
+}
+
+export const DEFAULT_FILE_UPLOAD_CONFIG: FileUploadConfig = {
+  enabled: false,
+  allowed_types: {
+    images: true,
+    documents: true,
+    spreadsheets: false,
+    archives: false,
+  },
+  max_file_size_mb: 10,
+};
+
+// Mapping of type categories to MIME types and extensions
+export const FILE_TYPE_MAP: Record<keyof FileUploadAllowedTypes, { mimes: string[]; extensions: string[] }> = {
+  images: {
+    mimes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+    extensions: ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
+  },
+  documents: {
+    mimes: [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain',
+    ],
+    extensions: ['.pdf', '.doc', '.docx', '.txt'],
+  },
+  spreadsheets: {
+    mimes: [
+      'text/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ],
+    extensions: ['.csv', '.xls', '.xlsx'],
+  },
+  archives: {
+    mimes: ['application/zip'],
+    extensions: ['.zip'],
+  },
+};
+
+// ============================================
+// ATTACHMENTS
+// ============================================
+
+export interface Attachment {
+  url: string;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+}
+
+// ============================================
+// PROACTIVE MESSAGES CONFIGURATION
+// ============================================
+
+export type ProactiveTriggerType =
+  | 'page_url'
+  | 'time_on_page'
+  | 'time_on_site'
+  | 'scroll_depth'
+  | 'exit_intent'
+  | 'page_view_count'
+  | 'idle_timeout'
+  | 'custom_event';
+
+export type ProactiveDisplayMode = 'bubble' | 'open_widget';
+
+export type ProactiveBubblePosition =
+  | 'top-left'
+  | 'top-middle'
+  | 'top-right'
+  | 'middle-left'
+  | 'middle-right'
+  | 'bottom-left'
+  | 'bottom-middle'
+  | 'bottom-right';
+
+export interface ProactiveMessageRule {
+  id: string;
+  enabled: boolean;
+  name: string;
+  message: string;
+  triggerType: ProactiveTriggerType;
+  triggerConfig: Record<string, unknown>;
+  displayMode: ProactiveDisplayMode;
+  bubblePosition: ProactiveBubblePosition; // Only used when displayMode is 'bubble'
+  delay: number;         // ms delay after trigger fires
+  maxShowCount: number;  // per visitor session (0 = unlimited)
+  priority: number;      // lower = higher priority
+}
+
+export interface ProactiveBubbleStyle {
+  bgColor: string;
+  textColor: string;
+  borderColor: string;
+  darkBgColor: string;
+  darkTextColor: string;
+  darkBorderColor: string;
+  borderWidth: number;
+  borderRadius: number;
+  shadow: 'none' | 'sm' | 'md' | 'lg';
+  fontSize: number;
+  maxWidth: number;
+}
+
+export const DEFAULT_BUBBLE_STYLE: ProactiveBubbleStyle = {
+  bgColor: '#ffffff',
+  textColor: '#0f172a',
+  borderColor: '#e2e8f0',
+  darkBgColor: '#0f172a',
+  darkTextColor: '#f8fafc',
+  darkBorderColor: '#334155',
+  borderWidth: 1,
+  borderRadius: 12,
+  shadow: 'md',
+  fontSize: 14,
+  maxWidth: 280,
+};
+
+export interface ProactiveMessagesConfig {
+  enabled: boolean;
+  rules: ProactiveMessageRule[];
+  bubbleStyle?: ProactiveBubbleStyle;
+}
+
+export const DEFAULT_PROACTIVE_MESSAGES_CONFIG: ProactiveMessagesConfig = {
+  enabled: false,
+  rules: [],
+  bubbleStyle: DEFAULT_BUBBLE_STYLE,
+};
+
+// ============================================
+// TRANSCRIPT CONFIGURATION
+// ============================================
+
+export type TranscriptEmailMode = 'pre_chat' | 'ask';
+
+export interface TranscriptConfig {
+  enabled: boolean;
+  email_mode: TranscriptEmailMode;
+}
+
+export const DEFAULT_TRANSCRIPT_CONFIG: TranscriptConfig = {
+  enabled: false,
+  email_mode: 'ask',
 };
 
 // ============================================
@@ -111,6 +388,14 @@ export interface Chatbot {
   model: string;
   temperature: number;
   max_tokens: number;
+  enable_prompt_protection: boolean;
+
+  // Language
+  language: string;
+
+  // Memory
+  memory_enabled: boolean;
+  memory_days: number;
 
   // Widget Configuration
   widget_config: WidgetConfig;
@@ -119,6 +404,10 @@ export interface Chatbot {
   logo_url: string | null;
   welcome_message: string;
   placeholder_text: string;
+
+  // Pre-Chat Form & Post-Chat Survey
+  pre_chat_form_config: PreChatFormConfig;
+  post_chat_survey_config: PostChatSurveyConfig;
 
   // Status
   status: ChatbotStatus;
@@ -131,6 +420,19 @@ export interface Chatbot {
   // Billing
   pricing_type: ChatbotPricingType;
   stripe_product_id: string | null;
+
+  // File Uploads
+  file_upload_config: FileUploadConfig;
+
+  // Proactive Messages
+  proactive_messages_config: ProactiveMessagesConfig;
+
+  // Transcript
+  transcript_config: TranscriptConfig;
+
+  // Timestamps for tracking text/language updates
+  custom_text_updated_at: string | null;
+  language_updated_at: string | null;
 
   created_at: string;
   updated_at: string;
@@ -145,14 +447,25 @@ export interface ChatbotInsert {
   model?: string;
   temperature?: number;
   max_tokens?: number;
+  enable_prompt_protection?: boolean;
+  language?: string;
+  memory_enabled?: boolean;
+  memory_days?: number;
   widget_config?: WidgetConfig;
   logo_url?: string | null;
   welcome_message?: string;
   placeholder_text?: string;
+  pre_chat_form_config?: PreChatFormConfig;
+  post_chat_survey_config?: PostChatSurveyConfig;
   status?: ChatbotStatus;
   is_published?: boolean;
   monthly_message_limit?: number;
   pricing_type?: ChatbotPricingType;
+  file_upload_config?: FileUploadConfig;
+  proactive_messages_config?: ProactiveMessagesConfig;
+  transcript_config?: TranscriptConfig;
+  custom_text_updated_at?: string | null;
+  language_updated_at?: string | null;
 }
 
 export interface ChatbotUpdate {
@@ -163,14 +476,25 @@ export interface ChatbotUpdate {
   model?: string;
   temperature?: number;
   max_tokens?: number;
+  enable_prompt_protection?: boolean;
+  language?: string;
+  memory_enabled?: boolean;
+  memory_days?: number;
   widget_config?: WidgetConfig;
   logo_url?: string | null;
   welcome_message?: string;
   placeholder_text?: string;
+  pre_chat_form_config?: PreChatFormConfig;
+  post_chat_survey_config?: PostChatSurveyConfig;
   status?: ChatbotStatus;
   is_published?: boolean;
   monthly_message_limit?: number;
   pricing_type?: ChatbotPricingType;
+  file_upload_config?: FileUploadConfig;
+  proactive_messages_config?: ProactiveMessagesConfig;
+  transcript_config?: TranscriptConfig;
+  custom_text_updated_at?: string | null;
+  language_updated_at?: string | null;
 }
 
 // Chatbot with stats for list view
@@ -208,6 +532,9 @@ export interface KnowledgeSource {
   status: KnowledgeSourceStatus;
   error_message: string | null;
   chunks_count: number;
+
+  // Priority flag — chunks always included in AI context
+  is_priority: boolean;
 
   // Metadata
   metadata: Json;
@@ -271,6 +598,17 @@ export interface KnowledgeChunkMatch {
 export type ConversationChannel = 'widget' | 'api' | 'slack';
 export type ConversationStatus = 'active' | 'closed' | 'archived';
 
+export interface ConversationMemory {
+  id: string;
+  chatbot_id: string;
+  visitor_id: string;
+  key_facts: string[];
+  summary: string | null;
+  last_accessed: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Conversation {
   id: string;
   chatbot_id: string;
@@ -279,11 +617,33 @@ export interface Conversation {
   visitor_id: string | null;
   visitor_metadata: Json;
   status: ConversationStatus;
+  summary: string | null;
+  language: string | null;
   message_count: number;
   first_message_at: string | null;
   last_message_at: string | null;
   rating: number | null;
   feedback_text: string | null;
+  sentiment_score: number | null;
+  sentiment_label: string | null;
+  sentiment_summary: string | null;
+  sentiment_analyzed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type SentimentLabel = 'very_negative' | 'negative' | 'neutral' | 'positive' | 'very_positive';
+export type LoyaltyTrend = 'improving' | 'stable' | 'declining';
+
+export interface VisitorLoyalty {
+  id: string;
+  chatbot_id: string;
+  visitor_id: string;
+  loyalty_score: number;
+  loyalty_trend: LoyaltyTrend;
+  total_sessions: number;
+  avg_sentiment: number;
+  last_sentiment_score: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -319,6 +679,7 @@ export interface Message {
   context_chunks: Json | null;
   metadata: Json | null;
   thumbs_up: boolean | null;
+  attachments: Attachment[] | null;
   created_at: string;
 }
 
@@ -333,6 +694,7 @@ export interface MessageInsert {
   latency_ms?: number | null;
   context_chunks?: Json | null;
   metadata?: Json | null;
+  attachments?: Attachment[] | null;
 }
 
 // ============================================
@@ -444,8 +806,16 @@ export interface CreateChatbotRequest {
   model?: string;
   temperature?: number;
   max_tokens?: number;
+  enable_prompt_protection?: boolean;
+  language?: string;
+  memory_enabled?: boolean;
+  memory_days?: number;
   widget_config?: Partial<WidgetConfig>;
   welcome_message?: string;
+  pre_chat_form_config?: PreChatFormConfig;
+  post_chat_survey_config?: PostChatSurveyConfig;
+  file_upload_config?: Partial<FileUploadConfig>;
+  proactive_messages_config?: ProactiveMessagesConfig;
 }
 
 export interface UpdateChatbotRequest {
@@ -455,10 +825,18 @@ export interface UpdateChatbotRequest {
   model?: string;
   temperature?: number;
   max_tokens?: number;
+  enable_prompt_protection?: boolean;
+  language?: string;
+  memory_enabled?: boolean;
+  memory_days?: number;
   widget_config?: Partial<WidgetConfig>;
   logo_url?: string;
   welcome_message?: string;
   placeholder_text?: string;
+  pre_chat_form_config?: PreChatFormConfig;
+  post_chat_survey_config?: PostChatSurveyConfig;
+  file_upload_config?: Partial<FileUploadConfig>;
+  proactive_messages_config?: ProactiveMessagesConfig;
   status?: ChatbotStatus;
 }
 
@@ -553,7 +931,9 @@ Guidelines:
 - If you don't know something, say so honestly
 - Provide clear and concise answers
 - Ask clarifying questions when needed
-- Use the provided context to answer questions when available`,
+- Use the provided context to answer questions when available
+
+Note: Security rules to prevent prompt injection will be automatically added if enabled.`,
   },
   {
     id: 'customer-support',
@@ -567,7 +947,9 @@ Guidelines:
 - Provide step-by-step solutions when applicable
 - Escalate complex issues appropriately
 - Always maintain a professional and friendly tone
-- Use the knowledge base to provide accurate information`,
+- Use the knowledge base to provide accurate information
+
+Note: Security rules to prevent prompt injection will be automatically added if enabled.`,
   },
   {
     id: 'sales-assistant',
@@ -580,7 +962,9 @@ Guidelines:
 - Focus on understanding customer needs
 - Highlight relevant product features and benefits
 - Answer questions about pricing, features, and availability
-- Guide customers toward solutions that fit their needs`,
+- Guide customers toward solutions that fit their needs
+
+Note: Security rules to prevent prompt injection will be automatically added if enabled.`,
   },
   {
     id: 'technical-support',
@@ -593,7 +977,9 @@ Guidelines:
 - Provide clear, step-by-step troubleshooting instructions
 - Explain technical concepts in accessible language
 - Document common issues and solutions
-- Know when to escalate to human support`,
+- Know when to escalate to human support
+
+Note: Security rules to prevent prompt injection will be automatically added if enabled.`,
   },
   {
     id: 'faq-bot',
@@ -606,6 +992,8 @@ Guidelines:
 - If a question isn't in the knowledge base, politely say you don't have that information
 - Keep answers concise and to the point
 - Provide links or references when available
-- Suggest related questions the user might find helpful`,
+- Suggest related questions the user might find helpful
+
+Note: Security rules to prevent prompt injection will be automatically added if enabled.`,
   },
 ];

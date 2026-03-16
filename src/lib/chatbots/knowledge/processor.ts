@@ -4,15 +4,53 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/admin';
-import {
-  getKnowledgeSource,
-  updateKnowledgeSourceStatus,
-} from '../api';
+import type { KnowledgeSource } from '../types';
 import { chunkText } from './chunker';
 import { generateEmbeddings } from './embeddings';
 import { extractPDF } from './extractors/pdf';
 import { extractDOCX } from './extractors/docx';
 import { extractURL } from './extractors/url';
+import { crawlWebsite } from './crawler';
+
+// Use admin client for all processor operations (runs as background task, no user session)
+function getAdminClient() {
+  return createAdminClient() as any;
+}
+
+async function getSourceById(sourceId: string): Promise<KnowledgeSource | null> {
+  const supabase = getAdminClient();
+  const { data, error } = await supabase
+    .from('knowledge_sources')
+    .select('*')
+    .eq('id', sourceId)
+    .single();
+  if (error) return null;
+  return data as KnowledgeSource;
+}
+
+async function updateSourceStatus(
+  sourceId: string,
+  status: string,
+  errorMessage?: string,
+  chunksCount?: number
+): Promise<void> {
+  const supabase = getAdminClient();
+  const updates: Record<string, unknown> = { status };
+  if (errorMessage !== undefined) updates.error_message = errorMessage;
+  if (chunksCount !== undefined) updates.chunks_count = chunksCount;
+  await supabase.from('knowledge_sources').update(updates).eq('id', sourceId);
+}
+
+async function createChildSource(source: Record<string, unknown>): Promise<KnowledgeSource> {
+  const supabase = getAdminClient();
+  const { data, error } = await supabase
+    .from('knowledge_sources')
+    .insert(source)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as KnowledgeSource;
+}
 
 export interface ProcessingResult {
   success: boolean;
@@ -30,13 +68,13 @@ export async function processKnowledgeSource(
 
   try {
     // Get source from database
-    const source = await getKnowledgeSource(sourceId);
+    const source = await getSourceById(sourceId);
     if (!source) {
       return { success: false, chunksCreated: 0, error: 'Source not found' };
     }
 
     // Update status to processing
-    await updateKnowledgeSourceStatus(sourceId, 'processing');
+    await updateSourceStatus(sourceId, 'processing');
 
     // Extract content based on type
     let content: string;
@@ -122,7 +160,7 @@ export async function processKnowledgeSource(
     }
 
     // Update source status to completed
-    await updateKnowledgeSourceStatus(sourceId, 'completed', undefined, totalChunksCreated);
+    await updateSourceStatus(sourceId, 'completed', undefined, totalChunksCreated);
 
     return {
       success: true,
@@ -132,7 +170,7 @@ export async function processKnowledgeSource(
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
     // Update source status to failed
-    await updateKnowledgeSourceStatus(sourceId, 'failed', errorMessage);
+    await updateSourceStatus(sourceId, 'failed', errorMessage);
 
     return {
       success: false,
@@ -180,6 +218,88 @@ async function extractDocument(
     default:
       // Try to read as text
       return buffer.toString('utf-8');
+  }
+}
+
+/**
+ * Process a URL source with crawling enabled.
+ * Crawls the website to discover pages, creates a child source for each,
+ * and processes them sequentially. The parent source tracks overall progress.
+ */
+export async function processUrlWithCrawl(
+  parentSourceId: string,
+  chatbotId: string,
+  startUrl: string,
+  maxPages: number = 25
+): Promise<ProcessingResult> {
+  try {
+    // Update parent status to processing
+    await updateSourceStatus(parentSourceId, 'processing');
+
+    // Crawl the website to discover pages
+    console.log(`[Crawler] Starting crawl for source ${parentSourceId}`);
+    const pages = await crawlWebsite(startUrl, { maxPages });
+
+    if (pages.length === 0) {
+      throw new Error('No pages discovered during crawl');
+    }
+
+    console.log(`[Crawler] Discovered ${pages.length} pages, processing each...`);
+
+    let totalChunksCreated = 0;
+    let pagesProcessed = 0;
+    let pagesFailed = 0;
+
+    for (const page of pages) {
+      try {
+        // Create a child source for each discovered page
+        const pageName = page.title || new URL(page.url).pathname || page.url;
+        const childSource = await createChildSource({
+          chatbot_id: chatbotId,
+          type: 'url',
+          name: pageName.substring(0, 255),
+          url: page.url,
+          metadata: {
+            parent_source_id: parentSourceId,
+            crawl_depth: page.depth,
+          },
+        });
+
+        // Process the child source (extract, chunk, embed)
+        const result = await processKnowledgeSource(childSource.id);
+
+        if (result.success) {
+          totalChunksCreated += result.chunksCreated;
+          pagesProcessed++;
+        } else {
+          pagesFailed++;
+          console.warn(`[Crawler] Failed to process ${page.url}: ${result.error}`);
+        }
+      } catch (err) {
+        pagesFailed++;
+        console.warn(`[Crawler] Error processing ${page.url}:`, err);
+      }
+    }
+
+    // Update parent source with summary
+    const summaryMessage = `Crawled ${pages.length} pages: ${pagesProcessed} succeeded, ${pagesFailed} failed`;
+    console.log(`[Crawler] ${summaryMessage}`);
+
+    await updateSourceStatus(
+      parentSourceId,
+      pagesFailed === pages.length ? 'failed' : 'completed',
+      pagesFailed > 0 ? `${pagesFailed} pages failed` : undefined,
+      totalChunksCreated
+    );
+
+    return {
+      success: pagesProcessed > 0,
+      chunksCreated: totalChunksCreated,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    await updateSourceStatus(parentSourceId, 'failed', errorMessage);
+    return { success: false, chunksCreated: 0, error: errorMessage };
   }
 }
 

@@ -22,19 +22,21 @@ import type { PlansResponse } from '@/app/api/billing/plans/route';
 
 // Feature comparison data
 const comparisonFeatures = [
-  { name: 'Monthly credits', free: '100', pro: '1,000', enterprise: 'Unlimited' },
-  { name: 'API keys', free: '2', pro: 'Unlimited', enterprise: 'Unlimited' },
-  { name: 'Email Writer', free: true, pro: true, enterprise: true },
-  { name: 'Proposal Generator', free: 'Basic', pro: 'Advanced', enterprise: 'Advanced + Custom' },
-  { name: 'Social Post Generator', free: false, pro: true, enterprise: true },
-  { name: 'Email Sequence Builder', free: false, pro: true, enterprise: true },
-  { name: 'PDF/DOCX Export', free: false, pro: true, enterprise: true },
-  { name: 'Custom branding', free: false, pro: true, enterprise: true },
-  { name: 'Priority support', free: false, pro: true, enterprise: true },
-  { name: 'Dedicated account manager', free: false, pro: false, enterprise: true },
-  { name: 'SSO & security', free: false, pro: false, enterprise: true },
-  { name: 'Custom integrations', free: false, pro: false, enterprise: true },
-  { name: 'SLA guarantee', free: false, pro: false, enterprise: true },
+  { name: 'Monthly credits', base: '100', pro: '1,000', enterprise: 'Unlimited' },
+  { name: 'API keys', base: '2', pro: 'Unlimited', enterprise: 'Unlimited' },
+  { name: 'Chatbot builder', base: true, pro: true, enterprise: true },
+  { name: 'Knowledge sources per chatbot', base: '3', pro: '50', enterprise: 'Unlimited' },
+  { name: 'Email Writer', base: true, pro: true, enterprise: true },
+  { name: 'Proposal Generator', base: 'Basic', pro: 'Advanced', enterprise: 'Advanced + Custom' },
+  { name: 'Social Post Generator', base: false, pro: true, enterprise: true },
+  { name: 'Email Sequence Builder', base: false, pro: true, enterprise: true },
+  { name: 'PDF/DOCX Export', base: false, pro: true, enterprise: true },
+  { name: 'Custom branding', base: false, pro: true, enterprise: true },
+  { name: 'Priority support', base: false, pro: true, enterprise: true },
+  { name: 'Dedicated account manager', base: false, pro: false, enterprise: true },
+  { name: 'SSO & security', base: false, pro: false, enterprise: true },
+  { name: 'Custom integrations', base: false, pro: false, enterprise: true },
+  { name: 'SLA guarantee', base: false, pro: false, enterprise: true },
 ];
 
 function FeatureValue({ value }: { value: boolean | string }) {
@@ -102,6 +104,40 @@ export default function UpgradePage() {
     setCheckoutLoading(planId);
 
     try {
+      // First, calculate upgrade details if user has active subscription
+      const calcResponse = await fetch('/api/billing/upgrade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetPlanId: planId,
+          billingInterval: interval,
+        }),
+      });
+
+      if (!calcResponse.ok) {
+        throw new Error('Failed to calculate upgrade details');
+      }
+
+      const calcData = await calcResponse.json();
+      const isUpgrade = calcData.calculation?.isUpgrade && calcData.calculation?.creditAppliedCents > 0;
+
+      // If there's a credit, show confirmation with breakdown
+      if (isUpgrade && calcData.calculation?.creditAppliedCents > 0) {
+        const creditDollars = (calcData.calculation.creditAppliedCents / 100).toFixed(2);
+        const amountDueDollars = (calcData.calculation.amountDueCents / 100).toFixed(2);
+        const confirmed = confirm(
+          `Upgrade Summary:\n\n` +
+          `Credit for unused time: $${creditDollars}\n` +
+          `Amount due today: $${amountDueDollars}\n\n` +
+          `Continue to checkout?`
+        );
+        if (!confirmed) {
+          setCheckoutLoading(null);
+          return;
+        }
+      }
+
+      // Proceed to checkout with credit info
       const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -109,18 +145,21 @@ export default function UpgradePage() {
           type: 'subscription',
           planId,
           billingInterval: interval,
+          isUpgrade: calcData.calculation?.isUpgrade,
+          creditAmountCents: calcData.calculation?.creditAppliedCents,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session');
+        throw new Error(data.error?.message || data.error || 'Failed to create checkout session');
       }
 
       // Redirect to Stripe Checkout
-      if (data.url) {
-        window.location.href = data.url;
+      const checkoutUrl = data.data?.url || data.url;
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
       } else {
         throw new Error('No checkout URL received');
       }
@@ -228,7 +267,7 @@ export default function UpgradePage() {
                   Feature
                 </th>
                 <th className="text-center py-4 px-4 font-semibold text-secondary-900 dark:text-secondary-100">
-                  Free
+                  Base
                 </th>
                 <th className="text-center py-4 px-4 font-semibold text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20">
                   Pro
@@ -250,7 +289,7 @@ export default function UpgradePage() {
                     {feature.name}
                   </td>
                   <td className="py-3 px-4 text-center">
-                    <FeatureValue value={feature.free} />
+                    <FeatureValue value={feature.base} />
                   </td>
                   <td className="py-3 px-4 text-center bg-primary-50/30 dark:bg-primary-900/10">
                     <FeatureValue value={feature.pro} />

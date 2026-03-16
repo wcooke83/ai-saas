@@ -256,6 +256,23 @@ export async function updateKnowledgeSourceStatus(
   if (error) throw error;
 }
 
+export async function updateKnowledgeSource(
+  sourceId: string,
+  updates: Record<string, unknown>
+): Promise<KnowledgeSource> {
+  const supabase = await createClient() as SupabaseAny;
+
+  const { data, error } = await supabase
+    .from('knowledge_sources')
+    .update(updates)
+    .eq('id', sourceId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as KnowledgeSource;
+}
+
 export async function deleteKnowledgeSource(sourceId: string): Promise<void> {
   const supabase = await createClient() as SupabaseAny;
 
@@ -643,4 +660,55 @@ export async function checkKnowledgeSourceLimit(chatbotId: string, plan: string)
 
   const count = await getKnowledgeSourceCount(chatbotId);
   return count < limits.knowledgeSources;
+}
+
+// ============================================
+// OWNERSHIP CHECK
+// ============================================
+
+export async function checkChatbotOwnership(
+  chatbotId: string,
+  userId: string,
+  supabaseClient?: SupabaseAny
+): Promise<boolean> {
+  const supabase = supabaseClient || await createClient() as SupabaseAny;
+
+  const { data, error } = await supabase
+    .from('chatbots')
+    .select('id')
+    .eq('id', chatbotId)
+    .eq('user_id', userId)
+    .single();
+
+  if (error || !data) {
+    return false;
+  }
+  return true;
+}
+
+// ============================================
+// LEADS
+// ============================================
+
+export async function getLeadBySession(
+  chatbotId: string,
+  sessionId: string,
+  supabaseClient?: SupabaseAny
+): Promise<{ id: string; form_data: Record<string, string> } | null> {
+  const supabase = supabaseClient || await createClient() as SupabaseAny;
+
+  const { data, error } = await supabase
+    .from('chatbot_leads')
+    .select('id, form_data')
+    .eq('chatbot_id', chatbotId)
+    .eq('session_id', sessionId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data as { id: string; form_data: Record<string, string> };
 }

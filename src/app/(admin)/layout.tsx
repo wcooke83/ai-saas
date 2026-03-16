@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Menu, X, Home, Key, BarChart3, Settings, LogOut, User, CreditCard, Bot, Plug, Shield, ChevronDown, ChevronLeft, ChevronRight, Cpu, FileText, Mail, PenTool, MessageSquare, Megaphone, Share2, Package, Gift } from 'lucide-react';
+import { Menu, X, Home, Key, BarChart3, Settings, LogOut, User, CreditCard, Bot, Plug, Shield, ChevronDown, ChevronLeft, ChevronRight, Cpu, FileText, Mail, PenTool, MessageSquare, Megaphone, Share2, Package, Gift, Coins } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggleSimple } from '@/components/ui/theme-toggle';
 import { useFocusTrap } from '@/hooks/use-focus-trap';
@@ -48,6 +48,7 @@ const adminNavItem: NavItem = {
     { href: '/admin', label: 'Overview', icon: Shield },
     { href: '/admin/ai-config', label: 'AI Config', icon: Cpu },
     { href: '/admin/plans', label: 'Plans', icon: Package },
+    { href: '/admin/credits', label: 'Credits', icon: Coins },
     { href: '/admin/trials', label: 'Trial Links', icon: Gift },
     { href: '/admin/logs', label: 'Logs', icon: FileText },
   ],

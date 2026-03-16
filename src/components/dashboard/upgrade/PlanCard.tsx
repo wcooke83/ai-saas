@@ -9,16 +9,19 @@ import { isCustomPricingPlan } from '@/lib/billing/utils';
 
 // Default features to display for each plan
 const defaultFeatures: Record<string, string[]> = {
-  free: [
-    '100 credits/month',
+  base: [
     '2 API keys',
+    'Chatbot builder',
+    '3 knowledge sources per chatbot',
     'Email Writer tool',
     'Basic proposal templates',
+    'Web widget embed',
     'Community support',
   ],
   pro: [
-    '1,000 credits/month',
     'Unlimited API keys',
+    'Chatbot builder',
+    '50 knowledge sources per chatbot',
     'All tools access',
     'Advanced proposal templates',
     'Priority email support',
@@ -26,14 +29,41 @@ const defaultFeatures: Record<string, string[]> = {
     'Custom branding',
   ],
   enterprise: [
-    'Unlimited credits',
     'Unlimited API keys',
+    'Chatbot builder',
+    'Unlimited knowledge sources',
     'All tools + early access',
     'Custom integrations',
     'Dedicated account manager',
     'SSO & advanced security',
     'SLA guarantee',
     'Custom training',
+  ],
+  lifetime_tier1: [
+    '5 API keys',
+    'All core tools',
+    'Advanced proposal templates',
+    'Export to PDF/DOCX',
+    'Chatbot builder',
+    'Lifetime access — no recurring fees',
+  ],
+  lifetime_tier2: [
+    '10 API keys',
+    'All tools access',
+    'Advanced proposal templates',
+    'Priority email support',
+    'Export to PDF/DOCX',
+    'Custom branding',
+    'Lifetime access — no recurring fees',
+  ],
+  lifetime_tier3: [
+    'Unlimited API keys',
+    'All tools access',
+    'Advanced proposal templates',
+    'Priority email support',
+    'Export to PDF/DOCX',
+    'Custom branding + white label',
+    'Lifetime access — no recurring fees',
   ],
 };
 
@@ -48,7 +78,7 @@ const planStyles: Record<
     buttonClass: string;
   }
 > = {
-  free: {
+  base: {
     icon: Sparkles,
     iconBg: 'bg-secondary-100 dark:bg-secondary-700',
     iconColor: 'text-secondary-600 dark:text-secondary-200',
@@ -68,6 +98,27 @@ const planStyles: Record<
     iconColor: 'text-amber-600 dark:text-amber-400',
     cardClass: 'border-amber-300 dark:border-amber-600 bg-white dark:bg-secondary-800',
     buttonClass: 'border-amber-500 dark:border-amber-500 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30',
+  },
+  lifetime_tier1: {
+    icon: Crown,
+    iconBg: 'bg-emerald-100 dark:bg-emerald-900/50',
+    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    cardClass: 'border-emerald-300 dark:border-emerald-600 bg-white dark:bg-secondary-800',
+    buttonClass: '',
+  },
+  lifetime_tier2: {
+    icon: Crown,
+    iconBg: 'bg-emerald-100 dark:bg-emerald-900/50',
+    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    cardClass: 'border-emerald-300 dark:border-emerald-600 bg-white dark:bg-secondary-800',
+    buttonClass: 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white',
+  },
+  lifetime_tier3: {
+    icon: Crown,
+    iconBg: 'bg-emerald-100 dark:bg-emerald-900/50',
+    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    cardClass: 'border-emerald-300 dark:border-emerald-600 bg-white dark:bg-secondary-800',
+    buttonClass: 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white',
   },
 };
 
@@ -93,6 +144,7 @@ export function PlanCard({
   onContactSales,
 }: PlanCardProps) {
   const isCustom = isCustomPricingPlan(plan);
+  const isLifetime = plan.slug.startsWith('lifetime_');
   const style = isCustom
     ? {
         icon: Building2,
@@ -101,25 +153,27 @@ export function PlanCard({
         cardClass: 'border-amber-300 dark:border-amber-600 bg-gradient-to-br from-white to-amber-50/30 dark:from-secondary-800 dark:to-amber-900/20',
         buttonClass: 'border-amber-500 dark:border-amber-500 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30',
       }
-    : (planStyles[plan.slug] || planStyles.free);
+    : (planStyles[plan.slug] || planStyles.base);
   const Icon = style.icon;
 
   const monthlyPrice = plan.price_monthly_cents / 100;
   const yearlyPrice = plan.price_yearly_cents ? plan.price_yearly_cents / 100 : null;
 
-  const displayPrice = isCustom
-    ? 'Custom'
+  const displayPrice = isCustom || isLifetime
+    ? isLifetime ? 'Lifetime' : 'Custom'
     : isYearly && yearlyPrice
       ? Math.round(yearlyPrice / 12)
       : monthlyPrice;
 
   const periodText = isCustom
     ? 'tailored to your needs'
-    : monthlyPrice === 0
-      ? 'forever'
-      : isYearly && yearlyPrice
-        ? '/mo (billed yearly)'
-        : '/month';
+    : isLifetime
+      ? 'one-time purchase'
+      : monthlyPrice === 0
+        ? 'forever'
+        : isYearly && yearlyPrice
+          ? '/mo (billed yearly)'
+          : '/month';
 
   const yearlySavings =
     !isCustom && yearlyPrice ? monthlyPrice * 12 - yearlyPrice : null;
@@ -128,8 +182,8 @@ export function PlanCard({
 
   // Use usage_description from database with fallback to defaults
   const defaultCreditContext =
-    plan.slug === 'free'
-      ? '~50 emails or ~20 proposals'
+    plan.slug === 'base'
+      ? '~50,000 emails or ~20,000 proposals'
       : plan.slug === 'pro'
         ? '~500 emails or ~200 proposals'
         : 'No limits on usage';
@@ -137,18 +191,16 @@ export function PlanCard({
 
   // Determine button state
   const isUpgrade =
-    currentPlanSlug === 'free' ||
+    currentPlanSlug === 'base' ||
     (currentPlanSlug === 'pro' && plan.slug === 'enterprise');
   const isDowngrade =
-    (currentPlanSlug === 'pro' && plan.slug === 'free') ||
+    (currentPlanSlug === 'pro' && plan.slug === 'base') ||
     (currentPlanSlug === 'enterprise' && plan.slug !== 'enterprise');
 
   const getButtonText = () => {
     if (isCurrentPlan) return 'Current Plan';
     if (plan.slug === 'enterprise') return 'Contact Sales';
-    if (plan.slug === 'pro' && plan.trial_days > 0 && !hasActiveTrial) {
-      return `Start ${plan.trial_days}-Day Free Trial`;
-    }
+    if (isLifetime) return 'Current Plan';
     if (isDowngrade) return 'Downgrade';
     return `Upgrade to ${plan.name}`;
   };
@@ -189,7 +241,7 @@ export function PlanCard({
         <CardDescription>{plan.description}</CardDescription>
       </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col space-y-6">
+      <CardContent className="flex-1 flex flex-col">
         {/* Price */}
         <div className="text-center">
           <span className="sr-only">Price: </span>
@@ -211,7 +263,7 @@ export function PlanCard({
 
         {/* Credit context */}
         {isCustom ? (
-          <div className="text-center py-3 bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-800/20 rounded-lg border border-amber-200/50 dark:border-amber-700/30">
+          <div className="mt-6 text-center py-3 bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-800/20 rounded-lg border border-amber-200/50 dark:border-amber-700/30">
             <div className="font-semibold text-amber-700 dark:text-amber-300">
               Custom Allocation
             </div>
@@ -220,7 +272,7 @@ export function PlanCard({
             </div>
           </div>
         ) : (
-          <div className="text-center py-3 bg-secondary-50 dark:bg-secondary-700/30 rounded-lg">
+          <div className="mt-6 text-center py-3 bg-secondary-50 dark:bg-secondary-700/30 rounded-lg">
             <div className="font-semibold text-secondary-900 dark:text-secondary-100">
               {plan.credits_monthly === -1
                 ? 'Unlimited'
@@ -234,7 +286,7 @@ export function PlanCard({
         )}
 
         {/* Features list */}
-        <ul className="space-y-3 flex-1" aria-label={`${plan.name} plan features`}>
+        <ul className="mt-6 space-y-3 flex-1" aria-label={`${plan.name} plan features`}>
           {features.map((feature) => (
             <li key={feature} className="flex items-start gap-3">
               <Check
@@ -249,7 +301,7 @@ export function PlanCard({
         </ul>
 
         {/* CTA Button */}
-        <div className="mt-auto space-y-2">
+        <div className="mt-auto pt-6">
           <Button
             variant={isCustom ? 'outline' : isCurrentPlan ? 'secondary' : 'default'}
             className={`w-full focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-secondary-800 ${
@@ -273,16 +325,18 @@ export function PlanCard({
               getButtonText()
             )}
           </Button>
-          {isCustom && !isCurrentPlan && (
-            <p className="text-center text-xs text-secondary-500 dark:text-secondary-400">
-              Get a custom quote in 24 hours
-            </p>
-          )}
-          {!isCustom && plan.trial_days > 0 && !isCurrentPlan && !hasActiveTrial && (
-            <p className="text-center text-xs text-secondary-500 dark:text-secondary-400">
-              No credit card required
-            </p>
-          )}
+          <div className="min-h-[1.5rem] mt-2">
+            {isCustom && !isCurrentPlan && (
+              <p className="text-center text-xs text-secondary-500 dark:text-secondary-400">
+                Get a custom quote in 24 hours
+              </p>
+            )}
+            {!isCustom && !isCurrentPlan && (
+              <p className="text-center text-xs text-secondary-500 dark:text-secondary-400">
+                Cancel anytime
+              </p>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -52,6 +52,7 @@ export interface AIModel {
   name: string;
   api_model_id: string;
   tier: 'fast' | 'balanced' | 'powerful' | null;
+  grade: string;
   is_enabled: boolean;
   is_default: boolean;
   max_tokens: number;
@@ -102,6 +103,7 @@ export interface CreateModelInput {
   name: string;
   api_model_id: string;
   tier?: 'fast' | 'balanced' | 'powerful';
+  grade: string;
   is_enabled?: boolean;
   is_default?: boolean;
   max_tokens?: number;
@@ -119,6 +121,7 @@ export interface UpdateModelInput {
   name?: string;
   api_model_id?: string;
   tier?: 'fast' | 'balanced' | 'powerful' | null;
+  grade?: string;
   is_enabled?: boolean;
   is_default?: boolean;
   max_tokens?: number;

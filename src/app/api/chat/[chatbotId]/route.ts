@@ -10,6 +10,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generate, generateStream, createStreamingResponse } from '@/lib/ai/provider';
+import type { ImageInput } from '@/lib/ai/provider';
 import { successResponse, errorResponse, APIError, parseBody } from '@/lib/api/utils';
 import {
   getChatbot,
@@ -17,6 +18,7 @@ import {
   getMessages,
   createMessage,
   validateChatbotAPIKey,
+  getLeadBySession,
 } from '@/lib/chatbots/api';
 import { validateAPIKey } from '@/lib/auth/api-keys';
 import {
@@ -25,16 +27,36 @@ import {
   buildSystemPrompt,
   formatConversationHistory,
 } from '@/lib/chatbots/rag';
+import { detectLanguageSwitch, getLanguageName } from '@/lib/chatbots/translations';
+import {
+  getUserMemory,
+  formatMemoryForPrompt,
+  extractAndStoreMemory,
+  summarizeConversation,
+} from '@/lib/chatbots/memory';
 import { getUserPreferredModel } from '@/lib/settings';
-import type { Chatbot } from '@/lib/chatbots/types';
+import { logAPICall } from '@/lib/api/logging';
+import type { Chatbot, Message, Attachment, FileUploadConfig } from '@/lib/chatbots/types';
+import { DEFAULT_FILE_UPLOAD_CONFIG, FILE_TYPE_MAP } from '@/lib/chatbots/types';
 import type { AIModelWithProvider } from '@/types/ai-models';
 
 // Chat request validation
+const attachmentSchema = z.object({
+  url: z.string().url(),
+  file_name: z.string(),
+  file_type: z.string(),
+  file_size: z.number(),
+});
+
 const chatSchema = z.object({
   message: z.string().min(1).max(10000),
   stream: z.boolean().optional().default(false),
   session_id: z.string().max(100).optional(),
   visitor_id: z.string().max(100).optional(),
+  welcome_message: z.string().optional(),
+  user_data: z.record(z.string()).optional(),
+  user_context: z.record(z.unknown()).optional(),
+  attachments: z.array(attachmentSchema).optional(),
 });
 
 interface RouteParams {
@@ -131,27 +153,122 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       supabase
     );
 
+    // Handle welcome message initialization (no AI call needed)
+    if (input.message === '__WELCOME__' && input.welcome_message) {
+      const welcomeMessage = await createMessage({
+        conversation_id: conversation.id,
+        chatbot_id: chatbotId,
+        role: 'assistant',
+        content: input.welcome_message,
+      }, supabase);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: {
+            message: input.welcome_message,
+            conversation_id: conversation.id,
+            message_id: welcomeMessage.id,
+            session_id: sessionId,
+          },
+        }),
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      );
+    }
+
+    // Detect language switch request
+    const requestedLanguage = detectLanguageSwitch(input.message);
+    let activeLanguage = conversation.language || chatbot.language;
+    
+    if (requestedLanguage) {
+      // Update conversation language
+      await supabase
+        .from('conversations')
+        .update({ language: requestedLanguage })
+        .eq('id', conversation.id);
+      
+      activeLanguage = requestedLanguage;
+      console.log(`[Chat] Language switch detected: ${requestedLanguage} (${getLanguageName(requestedLanguage)})`);
+    }
+
     // Get conversation history
     const messages = await getMessages(conversation.id, supabase);
 
-    // Save user message
+    // Save user message (with attachments if any)
     const userMessage = await createMessage({
       conversation_id: conversation.id,
       chatbot_id: chatbotId,
       role: 'user',
       content: input.message,
+      ...(input.attachments && input.attachments.length > 0 ? { attachments: input.attachments } : {}),
     }, supabase);
+
+    // Prepare images for AI vision (if any image attachments)
+    const imageAttachments = (input.attachments || []).filter((a: Attachment) =>
+      a.file_type.startsWith('image/')
+    );
+    let aiImages: ImageInput[] = [];
+    if (imageAttachments.length > 0) {
+      const uploadConfig: FileUploadConfig = chatbot.file_upload_config || DEFAULT_FILE_UPLOAD_CONFIG;
+      if (uploadConfig.enabled) {
+        // Fetch images and convert to base64
+        const imagePromises = imageAttachments.slice(0, 4).map(async (att: Attachment) => {
+          try {
+            const imgRes = await fetch(att.url);
+            if (!imgRes.ok) return null;
+            const buffer = await imgRes.arrayBuffer();
+            const base64 = Buffer.from(buffer).toString('base64');
+            return { data: base64, media_type: att.file_type } as ImageInput;
+          } catch {
+            console.warn(`[Chat] Failed to fetch image: ${att.url}`);
+            return null;
+          }
+        });
+        const results = await Promise.all(imagePromises);
+        aiImages = results.filter((r): r is ImageInput => r !== null);
+        console.log(`[Chat] Prepared ${aiImages.length} images for AI vision`);
+      }
+    }
 
     // Get RAG context
     const ragContext = await getRAGContext(chatbot, input.message);
 
-    // Build prompts
-    const systemPrompt = buildSystemPrompt(chatbot, ragContext.chunks.length > 0);
+    // Get pre-chat form data if available
+    const leadData = await getLeadBySession(chatbotId, sessionId, supabase);
+    const preChatInfo = leadData ? leadData.form_data : null;
+
+    // Get conversation memory for returning visitors
+    let memoryContext: string | null = null;
+    let existingMemory = null;
+    if (chatbot.memory_enabled && input.visitor_id) {
+      existingMemory = await getUserMemory(input.visitor_id, chatbotId, chatbot.memory_days, supabase);
+      if (existingMemory) {
+        memoryContext = formatMemoryForPrompt(existingMemory);
+        console.log(`[Chat] Memory found for visitor ${input.visitor_id}: ${existingMemory.key_facts.length} facts`);
+      }
+    }
+
+    // Build prompts with active language (conversation language overrides chatbot default)
+    const chatbotWithActiveLanguage = { ...chatbot, language: activeLanguage };
+    const systemPrompt = buildSystemPrompt(chatbotWithActiveLanguage, ragContext.contextText.length > 0, preChatInfo, memoryContext, input.user_data, input.user_context);
     const userPrompt = buildRAGPrompt(
       ragContext,
       messages,
       input.message
     );
+
+    console.log('[Chat] === SYSTEM PROMPT ===');
+    console.log(systemPrompt);
+    console.log('[Chat] === USER PROMPT ===');
+    console.log(userPrompt);
+    console.log('[Chat] === END PROMPTS ===');
+    console.log(`[Chat] confidence=${ragContext.confidence.toFixed(3)}, pinnedUrls=${JSON.stringify(ragContext.pinnedUrls)}`);
 
     // Model mapping (used as fallback when no user preference)
     const modelMap: Record<string, 'balanced' | 'powerful' | 'fast'> = {
@@ -171,6 +288,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         maxTokens: chatbot.max_tokens,
         // Use user's preferred model if authenticated
         specificModel: userPreferredModel || undefined,
+        images: aiImages.length > 0 ? aiImages : undefined,
       });
 
       // Create a transform to capture the full response
@@ -202,6 +320,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
               fullResponse += chunk;
             }
             // Save message after stream completes
+            console.log('[Chat] === AI RESPONSE (streaming) ===');
+            console.log(fullResponse);
+            console.log('[Chat] === END AI RESPONSE ===');
             await createMessage({
               conversation_id: conversation.id,
               chatbot_id: chatbotId,
@@ -210,6 +331,12 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
               model: chatbot.model,
               context_chunks: ragContext.chunks.map((c) => c.id),
             }, supabase);
+
+            // Async memory extraction for streaming responses
+            if (chatbot.memory_enabled && input.visitor_id) {
+              const allMessages = [...messages, { role: 'user', content: input.message } as Message, { role: 'assistant', content: fullResponse } as Message];
+              extractAndStoreMemory(input.visitor_id, chatbotId, allMessages, existingMemory, supabase).catch(() => {});
+            }
           } catch (error) {
             controller.error(error);
           } finally {
@@ -238,6 +365,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       maxTokens: chatbot.max_tokens,
       // Use user's preferred model if authenticated
       specificModel: userPreferredModel || undefined,
+      images: aiImages.length > 0 ? aiImages : undefined,
     });
     const latencyMs = Date.now() - startTime;
 
@@ -254,6 +382,28 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       context_chunks: ragContext.chunks.map((c) => c.id),
     }, supabase);
 
+    // Async memory extraction (non-blocking)
+    if (chatbot.memory_enabled && input.visitor_id) {
+      const allMessages = [...messages, { role: 'user', content: input.message } as Message, { role: 'assistant', content: result.content } as Message];
+      extractAndStoreMemory(input.visitor_id, chatbotId, allMessages, existingMemory, supabase).catch(() => {});
+    }
+
+    // Log API call for usage tracking
+    await logAPICall({
+      user_id: chatbot.user_id,
+      endpoint: `/api/chat/${chatbotId}`,
+      method: 'POST',
+      request_body: { message: input.message, stream: input.stream },
+      response_body: { message: result.content },
+      status_code: 200,
+      provider: result.provider,
+      model: result.model,
+      tokens_input: result.tokensInput,
+      tokens_output: result.tokensOutput,
+      tokens_billed: result.tokensInput + result.tokensOutput,
+      duration_ms: latencyMs,
+    });
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -262,6 +412,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
           conversation_id: conversation.id,
           message_id: assistantMessage.id,
           session_id: sessionId,
+          language: activeLanguage,
         },
         meta: {
           model: result.model,
@@ -280,6 +431,29 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       }
     );
   } catch (error) {
+    // Log failed API call
+    try {
+      const { chatbotId } = await params;
+      const supabase = createAdminClient() as any;
+      const { data: chatbotData } = await supabase
+        .from('chatbots')
+        .select('user_id')
+        .eq('id', chatbotId)
+        .single();
+      
+      if (chatbotData) {
+        await logAPICall({
+          user_id: chatbotData.user_id,
+          endpoint: `/api/chat/${chatbotId}`,
+          method: 'POST',
+          status_code: error instanceof APIError ? error.statusCode : 500,
+          error_message: error instanceof Error ? error.message : 'Unknown error',
+          duration_ms: 0,
+        });
+      }
+    } catch (logError) {
+      // Ignore logging errors
+    }
     return errorResponse(error);
   }
 }

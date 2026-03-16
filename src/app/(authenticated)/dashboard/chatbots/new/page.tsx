@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { SYSTEM_PROMPT_TEMPLATES } from '@/lib/chatbots/types';
+import { SUPPORTED_LANGUAGES, getLanguageByCode } from '@/lib/chatbots/translations';
 
 const steps = [
   { id: 'basics', title: 'Basic Info', description: 'Name and describe your chatbot' },
@@ -23,8 +24,8 @@ interface FormData {
   description: string;
   system_prompt: string;
   welcome_message: string;
-  model: string;
-  temperature: number;
+  enable_prompt_protection: boolean;
+  language: string;
 }
 
 export default function NewChatbotPage() {
@@ -36,11 +37,11 @@ export default function NewChatbotPage() {
     description: '',
     system_prompt: SYSTEM_PROMPT_TEMPLATES[0].prompt,
     welcome_message: 'Hi! How can I help you today?',
-    model: 'claude-3-haiku-20240307',
-    temperature: 0.7,
+    enable_prompt_protection: true,
+    language: 'en',
   });
 
-  const updateField = (field: keyof FormData, value: string | number) => {
+  const updateField = (field: keyof FormData, value: string | number | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -220,7 +221,7 @@ export default function NewChatbotPage() {
 
 interface StepProps {
   formData: FormData;
-  updateField: (field: keyof FormData, value: string | number) => void;
+  updateField: (field: keyof FormData, value: string | number | boolean) => void;
 }
 
 function BasicInfoStep({ formData, updateField }: StepProps) {
@@ -267,6 +268,26 @@ function BasicInfoStep({ formData, updateField }: StepProps) {
         />
         <p className="text-xs text-secondary-500">
           The first message visitors see when they open the chat
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="language">Language</Label>
+        <select
+          id="language"
+          value={formData.language}
+          onChange={(e) => updateField('language', e.target.value)}
+          className="w-full px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+        >
+          {SUPPORTED_LANGUAGES.map((lang) => (
+            <option key={lang.code} value={lang.code}>
+              {lang.nativeName} ({lang.name})
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-secondary-500">
+          The language for widget UI and AI responses
         </p>
       </div>
     </div>
@@ -323,40 +344,25 @@ function SystemPromptStep({ formData, updateField }: StepProps) {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="model">AI Model</Label>
-          <select
-            id="model"
-            value={formData.model}
-            onChange={(e) => updateField('model', e.target.value)}
-            className="w-full px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-700 text-secondary-900 dark:text-secondary-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
-          >
-            <option value="claude-3-haiku-20240307">Claude 3 Haiku (Fast)</option>
-            <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (Balanced)</option>
-            <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (Powerful)</option>
-          </select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="temperature">
-            Temperature: {formData.temperature}
+      <div className="flex items-start space-x-3 p-4 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
+        <input
+          type="checkbox"
+          id="enable_prompt_protection"
+          checked={formData.enable_prompt_protection}
+          onChange={(e) => updateField('enable_prompt_protection', e.target.checked)}
+          className="mt-1 w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
+        />
+        <div className="flex-1">
+          <Label htmlFor="enable_prompt_protection" className="cursor-pointer font-medium text-secondary-900 dark:text-secondary-100">
+            Enable Prompt Injection Protection (Recommended)
           </Label>
-          <input
-            type="range"
-            id="temperature"
-            min="0"
-            max="1"
-            step="0.1"
-            value={formData.temperature}
-            onChange={(e) => updateField('temperature', parseFloat(e.target.value))}
-            className="w-full"
-          />
-          <p className="text-xs text-secondary-500">
-            Lower = more focused, Higher = more creative
+          <p className="text-xs text-secondary-600 dark:text-secondary-400 mt-1">
+            Automatically adds security rules to prevent users from manipulating the chatbot with prompt injection attacks. 
+            Keeps your chatbot focused on its intended purpose and prevents it from being tricked into revealing instructions or behaving unexpectedly.
           </p>
         </div>
       </div>
+
     </div>
   );
 }
@@ -391,10 +397,10 @@ function ReviewStep({ formData }: { formData: FormData }) {
 
           <div>
             <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
-              Model
+              Language
             </p>
             <p className="text-sm text-secondary-600 dark:text-secondary-400">
-              {formData.model}
+              {(() => { const lang = getLanguageByCode(formData.language); return lang ? `${lang.nativeName} (${lang.name})` : 'English'; })()}
             </p>
           </div>
 
@@ -402,7 +408,7 @@ function ReviewStep({ formData }: { formData: FormData }) {
             <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
               System Prompt
             </p>
-            <p className="text-sm text-secondary-600 dark:text-secondary-400 whitespace-pre-wrap line-clamp-4">
+            <p className="text-sm text-secondary-600 dark:text-secondary-400 whitespace-pre-wrap">
               {formData.system_prompt}
             </p>
           </div>

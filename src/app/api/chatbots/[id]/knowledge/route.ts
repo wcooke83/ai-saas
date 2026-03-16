@@ -14,7 +14,7 @@ import {
   createKnowledgeSource,
   checkKnowledgeSourceLimit,
 } from '@/lib/chatbots/api';
-import { processKnowledgeSource } from '@/lib/chatbots/knowledge/processor';
+import { processKnowledgeSource, processUrlWithCrawl } from '@/lib/chatbots/knowledge/processor';
 
 // Add knowledge source validation schema
 const addKnowledgeSchema = z.object({
@@ -24,6 +24,8 @@ const addKnowledgeSchema = z.object({
   url: z.string().url().optional(), // For URL type
   question: z.string().max(1000).optional(), // For Q&A type
   answer: z.string().max(5000).optional(), // For Q&A type
+  crawl: z.boolean().optional().default(false), // Enable website crawling
+  maxPages: z.number().int().min(1).max(100).optional().default(25), // Max pages to crawl
 });
 
 interface RouteParams {
@@ -129,7 +131,12 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     });
 
     // Trigger async processing (don't await)
-    processKnowledgeSource(source.id).catch(console.error);
+    if (input.type === 'url' && input.crawl) {
+      // Crawl mode: discover and process multiple pages
+      processUrlWithCrawl(source.id, id, input.url!, input.maxPages).catch(console.error);
+    } else {
+      processKnowledgeSource(source.id).catch(console.error);
+    }
 
     return successResponse({ source }, undefined, 201);
   } catch (error) {

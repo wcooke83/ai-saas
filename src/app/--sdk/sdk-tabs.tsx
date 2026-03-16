@@ -45,6 +45,7 @@ import {
   FileCode,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Tooltip } from '@/components/ui/tooltip';
 import { useUISettings, BackdropBlurValue } from '@/contexts/ui-settings-context';
 
 // ============================================================================
@@ -127,6 +128,44 @@ const INNER_WARNING_CARD_BG_COLOR_COOKIE_NAME = 'theme-inner-warning-card-bg-col
 const ACTION_CARD_BORDER_COOKIE_NAME = 'theme-action-card-border-enabled';
 const ACTION_CARD_GRADIENT_COOKIE_NAME = 'theme-action-card-gradient-enabled';
 const ACTION_CARD_BG_COLOR_COOKIE_NAME = 'theme-action-card-bg-color-enabled';
+
+// Bubble Preview style storage
+const BUBBLE_STYLE_STORAGE_KEY = 'bubble-preview-style';
+
+interface BubbleStyleConfig {
+  bgColor: string;
+  textColor: string;
+  borderColor: string;
+  darkBgColor: string;
+  darkTextColor: string;
+  darkBorderColor: string;
+  borderWidth: number;
+  borderRadius: number;
+  shadow: 'none' | 'sm' | 'md' | 'lg';
+  fontSize: number;
+  maxWidth: number;
+}
+
+const DEFAULT_BUBBLE_STYLE: BubbleStyleConfig = {
+  bgColor: '#ffffff',
+  textColor: '#0f172a',
+  borderColor: '#e2e8f0',
+  darkBgColor: '#0f172a',
+  darkTextColor: '#f8fafc',
+  darkBorderColor: '#334155',
+  borderWidth: 1,
+  borderRadius: 12,
+  shadow: 'md',
+  fontSize: 14,
+  maxWidth: 280,
+};
+
+const BUBBLE_SHADOW_OPTIONS: { value: BubbleStyleConfig['shadow']; label: string; css: string }[] = [
+  { value: 'none', label: 'None', css: 'none' },
+  { value: 'sm', label: 'Small', css: '0 2px 8px rgba(0,0,0,0.1)' },
+  { value: 'md', label: 'Medium', css: '0 4px 16px rgba(0,0,0,0.15)' },
+  { value: 'lg', label: 'Large', css: '0 8px 32px rgba(0,0,0,0.2)' },
+];
 
 // ============================================================================
 // Theme Color Variables Definition
@@ -1505,6 +1544,25 @@ function saveInnerWarningCardBgColorEnabledToCookie(enabled: boolean): void {
   document.documentElement.setAttribute('data-inner-warning-card-bg-color-enabled', String(enabled));
 }
 
+// Bubble Preview style helpers
+function getBubbleStyleFromStorage(): BubbleStyleConfig {
+  if (typeof window === 'undefined') return DEFAULT_BUBBLE_STYLE;
+  try {
+    const stored = localStorage.getItem(BUBBLE_STYLE_STORAGE_KEY);
+    if (stored) return { ...DEFAULT_BUBBLE_STYLE, ...JSON.parse(stored) };
+  } catch { /* ignore */ }
+  return DEFAULT_BUBBLE_STYLE;
+}
+
+function saveBubbleStyleToStorage(style: BubbleStyleConfig): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(BUBBLE_STYLE_STORAGE_KEY, JSON.stringify(style));
+}
+
+function getBubbleShadowCss(shadow: BubbleStyleConfig['shadow']): string {
+  return BUBBLE_SHADOW_OPTIONS.find(o => o.value === shadow)?.css || 'none';
+}
+
 // ============================================================================
 // Color Variable Editor Component
 // ============================================================================
@@ -1912,6 +1970,17 @@ export function SDKTabs() {
   const [innerWarningCardGradientEnabled, setInnerWarningCardGradientEnabled] = useState(false);
   const [innerWarningCardBgColorEnabled, setInnerWarningCardBgColorEnabled] = useState(true);
 
+  // Bubble Preview style state
+  const [bubbleStyle, setBubbleStyle] = useState<BubbleStyleConfig>(DEFAULT_BUBBLE_STYLE);
+
+  const updateBubbleStyle = useCallback((updates: Partial<BubbleStyleConfig>) => {
+    setBubbleStyle(prev => {
+      const next = { ...prev, ...updates };
+      saveBubbleStyleToStorage(next);
+      return next;
+    });
+  }, []);
+
   const lightVars = themeColorVariables.light;
   const darkVars = themeColorVariables.dark;
 
@@ -1991,6 +2060,9 @@ export function SDKTabs() {
     setInnerWarningCardBorderEnabled(getInnerWarningCardBorderEnabledFromCookie());
     setInnerWarningCardGradientEnabled(getInnerWarningCardGradientEnabledFromCookie());
     setInnerWarningCardBgColorEnabled(getInnerWarningCardBgColorEnabledFromCookie());
+
+    // Bubble Preview
+    setBubbleStyle(getBubbleStyleFromStorage());
   }, []);
 
   const forceUpdate = useCallback(() => {
@@ -5934,6 +6006,19 @@ export function SDKTabs() {
                 onReset={() => handleResetGroup('Tooltip', lightVars.tooltip, darkVars.tooltip)}
               >
                 <div className="mb-4 p-4 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg space-y-4">
+                  {/* Tooltip Preview */}
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-secondary-600 dark:text-secondary-400">Preview:</span>
+                    <Tooltip content="Tooltip using theme colors: bg, border, and text">
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-secondary-200 dark:bg-secondary-700 text-secondary-600 dark:text-secondary-300 hover:bg-secondary-300 dark:hover:bg-secondary-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                        aria-label="Show tooltip"
+                      >
+                        <HelpCircle className="w-3.5 h-3.5" />
+                      </button>
+                    </Tooltip>
+                  </div>
                   <DualModeVariables lightVars={lightVars.tooltip} darkVars={darkVars.tooltip} updateKey={updateKey} onUpdate={forceUpdate} />
                 </div>
               </Subsection>
@@ -5975,6 +6060,305 @@ export function SDKTabs() {
               >
                 <div className="mb-4 p-4 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg space-y-4">
                   <DualModeVariables lightVars={lightVars.toastInfo} darkVars={darkVars.toastInfo} updateKey={updateKey} onUpdate={forceUpdate} />
+                </div>
+              </Subsection>
+            </SectionGroup>
+
+            {/* Bubble Preview */}
+            <SectionGroup title="Bubble Preview">
+              <Subsection
+                title="Proactive Message Bubble"
+                icon={MessageSquare}
+                onReset={() => {
+                  setBubbleStyle(DEFAULT_BUBBLE_STYLE);
+                  saveBubbleStyleToStorage(DEFAULT_BUBBLE_STYLE);
+                }}
+              >
+                <div className="mb-4 p-4 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg space-y-5">
+                  {/* Live Preview — Light & Dark side by side */}
+                  <div>
+                    <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider mb-3">
+                      Preview
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Light mode preview */}
+                      <div className="relative p-5 rounded-lg min-h-[100px] flex flex-col items-center justify-center" style={{ background: '#f1f5f9' }}>
+                        <div className="flex items-center gap-1.5 mb-3">
+                          <Sun className="w-3.5 h-3.5" style={{ color: '#64748b' }} />
+                          <span className="text-xs font-medium" style={{ color: '#64748b' }}>Light</span>
+                        </div>
+                        <div
+                          style={{
+                            background: bubbleStyle.bgColor,
+                            color: bubbleStyle.textColor,
+                            border: bubbleStyle.borderWidth > 0 ? `${bubbleStyle.borderWidth}px solid ${bubbleStyle.borderColor}` : 'none',
+                            borderRadius: `${bubbleStyle.borderRadius}px`,
+                            boxShadow: getBubbleShadowCss(bubbleStyle.shadow),
+                            fontSize: `${bubbleStyle.fontSize}px`,
+                            maxWidth: `${bubbleStyle.maxWidth}px`,
+                            width: '100%',
+                            padding: '12px 36px 12px 14px',
+                            lineHeight: '1.4',
+                            fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+                            position: 'relative',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <span>Hi there! Need help?</span>
+                          <span style={{ position: 'absolute', top: '4px', right: '8px', fontSize: '18px', color: '#999', lineHeight: '1' }}>&times;</span>
+                        </div>
+                      </div>
+                      {/* Dark mode preview */}
+                      <div className="relative p-5 rounded-lg min-h-[100px] flex flex-col items-center justify-center" style={{ background: '#030712' }}>
+                        <div className="flex items-center gap-1.5 mb-3">
+                          <Moon className="w-3.5 h-3.5" style={{ color: '#94a3b8' }} />
+                          <span className="text-xs font-medium" style={{ color: '#94a3b8' }}>Dark</span>
+                        </div>
+                        <div
+                          style={{
+                            background: bubbleStyle.darkBgColor,
+                            color: bubbleStyle.darkTextColor,
+                            border: bubbleStyle.borderWidth > 0 ? `${bubbleStyle.borderWidth}px solid ${bubbleStyle.darkBorderColor}` : 'none',
+                            borderRadius: `${bubbleStyle.borderRadius}px`,
+                            boxShadow: getBubbleShadowCss(bubbleStyle.shadow),
+                            fontSize: `${bubbleStyle.fontSize}px`,
+                            maxWidth: `${bubbleStyle.maxWidth}px`,
+                            width: '100%',
+                            padding: '12px 36px 12px 14px',
+                            lineHeight: '1.4',
+                            fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+                            position: 'relative',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <span>Hi there! Need help?</span>
+                          <span style={{ position: 'absolute', top: '4px', right: '8px', fontSize: '18px', color: '#666', lineHeight: '1' }}>&times;</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Light Mode Colors */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <Sun className="w-3.5 h-3.5 text-amber-500" />
+                      <p className="text-xs font-medium text-secondary-600 dark:text-secondary-300 uppercase tracking-wider">
+                        Light Mode
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <Label className="text-xs mb-1.5 block">Background</Label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={bubbleStyle.bgColor}
+                            onChange={(e) => updateBubbleStyle({ bgColor: e.target.value })}
+                            className="w-8 h-8 rounded border border-secondary-300 dark:border-secondary-600 cursor-pointer"
+                          />
+                          <Input
+                            value={bubbleStyle.bgColor}
+                            onChange={(e) => updateBubbleStyle({ bgColor: e.target.value })}
+                            className="w-24 h-8 text-xs font-mono"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-xs mb-1.5 block">Text</Label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={bubbleStyle.textColor}
+                            onChange={(e) => updateBubbleStyle({ textColor: e.target.value })}
+                            className="w-8 h-8 rounded border border-secondary-300 dark:border-secondary-600 cursor-pointer"
+                          />
+                          <Input
+                            value={bubbleStyle.textColor}
+                            onChange={(e) => updateBubbleStyle({ textColor: e.target.value })}
+                            className="w-24 h-8 text-xs font-mono"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-xs mb-1.5 block">Border</Label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={bubbleStyle.borderColor}
+                            onChange={(e) => updateBubbleStyle({ borderColor: e.target.value })}
+                            className="w-8 h-8 rounded border border-secondary-300 dark:border-secondary-600 cursor-pointer"
+                          />
+                          <Input
+                            value={bubbleStyle.borderColor}
+                            onChange={(e) => updateBubbleStyle({ borderColor: e.target.value })}
+                            className="w-24 h-8 text-xs font-mono"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dark Mode Colors */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <Moon className="w-3.5 h-3.5 text-indigo-400" />
+                      <p className="text-xs font-medium text-secondary-600 dark:text-secondary-300 uppercase tracking-wider">
+                        Dark Mode
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <Label className="text-xs mb-1.5 block">Background</Label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={bubbleStyle.darkBgColor}
+                            onChange={(e) => updateBubbleStyle({ darkBgColor: e.target.value })}
+                            className="w-8 h-8 rounded border border-secondary-300 dark:border-secondary-600 cursor-pointer"
+                          />
+                          <Input
+                            value={bubbleStyle.darkBgColor}
+                            onChange={(e) => updateBubbleStyle({ darkBgColor: e.target.value })}
+                            className="w-24 h-8 text-xs font-mono"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-xs mb-1.5 block">Text</Label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={bubbleStyle.darkTextColor}
+                            onChange={(e) => updateBubbleStyle({ darkTextColor: e.target.value })}
+                            className="w-8 h-8 rounded border border-secondary-300 dark:border-secondary-600 cursor-pointer"
+                          />
+                          <Input
+                            value={bubbleStyle.darkTextColor}
+                            onChange={(e) => updateBubbleStyle({ darkTextColor: e.target.value })}
+                            className="w-24 h-8 text-xs font-mono"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-xs mb-1.5 block">Border</Label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={bubbleStyle.darkBorderColor}
+                            onChange={(e) => updateBubbleStyle({ darkBorderColor: e.target.value })}
+                            className="w-8 h-8 rounded border border-secondary-300 dark:border-secondary-600 cursor-pointer"
+                          />
+                          <Input
+                            value={bubbleStyle.darkBorderColor}
+                            onChange={(e) => updateBubbleStyle({ darkBorderColor: e.target.value })}
+                            className="w-24 h-8 text-xs font-mono"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Border Width */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-sm">Border Width</Label>
+                      <span className="text-sm font-mono text-secondary-500 dark:text-secondary-400">{bubbleStyle.borderWidth}px</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="4"
+                      value={bubbleStyle.borderWidth}
+                      onChange={(e) => updateBubbleStyle({ borderWidth: Number(e.target.value) })}
+                      className="w-full h-2 bg-secondary-200 dark:bg-secondary-700 rounded-lg appearance-none cursor-pointer accent-primary-500"
+                    />
+                    <div className="flex justify-between text-xs text-secondary-400 mt-1">
+                      <span>None</span>
+                      <span>Thick</span>
+                    </div>
+                  </div>
+
+                  {/* Border Radius */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-sm">Border Radius</Label>
+                      <span className="text-sm font-mono text-secondary-500 dark:text-secondary-400">{bubbleStyle.borderRadius}px</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="24"
+                      value={bubbleStyle.borderRadius}
+                      onChange={(e) => updateBubbleStyle({ borderRadius: Number(e.target.value) })}
+                      className="w-full h-2 bg-secondary-200 dark:bg-secondary-700 rounded-lg appearance-none cursor-pointer accent-primary-500"
+                    />
+                    <div className="flex justify-between text-xs text-secondary-400 mt-1">
+                      <span>Square</span>
+                      <span>Rounded</span>
+                    </div>
+                  </div>
+
+                  {/* Box Shadow */}
+                  <div>
+                    <Label className="text-sm mb-2 block">Box Shadow</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {BUBBLE_SHADOW_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => updateBubbleStyle({ shadow: opt.value })}
+                          className={cn(
+                            'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
+                            bubbleStyle.shadow === opt.value
+                              ? 'bg-primary-500 text-white'
+                              : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-600 dark:text-secondary-400 hover:bg-secondary-200 dark:hover:bg-secondary-600'
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Font Size */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-sm">Font Size</Label>
+                      <span className="text-sm font-mono text-secondary-500 dark:text-secondary-400">{bubbleStyle.fontSize}px</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="12"
+                      max="18"
+                      value={bubbleStyle.fontSize}
+                      onChange={(e) => updateBubbleStyle({ fontSize: Number(e.target.value) })}
+                      className="w-full h-2 bg-secondary-200 dark:bg-secondary-700 rounded-lg appearance-none cursor-pointer accent-primary-500"
+                    />
+                    <div className="flex justify-between text-xs text-secondary-400 mt-1">
+                      <span>12px</span>
+                      <span>18px</span>
+                    </div>
+                  </div>
+
+                  {/* Max Width */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-sm">Max Width</Label>
+                      <span className="text-sm font-mono text-secondary-500 dark:text-secondary-400">{bubbleStyle.maxWidth}px</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="200"
+                      max="400"
+                      step="10"
+                      value={bubbleStyle.maxWidth}
+                      onChange={(e) => updateBubbleStyle({ maxWidth: Number(e.target.value) })}
+                      className="w-full h-2 bg-secondary-200 dark:bg-secondary-700 rounded-lg appearance-none cursor-pointer accent-primary-500"
+                    />
+                    <div className="flex justify-between text-xs text-secondary-400 mt-1">
+                      <span>Narrow</span>
+                      <span>Wide</span>
+                    </div>
+                  </div>
                 </div>
               </Subsection>
             </SectionGroup>

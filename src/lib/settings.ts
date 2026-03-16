@@ -18,6 +18,7 @@ export interface AppSettings {
   multiplier_claude: number;
   multiplier_openai: number;
   multiplier_local: number;
+  embedding_model_id: string | null; // Preferred model for embeddings
   updated_at: string;
   updated_by: string | null;
 }
@@ -369,6 +370,47 @@ export async function isUserAffiliate(userId: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * Get the preferred embedding model from app settings
+ */
+export async function getEmbeddingModel(): Promise<AIModelWithProvider | null> {
+  try {
+    const settings = await getAppSettings();
+    
+    // If no embedding model preference is set, return null (will use auto-selection)
+    if (!settings?.embedding_model_id) {
+      return null;
+    }
+
+    // Get the preferred embedding model
+    const model = await getModelById(settings.embedding_model_id);
+
+    // If model is disabled or deleted, return null to fall back to auto-selection
+    if (!model || !model.is_enabled || !model.provider?.is_enabled) {
+      return null;
+    }
+
+    return model;
+  } catch (error) {
+    console.error('Failed to fetch embedding model:', error);
+    return null;
+  }
+}
+
+/**
+ * Get all models that support embeddings
+ */
+export async function getEmbeddingCapableModels(): Promise<AIModelWithProvider[]> {
+  const models = await getAIModels();
+  
+  // Filter for models from providers that support embeddings
+  // Currently: OpenAI and Google (Gemini)
+  return models.filter(model => {
+    const slug = model.provider?.slug?.toLowerCase();
+    return slug === 'openai' || slug === 'google' || slug === 'gemini';
+  });
 }
 
 /**

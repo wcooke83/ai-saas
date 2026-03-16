@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Menu, X, Home, Key, BarChart3, Settings, LogOut, User, CreditCard, Bot, Plug, Shield, ChevronDown, ChevronLeft, ChevronRight, Cpu, FileText, Mail, PenTool, MessageSquare, Megaphone, Share2, Package, Gift } from 'lucide-react';
+import { Menu, X, Home, Key, BarChart3, Settings, LogOut, User, CreditCard, Bot, Plug, Shield, ChevronDown, ChevronLeft, ChevronRight, Cpu, FileText, Mail, PenTool, MessageSquare, Megaphone, Share2, Package, Gift, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggleSimple } from '@/components/ui/theme-toggle';
 import { useFocusTrap } from '@/hooks/use-focus-trap';
+import { PastDueBanner } from '@/components/dashboard/past-due-banner';
 import { LucideIcon } from 'lucide-react';
 
 interface NavItem {
@@ -38,6 +39,7 @@ const baseNavItems: NavItem[] = [
   { href: '/dashboard/profile', label: 'Profile', icon: User },
   { href: '/dashboard/billing', label: 'Billing', icon: CreditCard },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+  { href: '/dashboard/wiki', label: 'Wiki', icon: BookOpen },
 ];
 
 const adminNavItem: NavItem = {
@@ -447,7 +449,10 @@ export default function DashboardLayout({
         )}
         tabIndex={-1}
       >
-        <div className="p-4 sm:p-6 lg:p-8">{children}</div>
+        <div className="p-4 sm:p-6 lg:p-8">
+          <PastDueBanner />
+          {children}
+        </div>
       </main>
     </div>
   );

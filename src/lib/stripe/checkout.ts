@@ -15,6 +15,8 @@ interface CreateSubscriptionCheckoutParams {
   successUrl: string;
   cancelUrl: string;
   trialLinkCode?: string;
+  isUpgrade?: boolean;
+  creditAmountCents?: number;
 }
 
 /**
@@ -77,6 +79,26 @@ export async function createSubscriptionCheckout(
         trialLinkId = trialLink.id;
       }
     }
+  }
+
+  // Apply credit if this is an upgrade with unused time credit
+  if (params.isUpgrade && params.creditAmountCents && params.creditAmountCents > 0) {
+    // Apply credit to customer's balance (negative amount = credit)
+    await stripe.customers.createBalanceTransaction(customerId, {
+      amount: -params.creditAmountCents, // Negative = credit
+      currency: 'usd',
+      description: `Prorated credit for upgrade from previous plan`,
+    });
+
+    // Record the subscription change
+    await supabase.from('subscription_changes').insert({
+      user_id: params.userId,
+      old_plan_id: null, // Will be updated in webhook after successful checkout
+      new_plan_id: params.planId,
+      credit_amount_cents: params.creditAmountCents,
+      change_type: 'upgrade',
+      status: 'pending',
+    });
   }
 
   // Build checkout session params

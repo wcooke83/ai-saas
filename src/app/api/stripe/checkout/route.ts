@@ -18,6 +18,8 @@ const subscriptionSchema = z.object({
   planId: z.string().uuid(),
   billingInterval: z.enum(['monthly', 'yearly']).default('monthly'),
   trialLinkCode: z.string().optional(),
+  isUpgrade: z.boolean().optional(),
+  creditAmountCents: z.number().optional(),
 });
 
 const creditSchema = z.object({
@@ -52,6 +54,8 @@ export async function POST(req: NextRequest) {
         planId: input.planId,
         billingInterval: input.billingInterval || 'monthly',
         trialLinkCode: input.trialLinkCode,
+        isUpgrade: input.isUpgrade,
+        creditAmountCents: input.creditAmountCents,
         successUrl: `${baseUrl}/dashboard/billing?checkout=success&type=subscription`,
         cancelUrl: `${baseUrl}/dashboard/billing?checkout=canceled`,
       });

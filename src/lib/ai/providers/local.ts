@@ -11,6 +11,7 @@ export interface LocalProviderOptions {
   timeout?: number;
   provider?: 'default' | 'chatgpt' | 'claude' | 'grok';
   apiUrl?: string;
+  sessionId?: string;
 }
 
 export interface LocalProviderResponse {
@@ -46,6 +47,11 @@ export async function executeLocalAI(
   // Only add provider if not 'default'
   if (provider && provider !== 'default') {
     body.provider = provider;
+  }
+
+  // Add session_id if provided to maintain conversation context
+  if (options.sessionId) {
+    body.session_id = options.sessionId;
   }
 
   try {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, useRef, useCallback, use } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import {
@@ -16,6 +16,7 @@ import {
   XCircle,
   Clock,
   RefreshCw,
+  Star,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -38,34 +39,44 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
 
   // Form states
   const [urlInput, setUrlInput] = useState('');
+  const [crawlEnabled, setCrawlEnabled] = useState(false);
+  const [maxPages, setMaxPages] = useState(25);
   const [textInput, setTextInput] = useState('');
   const [textName, setTextName] = useState('');
   const [qaQuestion, setQaQuestion] = useState('');
   const [qaAnswer, setQaAnswer] = useState('');
 
-  const fetchSources = async () => {
+  // Track whether any sources are still processing using a ref
+  // so the polling interval always sees the latest value
+  const hasProcessingRef = useRef(false);
+
+  const fetchSources = useCallback(async () => {
     try {
       const response = await fetch(`/api/chatbots/${id}/knowledge`);
       if (!response.ok) throw new Error('Failed to fetch sources');
       const data = await response.json();
-      setSources(data.data.sources);
+      const fetched: KnowledgeSource[] = data.data.sources;
+      setSources(fetched);
+      hasProcessingRef.current = fetched.some(
+        (s) => s.status === 'pending' || s.status === 'processing'
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     fetchSources();
-    // Poll for processing status
+    // Poll every 3s while any source is pending/processing
     const interval = setInterval(() => {
-      if (sources.some((s) => s.status === 'pending' || s.status === 'processing')) {
+      if (hasProcessingRef.current) {
         fetchSources();
       }
-    }, 5000);
+    }, 3000);
     return () => clearInterval(interval);
-  }, [id]);
+  }, [fetchSources]);
 
   const handleAddSource = async () => {
     setSubmitting(true);
@@ -76,7 +87,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
       switch (addMode) {
         case 'url':
           if (!urlInput.trim()) throw new Error('URL is required');
-          body = { type: 'url', url: urlInput.trim() };
+          body = { type: 'url', url: urlInput.trim(), crawl: crawlEnabled, maxPages };
           break;
         case 'text':
           if (!textInput.trim()) throw new Error('Content is required');
@@ -102,16 +113,41 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
       // Reset form and refresh
       setAddMode(null);
       setUrlInput('');
+      setCrawlEnabled(false);
+      setMaxPages(25);
       setTextInput('');
       setTextName('');
       setQaQuestion('');
       setQaAnswer('');
       await fetchSources();
-      toast.success('Knowledge source added');
+      toast.success(crawlEnabled ? 'Website crawl started — pages will appear as they are processed' : 'Knowledge source added');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to add source');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleTogglePriority = async (source: KnowledgeSource) => {
+    const newPriority = !source.is_priority;
+    // Optimistic update
+    setSources((prev) =>
+      prev.map((s) => (s.id === source.id ? { ...s, is_priority: newPriority } : s))
+    );
+    try {
+      const response = await fetch(`/api/chatbots/${id}/knowledge/${source.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_priority: newPriority }),
+      });
+      if (!response.ok) throw new Error('Failed to update');
+      toast.success(newPriority ? 'Source pinned — always included in AI context' : 'Source unpinned');
+    } catch {
+      // Rollback
+      setSources((prev) =>
+        prev.map((s) => (s.id === source.id ? { ...s, is_priority: !newPriority } : s))
+      );
+      toast.error('Failed to update source priority');
     }
   };
 
@@ -240,15 +276,66 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             {addMode === 'url' && (
-              <div className="space-y-2">
-                <Label htmlFor="url">Website URL</Label>
-                <Input
-                  id="url"
-                  type="url"
-                  placeholder="https://example.com/page"
-                  value={urlInput}
-                  onChange={(e) => setUrlInput(e.target.value)}
-                />
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="url">Website URL</Label>
+                  <Input
+                    id="url"
+                    type="url"
+                    placeholder="https://example.com"
+                    value={urlInput}
+                    onChange={(e) => setUrlInput(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-lg border border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-800/50">
+                  <input
+                    id="crawl-toggle"
+                    type="checkbox"
+                    checked={crawlEnabled}
+                    onChange={(e) => setCrawlEnabled(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-secondary-300 text-primary-500 focus:ring-primary-500"
+                  />
+                  <div className="flex-1">
+                    <Label htmlFor="crawl-toggle" className="font-medium cursor-pointer">
+                      Crawl linked pages
+                    </Label>
+                    <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">
+                      Automatically discover and import content from linked pages on the same domain.
+                      Uses sitemap.xml when available, then follows links.
+                    </p>
+
+                    {crawlEnabled && (
+                      <div className="mt-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="max-pages" className="text-sm">
+                            Max pages
+                          </Label>
+                          <span className="text-sm font-medium text-primary-500">
+                            {maxPages}
+                          </span>
+                        </div>
+                        <input
+                          id="max-pages"
+                          type="range"
+                          min={5}
+                          max={100}
+                          step={5}
+                          value={maxPages}
+                          onChange={(e) => setMaxPages(Number(e.target.value))}
+                          className="w-full h-2 bg-secondary-200 dark:bg-secondary-700 rounded-lg appearance-none cursor-pointer accent-primary-500"
+                        />
+                        <div className="relative h-4 text-xs text-secondary-400">
+                          <span className="absolute" style={{ left: '0%' }}>5</span>
+                          <span className="absolute -translate-x-1/2" style={{ left: '21.05%' }}>25</span>
+                          <span className="absolute -translate-x-1/2" style={{ left: '47.37%' }}>50</span>
+                          <span className="absolute -translate-x-1/2" style={{ left: '73.68%' }}>75</span>
+                          <span className="absolute right-0">100</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -364,14 +451,28 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
                       </div>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteSource(source.id)}
-                    className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleTogglePriority(source)}
+                      className={source.is_priority
+                        ? 'text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
+                        : 'text-secondary-400 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
+                      }
+                      title={source.is_priority ? 'Unpin — remove from always-included context' : 'Pin — always include in AI context'}
+                    >
+                      <Star className={`w-4 h-4 ${source.is_priority ? 'fill-current' : ''}`} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteSource(source.id)}
+                      className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             );

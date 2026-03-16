@@ -463,9 +463,9 @@
     --subsection-title: 248 250 252; /* secondary-50 */
 
     /* Tooltip colors */
-    --tooltip-bg: 241 245 249; /* secondary-100 */
-    --tooltip-text: 15 23 42; /* secondary-900 */
-    --tooltip-border: 203 213 225; /* secondary-300 */
+    --tooltip-bg: 30 41 59; /* secondary-800 */
+    --tooltip-text: 248 250 252; /* secondary-50 */
+    --tooltip-border: 71 85 105; /* secondary-600 */
     --tooltip-min-width: 12rem; /* 192px */
     --tooltip-max-width: 14rem; /* 224px */
 
@@ -701,6 +701,12 @@
     @apply border-secondary-200 dark:border-secondary-700;
   }
 
+  /* Consistent h-10 (40px) height for all form inputs and selects */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="file"]):not([type="color"]):not([type="range"]),
+  select {
+    height: 2.5rem; /* h-10 */
+  }
+
   body {
     @apply bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 antialiased;
   }
@@ -772,6 +778,45 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Animation utilities for dialog (from tailwindcss-animate) */
+  .animate-in {
+    animation-duration: 0.2s;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    animation-fill-mode: forwards;
+  }
+
+  .fade-in-0 {
+    animation-name: fade-in;
+  }
+
+  .zoom-in-95 {
+    animation-name: zoom-in-95;
+  }
+}
+
+@keyframes fade-in {
+  from { 
+    opacity: 0;
+    pointer-events: none;
+  }
+  to { 
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@keyframes zoom-in-95 {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+    pointer-events: none;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+    pointer-events: auto;
   }
 }
 

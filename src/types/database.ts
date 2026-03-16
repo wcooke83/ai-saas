@@ -404,6 +404,7 @@ export type Database = {
           description: string | null
           id: string
           is_published: boolean | null
+          language: string
           logo_url: string | null
           max_tokens: number | null
           messages_this_month: number | null
@@ -421,12 +422,19 @@ export type Database = {
           user_id: string
           welcome_message: string | null
           widget_config: Json | null
+          memory_enabled: boolean
+          memory_days: number
+          custom_text_updated_at: string | null
+          language_updated_at: string | null
+          file_upload_config: Json | null
+          transcript_config: Json | null
         }
         Insert: {
           created_at?: string | null
           description?: string | null
           id?: string
           is_published?: boolean | null
+          language?: string
           logo_url?: string | null
           max_tokens?: number | null
           messages_this_month?: number | null
@@ -444,12 +452,19 @@ export type Database = {
           user_id: string
           welcome_message?: string | null
           widget_config?: Json | null
+          memory_enabled?: boolean
+          memory_days?: number
+          custom_text_updated_at?: string | null
+          language_updated_at?: string | null
+          file_upload_config?: Json | null
+          transcript_config?: Json | null
         }
         Update: {
           created_at?: string | null
           description?: string | null
           id?: string
           is_published?: boolean | null
+          language?: string
           logo_url?: string | null
           max_tokens?: number | null
           messages_this_month?: number | null
@@ -467,6 +482,12 @@ export type Database = {
           user_id?: string
           welcome_message?: string | null
           widget_config?: Json | null
+          memory_enabled?: boolean
+          memory_days?: number
+          custom_text_updated_at?: string | null
+          language_updated_at?: string | null
+          file_upload_config?: Json | null
+          transcript_config?: Json | null
         }
         Relationships: []
       }
@@ -478,14 +499,20 @@ export type Database = {
           feedback_text: string | null
           first_message_at: string | null
           id: string
+          language: string | null
           last_message_at: string | null
           message_count: number | null
           rating: number | null
           session_id: string
           status: string | null
+          summary: string | null
           updated_at: string | null
           visitor_id: string | null
           visitor_metadata: Json | null
+          sentiment_score: number | null
+          sentiment_label: string | null
+          sentiment_summary: string | null
+          sentiment_analyzed_at: string | null
         }
         Insert: {
           channel?: string | null
@@ -494,14 +521,20 @@ export type Database = {
           feedback_text?: string | null
           first_message_at?: string | null
           id?: string
+          language?: string | null
           last_message_at?: string | null
           message_count?: number | null
           rating?: number | null
           session_id: string
           status?: string | null
+          summary?: string | null
           updated_at?: string | null
           visitor_id?: string | null
           visitor_metadata?: Json | null
+          sentiment_score?: number | null
+          sentiment_label?: string | null
+          sentiment_summary?: string | null
+          sentiment_analyzed_at?: string | null
         }
         Update: {
           channel?: string | null
@@ -510,14 +543,149 @@ export type Database = {
           feedback_text?: string | null
           first_message_at?: string | null
           id?: string
+          language?: string | null
           last_message_at?: string | null
           message_count?: number | null
           rating?: number | null
           session_id?: string
           status?: string | null
+          summary?: string | null
           updated_at?: string | null
           visitor_id?: string | null
           visitor_metadata?: Json | null
+          sentiment_score?: number | null
+          sentiment_label?: string | null
+          sentiment_summary?: string | null
+          sentiment_analyzed_at?: string | null
+        }
+        Relationships: []
+      }
+      conversation_memory: {
+        Row: {
+          id: string
+          chatbot_id: string
+          visitor_id: string
+          key_facts: Json
+          summary: string | null
+          last_accessed: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          chatbot_id: string
+          visitor_id: string
+          key_facts?: Json
+          summary?: string | null
+          last_accessed?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          chatbot_id?: string
+          visitor_id?: string
+          key_facts?: Json
+          summary?: string | null
+          last_accessed?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      conversation_memory_emails: {
+        Row: {
+          id: string
+          chatbot_id: string
+          email: string
+          visitor_id: string
+          verified_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          chatbot_id: string
+          email: string
+          visitor_id: string
+          verified_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          chatbot_id?: string
+          email?: string
+          visitor_id?: string
+          verified_at?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      memory_verification_codes: {
+        Row: {
+          id: string
+          chatbot_id: string
+          email: string
+          code: string
+          expires_at: string
+          used: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          chatbot_id: string
+          email: string
+          code: string
+          expires_at: string
+          used?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          chatbot_id?: string
+          email?: string
+          code?: string
+          expires_at?: string
+          used?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      visitor_loyalty: {
+        Row: {
+          id: string
+          chatbot_id: string
+          visitor_id: string
+          loyalty_score: number
+          loyalty_trend: string
+          total_sessions: number
+          avg_sentiment: number
+          last_sentiment_score: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          chatbot_id: string
+          visitor_id: string
+          loyalty_score?: number
+          loyalty_trend?: string
+          total_sessions?: number
+          avg_sentiment?: number
+          last_sentiment_score?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          chatbot_id?: string
+          visitor_id?: string
+          loyalty_score?: number
+          loyalty_trend?: string
+          total_sessions?: number
+          avg_sentiment?: number
+          last_sentiment_score?: number | null
+          created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -736,6 +904,7 @@ export type Database = {
           thumbs_up: boolean | null
           tokens_input: number | null
           tokens_output: number | null
+          attachments: Json | null
         }
         Insert: {
           chatbot_id: string
@@ -750,6 +919,7 @@ export type Database = {
           thumbs_up?: boolean | null
           tokens_input?: number | null
           tokens_output?: number | null
+          attachments?: Json | null
         }
         Update: {
           chatbot_id?: string
@@ -764,6 +934,7 @@ export type Database = {
           thumbs_up?: boolean | null
           tokens_input?: number | null
           tokens_output?: number | null
+          attachments?: Json | null
         }
         Relationships: []
       }
@@ -976,6 +1147,8 @@ export type Database = {
           trial_link_id: string | null
           updated_at: string | null
           user_id: string
+          purchase_source: string | null
+          external_license_key: string | null
         }
         Insert: {
           billing_interval?: string | null
@@ -993,6 +1166,8 @@ export type Database = {
           trial_link_id?: string | null
           updated_at?: string | null
           user_id: string
+          purchase_source?: string | null
+          external_license_key?: string | null
         }
         Update: {
           billing_interval?: string | null
@@ -1010,6 +1185,80 @@ export type Database = {
           trial_link_id?: string | null
           updated_at?: string | null
           user_id?: string
+          purchase_source?: string | null
+          external_license_key?: string | null
+        }
+        Relationships: []
+      }
+      license_keys: {
+        Row: {
+          id: string
+          key: string
+          source: string
+          plan_slug: string
+          max_redemptions: number
+          redemptions_count: number
+          tier: number
+          is_active: boolean
+          expires_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          source?: string
+          plan_slug: string
+          max_redemptions?: number
+          redemptions_count?: number
+          tier?: number
+          is_active?: boolean
+          expires_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          source?: string
+          plan_slug?: string
+          max_redemptions?: number
+          redemptions_count?: number
+          tier?: number
+          is_active?: boolean
+          expires_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      license_key_redemptions: {
+        Row: {
+          id: string
+          license_key_id: string
+          user_id: string
+          redeemed_at: string
+          previous_plan_slug: string | null
+          new_plan_slug: string
+          stacked_tier: number
+        }
+        Insert: {
+          id?: string
+          license_key_id: string
+          user_id: string
+          redeemed_at?: string
+          previous_plan_slug?: string | null
+          new_plan_slug: string
+          stacked_tier?: number
+        }
+        Update: {
+          id?: string
+          license_key_id?: string
+          user_id?: string
+          redeemed_at?: string
+          previous_plan_slug?: string | null
+          new_plan_slug?: string
+          stacked_tier?: number
         }
         Relationships: []
       }

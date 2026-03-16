@@ -6,6 +6,8 @@
 
 import { anthropic } from './providers/anthropic';
 import { openai } from './providers/openai';
+import { deepseek } from './providers/deepseek';
+import { gemini } from './providers/gemini';
 import { executeLocalAI, isLocalAIAvailable } from './providers/local';
 import { getDefaultModel, getAIModels } from '@/lib/settings';
 import type { AIModelWithProvider } from '@/types/ai-models';
@@ -64,13 +66,17 @@ function mapProviderSlugToType(slug: string): Provider | null {
     case 'openai':
     case 'gpt':
       return 'openai';
+    case 'deepseek':
+      return 'deepseek';
     case 'local':
     case 'nova':
     case 'local-ai':
     case 'localai':
       return 'local';
-    case 'xai':
     case 'google':
+    case 'gemini':
+      return 'gemini';
+    case 'xai':
     case 'meta':
       // These could be added in the future
       return null;
@@ -284,8 +290,15 @@ Key elements that would be included:
 // TYPES
 // ===================
 
-export type Provider = 'claude' | 'openai' | 'local' | 'mock';
+export type Provider = 'claude' | 'openai' | 'deepseek' | 'gemini' | 'local' | 'mock';
 export type ModelTier = 'fast' | 'balanced' | 'powerful';
+
+export interface ImageInput {
+  /** Base64-encoded image data */
+  data: string;
+  /** MIME type, e.g. 'image/jpeg', 'image/png' */
+  media_type: string;
+}
 
 export interface GenerateOptions {
   provider?: Provider;
@@ -296,6 +309,8 @@ export interface GenerateOptions {
   temperature?: number;
   systemPrompt?: string;
   stopSequences?: string[];
+  /** Optional images to include for vision-capable models */
+  images?: ImageInput[];
 }
 
 export interface GenerateResult {
@@ -344,6 +359,10 @@ export async function getActiveModelAndProvider(): Promise<{
     return null;
   } else if (providerType === 'openai' && !openai) {
     return null;
+  } else if (providerType === 'deepseek' && !deepseek) {
+    return null;
+  } else if (providerType === 'gemini' && !gemini) {
+    return null;
   }
 
   return { model, provider: providerType };
@@ -373,6 +392,8 @@ export function isProviderAvailable(provider: Provider): boolean {
   if (provider === 'mock') return MOCK_MODE;
   if (provider === 'claude') return !!anthropic && !MOCK_MODE;
   if (provider === 'openai') return !!openai && !MOCK_MODE;
+  if (provider === 'deepseek') return !!deepseek && !MOCK_MODE;
+  if (provider === 'gemini') return !!gemini && !MOCK_MODE;
   // Local provider availability is async, use isProviderAvailableAsync for accurate check
   if (provider === 'local') return true; // Optimistic, will fail at runtime if not available
   return false;
@@ -382,6 +403,8 @@ export async function isProviderAvailableAsync(provider: Provider): Promise<bool
   if (provider === 'mock') return MOCK_MODE;
   if (provider === 'claude') return !!anthropic && !MOCK_MODE;
   if (provider === 'openai') return !!openai && !MOCK_MODE;
+  if (provider === 'deepseek') return !!deepseek && !MOCK_MODE;
+  if (provider === 'gemini') return !!gemini && !MOCK_MODE;
   if (provider === 'local') return await isLocalAIAvailable();
   return false;
 }
@@ -490,13 +513,25 @@ export async function generate(
 
   // Claude/Anthropic provider
   if (activeProvider === 'claude' && anthropic && activeModel) {
+    // Build user content: text + optional images
+    const userContent: any[] = [];
+    if (options.images && options.images.length > 0) {
+      for (const img of options.images) {
+        userContent.push({
+          type: 'image',
+          source: { type: 'base64', media_type: img.media_type, data: img.data },
+        });
+      }
+    }
+    userContent.push({ type: 'text', text: prompt });
+
     const response = await anthropic.messages.create({
       model: activeModel.api_model_id,
       max_tokens: effectiveMaxTokens,
       temperature,
       system: systemPrompt,
       stop_sequences: stopSequences,
-      messages: [{ role: 'user', content: prompt }],
+      messages: [{ role: 'user', content: userContent }],
     });
 
     const textContent = response.content.find((c) => c.type === 'text');
@@ -513,7 +548,43 @@ export async function generate(
 
   // OpenAI provider
   if (activeProvider === 'openai' && openai && activeModel) {
+    // Build user content with optional images
+    let openaiUserContent: any = prompt;
+    if (options.images && options.images.length > 0) {
+      const parts: any[] = [];
+      for (const img of options.images) {
+        parts.push({ type: 'image_url', image_url: { url: `data:${img.media_type};base64,${img.data}` } });
+      }
+      parts.push({ type: 'text', text: prompt });
+      openaiUserContent = parts;
+    }
+
     const response = await openai.chat.completions.create({
+      model: activeModel.api_model_id,
+      max_tokens: effectiveMaxTokens,
+      temperature,
+      stop: stopSequences,
+      messages: [
+        ...(systemPrompt
+          ? [{ role: 'system' as const, content: systemPrompt }]
+          : []),
+        { role: 'user' as const, content: openaiUserContent },
+      ],
+    });
+
+    return {
+      content: response.choices[0]?.message?.content || '',
+      tokensInput: response.usage?.prompt_tokens || 0,
+      tokensOutput: response.usage?.completion_tokens || 0,
+      model: activeModel.api_model_id,
+      provider: 'openai',
+      durationMs: Date.now() - startTime,
+    };
+  }
+
+  // DeepSeek provider (OpenAI-compatible API)
+  if (activeProvider === 'deepseek' && deepseek && activeModel) {
+    const response = await deepseek.chat.completions.create({
       model: activeModel.api_model_id,
       max_tokens: effectiveMaxTokens,
       temperature,
@@ -531,7 +602,37 @@ export async function generate(
       tokensInput: response.usage?.prompt_tokens || 0,
       tokensOutput: response.usage?.completion_tokens || 0,
       model: activeModel.api_model_id,
-      provider: 'openai',
+      provider: 'deepseek',
+      durationMs: Date.now() - startTime,
+    };
+  }
+
+  // Google Gemini provider
+  if (activeProvider === 'gemini' && gemini && activeModel) {
+    const model = gemini.getGenerativeModel({ 
+      model: activeModel.api_model_id,
+      systemInstruction: systemPrompt,
+    });
+
+    // Build parts with optional images
+    const geminiParts: any[] = [];
+    if (options.images && options.images.length > 0) {
+      for (const img of options.images) {
+        geminiParts.push({ inlineData: { mimeType: img.media_type, data: img.data } });
+      }
+    }
+    geminiParts.push({ text: prompt });
+
+    const result = await model.generateContent(geminiParts);
+    const response = result.response;
+    const text = response.text();
+
+    return {
+      content: text,
+      tokensInput: response.usageMetadata?.promptTokenCount || Math.ceil(prompt.length / 4),
+      tokensOutput: response.usageMetadata?.candidatesTokenCount || Math.ceil(text.length / 4),
+      model: activeModel.api_model_id,
+      provider: 'gemini',
       durationMs: Date.now() - startTime,
     };
   }
@@ -636,12 +737,24 @@ export async function* generateStream(
 
   // Claude/Anthropic provider
   if (activeProvider === 'claude' && anthropic && activeModel) {
+    // Build user content: text + optional images
+    const streamUserContent: any[] = [];
+    if (options.images && options.images.length > 0) {
+      for (const img of options.images) {
+        streamUserContent.push({
+          type: 'image',
+          source: { type: 'base64', media_type: img.media_type, data: img.data },
+        });
+      }
+    }
+    streamUserContent.push({ type: 'text', text: prompt });
+
     const stream = anthropic.messages.stream({
       model: activeModel.api_model_id,
       max_tokens: effectiveMaxTokens,
       temperature,
       system: systemPrompt,
-      messages: [{ role: 'user', content: prompt }],
+      messages: [{ role: 'user', content: streamUserContent }],
     });
 
     for await (const event of stream) {
@@ -674,6 +787,17 @@ export async function* generateStream(
 
   // OpenAI provider
   if (activeProvider === 'openai' && openai && activeModel) {
+    // Build user content with optional images
+    let streamOpenaiContent: any = prompt;
+    if (options.images && options.images.length > 0) {
+      const parts: any[] = [];
+      for (const img of options.images) {
+        parts.push({ type: 'image_url', image_url: { url: `data:${img.media_type};base64,${img.data}` } });
+      }
+      parts.push({ type: 'text', text: prompt });
+      streamOpenaiContent = parts;
+    }
+
     const stream = await openai.chat.completions.create({
       model: activeModel.api_model_id,
       max_tokens: effectiveMaxTokens,
@@ -683,7 +807,7 @@ export async function* generateStream(
         ...(systemPrompt
           ? [{ role: 'system' as const, content: systemPrompt }]
           : []),
-        { role: 'user' as const, content: prompt },
+        { role: 'user' as const, content: streamOpenaiContent },
       ],
     });
 
@@ -705,6 +829,75 @@ export async function* generateStream(
       tokensOutput,
       model: activeModel.api_model_id,
       provider: 'openai',
+      durationMs: Date.now() - startTime,
+    };
+  }
+
+  // DeepSeek provider (OpenAI-compatible streaming)
+  if (activeProvider === 'deepseek' && deepseek && activeModel) {
+    const stream = await deepseek.chat.completions.create({
+      model: activeModel.api_model_id,
+      max_tokens: effectiveMaxTokens,
+      temperature,
+      stream: true,
+      messages: [
+        ...(systemPrompt
+          ? [{ role: 'system' as const, content: systemPrompt }]
+          : []),
+        { role: 'user' as const, content: prompt },
+      ],
+    });
+
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content;
+      if (content) {
+        fullContent += content;
+        tokensOutput++;
+        yield content;
+      }
+    }
+
+    tokensInput = Math.ceil((systemPrompt?.length || 0 + prompt.length) / 4);
+
+    return {
+      content: fullContent,
+      tokensInput,
+      tokensOutput,
+      model: activeModel.api_model_id,
+      provider: 'deepseek',
+      durationMs: Date.now() - startTime,
+    };
+  }
+
+  // Google Gemini provider (streaming)
+  if (activeProvider === 'gemini' && gemini && activeModel) {
+    const model = gemini.getGenerativeModel({ 
+      model: activeModel.api_model_id,
+      systemInstruction: systemPrompt,
+    });
+
+    const result = await model.generateContentStream(prompt);
+
+    for await (const chunk of result.stream) {
+      const chunkText = chunk.text();
+      if (chunkText) {
+        fullContent += chunkText;
+        tokensOutput++;
+        yield chunkText;
+      }
+    }
+
+    // Get final response with usage metadata
+    const finalResponse = await result.response;
+    tokensInput = finalResponse.usageMetadata?.promptTokenCount || Math.ceil(prompt.length / 4);
+    tokensOutput = finalResponse.usageMetadata?.candidatesTokenCount || tokensOutput;
+
+    return {
+      content: fullContent,
+      tokensInput,
+      tokensOutput,
+      model: activeModel.api_model_id,
+      provider: 'gemini',
       durationMs: Date.now() - startTime,
     };
   }

@@ -47,10 +47,17 @@ function formatDuration(ms: number | null): string {
 }
 
 function getToolName(endpoint: string): string {
+  // Check for chat endpoints
+  if (endpoint.includes('/api/chat/')) {
+    return 'Chat Message';
+  }
+  
+  // Check for tool endpoints
   const match = endpoint.match(/\/api\/tools\/([^/]+)/);
   if (match) {
     return match[1].split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   }
+  
   return endpoint;
 }
 

@@ -159,6 +159,28 @@ export default function DeployPage({ params }: DeployPageProps) {
   allow="clipboard-write"
 ></iframe>`;
 
+  const authenticatedUserCode = `<script src="${baseUrl}/widget/sdk.js"></script>
+<script>
+  // Pass your logged-in user's data to the chatbot
+  ChatWidget.init({
+    chatbotId: '${id}',
+    user: {
+      id: 'user_123',        // Required: stable user ID
+      name: 'John Doe',
+      email: 'john@example.com',
+      plan: 'Pro'            // Any custom fields
+    },
+    context: {
+      // Any data you want the chatbot to know about
+      recent_orders: [
+        { id: 'ORD-001', total: '$149', status: 'shipped' }
+      ],
+      account_balance: '$42.50',
+      subscription: { plan: 'Pro', renewal: '2024-04-15' }
+    }
+  });
+</script>`;
+
   const apiExample = `curl -X POST "${baseUrl}/api/chat/${id}" \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
@@ -328,6 +350,49 @@ const data = await res.json();`;
           </CardContent>
         </Card>
       </div>
+
+      {/* Authenticated Users */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg">
+              <Code className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <CardTitle>Authenticated Users</CardTitle>
+                <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 text-[10px]">
+                  Advanced
+                </Badge>
+              </div>
+              <CardDescription>Pass your logged-in user data so the chatbot knows who they are</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <CodeBlock
+            code={authenticatedUserCode}
+            language="html"
+            copyId="authenticated"
+            copiedCode={copiedCode}
+            onCopy={copyToClipboard}
+          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg border border-secondary-200 dark:border-secondary-700">
+              <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">user object</p>
+              <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                Pass verified user identity (name, email, plan). Requires an <code className="bg-secondary-100 dark:bg-secondary-800 px-1 py-0.5 rounded text-[11px]">id</code> field for cross-device memory. Skips the pre-chat form automatically.
+              </p>
+            </div>
+            <div className="p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg border border-secondary-200 dark:border-secondary-700">
+              <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">context object</p>
+              <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                Pass account data (orders, billing, subscription). The chatbot can answer questions like &quot;Where&apos;s my order?&quot; or &quot;When does my plan renew?&quot;
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Live Preview */}
       <Card>

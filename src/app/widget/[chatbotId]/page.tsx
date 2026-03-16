@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import { ChatWidget } from '@/components/widget/ChatWidget';
-import type { WidgetConfig, Chatbot } from '@/lib/chatbots/types';
+import type { WidgetConfig, Chatbot, PreChatFormConfig, PostChatSurveyConfig, FileUploadConfig, ProactiveMessagesConfig, TranscriptConfig } from '@/lib/chatbots/types';
 
 interface WidgetPageProps {
   params: Promise<{ chatbotId: string }>;
@@ -13,14 +13,41 @@ export default function WidgetPage({ params }: WidgetPageProps) {
   const [config, setConfig] = useState<{
     chatbot: Partial<Chatbot>;
     widgetConfig: WidgetConfig;
+    preChatFormConfig?: PreChatFormConfig;
+    postChatSurveyConfig?: PostChatSurveyConfig;
+    fileUploadConfig?: FileUploadConfig;
+    proactiveMessagesConfig?: ProactiveMessagesConfig;
+    transcriptConfig?: TranscriptConfig;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState<Record<string, string> | null>(null);
+  const [userContext, setUserContext] = useState<Record<string, unknown> | null>(null);
+
+  // Listen for user-context messages from parent SDK
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'user-context') {
+        if (event.data.user) setUserData(event.data.user);
+        if (event.data.context) setUserContext(event.data.context);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+
+    // Signal to parent that widget is ready to receive data
+    if (window.self !== window.top) {
+      window.parent.postMessage({ type: 'widget-ready' }, '*');
+    }
+
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
 
   useEffect(() => {
     async function fetchConfig() {
       try {
-        const response = await fetch(`/api/widget/${chatbotId}/config`);
+        // Add cache-busting to ensure fresh config
+        const cacheBuster = Date.now();
+        const response = await fetch(`/api/widget/${chatbotId}/config?_t=${cacheBuster}`);
         if (!response.ok) {
           throw new Error('Chatbot not found or not available');
         }
@@ -59,7 +86,19 @@ export default function WidgetPage({ params }: WidgetPageProps) {
     <ChatWidget
       chatbotId={chatbotId}
       chatbot={config.chatbot}
-      config={config.widgetConfig}
+      config={{
+        ...config.widgetConfig,
+        autoOpen: true,
+        autoOpenDelay: 0,
+      }}
+      preChatFormConfig={config.preChatFormConfig}
+      postChatSurveyConfig={config.postChatSurveyConfig}
+      language={config.chatbot.language || 'en'}
+      fileUploadConfig={config.fileUploadConfig}
+      proactiveMessagesConfig={config.proactiveMessagesConfig}
+      transcriptConfig={config.transcriptConfig}
+      userData={userData}
+      userContext={userContext}
     />
   );
 }

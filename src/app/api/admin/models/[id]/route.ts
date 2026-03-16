@@ -17,6 +17,7 @@ const updateModelSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   api_model_id: z.string().min(1).max(100).optional(),
   tier: z.enum(['fast', 'balanced', 'powerful']).optional().nullable(),
+  grade: z.string().min(1).max(50).optional(),
   is_enabled: z.boolean().optional(),
   is_default: z.boolean().optional(),
   max_tokens: z.number().int().min(1).optional(),
@@ -76,6 +77,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     if (input.name !== undefined) updateData.name = input.name;
     if (input.api_model_id !== undefined) updateData.api_model_id = input.api_model_id;
     if (input.tier !== undefined) updateData.tier = input.tier;
+    if (input.grade !== undefined) updateData.grade = input.grade;
     if (input.is_enabled !== undefined) updateData.is_enabled = input.is_enabled;
     if (input.is_default !== undefined) updateData.is_default = input.is_default;
     if (input.max_tokens !== undefined) updateData.max_tokens = input.max_tokens;

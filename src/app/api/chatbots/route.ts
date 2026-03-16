@@ -14,7 +14,7 @@ import {
   generateUniqueSlug,
   checkChatbotLimit,
 } from '@/lib/chatbots/api';
-import { DEFAULT_WIDGET_CONFIG } from '@/lib/chatbots/types';
+import { DEFAULT_WIDGET_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG } from '@/lib/chatbots/types';
 
 // Create chatbot validation schema
 const createChatbotSchema = z.object({
@@ -26,6 +26,10 @@ const createChatbotSchema = z.object({
   max_tokens: z.number().min(100).max(4096).optional(),
   widget_config: z.record(z.unknown()).optional(),
   welcome_message: z.string().max(500).optional(),
+  language: z.string().max(10).optional(),
+  memory_enabled: z.boolean().optional(),
+  memory_days: z.number().min(0).max(365).optional(),
+  file_upload_config: z.record(z.unknown()).optional(),
 });
 
 export async function GET(req: NextRequest) {
@@ -91,6 +95,12 @@ export async function POST(req: NextRequest) {
       max_tokens: input.max_tokens,
       widget_config: widgetConfig,
       welcome_message: input.welcome_message,
+      language: input.language,
+      memory_enabled: input.memory_enabled,
+      memory_days: input.memory_days,
+      file_upload_config: input.file_upload_config
+        ? { ...DEFAULT_FILE_UPLOAD_CONFIG, ...input.file_upload_config }
+        : undefined,
     });
 
     return successResponse({ chatbot }, undefined, 201);

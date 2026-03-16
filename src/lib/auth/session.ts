@@ -17,6 +17,7 @@ export interface AuthenticatedUser {
   id: string;
   email: string;
   plan: string;
+  subscriptionStatus: string;
   authMethod: 'session' | 'api_key';
   apiKey?: APIKeyWithUser;
 }
@@ -49,19 +50,23 @@ export async function authenticateSession(): Promise<AuthenticatedUser | null> {
     return null;
   }
 
-  // Get user's subscription plan
-  const { data: subscription } = await supabase
+  // Get user's subscription plan and status
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: subscription } = await (supabase as any)
     .from('subscriptions')
-    .select('plan')
+    .select('plan, status')
     .eq('user_id', user.id)
     .maybeSingle();
 
-  const plan = (subscription as { plan: string } | null)?.plan || 'free';
+  const sub = subscription as { plan: string; status: string } | null;
+  const plan = sub?.plan || 'base';
+  const subscriptionStatus = sub?.status || 'active';
 
   return {
     id: user.id,
     email: user.email!,
     plan,
+    subscriptionStatus,
     authMethod: 'session',
   };
 }
@@ -84,6 +89,7 @@ export async function authenticateAPIKey(
       id: apiKeyData.user.id,
       email: apiKeyData.user.email,
       plan: apiKeyData.user.plan,
+      subscriptionStatus: 'active',
       authMethod: 'api_key',
       apiKey: apiKeyData,
     };
@@ -146,6 +152,7 @@ export async function authenticateAPIKeyStrict(
     id: apiKeyData.user.id,
     email: apiKeyData.user.email,
     plan: apiKeyData.user.plan,
+    subscriptionStatus: 'active',
     authMethod: 'api_key',
     apiKey: apiKeyData,
   };
@@ -264,7 +271,7 @@ export async function checkToolAccess(userId: string, toolSlug: string): Promise
     .eq('user_id', userId)
     .maybeSingle();
 
-  const planSlug = subscription?.plan || 'free';
+  const planSlug = subscription?.plan || 'base';
 
   // Get the plan's features
   const { data: plan } = await supabase
