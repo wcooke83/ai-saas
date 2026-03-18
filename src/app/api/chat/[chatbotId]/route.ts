@@ -40,6 +40,47 @@ import type { Chatbot, Message, Attachment, FileUploadConfig } from '@/lib/chatb
 import { DEFAULT_FILE_UPLOAD_CONFIG, FILE_TYPE_MAP } from '@/lib/chatbots/types';
 import type { AIModelWithProvider } from '@/types/ai-models';
 
+/**
+ * Create or update the email→visitor_id mapping in conversation_memory_emails.
+ * This allows returning visitors to be recognized by email for memory reload.
+ */
+async function ensureMemoryEmailMapping(
+  chatbotId: string,
+  visitorId: string,
+  preChatInfo: Record<string, string> | null,
+  supabase: any
+): Promise<void> {
+  if (!preChatInfo) return;
+
+  // Find email from pre-chat form data (check common field names)
+  const email =
+    preChatInfo.email ||
+    preChatInfo.Email ||
+    preChatInfo.EMAIL ||
+    Object.values(preChatInfo).find((v) =>
+      typeof v === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+    );
+
+  if (!email || typeof email !== 'string') return;
+
+  const normalizedEmail = email.toLowerCase().trim();
+  try {
+    await supabase
+      .from('conversation_memory_emails')
+      .upsert(
+        {
+          chatbot_id: chatbotId,
+          email: normalizedEmail,
+          visitor_id: visitorId,
+        },
+        { onConflict: 'chatbot_id,email' }
+      );
+    console.log(`[Memory] Email mapping saved: ${normalizedEmail} → ${visitorId}`);
+  } catch (err: any) {
+    console.warn('[Memory] Failed to save email mapping:', err?.message || err);
+  }
+}
+
 // Chat request validation
 const attachmentSchema = z.object({
   url: z.string().url(),
@@ -381,7 +422,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
             // Async memory extraction for streaming responses
             if (chatbot.memory_enabled && input.visitor_id) {
               const allMessages = [...messages, { role: 'user', content: input.message } as Message, { role: 'assistant', content: fullResponse } as Message];
-              extractAndStoreMemory(input.visitor_id, chatbotId, allMessages, existingMemory, supabase).catch(() => {});
+              extractAndStoreMemory(input.visitor_id, chatbotId, allMessages, existingMemory, supabase)
+                .then(() => ensureMemoryEmailMapping(chatbotId, input.visitor_id!, preChatInfo, supabase))
+                .catch(() => {});
             }
           } catch (error) {
             controller.error(error);
@@ -431,7 +474,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     // Async memory extraction (non-blocking)
     if (chatbot.memory_enabled && input.visitor_id) {
       const allMessages = [...messages, { role: 'user', content: input.message } as Message, { role: 'assistant', content: result.content } as Message];
-      extractAndStoreMemory(input.visitor_id, chatbotId, allMessages, existingMemory, supabase).catch(() => {});
+      extractAndStoreMemory(input.visitor_id, chatbotId, allMessages, existingMemory, supabase)
+        .then(() => ensureMemoryEmailMapping(chatbotId, input.visitor_id!, preChatInfo, supabase))
+        .catch(() => {});
     }
 
     // Log API call for usage tracking

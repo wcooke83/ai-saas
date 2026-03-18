@@ -529,6 +529,16 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
       return value !== undefined ? value : match;
     });
 
+    // Auto-inject name into common greeting patterns if no {{name}} placeholder was used
+    // and the message still doesn't contain the visitor's name
+    const visitorName = placeholderMap['name'];
+    if (visitorName && !message.includes('{{name}}') && !processedMessage.includes(visitorName)) {
+      processedMessage = processedMessage.replace(
+        /^(Hi|Hello|Hey|Welcome)(!|\b)/i,
+        `$1 ${visitorName}$2`
+      );
+    }
+
     return processedMessage;
   }, [preChatFormConfig, preChatFormData]);
 
