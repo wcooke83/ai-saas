@@ -54,6 +54,7 @@ const chatSchema = z.object({
   session_id: z.string().max(100).optional(),
   visitor_id: z.string().max(100).optional(),
   welcome_message: z.string().optional(),
+  proactive_message: z.string().optional(),
   user_data: z.record(z.string()).optional(),
   user_context: z.record(z.unknown()).optional(),
   attachments: z.array(attachmentSchema).optional(),
@@ -182,6 +183,37 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // Handle proactive message (save to database for conversation history)
+    if (input.message === '__PROACTIVE__' && input.proactive_message) {
+      console.log('[Chat] Saving proactive message to database:', input.proactive_message);
+      const proactiveMessage = await createMessage({
+        conversation_id: conversation.id,
+        chatbot_id: chatbotId,
+        role: 'assistant',
+        content: input.proactive_message,
+      }, supabase);
+
+      console.log('[Chat] Proactive message saved with ID:', proactiveMessage.id);
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: {
+            message: input.proactive_message,
+            conversation_id: conversation.id,
+            message_id: proactiveMessage.id,
+            session_id: sessionId,
+          },
+        }),
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      );
+    }
+
     // Detect language switch request
     const requestedLanguage = detectLanguageSwitch(input.message);
     let activeLanguage = conversation.language || chatbot.language;
@@ -199,6 +231,8 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     // Get conversation history
     const messages = await getMessages(conversation.id, supabase);
+    console.log('[Chat] Conversation history retrieved:', messages.length, 'messages');
+    console.log('[Chat] History:', messages.map(m => `${m.role}: ${m.content.substring(0, 50)}...`).join(' | '));
 
     // Save user message (with attachments if any)
     const userMessage = await createMessage({
@@ -236,8 +270,20 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       }
     }
 
+    // Build RAG search query — enhance short/ambiguous messages with conversation context
+    let ragQuery = input.message;
+    const SHORT_MESSAGE_THRESHOLD = 20; // characters
+    if (input.message.length <= SHORT_MESSAGE_THRESHOLD && messages.length > 0) {
+      // Find the last assistant message for context (e.g., proactive bubble message)
+      const lastAssistantMsg = [...messages].reverse().find(m => m.role === 'assistant');
+      if (lastAssistantMsg) {
+        ragQuery = `${lastAssistantMsg.content} ${input.message}`;
+        console.log('[Chat] Enhanced RAG query with conversation context:', ragQuery);
+      }
+    }
+
     // Get RAG context
-    const ragContext = await getRAGContext(chatbot, input.message);
+    const ragContext = await getRAGContext(chatbot, ragQuery);
 
     // Get pre-chat form data if available
     const leadData = await getLeadBySession(chatbotId, sessionId, supabase);

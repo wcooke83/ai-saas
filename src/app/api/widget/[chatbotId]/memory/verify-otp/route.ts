@@ -24,6 +24,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
+    console.log(`[Memory OTP Verify] Verifying code for email "${normalizedEmail}", chatbot ${chatbotId}`);
     const supabase = createAdminClient();
 
     // Find valid, unused code
@@ -39,6 +40,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       .single();
 
     if (!verification) {
+      console.log(`[Memory OTP Verify] No matching unused code found for "${normalizedEmail}"`);
       return new Response(
         JSON.stringify({ success: false, error: { message: 'Invalid verification code' } }),
         { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
@@ -47,12 +49,14 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     // Check expiry
     if (new Date(verification.expires_at) < new Date()) {
+      console.log(`[Memory OTP Verify] Code expired at ${verification.expires_at} for "${normalizedEmail}"`);
       return new Response(
         JSON.stringify({ success: false, error: { message: 'Verification code has expired. Please request a new one.' } }),
         { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
       );
     }
 
+    console.log(`[Memory OTP Verify] Code valid — marking as used`);
     // Mark code as used
     await (supabase as ReturnType<typeof createAdminClient>)
       .from('memory_verification_codes')
@@ -68,12 +72,14 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       .single();
 
     if (!mapping) {
+      console.warn(`[Memory OTP Verify] No visitor mapping found for verified email "${normalizedEmail}"`);
       return new Response(
         JSON.stringify({ success: false, error: { message: 'No previous conversation data found for this email' } }),
         { status: 404, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
       );
     }
 
+    console.log(`[Memory OTP Verify] Verified! email "${normalizedEmail}" → visitorId "${mapping.visitor_id}"`);
     return new Response(
       JSON.stringify({
         success: true,

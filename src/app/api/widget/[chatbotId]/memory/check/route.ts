@@ -23,22 +23,28 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       );
     }
 
+    const normalizedEmail = email.toLowerCase().trim();
+    console.log(`[Memory Check] Checking email "${normalizedEmail}" for chatbot ${chatbotId}`);
+
     const supabase = createAdminClient();
 
     // Check if this email has a verified visitor_id mapping
-    const { data: mapping } = await (supabase as ReturnType<typeof createAdminClient>)
+    const { data: mapping, error: mappingError } = await (supabase as ReturnType<typeof createAdminClient>)
       .from('conversation_memory_emails')
       .select('visitor_id')
       .eq('chatbot_id', chatbotId)
-      .eq('email', email.toLowerCase().trim())
+      .eq('email', normalizedEmail)
       .single();
 
     if (!mapping) {
+      console.log(`[Memory Check] No email→visitor mapping found for "${normalizedEmail}"`, mappingError?.code === 'PGRST116' ? '(no rows)' : mappingError?.message || '');
       return new Response(
         JSON.stringify({ success: true, data: { has_memory: false } }),
         { status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
       );
     }
+
+    console.log(`[Memory Check] Found mapping: email "${normalizedEmail}" → visitorId "${mapping.visitor_id}"`);
 
     // Check if that visitor actually has memory data
     const { data: memory } = await (supabase as ReturnType<typeof createAdminClient>)
@@ -49,6 +55,8 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       .single();
 
     const hasMemory = !!(memory && memory.key_facts && Array.isArray(memory.key_facts) && memory.key_facts.length > 0);
+    const factCount = hasMemory ? (memory.key_facts as unknown[]).length : 0;
+    console.log(`[Memory Check] Memory data for visitor "${mapping.visitor_id}": ${hasMemory ? `YES (${factCount} facts)` : 'NO (no facts stored)'}`);
 
     return new Response(
       JSON.stringify({ success: true, data: { has_memory: hasMemory } }),

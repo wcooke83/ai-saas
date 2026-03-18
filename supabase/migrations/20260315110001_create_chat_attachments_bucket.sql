@@ -17,12 +17,14 @@ VALUES (
 ON CONFLICT (id) DO NOTHING;
 
 -- Allow public read access to chat attachments
+DROP POLICY IF EXISTS "Public read access for chat attachments" ON storage.objects;
 CREATE POLICY "Public read access for chat attachments"
 ON storage.objects FOR SELECT
 TO public
 USING (bucket_id = 'chat-attachments');
 
 -- Allow anyone to upload (widget visitors are unauthenticated)
+DROP POLICY IF EXISTS "Allow uploads to chat attachments" ON storage.objects;
 CREATE POLICY "Allow uploads to chat attachments"
 ON storage.objects FOR INSERT
 TO public

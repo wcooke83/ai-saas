@@ -2,7 +2,7 @@
 -- This allows users to switch languages mid-conversation
 
 ALTER TABLE conversations
-ADD COLUMN language text;
+ADD COLUMN IF NOT EXISTS language text;
 
 -- Add index for faster queries
-CREATE INDEX idx_conversations_language ON conversations(language);
+CREATE INDEX IF NOT EXISTS idx_conversations_language ON conversations(language);

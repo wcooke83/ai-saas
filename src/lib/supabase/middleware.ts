@@ -60,10 +60,14 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
 
-  if (user) {
-    response.headers.set('x-user-id', user.id);
+    if (user) {
+      response.headers.set('x-user-id', user.id);
+    }
+  } catch {
+    // Auth fetch failed (network blip, DNS issue, etc.) — continue without auth
   }
 
   return response;

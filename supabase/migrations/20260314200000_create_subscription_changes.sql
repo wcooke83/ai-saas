@@ -22,10 +22,12 @@ CREATE INDEX IF NOT EXISTS idx_subscription_changes_status ON subscription_chang
 ALTER TABLE subscription_changes ENABLE ROW LEVEL SECURITY;
 
 -- Users can only see their own subscription changes
+DROP POLICY IF EXISTS "Users can view own subscription changes" ON subscription_changes;
 CREATE POLICY "Users can view own subscription changes" ON subscription_changes
   FOR SELECT USING (auth.uid() = user_id);
 
 -- Admin can manage all
+DROP POLICY IF EXISTS "Admins can manage subscription changes" ON subscription_changes;
 CREATE POLICY "Admins can manage subscription changes" ON subscription_changes
   FOR ALL USING (
     EXISTS (

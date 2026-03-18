@@ -32,6 +32,7 @@ CREATE INDEX IF NOT EXISTS idx_conversation_memory_last_accessed
 ALTER TABLE conversation_memory ENABLE ROW LEVEL SECURITY;
 
 -- Chatbot owners can read/manage memory for their chatbots
+DROP POLICY IF EXISTS "Chatbot owners can manage memory" ON conversation_memory;
 CREATE POLICY "Chatbot owners can manage memory"
   ON conversation_memory
   FOR ALL
@@ -43,6 +44,7 @@ CREATE POLICY "Chatbot owners can manage memory"
   );
 
 -- Service role (admin) can do everything (for the chat API which uses admin client)
+DROP POLICY IF EXISTS "Service role full access to conversation_memory" ON conversation_memory;
 CREATE POLICY "Service role full access to conversation_memory"
   ON conversation_memory
   FOR ALL

@@ -4,7 +4,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 interface RouteParams {
   params: Promise<{ chatbotId: string }>;
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     const { data, error } = await (supabase as any)
       .from('chatbot_leads')
@@ -56,22 +56,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // If form_data contains an email and visitor_id is provided, store the email-to-visitor mapping
-    const emailValue = form_data.email || form_data.Email || form_data.EMAIL;
-    if (emailValue && visitor_id) {
-      const normalizedEmail = String(emailValue).toLowerCase().trim();
-      await (supabase as any)
-        .from('conversation_memory_emails')
-        .upsert(
-          {
-            chatbot_id: chatbotId,
-            email: normalizedEmail,
-            visitor_id,
-            verified_at: new Date().toISOString(),
-          },
-          { onConflict: 'chatbot_id,email' }
-        );
-    }
+    console.log(`[Memory Leads] Lead saved for chatbot ${chatbotId}, session ${session_id}`);
 
     return new Response(
       JSON.stringify({ success: true, data: { lead_id: data.id } }),

@@ -29,6 +29,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
+    console.log(`[Memory OTP Send] Requesting OTP for email "${normalizedEmail}", chatbot ${chatbotId}`);
     const supabase = createAdminClient();
 
     // Rate limit: max 3 OTPs per email per 15 minutes
@@ -40,7 +41,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       .eq('email', normalizedEmail)
       .gte('created_at', fifteenMinAgo);
 
+    console.log(`[Memory OTP Send] Recent OTP requests in last 15min: ${recentCodes?.length || 0}/3`);
     if (recentCodes && recentCodes.length >= 3) {
+      console.warn(`[Memory OTP Send] Rate limited — ${recentCodes.length} codes sent in last 15min for "${normalizedEmail}"`);
       return new Response(
         JSON.stringify({ success: false, error: { message: 'Too many verification attempts. Please try again in a few minutes.' } }),
         { status: 429, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
@@ -61,7 +64,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       });
 
     if (insertError) {
-      console.error('Failed to store OTP:', insertError);
+      console.error('[Memory OTP Send] Failed to store OTP:', insertError);
       return new Response(
         JSON.stringify({ success: false, error: { message: 'Failed to generate verification code' } }),
         { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
@@ -76,7 +79,30 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       .single();
 
     // Send email via Resend
-    await sendMemoryVerificationEmail(normalizedEmail, code, chatbot?.name || 'Chatbot');
+    console.log(`[Memory OTP Send] Sending OTP email to "${normalizedEmail}" (chatbot: ${chatbot?.name || 'Chatbot'})`);
+    try {
+      await sendMemoryVerificationEmail(normalizedEmail, code, chatbot?.name || 'Chatbot');
+      console.log(`[Memory OTP Send] OTP email sent successfully to "${normalizedEmail}"`);
+    } catch (emailError: unknown) {
+      // Clean up the stored code so it doesn't count toward rate limit
+      await (supabase as ReturnType<typeof createAdminClient>)
+        .from('memory_verification_codes')
+        .delete()
+        .eq('chatbot_id', chatbotId)
+        .eq('email', normalizedEmail)
+        .eq('code', code);
+
+      const isValidationError = emailError && typeof emailError === 'object' && 'name' in emailError && (emailError as { name: string }).name === 'validation_error';
+      const userMessage = isValidationError
+        ? 'Please enter a valid email address.'
+        : 'Failed to send verification email. Please try again.';
+      console.error(`[Memory OTP Send] Email delivery failed for "${normalizedEmail}":`, emailError);
+
+      return new Response(
+        JSON.stringify({ success: false, error: { message: userMessage } }),
+        { status: isValidationError ? 422 : 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+      );
+    }
 
     return new Response(
       JSON.stringify({ success: true, data: { sent: true } }),

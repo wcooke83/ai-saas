@@ -47,6 +47,11 @@ export interface WidgetConfig {
   formInputBackgroundColor?: string;
   formInputTextColor?: string;
 
+  // Secondary Button (e.g. "No thanks, start fresh")
+  secondaryButtonColor?: string;
+  secondaryButtonTextColor?: string;
+  secondaryButtonBorderColor?: string;
+
   // Typography
   fontFamily: string;
   fontSize: number;
@@ -101,6 +106,11 @@ export const DEFAULT_WIDGET_CONFIG: WidgetConfig = {
   formPlaceholderColor: '#94a3b8',
   formInputBackgroundColor: '#ffffff',
   formInputTextColor: '#0f172a',
+
+  // Secondary Button defaults
+  secondaryButtonColor: 'transparent',
+  secondaryButtonTextColor: '#374151',
+  secondaryButtonBorderColor: '#d1d5db',
   fontFamily: 'Inter, system-ui, sans-serif',
   fontSize: 14,
   containerBorderRadius: 16,
@@ -308,6 +318,7 @@ export interface ProactiveMessageRule {
   triggerConfig: Record<string, unknown>;
   displayMode: ProactiveDisplayMode;
   bubblePosition: ProactiveBubblePosition; // Only used when displayMode is 'bubble'
+  closeOnNavigate?: boolean; // Close bubble when user navigates away (default: true)
   delay: number;         // ms delay after trigger fires
   maxShowCount: number;  // per visitor session (0 = unlimited)
   priority: number;      // lower = higher priority

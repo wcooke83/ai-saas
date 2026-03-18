@@ -23,6 +23,7 @@ interface ChatbotConfig {
   file_upload_config: Record<string, unknown> | null;
   proactive_messages_config: Record<string, unknown> | null;
   transcript_config: Record<string, unknown> | null;
+  memory_enabled: boolean;
   is_published: boolean;
   status: string;
   language: string | null;
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     // Get chatbot - RLS policy ensures only published+active chatbots are returned
     const { data: chatbotData, error } = await (supabase as any)
       .from('chatbots')
-      .select('id, name, welcome_message, placeholder_text, logo_url, widget_config, pre_chat_form_config, post_chat_survey_config, file_upload_config, proactive_messages_config, transcript_config, is_published, status, language')
+      .select('id, name, welcome_message, placeholder_text, logo_url, widget_config, pre_chat_form_config, post_chat_survey_config, file_upload_config, proactive_messages_config, transcript_config, memory_enabled, is_published, status, language')
       .eq('id', chatbotId)
       .single();
 
@@ -95,6 +96,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
             ...DEFAULT_TRANSCRIPT_CONFIG,
             ...(chatbot.transcript_config || {}),
           },
+          memoryEnabled: chatbot.memory_enabled === true,
         },
       }),
       {

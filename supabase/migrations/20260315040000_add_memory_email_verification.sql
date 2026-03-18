@@ -37,6 +37,7 @@ ALTER TABLE conversation_memory_emails ENABLE ROW LEVEL SECURITY;
 ALTER TABLE memory_verification_codes ENABLE ROW LEVEL SECURITY;
 
 -- Chatbot owners can manage email mappings
+DROP POLICY IF EXISTS "Chatbot owners can manage memory emails" ON conversation_memory_emails;
 CREATE POLICY "Chatbot owners can manage memory emails"
   ON conversation_memory_emails
   FOR ALL
@@ -48,6 +49,7 @@ CREATE POLICY "Chatbot owners can manage memory emails"
   );
 
 -- Chatbot owners can manage verification codes
+DROP POLICY IF EXISTS "Chatbot owners can manage verification codes" ON memory_verification_codes;
 CREATE POLICY "Chatbot owners can manage verification codes"
   ON memory_verification_codes
   FOR ALL

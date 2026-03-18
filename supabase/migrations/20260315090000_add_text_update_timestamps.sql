@@ -2,8 +2,8 @@
 -- This allows us to show language mismatch warnings only when relevant
 
 ALTER TABLE chatbots
-ADD COLUMN custom_text_updated_at timestamptz,
-ADD COLUMN language_updated_at timestamptz;
+ADD COLUMN IF NOT EXISTS custom_text_updated_at timestamptz,
+ADD COLUMN IF NOT EXISTS language_updated_at timestamptz;
 
 -- Set initial values: custom_text_updated_at to created_at for existing chatbots with custom text
 UPDATE chatbots

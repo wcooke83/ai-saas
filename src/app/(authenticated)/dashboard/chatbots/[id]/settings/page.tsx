@@ -1715,6 +1715,7 @@ function createDefaultRule(): ProactiveMessageRule {
     triggerConfig: { seconds: 10 },
     displayMode: 'bubble',
     bubblePosition: 'bottom-left',
+    closeOnNavigate: true,
     delay: 0,
     maxShowCount: 1,
     priority: 0,
@@ -2143,6 +2144,27 @@ function ProactiveMessagesEditor({ config, onChange }: ProactiveMessagesEditorPr
                           </div>
                         )}
 
+                        {/* Navigation Behavior - shown for all display modes */}
+                        <div className="flex items-start gap-2">
+                          <input
+                            type="checkbox"
+                            id={`close-on-navigate-${rule.id}`}
+                            checked={rule.closeOnNavigate ?? true}
+                            onChange={(e) => updateRule(rule.id, { closeOnNavigate: e.target.checked })}
+                            className="mt-0.5 w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
+                          />
+                          <div className="flex-1">
+                            <label htmlFor={`close-on-navigate-${rule.id}`} className="text-xs font-medium text-secondary-700 dark:text-secondary-300 cursor-pointer">
+                              Close {rule.displayMode === 'bubble' ? 'bubble' : 'widget'} on navigation
+                            </label>
+                            <p className="text-xs text-secondary-500 mt-0.5">
+                              {rule.displayMode === 'bubble' 
+                                ? 'Automatically close the bubble when the user navigates to another page. Uncheck to keep the bubble visible across page navigation.'
+                                : 'Automatically close the widget when the user navigates to another page. Uncheck to keep the widget open across page navigation.'}
+                            </p>
+                          </div>
+                        </div>
+
                         <TriggerConfigFields
                           triggerType={rule.triggerType}
                           triggerConfig={rule.triggerConfig}
@@ -2207,6 +2229,69 @@ function ProactiveMessagesEditor({ config, onChange }: ProactiveMessagesEditorPr
 }
 
 // ============================================
+// REGEX TESTER COMPONENT
+// ============================================
+
+interface RegexTesterProps {
+  pattern: string;
+  matchUrl: (testUrl: string, pattern: string, matchType: string) => { matched: boolean; error?: string };
+}
+
+function RegexTester({ pattern, matchUrl }: RegexTesterProps) {
+  const [testUrl, setTestUrl] = useState('https://example.com/pricing');
+  const result = matchUrl(testUrl, pattern, 'regex');
+
+  return (
+    <div className="p-3 rounded-lg border border-secondary-200 dark:border-secondary-700 bg-secondary-50/50 dark:bg-secondary-800/30 space-y-2">
+      <div className="flex items-center gap-2 text-xs font-medium text-secondary-700 dark:text-secondary-300">
+        <span className="flex items-center gap-1">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Regex Tester
+        </span>
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs text-secondary-600 dark:text-secondary-400">Test URL</Label>
+        <Input
+          value={testUrl}
+          onChange={(e) => setTestUrl(e.target.value)}
+          placeholder="https://example.com/page"
+          className="h-9 text-sm font-mono"
+        />
+      </div>
+      <div className="flex items-center gap-2 text-xs">
+        {result.error ? (
+          <div className="flex items-center gap-1.5 text-red-600 dark:text-red-400">
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-medium">{result.error}</span>
+          </div>
+        ) : result.matched ? (
+          <div className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-medium">Match! This URL would trigger the rule.</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 text-secondary-500 dark:text-secondary-400">
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            <span>No match. This URL would not trigger the rule.</span>
+          </div>
+        )}
+      </div>
+      <div className="text-xs text-secondary-500 dark:text-secondary-400 pt-1 border-t border-secondary-200 dark:border-secondary-700">
+        <strong>Tip:</strong> Test with multiple URLs to ensure your pattern works as expected. The regex is tested against the full URL.
+      </div>
+    </div>
+  );
+}
+
+// ============================================
 // TRIGGER CONFIG FIELDS (per trigger type)
 // ============================================
 
@@ -2221,32 +2306,67 @@ function TriggerConfigFields({ triggerType, triggerConfig, onChange }: TriggerCo
     onChange({ ...triggerConfig, [key]: value });
   };
 
+  // URL matching logic (same as SDK)
+  const matchUrl = (testUrl: string, pattern: string, matchType: string): { matched: boolean; error?: string } => {
+    if (!pattern) return { matched: false };
+    try {
+      const url = testUrl;
+      const path = new URL(testUrl).pathname;
+      let matched = false;
+      if (matchType === 'exact') {
+        matched = url === pattern || path === pattern;
+      } else if (matchType === 'regex') {
+        try {
+          matched = new RegExp(pattern).test(url);
+        } catch (e) {
+          return { matched: false, error: e instanceof Error ? e.message : 'Invalid regex' };
+        }
+      } else {
+        // contains
+        matched = url.includes(pattern) || path.includes(pattern);
+      }
+      return { matched };
+    } catch (e) {
+      return { matched: false, error: 'Invalid URL format' };
+    }
+  };
+
   switch (triggerType) {
     case 'page_url':
       return (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1">
-            <Label className="text-xs">URL Pattern</Label>
-            <Input
-              value={(triggerConfig.urlPattern as string) || ''}
-              onChange={(e) => update('urlPattern', e.target.value)}
-              placeholder="e.g. /pricing or https://example.com/pricing"
-              className="h-10"
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Label className="text-xs">URL Pattern</Label>
+              <Input
+                value={(triggerConfig.urlPattern as string) || ''}
+                onChange={(e) => update('urlPattern', e.target.value)}
+                placeholder="e.g. /pricing or https://example.com/pricing"
+                className="h-10"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Match Type</Label>
+              <select
+                value={(triggerConfig.matchType as string) || 'contains'}
+                onChange={(e) => update('matchType', e.target.value)}
+                className="w-full h-10 rounded-md border border-secondary-200 dark:border-secondary-700 px-3 py-2 text-sm text-secondary-900 dark:text-secondary-100"
+                style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+              >
+                <option value="contains">Contains</option>
+                <option value="exact">Exact match</option>
+                <option value="regex">Regex</option>
+              </select>
+            </div>
+          </div>
+          
+          {/* Regex Tester */}
+          {(triggerConfig.matchType as string) === 'regex' && (triggerConfig.urlPattern as string) && (
+            <RegexTester
+              pattern={(triggerConfig.urlPattern as string)}
+              matchUrl={matchUrl}
             />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">Match Type</Label>
-            <select
-              value={(triggerConfig.matchType as string) || 'contains'}
-              onChange={(e) => update('matchType', e.target.value)}
-              className="w-full h-10 rounded-md border border-secondary-200 dark:border-secondary-700 px-3 py-2 text-sm text-secondary-900 dark:text-secondary-100"
-              style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
-            >
-              <option value="contains">Contains</option>
-              <option value="exact">Exact match</option>
-              <option value="regex">Regex</option>
-            </select>
-          </div>
+          )}
         </div>
       );
 

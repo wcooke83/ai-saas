@@ -18,6 +18,7 @@ export default function WidgetPage({ params }: WidgetPageProps) {
     fileUploadConfig?: FileUploadConfig;
     proactiveMessagesConfig?: ProactiveMessagesConfig;
     transcriptConfig?: TranscriptConfig;
+    memoryEnabled?: boolean;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -97,6 +98,7 @@ export default function WidgetPage({ params }: WidgetPageProps) {
       fileUploadConfig={config.fileUploadConfig}
       proactiveMessagesConfig={config.proactiveMessagesConfig}
       transcriptConfig={config.transcriptConfig}
+      memoryEnabled={config.memoryEnabled === true}
       userData={userData}
       userContext={userContext}
     />

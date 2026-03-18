@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, Fragment } from 'react';
-import { MessageSquare, X, Send, ThumbsUp, ThumbsDown, Loader2, MessageCircle, Paperclip, FileIcon, Download, XCircle, Mail, Check } from 'lucide-react';
+import { MessageSquare, X, Send, ThumbsUp, ThumbsDown, Loader2, MessageCircle, Paperclip, FileIcon, Download, XCircle, Mail, Check, Expand, Shrink } from 'lucide-react';
 import type { WidgetConfig, Chatbot, PreChatFormConfig, PostChatSurveyConfig, PreChatFormField, ProactiveMessagesConfig, FileUploadConfig, Attachment, TranscriptConfig } from '@/lib/chatbots/types';
 import { getTranslations, translateDefault } from '@/lib/chatbots/translations';
 import { DEFAULT_PRE_CHAT_FORM_CONFIG, DEFAULT_POST_CHAT_SURVEY_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, FILE_TYPE_MAP } from '@/lib/chatbots/types';
@@ -159,11 +159,12 @@ interface ChatWidgetProps {
   fileUploadConfig?: FileUploadConfig;
   proactiveMessagesConfig?: ProactiveMessagesConfig;
   transcriptConfig?: TranscriptConfig;
+  memoryEnabled?: boolean;
   userData?: Record<string, string> | null;
   userContext?: Record<string, unknown> | null;
 }
 
-export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, postChatSurveyConfig, language = 'en', fileUploadConfig, proactiveMessagesConfig, transcriptConfig, userData, userContext }: ChatWidgetProps) {
+export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, postChatSurveyConfig, language = 'en', fileUploadConfig, proactiveMessagesConfig, transcriptConfig, memoryEnabled = false, userData, userContext }: ChatWidgetProps) {
   const [activeLanguage, setActiveLanguage] = useState(language);
   const t = getTranslations(activeLanguage);
   const tRef = useRef(t);
@@ -174,6 +175,8 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
 
   const [currentView, setCurrentView] = useState<WidgetView>(showPreChat ? 'pre-chat-form' : 'chat');
   const [isOpen, setIsOpen] = useState(config.autoOpen);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isMobileMode, setIsMobileMode] = useState(false);
   const [showButton, setShowButton] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -369,6 +372,49 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     }
   }, [isOpen]);
 
+  // Auto-expand on mobile viewport (only when NOT in iframe;
+  // in iframe mode the SDK parent handles mobile detection and iframe resizing)
+  // Note: uses synchronous iframe check since isInIframe state is set async after mount
+  useEffect(() => {
+    if (window.self !== window.top) return;
+    const checkMobile = () => {
+      if (window.innerWidth <= 768) setIsExpanded(true);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Handle expand/shrink toggle
+  const toggleExpand = useCallback(() => {
+    setIsExpanded(prev => {
+      const next = !prev;
+      // Notify parent (SDK) if in iframe
+      if (window.self !== window.top) {
+        window.parent.postMessage({
+          type: next ? 'expand-chat-widget' : 'shrink-chat-widget',
+        }, '*');
+      }
+      return next;
+    });
+  }, []);
+
+  // Listen for expand/shrink confirmations and mobile-mode from SDK parent
+  useEffect(() => {
+    const handleExpandMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'widget-expanded') {
+        setIsExpanded(true);
+      } else if (event.data?.type === 'widget-shrunk') {
+        setIsExpanded(false);
+      } else if (event.data?.type === 'mobile-mode') {
+        setIsMobileMode(true);
+        setIsExpanded(true);
+      }
+    };
+    window.addEventListener('message', handleExpandMessage);
+    return () => window.removeEventListener('message', handleExpandMessage);
+  }, []);
+
   // Fetch chat history for a verified visitor
   const fetchHistory = useCallback(async (vId: string, cursor?: string | null) => {
     setHistoryLoading(true);
@@ -414,10 +460,11 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     }
   }, [chatbotId, historySessionBreaks]);
 
-  // Lazy load more history on scroll to top
+  // Lazy load more history on scroll to top (skip for proactive sessions without userData)
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (!container || !historyLoaded || !historyHasMore) return;
+    if (proactiveInitiatedRef.current && !hasUserData) return;
 
     const handleScroll = () => {
       const cursor = historyNextCursor;
@@ -529,6 +576,18 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
   const sendMessage = useCallback(async () => {
     if ((!input.trim() && pendingAttachments.length === 0) || isLoading) return;
 
+    // Capture input value before clearing
+    const messageContent = input.trim();
+    
+    // Clear input immediately
+    setInput('');
+
+    // Wait for any pending proactive message save to complete first
+    if (pendingProactiveSaveRef.current) {
+      console.log('[ChatWidget] Waiting for proactive message save to complete before sending...');
+      await pendingProactiveSaveRef.current;
+    }
+
     // Clear any pending check-in when user sends a message
     if (checkInTimerRef.current) {
       clearTimeout(checkInTimerRef.current);
@@ -545,13 +604,12 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     const userMessage: Message = {
       id: `user_${Date.now()}`,
       role: 'user',
-      content: input.trim() || (messageAttachments.length > 0 ? `[${messageAttachments.map(a => a.file_name).join(', ')}]` : ''),
+      content: messageContent || (messageAttachments.length > 0 ? `[${messageAttachments.map(a => a.file_name).join(', ')}]` : ''),
       timestamp: new Date(),
       attachments: messageAttachments.length > 0 ? messageAttachments : undefined,
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInput('');
     setIsLoading(true);
 
     try {
@@ -713,35 +771,66 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     }
 
     // Check if email has existing memory (for identity verification)
-    const emailValue = preChatFormData.email || preChatFormData.Email || preChatFormData.EMAIL;
-    if (emailValue) {
-      try {
-        const checkRes = await fetch(`/api/widget/${chatbotId}/memory/check`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: emailValue }),
-        });
-        const checkData = await checkRes.json();
-        if (checkData.success && checkData.data?.has_memory) {
-          // Email has existing memory — offer verification
-          setVerifyEmail(emailValue);
-          setIsPreChatSubmitting(false);
-          setCurrentView('verify-email');
-          return;
+    // Only attempt when memory is enabled for this chatbot
+    console.log('[Memory] Pre-chat form submitted. memoryEnabled:', memoryEnabled);
+    if (memoryEnabled) {
+      // Look up email by field ID first, then fall back to field type
+      let emailValue = preChatFormData.email || preChatFormData.Email || preChatFormData.EMAIL;
+      if (!emailValue && preChatFormConfig.fields) {
+        const emailField = preChatFormConfig.fields.find(f => f.type === 'email');
+        if (emailField) {
+          emailValue = preChatFormData[emailField.id];
+          console.log('[Memory] Email found via field type lookup, fieldId:', emailField.id);
         }
-      } catch (err) {
-        console.warn('Failed to check memory:', err);
       }
+      console.log('[Memory] Email from pre-chat form:', emailValue || '(none found)');
+      if (emailValue) {
+        try {
+          console.log('[Memory] Checking if email has existing memory...');
+          const checkRes = await fetch(`/api/widget/${chatbotId}/memory/check`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: emailValue }),
+          });
+          const checkData = await checkRes.json();
+          console.log('[Memory] Memory check response:', checkData);
+          if (checkData.success && checkData.data?.has_memory) {
+            console.log('[Memory] Previous memory found — showing verify-email view');
+            // Email has existing memory — offer verification
+            setVerifyEmail(emailValue);
+            setIsPreChatSubmitting(false);
+            setCurrentView('verify-email');
+            return;
+          } else {
+            console.log('[Memory] No previous memory for this email — proceeding to chat');
+          }
+        } catch (err) {
+          console.warn('[Memory] Failed to check memory:', err);
+        }
+      } else {
+        console.log('[Memory] No email field found in pre-chat form data — skipping memory check');
+      }
+    } else {
+      console.log('[Memory] Memory is disabled for this chatbot — skipping memory check');
     }
 
     setIsPreChatSubmitting(false);
     // Move to chat
     setCurrentView('chat');
-  }, [preChatFormConfig, preChatFormData, chatbotId, sessionId, visitorId, isPreChatSubmitting]);
+  }, [preChatFormConfig, preChatFormData, chatbotId, sessionId, visitorId, isPreChatSubmitting, memoryEnabled]);
 
   // OTP verification handlers
   const handleSendOtp = useCallback(async () => {
     if (!verifyEmail || otpSending) return;
+    
+    // Validate email format before sending
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    if (!emailRegex.test(verifyEmail)) {
+      setOtpError('Please enter a valid email address');
+      return;
+    }
+    
+    console.log('[Memory] Sending OTP to:', verifyEmail);
     setOtpSending(true);
     setOtpError(null);
     try {
@@ -751,12 +840,16 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
         body: JSON.stringify({ email: verifyEmail }),
       });
       const data = await res.json();
+      console.log('[Memory] Send OTP response:', data);
       if (data.success) {
+        console.log('[Memory] OTP sent successfully — showing code entry');
         setOtpSent(true);
       } else {
+        console.warn('[Memory] OTP send failed:', data.error?.message);
         setOtpError(data.error?.message || 'Failed to send verification code');
       }
-    } catch {
+    } catch (err) {
+      console.error('[Memory] OTP send error:', err);
       setOtpError('Failed to send verification code');
     } finally {
       setOtpSending(false);
@@ -765,6 +858,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
 
   const handleVerifyOtp = useCallback(async () => {
     if (!verifyEmail || !otpCode.trim() || otpVerifying) return;
+    console.log('[Memory] Verifying OTP for:', verifyEmail, 'code:', otpCode.trim());
     setOtpVerifying(true);
     setOtpError(null);
     try {
@@ -774,17 +868,22 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
         body: JSON.stringify({ email: verifyEmail, code: otpCode.trim() }),
       });
       const data = await res.json();
+      console.log('[Memory] Verify OTP response:', data);
       if (data.success && data.data?.verified) {
         // Swap visitorId to the verified one so memory is loaded
         const verifiedVisitorId = data.data.visitor_id;
+        console.log('[Memory] OTP verified! Swapping visitorId to:', verifiedVisitorId);
         setVisitorId(verifiedVisitorId);
         // Fetch previous chat history for the verified visitor
+        console.log('[Memory] Fetching chat history for verified visitor...');
         fetchHistory(verifiedVisitorId);
         setCurrentView('chat');
       } else {
+        console.warn('[Memory] OTP verification failed:', data.error?.message);
         setOtpError(data.error?.message || 'Invalid verification code');
       }
-    } catch {
+    } catch (err) {
+      console.error('[Memory] OTP verify error:', err);
       setOtpError('Verification failed');
     } finally {
       setOtpVerifying(false);
@@ -792,9 +891,10 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
   }, [verifyEmail, otpCode, chatbotId, otpVerifying, fetchHistory]);
 
   const handleSkipVerification = useCallback(() => {
+    console.log('[Memory] User skipped verification — starting fresh chat with visitorId:', visitorId);
     // Proceed to chat without loading memory (keep current visitorId)
     setCurrentView('chat');
-  }, []);
+  }, [visitorId]);
 
   // End chat and show survey
   const handleEndChat = useCallback(() => {
@@ -880,7 +980,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
   }, [transcriptEmail, chatbotId, sessionId, t]);
 
   // Generate CSS from config
-  const styles = generateStyles(config, isInIframe);
+  const styles = generateStyles(config, isInIframe, isExpanded);
 
   // Add check-in message to conversation
   // Uses tRef to always get current translations, even from stale setTimeout closures
@@ -988,6 +1088,16 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
 
   // Track which proactive rule IDs have been shown (prevent duplicates)
   const proactiveFiredRef = useRef<Set<string>>(new Set());
+  // Track pending proactive message save to avoid race condition with user reply
+  const pendingProactiveSaveRef = useRef<Promise<any> | null>(null);
+  // Ref for visitorId so the iframe message handler always has the latest value
+  const visitorIdRef = useRef(visitorId);
+  visitorIdRef.current = visitorId;
+  // Track whether the chat was initiated by a proactive message (privacy: fresh session)
+  const proactiveInitiatedRef = useRef(false);
+  // Ref for hasUserData so the useEffect handler can read the latest value
+  const hasUserDataRef = useRef(hasUserData);
+  hasUserDataRef.current = hasUserData;
 
   // When loaded in iframe, always show the chat (no button needed)
   useEffect(() => {
@@ -1005,24 +1115,78 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
           console.log('[ChatWidget] Received show-button message');
           setIsOpen(false);
           setShowButton(true);
+        } else if (event.data && event.data.type === 'clear-proactive-state') {
+          // Clear proactive chat state so next manual open is completely fresh
+          console.log('[ChatWidget] Clearing proactive state - resetting to default view');
+          setMessages([]);
+          proactiveFiredRef.current.clear();
+          proactiveInitiatedRef.current = false;
+          pendingProactiveSaveRef.current = null;
+          
+          // Restore original visitor ID (proactive may have set a fresh one)
+          if (!hasUserDataRef.current) {
+            const stored = localStorage.getItem('chatbot_visitor_' + chatbotId);
+            if (stored) {
+              console.log('[ChatWidget] Restoring original visitorId:', stored);
+              setVisitorId(stored);
+              visitorIdRef.current = stored;
+            }
+          }
+          
+          // Reset to appropriate default view
+          if (showPreChat) {
+            setCurrentView('pre-chat-form');
+          } else {
+            setCurrentView('chat');
+          }
         } else if (event.data && event.data.type === 'proactive-trigger') {
           // Proactive message from SDK
           const { ruleId, message } = event.data;
           if (ruleId && message && !proactiveFiredRef.current.has(ruleId)) {
             proactiveFiredRef.current.add(ruleId);
+            proactiveInitiatedRef.current = true;
+            
+            // Privacy: use a fresh visitorId for proactive-initiated chats
+            // unless admin passed authenticated user data via ChatWidget.init({ user: {} })
+            if (!hasUserDataRef.current) {
+              const freshId = `visitor_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+              console.log('[ChatWidget] Proactive session without userData — using fresh visitorId:', freshId);
+              setVisitorId(freshId);
+              visitorIdRef.current = freshId;
+            }
+            
             // Skip pre-chat form and show chat to display the proactive message immediately
             if (currentView === 'pre-chat-form') {
               setCurrentView('chat');
             }
-            setMessages((prev) => [
-              ...prev,
-              {
-                id: `proactive_${ruleId}_${Date.now()}`,
-                role: 'assistant',
-                content: message,
-                timestamp: new Date(),
-              },
-            ]);
+            
+            // Add to UI immediately
+            const proactiveMsg: Message = {
+              id: `proactive_${ruleId}_${Date.now()}`,
+              role: 'assistant',
+              content: message,
+              timestamp: new Date(),
+            };
+            setMessages((prev) => [...prev, proactiveMsg]);
+            
+            // Save to database so it's part of conversation history for AI context
+            const savePromise = fetch(`/api/chat/${chatbotId}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                message: '__PROACTIVE__',
+                proactive_message: message,
+                session_id: sessionId,
+                visitor_id: visitorIdRef.current,
+              }),
+            }).then((res) => {
+              console.log('[ChatWidget] Proactive message saved to DB, status:', res.status);
+            }).catch((err) => {
+              console.error('[ChatWidget] Failed to save proactive message:', err);
+            }).finally(() => {
+              pendingProactiveSaveRef.current = null;
+            });
+            pendingProactiveSaveRef.current = savePromise;
           }
         }
       };
@@ -1079,6 +1243,17 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                 style={{ marginRight: 4 }}
               >
                 {transcriptSent ? <Check size={18} /> : <Mail size={18} />}
+              </button>
+            )}
+            {!isMobileMode && (
+              <button
+                onPointerDown={(e) => { e.preventDefault(); toggleExpand(); }}
+                className="chat-widget-close"
+                aria-label={isExpanded ? t.shrinkAriaLabel : t.expandAriaLabel}
+                title={isExpanded ? t.shrinkAriaLabel : t.expandAriaLabel}
+                style={{ marginRight: 4 }}
+              >
+                {isExpanded ? <Shrink size={18} /> : <Expand size={18} />}
               </button>
             )}
             <button
@@ -1138,6 +1313,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                           clearFieldError(field.id);
                         }}
                         className="chat-widget-form-select"
+                        disabled={isPreChatSubmitting}
                       >
                         <option value="">{field.placeholder || t.selectDefault}</option>
                         {(field.options || []).map((opt) => (
@@ -1153,6 +1329,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                         }}
                         placeholder={field.placeholder}
                         className="chat-widget-form-textarea"
+                        disabled={isPreChatSubmitting}
                       />
                     ) : (
                       <input
@@ -1164,6 +1341,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                         }}
                         placeholder={field.placeholder}
                         className="chat-widget-form-input"
+                        disabled={isPreChatSubmitting}
                       />
                     )}
                     {fieldErrors[field.id] && (
@@ -1195,10 +1373,8 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
           {currentView === 'verify-email' && verifyEmail && (
             <div className="chat-widget-form-view">
               <div className="chat-widget-form-header">
-                <h3 className="chat-widget-form-title">Welcome Back</h3>
-                <p className="chat-widget-form-desc">
-                  We found previous conversations linked to <strong>{verifyEmail}</strong>. Would you like the chatbot to recall your previous context?
-                </p>
+                <h3 className="chat-widget-form-title">{t.memoryWelcomeBack}</h3>
+                <p className="chat-widget-form-desc" dangerouslySetInnerHTML={{ __html: t.memoryFoundContext.replace('{email}', verifyEmail) }} />
               </div>
 
               {!otpSent ? (
@@ -1211,18 +1387,22 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                     {otpSending ? (
                       <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                         <Loader2 size={18} className="animate-spin" />
-                        Sending code...
+                        {t.memorySendingCode}
                       </span>
                     ) : (
-                      'Yes, verify my identity'
+                      t.memoryVerifyIdentity
                     )}
                   </button>
                   <button
                     onClick={handleSkipVerification}
                     className="chat-widget-form-submit"
-                    style={{ background: 'transparent', color: 'inherit', border: '1px solid #d1d5db' }}
+                    style={{
+                      background: config.secondaryButtonColor || 'transparent',
+                      color: config.secondaryButtonTextColor || '#374151',
+                      border: `1px solid ${config.secondaryButtonBorderColor || '#d1d5db'}`,
+                    }}
                   >
-                    No thanks, start fresh
+                    {t.memoryStartFresh}
                   </button>
                   {otpError && (
                     <p style={{ color: '#ef4444', fontSize: '13px', textAlign: 'center', margin: '4px 0 0' }}>{otpError}</p>
@@ -1230,11 +1410,9 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                 </div>
               ) : (
                 <div className="chat-widget-form-fields">
-                  <p style={{ fontSize: '13px', color: '#6b7280', textAlign: 'center', margin: '0 0 8px' }}>
-                    We sent a 6-digit code to <strong>{verifyEmail}</strong>
-                  </p>
+                  <p style={{ fontSize: '13px', color: '#6b7280', textAlign: 'center', margin: '0 0 8px' }} dangerouslySetInnerHTML={{ __html: t.memoryCodeSent.replace('{email}', verifyEmail) }} />
                   <div className="chat-widget-form-field">
-                    <label className="chat-widget-form-label">Verification Code</label>
+                    <label className="chat-widget-form-label">{t.memoryVerificationCode}</label>
                     <input
                       type="text"
                       inputMode="numeric"
@@ -1245,7 +1423,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                         setOtpError(null);
                       }}
                       onKeyDown={(e) => { if (e.key === 'Enter') handleVerifyOtp(); }}
-                      placeholder="Enter 6-digit code"
+                      placeholder={t.memoryEnterCode}
                       className="chat-widget-form-input"
                       style={{ textAlign: 'center', letterSpacing: '4px', fontSize: '18px' }}
                       autoFocus
@@ -1262,10 +1440,10 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                     {otpVerifying ? (
                       <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                         <Loader2 size={18} className="animate-spin" />
-                        Verifying...
+                        {t.memoryVerifying}
                       </span>
                     ) : (
-                      'Verify & Continue'
+                      t.memoryVerifyContinue
                     )}
                   </button>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '4px' }}>
@@ -1274,13 +1452,13 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                       disabled={otpSending}
                       style={{ background: 'none', border: 'none', color: '#6366f1', fontSize: '13px', cursor: 'pointer', padding: 0 }}
                     >
-                      Resend code
+                      {t.memoryResendCode}
                     </button>
                     <button
                       onClick={handleSkipVerification}
                       style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: '13px', cursor: 'pointer', padding: 0 }}
                     >
-                      Skip
+                      {t.skip}
                     </button>
                   </div>
                 </div>
@@ -1407,51 +1585,27 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
 
               {/* Transcript Email Input */}
               {showTranscriptInput && (
-                <div style={{
-                  padding: '8px 12px',
-                  borderTop: '1px solid #e5e7eb',
-                  background: '#f9fafb',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '6px',
-                }}>
-                  <div style={{ fontSize: '13px', color: '#374151', fontWeight: 500 }}>
+                <div className="chat-widget-input-container" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '6px' }}>
+                  <div style={{ fontSize: 'inherit', color: config.inputTextColor, fontWeight: 500 }}>
                     {t.transcriptPrompt}
                   </div>
-                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <input
                       type="email"
                       value={transcriptEmail}
                       onChange={(e) => { setTranscriptEmail(e.target.value); setTranscriptError(''); }}
                       placeholder={t.enterYourEmail}
                       onKeyDown={(e) => { if (e.key === 'Enter') handleSendTranscript(); }}
-                      style={{
-                        flex: 1,
-                        padding: '6px 10px',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '6px',
-                        fontSize: '13px',
-                        outline: 'none',
-                      }}
+                      className="chat-widget-input"
                       autoFocus
                     />
                     <button
                       onClick={() => handleSendTranscript()}
                       disabled={transcriptSending}
-                      style={{
-                        padding: '6px 14px',
-                        borderRadius: '6px',
-                        border: 'none',
-                        background: config.primaryColor,
-                        color: '#fff',
-                        fontSize: '13px',
-                        fontWeight: 500,
-                        cursor: transcriptSending ? 'not-allowed' : 'pointer',
-                        opacity: transcriptSending ? 0.7 : 1,
-                        whiteSpace: 'nowrap',
-                      }}
+                      className="chat-widget-send"
+                      style={{ opacity: transcriptSending ? 0.7 : 1, cursor: transcriptSending ? 'not-allowed' : 'pointer' }}
                     >
-                      {transcriptSending ? t.sendingTranscript : t.sendTranscript}
+                      {transcriptSending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                     </button>
                     <button
                       onClick={() => setShowTranscriptInput(false)}
@@ -1460,12 +1614,12 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                         background: 'none',
                         border: 'none',
                         cursor: 'pointer',
-                        color: '#6b7280',
+                        color: config.inputPlaceholderColor || '#6b7280',
                         lineHeight: 0,
                       }}
                       aria-label={t.closeAriaLabel}
                     >
-                      <X size={16} />
+                      <X size={18} />
                     </button>
                   </div>
                   {transcriptError && (
@@ -1692,9 +1846,11 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
   );
 }
 
-function generateStyles(config: WidgetConfig, isInIframe: boolean): string {
+function generateStyles(config: WidgetConfig, isInIframe: boolean, isExpanded: boolean): string {
   const position = config.position || 'bottom-right';
   const [vertical, horizontal] = position.split('-');
+
+  const isFullscreen = isInIframe || isExpanded;
 
   return `
     .chat-widget-button {
@@ -1723,19 +1879,34 @@ function generateStyles(config: WidgetConfig, isInIframe: boolean): string {
 
     .chat-widget-container {
       position: fixed;
-      ${isInIframe ? 'top: 0; left: 0; right: 0; bottom: 0;' : `${vertical}: ${config.offsetY}px; ${horizontal}: ${config.offsetX}px;`}
-      width: ${isInIframe ? '100%' : `${config.width}px`};
-      height: ${isInIframe ? '100vh' : `${config.height}px`};
-      max-height: ${isInIframe ? '100vh' : 'calc(100vh - 40px)'};
+      ${isFullscreen ? 'top: 0; left: 0; right: 0; bottom: 0;' : `${vertical}: ${config.offsetY}px; ${horizontal}: ${config.offsetX}px;`}
+      width: ${isFullscreen ? '100%' : `${config.width}px`};
+      height: ${isFullscreen ? '100vh' : `${config.height}px`};
+      max-height: ${isFullscreen ? '100vh' : 'calc(100vh - 40px)'};
       background: ${config.backgroundColor};
-      border-radius: ${isInIframe ? '0' : `${config.containerBorderRadius}px`};
-      box-shadow: ${isInIframe ? 'none' : '0 8px 32px rgba(0, 0, 0, 0.15)'};
+      border-radius: ${isFullscreen ? '0' : `${config.containerBorderRadius}px`};
+      box-shadow: ${isFullscreen ? 'none' : '0 8px 32px rgba(0, 0, 0, 0.15)'};
       display: flex;
       flex-direction: column;
       overflow: hidden;
       z-index: 9999;
       font-family: ${config.fontFamily};
       font-size: ${config.fontSize}px;
+      transition: width 0.3s ease, height 0.3s ease, top 0.3s ease, left 0.3s ease, right 0.3s ease, bottom 0.3s ease, border-radius 0.3s ease;
+    }
+
+    @media (max-width: 768px) {
+      .chat-widget-container {
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+      }
     }
 
     .chat-widget-header {

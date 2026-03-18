@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Chatbot, WidgetConfig } from '@/lib/chatbots/types';
 import { DEFAULT_WIDGET_CONFIG } from '@/lib/chatbots/types';
+import { getTranslations } from '@/lib/chatbots/translations';
 
 // Google Fonts mapping for preview
 const GOOGLE_FONTS: Record<string, string> = {
@@ -137,7 +138,8 @@ export default function CustomizePage({ params }: CustomizePageProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [previewMode, setPreviewMode] = useState<'chat' | 'form'>('form'); // Add preview mode state
+  const [previewMode, setPreviewMode] = useState<'chat' | 'form' | 'verify'>('form');
+  const t = getTranslations(chatbot?.language || 'en');
 
   useEffect(() => {
     async function fetchChatbot() {
@@ -333,6 +335,29 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                     label="Placeholder Color"
                     value={config.inputPlaceholderColor}
                     onChange={(v) => updateConfig('inputPlaceholderColor', v)}
+                  />
+                </div>
+              </div>
+
+              {/* Secondary Button */}
+              <div>
+                <h3 className="text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-3">Secondary Button</h3>
+                <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-3">Used for actions like &quot;No thanks, start fresh&quot;</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <ColorPicker
+                    label="Background Color"
+                    value={config.secondaryButtonColor || 'transparent'}
+                    onChange={(v) => updateConfig('secondaryButtonColor', v)}
+                  />
+                  <ColorPicker
+                    label="Text Color"
+                    value={config.secondaryButtonTextColor || '#374151'}
+                    onChange={(v) => updateConfig('secondaryButtonTextColor', v)}
+                  />
+                  <ColorPicker
+                    label="Border Color"
+                    value={config.secondaryButtonBorderColor || '#d1d5db'}
+                    onChange={(v) => updateConfig('secondaryButtonBorderColor', v)}
                   />
                 </div>
               </div>
@@ -634,6 +659,16 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                   >
                     Pre-Chat
                   </button>
+                  <button
+                    onClick={() => setPreviewMode('verify')}
+                    className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                      previewMode === 'verify'
+                        ? 'bg-white dark:bg-secondary-700 text-secondary-900 dark:text-secondary-100 shadow-sm'
+                        : 'text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100'
+                    }`}
+                  >
+                    Verify
+                  </button>
                 </div>
               </div>
             </CardHeader>
@@ -674,19 +709,70 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                 >
                   {/* Header */}
                   <div
-                    className="p-4 flex items-center gap-3"
+                    className="p-4 flex items-start gap-3"
                     style={{ backgroundColor: config.primaryColor }}
                   >
-                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                      <span style={{ color: config.headerTextColor }} className="text-lg">AI</span>
-                    </div>
                     <div>
-                      <p className="font-semibold" style={{ color: config.headerTextColor }}>{config.headerText || chatbot.name}</p>
-                      <p className="text-sm" style={{ color: config.headerTextColor, opacity: 0.7 }}>Online</p>
+                      <p className="font-semibold" style={{ color: config.headerTextColor }}>
+                        {config.headerText === 'Chat with us' || !config.headerText ? t.headerTitle : config.headerText}
+                      </p>
+                      <p className="text-sm" style={{ color: config.headerTextColor, opacity: 0.7 }}>{t.online}</p>
                     </div>
                   </div>
 
-                  {previewMode === 'form' ? (
+                  {previewMode === 'verify' ? (
+                    /* Verify Email Preview */
+                    <div
+                      className="p-4 space-y-4 flex flex-col"
+                      style={{
+                        height: 'calc(100% - 72px)',
+                        overflowY: 'auto',
+                        backgroundColor: config.formBackgroundColor || config.backgroundColor,
+                      }}
+                    >
+                      <div>
+                        <h3
+                          className="font-semibold mb-1"
+                          style={{ color: config.formTitleColor || config.textColor }}
+                        >
+                          {t.memoryWelcomeBack}
+                        </h3>
+                        <p
+                          className="text-sm"
+                          style={{ color: config.formDescriptionColor || '#6b7280' }}
+                          dangerouslySetInnerHTML={{ __html: t.memoryFoundContext.replace('{email}', 'user@example.com') }}
+                        />
+                      </div>
+                      <div className="space-y-3 flex-1">
+                        <button
+                          className="w-full py-2 px-4 rounded-lg font-medium text-sm"
+                          style={{
+                            backgroundColor: config.primaryColor,
+                            color: config.formSubmitButtonTextColor || '#ffffff',
+                          }}
+                          disabled
+                        >
+                          {t.memoryVerifyIdentity}
+                        </button>
+                        <button
+                          className="w-full py-2 px-4 rounded-lg font-medium text-sm"
+                          style={{
+                            backgroundColor: config.secondaryButtonColor || 'transparent',
+                            color: config.secondaryButtonTextColor || '#374151',
+                            border: `1px solid ${config.secondaryButtonBorderColor || '#d1d5db'}`,
+                          }}
+                          disabled
+                        >
+                          {t.memoryStartFresh}
+                        </button>
+                      </div>
+                      {config.showBranding && (
+                        <p className="text-center text-xs mt-2 opacity-50" style={{ color: config.textColor }}>
+                          Powered by AI SaaS
+                        </p>
+                      )}
+                    </div>
+                  ) : previewMode === 'form' ? (
                     /* Pre-Chat Form Preview */
                     <div
                       className="p-4 space-y-4 flex flex-col"
@@ -701,13 +787,13 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                           className="font-semibold mb-1"
                           style={{ color: config.formTitleColor || config.textColor }}
                         >
-                          Before we start
+                          {t.preChatTitle}
                         </h3>
                         <p
                           className="text-sm"
                           style={{ color: config.formDescriptionColor || '#6b7280' }}
                         >
-                          Please provide your details so we can assist you better.
+                          {t.preChatDescription}
                         </p>
                       </div>
                       <div className="space-y-3 flex-1">
@@ -716,11 +802,11 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                             className="block text-sm font-medium mb-1"
                             style={{ color: config.formLabelColor || config.textColor }}
                           >
-                            Name <span style={{ color: '#ef4444' }}>*</span>
+                            {t.fieldNameLabel} <span style={{ color: '#ef4444' }}>*</span>
                           </label>
                           <input
                             type="text"
-                            placeholder="Your name"
+                            placeholder={t.fieldNamePlaceholder}
                             disabled
                             className="w-full px-3 py-2 text-sm rounded-lg preview-form-input"
                             style={{
@@ -735,11 +821,11 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                             className="block text-sm font-medium mb-1"
                             style={{ color: config.formLabelColor || config.textColor }}
                           >
-                            Email <span style={{ color: '#ef4444' }}>*</span>
+                            {t.fieldEmailLabel} <span style={{ color: '#ef4444' }}>*</span>
                           </label>
                           <input
                             type="email"
-                            placeholder="your@email.com"
+                            placeholder={t.fieldEmailPlaceholder}
                             disabled
                             className="w-full px-3 py-2 text-sm rounded-lg preview-form-input"
                             style={{
@@ -758,7 +844,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                         }}
                         disabled
                       >
-                        Start Chat
+                        {t.preChatSubmit}
                       </button>
                     </div>
                   ) : (
@@ -779,7 +865,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                           className="p-3 rounded-lg max-w-[80%] ml-auto"
                           style={{ backgroundColor: config.userBubbleColor, color: config.userBubbleTextColor }}
                         >
-                          I have a question about your services.
+                          {t.previewUserMessage}
                         </div>
 
                         {/* Bot reply */}
@@ -787,7 +873,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                           className="p-3 rounded-lg max-w-[80%]"
                           style={{ backgroundColor: config.botBubbleColor, color: config.botBubbleTextColor }}
                         >
-                          Of course! I&apos;d be happy to help. What would you like to know?
+                          {t.previewBotReply}
                         </div>
                       </div>
 
@@ -799,7 +885,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                         <div className="flex items-center gap-2">
                           <input
                             type="text"
-                            placeholder={chatbot.placeholder_text || 'Type your message...'}
+                            placeholder={chatbot.placeholder_text || t.typePlaceholder}
                             className="preview-input flex-1 px-4 py-2 border text-sm"
                             style={{
                               backgroundColor: config.inputBackgroundColor,
@@ -834,7 +920,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                         </div>
                         {config.showBranding && (
                           <p className="text-center text-xs mt-2 opacity-50" style={{ color: config.textColor }}>
-                            Powered by AI SaaS
+                            {t.poweredBy} AI SaaS
                           </p>
                         )}
                       </div>
