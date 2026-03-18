@@ -230,6 +230,7 @@ export interface FileUploadConfig {
   enabled: boolean;
   allowed_types: FileUploadAllowedTypes;
   max_file_size_mb: number;
+  max_files_per_message: number;
 }
 
 export const DEFAULT_FILE_UPLOAD_CONFIG: FileUploadConfig = {
@@ -241,6 +242,7 @@ export const DEFAULT_FILE_UPLOAD_CONFIG: FileUploadConfig = {
     archives: false,
   },
   max_file_size_mb: 10,
+  max_files_per_message: 3,
 };
 
 // Mapping of type categories to MIME types and extensions

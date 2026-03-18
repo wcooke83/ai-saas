@@ -9,7 +9,7 @@ import { updateSession, isProtectedRoute, isAuthRoute } from '@/lib/supabase/mid
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Handle API routes - add CORS headers
+  // Handle API routes - add CORS headers + refresh session
   if (pathname.startsWith('/api/')) {
     // Skip CORS for internal API routes
     if (pathname.startsWith('/api/stripe/webhook')) {
@@ -29,8 +29,8 @@ export async function middleware(request: NextRequest) {
       });
     }
 
-    // Continue with CORS headers for actual request
-    const response = NextResponse.next();
+    // Refresh Supabase session so API route handlers see valid tokens
+    const response = await updateSession(request);
     response.headers.set('Access-Control-Allow-Origin', '*');
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');

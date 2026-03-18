@@ -311,6 +311,67 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       }
     }
 
+    // Extract text content from non-image file attachments (PDF, text, CSV, DOCX)
+    const docAttachments = (input.attachments || []).filter((a: Attachment) =>
+      !a.file_type.startsWith('image/')
+    );
+    let documentText = '';
+    if (docAttachments.length > 0) {
+      const docTexts = await Promise.all(
+        docAttachments.slice(0, 5).map(async (att: Attachment) => {
+          try {
+            const res = await fetch(att.url);
+            if (!res.ok) return null;
+
+            if (att.file_type === 'text/plain' || att.file_type === 'text/csv') {
+              const text = await res.text();
+              return { name: att.file_name, content: text.substring(0, 50000) };
+            }
+
+            if (att.file_type === 'application/pdf') {
+              const buffer = await res.arrayBuffer();
+              const { PDFParse } = await import('pdf-parse');
+              const pdf = new PDFParse({ data: new Uint8Array(buffer) });
+              const textResult = await pdf.getText();
+              await pdf.destroy();
+              return { name: att.file_name, content: textResult.text.substring(0, 50000) };
+            }
+
+            if (
+              att.file_type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+              att.file_type === 'application/msword'
+            ) {
+              const buffer = await res.arrayBuffer();
+              const mammoth = await import('mammoth');
+              const result = await mammoth.extractRawText({ buffer: Buffer.from(buffer) });
+              return { name: att.file_name, content: result.value.substring(0, 50000) };
+            }
+
+            if (
+              att.file_type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+              att.file_type === 'application/vnd.ms-excel'
+            ) {
+              const text = await res.text();
+              return { name: att.file_name, content: text.substring(0, 50000) };
+            }
+
+            return null;
+          } catch (err) {
+            console.warn(`[Chat] Failed to extract text from ${att.file_name}:`, err);
+            return null;
+          }
+        })
+      );
+
+      const validDocs = docTexts.filter((d): d is { name: string; content: string } => d !== null);
+      if (validDocs.length > 0) {
+        documentText = validDocs
+          .map((d) => `### File: ${d.name}\n\n${d.content}`)
+          .join('\n\n---\n\n');
+        console.log(`[Chat] Extracted text from ${validDocs.length} document(s), total ${documentText.length} chars`);
+      }
+    }
+
     // Build RAG search query — enhance short/ambiguous messages with conversation context
     let ragQuery = input.message;
     const SHORT_MESSAGE_THRESHOLD = 20; // characters
@@ -347,7 +408,8 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const userPrompt = buildRAGPrompt(
       ragContext,
       messages,
-      input.message
+      input.message,
+      documentText || undefined
     );
 
     console.log('[Chat] === SYSTEM PROMPT ===');

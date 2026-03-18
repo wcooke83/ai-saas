@@ -790,6 +790,36 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   Files larger than {fileUploadConfig.max_file_size_mb}MB will be rejected
                 </p>
               </div>
+
+              <div className="space-y-2 max-w-xs">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="max_files_per_message">Files Per Message</Label>
+                  <Tooltip content="The maximum number of files a visitor can attach to a single message.">
+                    <Info className="w-4 h-4 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </div>
+                <select
+                  id="max_files_per_message"
+                  value={fileUploadConfig.max_files_per_message ?? 3}
+                  onChange={(e) =>
+                    setFileUploadConfig({
+                      ...fileUploadConfig,
+                      max_files_per_message: Number(e.target.value),
+                    })
+                  }
+                  className="w-full px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+                >
+                  <option value={1}>1 file</option>
+                  <option value={2}>2 files</option>
+                  <option value={3}>3 files</option>
+                  <option value={5}>5 files</option>
+                  <option value={10}>10 files</option>
+                </select>
+                <p className="text-xs text-secondary-500">
+                  Visitors can attach up to {fileUploadConfig.max_files_per_message ?? 3} file(s) per message
+                </p>
+              </div>
             </CardContent>
           )}
         </Card>

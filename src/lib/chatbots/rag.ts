@@ -180,7 +180,8 @@ export async function getRAGContext(
 export function buildRAGPrompt(
   context: RAGContext,
   conversationHistory: Message[],
-  userMessage: string
+  userMessage: string,
+  documentText?: string
 ): string {
   const parts: string[] = [];
 
@@ -193,6 +194,15 @@ ${context.contextText}
 ---
 
 Use the above information to answer the user's question. Do NOT mention "context", "knowledge base", "provided information", or any internal workings. Respond as if you naturally know this information.`);
+  }
+
+  // Add attached document content if available
+  if (documentText) {
+    parts.push(`## Attached Documents
+
+The user has attached the following file(s). Use their content to answer the user's question:
+
+${documentText}`);
   }
 
   // Add conversation history

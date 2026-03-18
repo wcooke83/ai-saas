@@ -227,6 +227,13 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     // Reset input so same file can be selected again
     e.target.value = '';
 
+    // Validate max files per message
+    const maxFiles = uploadConfig.max_files_per_message ?? 3;
+    if (pendingAttachments.length >= maxFiles) {
+      alert(`You can attach up to ${maxFiles} file(s) per message.`);
+      return;
+    }
+
     // Validate file size
     const maxBytes = uploadConfig.max_file_size_mb * 1024 * 1024;
     if (file.size > maxBytes) {
@@ -270,10 +277,28 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     } finally {
       setIsUploading(false);
     }
-  }, [chatbotId, sessionId, uploadConfig, t]);
+  }, [chatbotId, sessionId, uploadConfig, t, pendingAttachments.length]);
 
   const removePendingAttachment = useCallback((index: number) => {
     setPendingAttachments((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const downloadAttachment = useCallback(async (url: string, fileName: string) => {
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      // Fallback: open in new tab if fetch fails (e.g. CORS)
+      window.open(url, '_blank');
+    }
   }, []);
 
   // Re-translate check-in/follow-up messages when language changes mid-conversation
@@ -1544,11 +1569,11 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                         <div className="chat-widget-attachments">
                           {message.attachments.map((att, i) => (
                             att.file_type.startsWith('image/') ? (
-                              <a key={i} href={att.url} target="_blank" rel="noopener noreferrer" className="chat-widget-attachment-image">
+                              <a key={i} href={att.url} onClick={(e) => { e.preventDefault(); downloadAttachment(att.url, att.file_name); }} className="chat-widget-attachment-image" style={{ cursor: 'pointer' }}>
                                 <img src={att.url} alt={att.file_name} />
                               </a>
                             ) : (
-                              <a key={i} href={att.url} target="_blank" rel="noopener noreferrer" className="chat-widget-attachment-file">
+                              <a key={i} href={att.url} onClick={(e) => { e.preventDefault(); downloadAttachment(att.url, att.file_name); }} className="chat-widget-attachment-file" style={{ cursor: 'pointer' }}>
                                 <FileIcon size={16} />
                                 <span className="chat-widget-attachment-name">{att.file_name}</span>
                                 <Download size={14} />

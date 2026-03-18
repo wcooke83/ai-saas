@@ -50,10 +50,13 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
   // so the polling interval always sees the latest value
   const hasProcessingRef = useRef(false);
 
-  const fetchSources = useCallback(async () => {
+  const fetchSources = useCallback(async (signal?: AbortSignal) => {
     try {
-      const response = await fetch(`/api/chatbots/${id}/knowledge`);
-      if (!response.ok) throw new Error('Failed to fetch sources');
+      const response = await fetch(`/api/chatbots/${id}/knowledge`, { signal });
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.error?.message || 'Failed to fetch sources');
+      }
       const data = await response.json();
       const fetched: KnowledgeSource[] = data.data.sources;
       setSources(fetched);
@@ -61,6 +64,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
         (s) => s.status === 'pending' || s.status === 'processing'
       );
     } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       toast.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
@@ -68,14 +72,18 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
   }, [id]);
 
   useEffect(() => {
-    fetchSources();
+    const controller = new AbortController();
+    fetchSources(controller.signal);
     // Poll every 3s while any source is pending/processing
     const interval = setInterval(() => {
       if (hasProcessingRef.current) {
         fetchSources();
       }
     }, 3000);
-    return () => clearInterval(interval);
+    return () => {
+      controller.abort();
+      clearInterval(interval);
+    };
   }, [fetchSources]);
 
   const handleAddSource = async () => {
@@ -213,7 +221,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={fetchSources}>
+          <Button variant="outline" onClick={() => fetchSources()}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>

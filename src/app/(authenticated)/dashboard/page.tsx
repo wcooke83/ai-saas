@@ -423,7 +423,10 @@ export default async function DashboardPage() {
                 {recentApiLogs.map((log: { id: string; endpoint: string; status_code: number; tokens_total: number | null; created_at: string }) => {
                   // Extract tool type from endpoint (e.g., /api/tools/email-writer -> email-writer)
                   const toolMatch = log.endpoint.match(/\/api\/tools\/([^/]+)/);
-                  const toolType = toolMatch ? toolMatch[1] : 'api';
+                  const chatMatch = !toolMatch && log.endpoint.match(/\/api\/chat(?:bots)?(?:\/|$)/);
+                  const toolType = toolMatch ? toolMatch[1]
+                    : chatMatch ? 'chatbot'
+                    : log.endpoint.split('/').filter(Boolean).pop() || 'api-request';
                   return (
                     <li
                       key={log.id}
@@ -449,7 +452,10 @@ export default async function DashboardPage() {
                           {toolType === 'meeting-notes' && (
                             <MessageSquare className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
                           )}
-                          {!['email-writer', 'proposal-generator', 'social-post', 'ad-copy', 'blog-writer', 'meeting-notes'].includes(toolType) && (
+                          {toolType === 'chatbot' && (
+                            <Bot className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
+                          )}
+                          {!['email-writer', 'proposal-generator', 'social-post', 'ad-copy', 'blog-writer', 'meeting-notes', 'chatbot'].includes(toolType) && (
                             <FileText className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
                           )}
                         </div>
