@@ -35,27 +35,35 @@ interface RouteParams {
 export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
+    console.log(`[Knowledge API] GET request for chatbot ${id}`);
 
     // Authenticate
     const user = await authenticate(req);
     if (!user) {
+      console.log(`[Knowledge API] Authentication failed for chatbot ${id}`);
       throw APIError.unauthorized('Authentication required');
     }
+    console.log(`[Knowledge API] Authenticated user ${user.id} for chatbot ${id}`);
 
     // Verify chatbot ownership
     const chatbot = await getChatbot(id);
     if (!chatbot) {
+      console.log(`[Knowledge API] Chatbot ${id} not found`);
       throw APIError.notFound('Chatbot not found');
     }
     if (chatbot.user_id !== user.id) {
+      console.log(`[Knowledge API] Access denied: user ${user.id} does not own chatbot ${id} (owner: ${chatbot.user_id})`);
       throw APIError.forbidden('Access denied');
     }
+    console.log(`[Knowledge API] Chatbot ownership verified for ${id}`);
 
     // Get knowledge sources
     const sources = await getKnowledgeSources(id);
+    console.log(`[Knowledge API] Retrieved ${sources.length} sources for chatbot ${id}`);
 
     return successResponse({ sources });
   } catch (error) {
+    console.error(`[Knowledge API] Error in GET /api/chatbots/${(await params).id}/knowledge:`, error);
     return errorResponse(error);
   }
 }

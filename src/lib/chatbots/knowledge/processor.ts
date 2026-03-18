@@ -7,10 +7,6 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import type { KnowledgeSource } from '../types';
 import { chunkText } from './chunker';
 import { generateEmbeddings } from './embeddings';
-import { extractPDF } from './extractors/pdf';
-import { extractDOCX } from './extractors/docx';
-import { extractURL } from './extractors/url';
-import { crawlWebsite } from './crawler';
 
 // Use admin client for all processor operations (runs as background task, no user session)
 function getAdminClient() {
@@ -91,6 +87,7 @@ export async function processKnowledgeSource(
         if (!source.url) {
           throw new Error('No URL for URL source');
         }
+        const { extractURL } = await import('./extractors/url');
         content = await extractURL(source.url);
         break;
 
@@ -199,15 +196,19 @@ async function extractDocument(
 
   const buffer = Buffer.from(await data.arrayBuffer());
 
-  // Extract based on file type
+  // Extract based on file type (using dynamic imports to avoid loading pdf-parse on module init)
   switch (fileType?.toLowerCase()) {
     case 'pdf':
-    case 'application/pdf':
+    case 'application/pdf': {
+      const { extractPDF } = await import('./extractors/pdf');
       return extractPDF(buffer);
+    }
 
     case 'docx':
-    case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+    case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': {
+      const { extractDOCX } = await import('./extractors/docx');
       return extractDOCX(buffer);
+    }
 
     case 'txt':
     case 'text/plain':
@@ -238,6 +239,7 @@ export async function processUrlWithCrawl(
 
     // Crawl the website to discover pages
     console.log(`[Crawler] Starting crawl for source ${parentSourceId}`);
+    const { crawlWebsite } = await import('./crawler');
     const pages = await crawlWebsite(startUrl, { maxPages });
 
     if (pages.length === 0) {
