@@ -10,7 +10,6 @@
  * All three stages are cached in-memory with configurable TTLs.
  */
 
-import * as cheerio from 'cheerio';
 import { extractURL, LIVE_FETCH_TIMEOUT } from './extractors/url';
 import { generate } from '@/lib/ai/provider';
 
@@ -208,9 +207,9 @@ async function getCachedLinks(url: string): Promise<PageLink[]> {
 async function getCachedAiPick(uniqueLinks: PageLink[], query: string): Promise<string[]> {
   // Cache key: hash of query + sorted link URLs
   const urlsKey = uniqueLinks.map((l) => l.url).sort().join('|');
-  const cacheKey = `${simpleHash(query)}:${simpleHash(urlsKey)}`;
+  const key = `${cacheKey(query)}:${cacheKey(urlsKey)}`;
 
-  const cached = aiPickCache.get(cacheKey);
+  const cached = aiPickCache.get(key);
   if (cached) {
     console.log(`[Live Fetch] AI pick cache HIT (${cached.length} URLs)`);
     return cached;
@@ -253,7 +252,7 @@ ${linkList}`;
     return [];
   }
 
-  aiPickCache.set(cacheKey, aiPickedUrls, cacheConfig.aiPickTtlMs);
+  aiPickCache.set(key, aiPickedUrls, cacheConfig.aiPickTtlMs);
   return aiPickedUrls;
 }
 
@@ -281,7 +280,8 @@ async function getCachedContent(url: string): Promise<string | null> {
     return content;
   } catch (err) {
     console.warn(`[Live Fetch] Failed to fetch ${url}:`, err);
-    contentCache.set(url, null, cacheConfig.contentTtlMs);
+    // Cache failures for only 60s so transient errors don't block the URL for the full TTL
+    contentCache.set(url, null, 60_000);
     return null;
   }
 }
@@ -290,15 +290,9 @@ async function getCachedContent(url: string): Promise<string | null> {
 // HELPERS
 // ============================================
 
-/** Simple string hash for cache keys */
-function simpleHash(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash |= 0; // Convert to 32-bit integer
-  }
-  return hash.toString(36);
+/** Build a collision-safe cache key from a string (truncate to keep memory bounded) */
+function cacheKey(str: string): string {
+  return str.length <= 200 ? str : str.slice(0, 100) + '|' + str.length + '|' + str.slice(-99);
 }
 
 /**
@@ -343,6 +337,7 @@ async function extractLinksFromUrl(url: string): Promise<PageLink[]> {
 
     const html = await response.text();
     console.log(`[Live Fetch] extractLinksFromUrl: Got ${html.length} chars of HTML from ${url}`);
+    const cheerio = await import('cheerio');
     const $ = cheerio.load(html);
     const origin = new URL(url).origin;
     const links: PageLink[] = [];

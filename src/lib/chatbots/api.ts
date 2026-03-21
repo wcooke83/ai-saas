@@ -72,29 +72,26 @@ export async function getChatbotsWithStats(userId: string): Promise<ChatbotWithS
     }
   }
 
-  // Get stats for each chatbot
-  const chatbotsWithStats = await Promise.all(
-    (chatbots as Chatbot[]).map(async (chatbot: Chatbot) => {
-      const { count: conversationCount } = await supabase
-        .from('conversations')
-        .select('*', { count: 'exact', head: true })
-        .eq('chatbot_id', chatbot.id);
-
-      const { count: messageCount } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('chatbot_id', chatbot.id);
-
-      return {
-        ...chatbot,
-        total_conversations: conversationCount || 0,
-        total_messages: messageCount || 0,
-        agents_online: agentCounts[chatbot.id] || 0,
+  // Get conversation + message counts in a single RPC (2 scans instead of 2N queries)
+  const statsMap: Record<string, { conversations: number; messages: number }> = {};
+  const { data: statsRows } = await supabase.rpc('get_chatbot_stats', {
+    p_chatbot_ids: chatbotIds,
+  });
+  if (statsRows) {
+    for (const row of statsRows) {
+      statsMap[row.chatbot_id] = {
+        conversations: Number(row.conversation_count) || 0,
+        messages: Number(row.message_count) || 0,
       };
-    })
-  );
+    }
+  }
 
-  return chatbotsWithStats as ChatbotWithStats[];
+  return (chatbots as Chatbot[]).map((chatbot: Chatbot) => ({
+    ...chatbot,
+    total_conversations: statsMap[chatbot.id]?.conversations || 0,
+    total_messages: statsMap[chatbot.id]?.messages || 0,
+    agents_online: agentCounts[chatbot.id] || 0,
+  })) as ChatbotWithStats[];
 }
 
 export async function getChatbot(chatbotId: string): Promise<Chatbot | null> {
@@ -432,14 +429,14 @@ export async function createMessage(message: MessageInsert, supabaseClient?: Sup
   if (error) throw error;
 
   // Increment counters in parallel (non-critical, fire-and-forget)
-  Promise.all([
+  void Promise.all([
     supabase.rpc('increment_conversation_messages', {
       p_conversation_id: message.conversation_id,
     }).then(({ error }: any) => { if (error) console.warn('Failed to increment conversation messages:', error); }),
     supabase.rpc('increment_chatbot_messages', {
       p_chatbot_id: message.chatbot_id,
     }).then(({ error }: any) => { if (error) console.warn('Failed to increment chatbot messages:', error); }),
-  ]);
+  ]).catch(() => { /* fire-and-forget: counter increments are non-critical */ });
 
   return data as Message;
 }

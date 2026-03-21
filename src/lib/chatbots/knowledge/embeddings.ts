@@ -216,6 +216,8 @@ export async function generateEmbeddings(texts: string[], overrideConfig?: Embed
 /**
  * Generate embeddings using OpenAI API
  */
+const OPENAI_EMBEDDING_BATCH_SIZE = 100;
+
 async function generateOpenAIEmbeddings(
   texts: string[],
   model: string
@@ -225,6 +227,30 @@ async function generateOpenAIEmbeddings(
     throw new Error('OPENAI_API_KEY not configured');
   }
 
+  // For small batches, send directly
+  if (texts.length <= OPENAI_EMBEDDING_BATCH_SIZE) {
+    return fetchOpenAIEmbeddingsBatch(texts, model, apiKey);
+  }
+
+  // Split large requests into batches to avoid rate limits during ingestion
+  const results: number[][] = [];
+  for (let i = 0; i < texts.length; i += OPENAI_EMBEDDING_BATCH_SIZE) {
+    const batch = texts.slice(i, i + OPENAI_EMBEDDING_BATCH_SIZE);
+    const batchResult = await fetchOpenAIEmbeddingsBatch(batch, model, apiKey);
+    results.push(...batchResult);
+    // Rate limit spacing between batches
+    if (i + OPENAI_EMBEDDING_BATCH_SIZE < texts.length) {
+      await new Promise((r) => setTimeout(r, 200));
+    }
+  }
+  return results;
+}
+
+async function fetchOpenAIEmbeddingsBatch(
+  texts: string[],
+  model: string,
+  apiKey: string
+): Promise<number[][]> {
   const response = await fetch('https://api.openai.com/v1/embeddings', {
     method: 'POST',
     headers: {
@@ -274,34 +300,4 @@ export async function generateQueryEmbedding(query: string, overrideConfig?: Emb
   const embedding = embeddings[0];
   setCachedEmbedding(cacheKey, embedding);
   return embedding;
-}
-
-/**
- * Calculate cosine similarity between two embeddings
- */
-export function cosineSimilarity(a: number[], b: number[]): number {
-  if (a.length !== b.length) {
-    throw new Error('Embeddings must have the same dimensions');
-  }
-
-  let dotProduct = 0;
-  let normA = 0;
-  let normB = 0;
-
-  for (let i = 0; i < a.length; i++) {
-    dotProduct += a[i] * b[i];
-    normA += a[i] * a[i];
-    normB += b[i] * b[i];
-  }
-
-  const similarity = dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
-  return similarity;
-}
-
-/**
- * Get embedding dimensions for the current model
- */
-export async function getEmbeddingDimensions(): Promise<number> {
-  const config = await resolveEmbeddingConfig();
-  return config?.dimensions ?? 768; // Default to 768 if no provider configured
 }

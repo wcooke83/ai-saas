@@ -9,9 +9,10 @@ import { fetchPinnedUrlContent } from './knowledge/live-fetch';
 import { getLanguageName } from './translations';
 import type { Chatbot, Message, KnowledgeChunkMatch } from './types';
 
-const DEFAULT_LOW_CONFIDENCE_THRESHOLD = 0.55;
+export const DEFAULT_LIVE_FETCH_THRESHOLD = 0.80;
+const LIVE_FETCH_PIPELINE_TIMEOUT = 5000; // 5s hard cap on the entire live fetch pipeline
 
-interface StageSpan { start: number; end: number }
+export interface StageSpan { start: number; end: number }
 
 export interface RAGContext {
   chunks: KnowledgeChunkMatch[];
@@ -242,7 +243,7 @@ export async function getRAGContext(
     : 0;
 
   // Finding #19: Use per-chatbot configurable threshold, fall back to default
-  const liveFetchThreshold = (chatbot as any).live_fetch_threshold ?? DEFAULT_LOW_CONFIDENCE_THRESHOLD;
+  const liveFetchThreshold = chatbot.live_fetch_threshold ?? DEFAULT_LIVE_FETCH_THRESHOLD;
 
   console.log(`[RAG] Best similarity: ${bestSimilarity.toFixed(3)}, chunks: ${mergedChunks.length}, pinned URLs: ${pinnedUrls.length}`);
   console.log(`[RAG] Pinned URLs:`, pinnedUrls.map((p) => p.url));
@@ -256,7 +257,19 @@ export async function getRAGContext(
     try {
       const urls = pinnedUrls.map((p) => p.url);
       console.log(`[RAG] Calling fetchPinnedUrlContent with URLs:`, urls);
-      liveContent = await fetchPinnedUrlContent(urls, query);
+      liveContent = await new Promise<string>((resolve) => {
+        let settled = false;
+        const timer = setTimeout(() => {
+          if (!settled) {
+            settled = true;
+            console.warn(`[RAG] Live fetch timed out after ${LIVE_FETCH_PIPELINE_TIMEOUT}ms`);
+            resolve('');
+          }
+        }, LIVE_FETCH_PIPELINE_TIMEOUT);
+        fetchPinnedUrlContent(urls, query)
+          .then((result) => { if (!settled) { settled = true; clearTimeout(timer); resolve(result); } })
+          .catch(() => { if (!settled) { settled = true; clearTimeout(timer); resolve(''); } });
+      });
       if (liveContent) {
         console.log(`[RAG] Pinned URL fetch returned ${liveContent.length} chars of context`);
         console.log(`[RAG] First 500 chars of live content:`, liveContent.substring(0, 500));
@@ -506,26 +519,16 @@ Your default language is English. If a user asks you to switch languages (e.g., 
   // Always add response guidelines when the chatbot has a knowledge base
   systemPrompt += `
 
-## MANDATORY Response Rules (NEVER VIOLATE)
+## MANDATORY Response Rules
 
-1. NEVER say "check the website", "visit the website", "go to the website", or any variation. You ARE the website assistant — telling users to check the website defeats your purpose.
-2. NEVER mention "context", "knowledge base", "information provided to me", "the data I have", or reference your internal workings in any way.
-3. When Reference Information (marked as [Live] or numbered sources) or Attached Documents are provided, ALWAYS use them to answer the question directly. Do NOT say you don't have the information when it is clearly present in either section.
-4. NEVER produce long numbered or bulleted lists unless the user explicitly asks for a list.
-5. Be concise — answer in 1-3 short sentences when possible.
-6. Speak naturally as if you inherently know the information. Do not hedge with "based on the information I have" or similar phrases.
-7. Handle different question types appropriately:
-   - For **factual business questions** (products, policies, services, locations, pricing) where the Reference Information is empty or doesn't contain the answer: politely tell the user you don't have that detail and offer to connect them with the team. Always respond in the current conversation language — never fall back to English.
-   - For **conversational/social questions** (your name, how are you, small talk, personal questions): respond naturally and warmly. If Visitor Information is provided above, use it to answer questions about the user's identity (e.g., "Your name is [name]"). Only say you don't know yet and ask what they'd like to be called if you truly have no visitor information.
-8. Sound warm, friendly, and human — not robotic or corporate.
-9. NEVER repeat a greeting. If the Conversation History already contains your greeting, a welcome message, or a proactive message (e.g., "Hi! How can I help you?" or "Need help with pricing?"), do NOT greet again in your next response. Just answer the user's question directly.
-10. For **superlative/comparative questions** (most expensive, cheapest, best, fastest, etc.): carefully review ALL items in the Reference Information before answering. Identify the single correct answer — do not list one item as the answer and then contradict yourself by mentioning a higher/lower value. If the data is incomplete, say so rather than giving a wrong answer.
-11. NEVER invent, guess, or fabricate URLs, links, phone numbers, email addresses, or specific figures (prices, dates, times) that are not explicitly present in the Reference Information or Attached Documents. If you don't have the exact data, say so.
-12. When the user attaches files (shown in the Attached Documents section), answer questions about their content directly. Never say you cannot access or read attached files.
-13. Stay consistent with your own prior answers in the Conversation History. If you need to correct something you said earlier, explicitly acknowledge the correction.
-14. If the user asks a multi-part question, address ALL parts of their question, not just the first or most prominent one.
-15. Never volunteer a full dump of the user's personal details, account data, or visitor information. Use such data naturally and contextually when relevant to the user's question, but do not recite it unprompted.
-16. All fallback phrases and responses must be in the current conversation language, not hardcoded English.`;
+1. You ARE the website assistant. NEVER say "check/visit the website" or reference your internal workings, context, knowledge base, or data sources. Speak as if you inherently know the information.
+2. ALWAYS use Reference Information and Attached Documents to answer directly. Never claim you lack information that is present in these sections. For attached files, answer about their content directly.
+3. Be concise (1-3 sentences when possible). No long lists unless explicitly requested. Sound warm, friendly, and human.
+4. For factual questions without an answer in Reference Information: politely say you don't have that detail and offer to connect with the team. For conversational questions: respond naturally and warmly, using Visitor Information when relevant.
+5. NEVER repeat a greeting already in Conversation History. Stay consistent with prior answers — acknowledge corrections explicitly. Address ALL parts of multi-part questions.
+6. NEVER fabricate URLs, links, phone numbers, emails, or specific figures not in Reference Information. For superlative/comparative questions, review ALL items before answering.
+7. Use visitor/user data naturally and contextually — never dump it unprompted.
+8. All responses must be in the current conversation language, never hardcoded English.`;
 
   return systemPrompt;
 }
