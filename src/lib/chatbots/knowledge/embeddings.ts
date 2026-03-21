@@ -13,6 +13,43 @@ import { getActiveModelAndProvider } from '@/lib/ai/provider';
 import { getEmbeddingModel } from '@/lib/settings';
 import { generateGeminiEmbeddings, getGeminiEmbeddingDimensions } from '@/lib/ai/providers/gemini';
 
+// --- Query embedding cache ---
+// Embeddings are deterministic (same text + model = same vector), so no TTL needed.
+// Eviction is purely by LRU size cap to bound memory (~6KB per entry).
+const EMBEDDING_CACHE_MAX_SIZE = parseInt(process.env.EMBEDDING_CACHE_MAX_SIZE || '', 10) || 200;
+
+const embeddingCache = new Map<string, number[]>();
+
+function getEmbeddingCacheKey(text: string, config: EmbeddingConfig): string {
+  // Normalize: lowercase, collapse whitespace
+  const normalized = text.toLowerCase().replace(/\s+/g, ' ').trim();
+  return `${config.provider}:${config.model}:${normalized}`;
+}
+
+function getCachedEmbedding(key: string): number[] | null {
+  const entry = embeddingCache.get(key);
+  if (!entry) return null;
+  // Move to end (most recently used) for LRU behavior
+  embeddingCache.delete(key);
+  embeddingCache.set(key, entry);
+  return entry;
+}
+
+function setCachedEmbedding(key: string, embedding: number[]): void {
+  // Evict oldest (least recently used) entry if at capacity
+  if (embeddingCache.size >= EMBEDDING_CACHE_MAX_SIZE) {
+    const firstKey = embeddingCache.keys().next().value;
+    if (firstKey) embeddingCache.delete(firstKey);
+  }
+  embeddingCache.set(key, embedding);
+}
+
+/** Check if OPENAI_API_KEY looks like a real key (not a placeholder) */
+function isValidOpenAIKey(): boolean {
+  const key = process.env.OPENAI_API_KEY;
+  return !!key && key.startsWith('sk-') && key.length > 20;
+}
+
 export type EmbeddingProvider = 'openai' | 'gemini';
 
 export interface EmbeddingConfig {
@@ -20,6 +57,12 @@ export interface EmbeddingConfig {
   model: string;
   dimensions: number;
 }
+
+// --- resolveEmbeddingConfig cache (Finding #14) ---
+// Caches the resolved config for 60s to avoid repeated getModelById() DB calls.
+let _resolvedConfigCache: EmbeddingConfig | null | undefined = undefined;
+let _resolvedConfigCacheTime = 0;
+const RESOLVE_CONFIG_CACHE_TTL = 60_000; // 60s, matches getAppSettings cache
 
 /**
  * Resolve which embedding provider to use.
@@ -29,13 +72,25 @@ export interface EmbeddingConfig {
  *   3. Fallback to any available embedding-capable provider
  */
 export async function resolveEmbeddingConfig(): Promise<EmbeddingConfig | null> {
+  const now = Date.now();
+  if (_resolvedConfigCache !== undefined && now - _resolvedConfigCacheTime < RESOLVE_CONFIG_CACHE_TTL) {
+    return _resolvedConfigCache;
+  }
+
+  const result = await _resolveEmbeddingConfigUncached();
+  _resolvedConfigCache = result;
+  _resolvedConfigCacheTime = Date.now();
+  return result;
+}
+
+async function _resolveEmbeddingConfigUncached(): Promise<EmbeddingConfig | null> {
   // 1. Check for manually configured embedding model preference
   try {
     const embeddingModel = await getEmbeddingModel();
     if (embeddingModel) {
       const slug = embeddingModel.provider?.slug?.toLowerCase();
-      
-      if (slug === 'openai' && process.env.OPENAI_API_KEY) {
+
+      if (slug === 'openai' && isValidOpenAIKey()) {
         console.log('[Embeddings] Using configured embedding model:', embeddingModel.name);
         return {
           provider: 'openai',
@@ -46,9 +101,6 @@ export async function resolveEmbeddingConfig(): Promise<EmbeddingConfig | null> 
 
       if ((slug === 'google' || slug === 'gemini') && process.env.GOOGLE_API_KEY) {
         console.log('[Embeddings] Using configured embedding model:', embeddingModel.name);
-        // Note: Gemini chat models can't be used for embeddings
-        // Always use the dedicated embedding model regardless of selection
-        // Google AI Studio API uses 'embedding-001' (stable, free)
         return {
           provider: 'gemini',
           model: 'gemini-embedding-001',
@@ -65,12 +117,11 @@ export async function resolveEmbeddingConfig(): Promise<EmbeddingConfig | null> 
     const active = await getActiveModelAndProvider();
     const slug = active?.model?.provider?.slug?.toLowerCase();
 
-    // Check if active provider supports embeddings
-    if (slug === 'openai' && process.env.OPENAI_API_KEY) {
+    if (slug === 'openai' && isValidOpenAIKey()) {
       console.log('[Embeddings] Using active chat provider for embeddings: OpenAI');
       return {
         provider: 'openai',
-        model: 'text-embedding-ada-002',
+        model: 'text-embedding-3-small',
         dimensions: 1536,
       };
     }
@@ -88,7 +139,6 @@ export async function resolveEmbeddingConfig(): Promise<EmbeddingConfig | null> 
   }
 
   // 3. Fallback: try available embedding providers in order of preference
-  // Prefer Gemini (free) over OpenAI (paid)
   if (process.env.GOOGLE_API_KEY) {
     console.log('[Embeddings] Auto-selecting Gemini (free)');
     return {
@@ -98,12 +148,11 @@ export async function resolveEmbeddingConfig(): Promise<EmbeddingConfig | null> 
     };
   }
 
-  const openaiKey = process.env.OPENAI_API_KEY;
-  if (openaiKey?.startsWith('sk-') && openaiKey.length > 20) {
+  if (isValidOpenAIKey()) {
     console.log('[Embeddings] Auto-selecting OpenAI');
     return {
       provider: 'openai',
-      model: 'text-embedding-ada-002',
+      model: 'text-embedding-3-small',
       dimensions: 1536,
     };
   }
@@ -205,11 +254,26 @@ async function generateOpenAIEmbeddings(
 
 /**
  * Generate embedding for a single text (for queries)
+ * Uses an in-memory cache to avoid redundant API calls for repeated queries.
  * @param overrideConfig - If provided, uses this config instead of resolving from settings
  */
 export async function generateQueryEmbedding(query: string, overrideConfig?: EmbeddingConfig): Promise<number[]> {
-  const embeddings = await generateEmbeddings([query], overrideConfig);
-  return embeddings[0];
+  const config = overrideConfig || await resolveEmbeddingConfig();
+  if (!config) {
+    throw new Error('No embedding-capable AI provider available.');
+  }
+
+  const cacheKey = getEmbeddingCacheKey(query, config);
+  const cached = getCachedEmbedding(cacheKey);
+  if (cached) {
+    console.log(`[Embeddings] Cache HIT for query (${query.substring(0, 50)}...)`);
+    return cached;
+  }
+
+  const embeddings = await generateEmbeddings([query], config);
+  const embedding = embeddings[0];
+  setCachedEmbedding(cacheKey, embedding);
+  return embedding;
 }
 
 /**

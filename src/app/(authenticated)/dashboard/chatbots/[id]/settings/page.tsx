@@ -31,6 +31,9 @@ import {
   Headphones,
   ExternalLink,
   Users,
+  Upload,
+  X,
+  Image,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -128,6 +131,9 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
   const [modelTier, setModelTier] = useState<'fast' | 'balanced' | 'powerful'>('fast');
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(1024);
+  const [liveFetchThreshold, setLiveFetchThreshold] = useState(0.80);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   useEffect(() => {
     async function fetchChatbot() {
@@ -169,6 +175,8 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
         else setModelTier('fast');
         setTemperature((bot as any).temperature ?? 0.7);
         setMaxTokens((bot as any).max_tokens ?? 1024);
+        setLiveFetchThreshold((bot as any).live_fetch_threshold ?? 0.80);
+        setLogoUrl(bot.logo_url || null);
         // Initialize translation warnings from DB timestamps
         const needsWarning = computeWarningsFromBot(bot);
         setShowGeneralWarning(needsWarning);
@@ -225,6 +233,8 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
           model: modelTier,
           temperature,
           max_tokens: maxTokens,
+          live_fetch_threshold: liveFetchThreshold,
+          logo_url: logoUrl,
         }),
       });
 
@@ -493,6 +503,71 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               </p>
             </div>
 
+            <div className="space-y-2">
+              <Label>Logo</Label>
+              <div className="flex items-center gap-4">
+                {logoUrl ? (
+                  <div className="relative group">
+                    <img src={logoUrl} alt="Logo" className="w-16 h-16 rounded-lg object-cover border border-secondary-200 dark:border-secondary-700" />
+                    <button
+                      type="button"
+                      onClick={() => setLogoUrl(null)}
+                      className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 bg-secondary-100 dark:bg-secondary-800 rounded-lg flex items-center justify-center border-2 border-dashed border-secondary-300 dark:border-secondary-600">
+                    <Image className="w-6 h-6 text-secondary-400" />
+                  </div>
+                )}
+                <div>
+                  <label className="cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 2 * 1024 * 1024) {
+                          toast.error('Logo must be under 2MB');
+                          return;
+                        }
+                        setUploadingLogo(true);
+                        try {
+                          const { getClient } = await import('@/lib/supabase/client');
+                          const supabase = getClient();
+                          const ext = file.name.split('.').pop() || 'png';
+                          const path = `logos/${id}.${ext}`;
+                          const { error: uploadError } = await supabase.storage
+                            .from('chat-attachments')
+                            .upload(path, file, { upsert: true });
+                          if (uploadError) throw uploadError;
+                          const { data: urlData } = supabase.storage
+                            .from('chat-attachments')
+                            .getPublicUrl(path);
+                          setLogoUrl(urlData.publicUrl);
+                          toast.success('Logo uploaded — click Save to apply');
+                        } catch (err) {
+                          toast.error(err instanceof Error ? err.message : 'Upload failed');
+                        } finally {
+                          setUploadingLogo(false);
+                          e.target.value = '';
+                        }
+                      }}
+                    />
+                    <span className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md border border-secondary-300 dark:border-secondary-600 hover:bg-secondary-50 dark:hover:bg-secondary-800 transition-colors">
+                      {uploadingLogo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                      {uploadingLogo ? 'Uploading...' : 'Upload Logo'}
+                    </span>
+                  </label>
+                  <p className="text-xs text-secondary-500 mt-1">PNG, JPG, WebP, or SVG. Max 2MB.</p>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -709,6 +784,32 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               </div>
               <p className="text-xs text-secondary-500">
                 Maximum length of each response.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="live_fetch_threshold">Live Fetch Threshold</Label>
+                <span className="text-sm font-mono text-secondary-700 dark:text-secondary-300 bg-secondary-100 dark:bg-secondary-800 px-2 py-0.5 rounded">
+                  {liveFetchThreshold.toFixed(2)}
+                </span>
+              </div>
+              <input
+                id="live_fetch_threshold"
+                type="range"
+                min={0.5}
+                max={0.95}
+                step={0.05}
+                value={liveFetchThreshold}
+                onChange={(e) => setLiveFetchThreshold(parseFloat(e.target.value))}
+                className="w-full accent-primary-500"
+              />
+              <div className="flex justify-between text-xs text-secondary-400">
+                <span>Lenient (0.50)</span>
+                <span>Strict (0.95)</span>
+              </div>
+              <p className="text-xs text-secondary-500">
+                When knowledge base confidence is below this threshold, the chatbot will fetch live content from pinned URLs. Lower values reduce live fetches (faster responses). Higher values trigger live fetch more often (more thorough answers).
               </p>
             </div>
           </CardContent>

@@ -43,6 +43,7 @@ const updateChatbotSchema = z.object({
   escalation_config: z.record(z.unknown()).optional(),
   live_handoff_config: z.record(z.unknown()).optional(),
   telegram_config: z.record(z.unknown()).optional(),
+  live_fetch_threshold: z.number().min(0.5).max(0.95).optional(),
 });
 
 interface RouteParams {

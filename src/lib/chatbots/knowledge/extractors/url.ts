@@ -7,17 +7,29 @@
 import * as cheerio from 'cheerio';
 
 const JINA_READER_PREFIX = 'https://r.jina.ai/';
-const FETCH_TIMEOUT = 30000; // 30 seconds
+const DEFAULT_FETCH_TIMEOUT = 30000; // 30 seconds (knowledge ingestion)
+const LIVE_FETCH_TIMEOUT = 10000; // 10 seconds (real-time chat queries)
 
 /**
  * Extract main content from a URL
  * Tries Jina AI Reader first (handles JS rendering), falls back to direct scraping
+ * @param timeoutMs - fetch timeout in ms (defaults to 30s for ingestion)
  */
-export async function extractURL(url: string): Promise<string> {
-  // Try Jina AI Reader first (free, no API key, handles JS rendering)
+export async function extractURL(url: string, timeoutMs?: number): Promise<string> {
+  const timeout = timeoutMs ?? DEFAULT_FETCH_TIMEOUT;
+  const isLiveFetch = timeout <= LIVE_FETCH_TIMEOUT;
+
+  // For live chat queries, race Jina against direct fetch to reduce tail latency.
+  // Jina gets a 3s head start (it handles JS-rendered pages better), then direct
+  // fetch starts as a fallback. First good result wins.
+  if (isLiveFetch) {
+    return extractURLRaced(url, timeout);
+  }
+
+  // For knowledge ingestion, use sequential approach (no time pressure)
   try {
-    console.log(`[URL Extractor] Trying Jina Reader for: ${url}`);
-    const content = await extractWithJina(url);
+    console.log(`[URL Extractor] Trying Jina Reader for: ${url} (timeout: ${timeout}ms)`);
+    const content = await extractWithJina(url, timeout);
     if (content && content.trim().length > 100) {
       console.log(`[URL Extractor] Jina Reader succeeded: ${content.length} chars`);
       return content;
@@ -27,44 +39,84 @@ export async function extractURL(url: string): Promise<string> {
     console.warn('[URL Extractor] Jina Reader failed, falling back to direct fetch:', error);
   }
 
-  // Fallback: direct fetch + cheerio (works for static HTML pages)
-  try {
-    console.log(`[URL Extractor] Trying direct fetch for: ${url}`);
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; AIBot/1.0; +https://example.com/bot)',
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      },
-      signal: AbortSignal.timeout(FETCH_TIMEOUT),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch URL: ${response.status} ${response.statusText}`);
-    }
-
-    const html = await response.text();
-    const content = extractContentFromHTML(html, url);
-    console.log(`[URL Extractor] Direct fetch succeeded: ${content.length} chars`);
-    return content;
-  } catch (error) {
-    console.error('[URL Extractor] Direct fetch also failed:', error);
-    throw new Error(
-      `Failed to extract URL content: ${error instanceof Error ? error.message : 'Unknown error'}`
-    );
-  }
+  return extractDirect(url, timeout);
 }
+
+/**
+ * Race Jina Reader against direct fetch for live chat queries.
+ * Jina gets a 3s head start, then direct fetch starts in parallel.
+ * First successful result (>100 chars) wins.
+ */
+async function extractURLRaced(url: string, timeout: number): Promise<string> {
+  const JINA_HEAD_START = 3000;
+
+  const jinaPromise = extractWithJina(url, timeout)
+    .then((content) => (content && content.trim().length > 100 ? content : null))
+    .catch(() => null);
+
+  const directPromise = new Promise<string | null>((resolve) => {
+    setTimeout(async () => {
+      try {
+        const content = await extractDirect(url, timeout);
+        resolve(content && content.trim().length > 100 ? content : null);
+      } catch {
+        resolve(null);
+      }
+    }, JINA_HEAD_START);
+  });
+
+  // Wait for both, take the first non-null result (Jina preferred since it started first)
+  const [jinaResult, directResult] = await Promise.all([jinaPromise, directPromise]);
+
+  if (jinaResult) {
+    console.log(`[URL Extractor] Jina Reader won race: ${jinaResult.length} chars`);
+    return jinaResult;
+  }
+  if (directResult) {
+    console.log(`[URL Extractor] Direct fetch won race: ${directResult.length} chars`);
+    return directResult;
+  }
+
+  throw new Error(`Failed to extract URL content from ${url}`);
+}
+
+/**
+ * Direct fetch + cheerio extraction
+ */
+async function extractDirect(url: string, timeout: number): Promise<string> {
+  console.log(`[URL Extractor] Trying direct fetch for: ${url}`);
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (compatible; AIBot/1.0; +https://example.com/bot)',
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    },
+    signal: AbortSignal.timeout(timeout),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch URL: ${response.status} ${response.statusText}`);
+  }
+
+  const html = await response.text();
+  const content = extractContentFromHTML(html, url);
+  console.log(`[URL Extractor] Direct fetch succeeded: ${content.length} chars`);
+  return content;
+}
+
+/** Convenience export for live-fetch callers */
+export { LIVE_FETCH_TIMEOUT };
 
 /**
  * Extract content using Jina AI Reader (handles JavaScript-rendered pages)
  */
-async function extractWithJina(url: string): Promise<string> {
+async function extractWithJina(url: string, timeoutMs: number): Promise<string> {
   const jinaUrl = `${JINA_READER_PREFIX}${url}`;
 
   const response = await fetch(jinaUrl, {
     headers: {
       Accept: 'text/plain',
     },
-    signal: AbortSignal.timeout(FETCH_TIMEOUT),
+    signal: AbortSignal.timeout(timeoutMs),
   });
 
   if (!response.ok) {

@@ -16,6 +16,7 @@ import {
   XCircle,
   Clock,
   RefreshCw,
+  RotateCw,
   Star,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -160,6 +161,28 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
         prev.map((s) => (s.id === source.id ? { ...s, is_priority: !newPriority } : s))
       );
       toast.error('Failed to update source priority');
+    }
+  };
+
+  const handleReprocessSource = async (source: KnowledgeSource) => {
+    if (!confirm(`Re-process "${source.name}"? This will delete existing chunks and re-embed with the current AI model.`)) return;
+    // Optimistic update
+    setSources((prev) =>
+      prev.map((s) => (s.id === source.id ? { ...s, status: 'processing' as const } : s))
+    );
+    try {
+      const response = await fetch(`/api/chatbots/${id}/knowledge/${source.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reprocess' }),
+      });
+      if (!response.ok) throw new Error('Failed to start reprocessing');
+      toast.success('Re-processing started — status will update automatically');
+    } catch {
+      setSources((prev) =>
+        prev.map((s) => (s.id === source.id ? { ...s, status: source.status } : s))
+      );
+      toast.error('Failed to start reprocessing');
     }
   };
 
@@ -476,6 +499,17 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
                     >
                       <Star className={`w-4 h-4 ${source.is_priority ? 'fill-current' : ''}`} />
                     </Button>
+                    {(source.status === 'completed' || source.status === 'failed') && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleReprocessSource(source)}
+                        className="text-secondary-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                        title="Re-process — delete chunks and re-embed with current AI model"
+                      >
+                        <RotateCw className="w-4 h-4" />
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"

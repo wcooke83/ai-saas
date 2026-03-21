@@ -1,47 +1,61 @@
 ---
 name: RAG System Current State
-description: Comprehensive state of the RAG pipeline as of 2026-03-21 audit - embedding models, indexes, thresholds, and critical bugs
+description: Comprehensive state of the RAG pipeline as of 2026-03-21 second audit - all prior findings applied, new bottlenecks identified in chat route parallelism, live fetch AI picker, and missing DB schema
 type: project
 ---
 
-## Critical Bug: Embedding Model Mismatch (0.00 confidence)
-The `app_settings.embedding_model_id` is set to Gemini Embedding 001 (`3ba30c20-236b-4e79-a1ec-2c38e6e544a3`), but chunks were originally embedded with OpenAI `text-embedding-ada-002` (1536d). The `resolveEmbeddingConfig()` in `src/lib/chatbots/knowledge/embeddings.ts` resolves to Gemini for query embeddings, producing incompatible vectors. This causes 100% of queries to return 0.00 similarity, triggering live fetch on every single request.
+## Prior Audit Fixes (in working tree, not yet committed)
 
-**Why:** The admin changed the embedding provider after chunks were already ingested, but no re-embedding was triggered. The system has no safeguard against this mismatch.
+All 13 original findings applied:
+1. Embedding mismatch detection (P0) -- reads provider/model from knowledge_sources
+2. Single resolveEmbeddingConfig() call (P2) -- 60s TTL cache added
+3. Priority chunks similarity-filtered RPC (P1)
+4. 3-layer TTL cache on live fetch (P1)
+5. Split fetch timeout: 10s live, 30s ingestion (P2)
+6. Composite B-tree index + tuned HNSW ef_construction=128 (P4)
+7. Atomic get_or_create_conversation RPC (P3)
+8. Chat route explicit SELECT columns (P3)
+9. Widget config agent presence inlined (P4)
+10. Error handler captured chatbotUserId (P4)
+11. LRU embedding cache 200 entries (P2)
+12. Messages getMessages() configurable columns (P3)
+13. Greeting short-circuit (P3)
+14. resolveEmbeddingConfig 60s cache (P2)
+15. RAG pre-work overlaps with conversation setup (P2)
+16. Per-chatbot live_fetch_threshold (default 0.80) (P3)
 
-**How to apply:** Any fix must either (a) re-embed all chunks with the current provider, or (b) track which provider/model was used per-chunk and query with the matching model.
+## Second Audit Findings (2026-03-21)
+
+### Critical/High
+- **A (P1):** `pipeline_timings` JSONB column missing from `chat_performance_log` table -- perf logging silently fails
+- **G (P1):** Live fetch AI picker adds ~1-2s unnecessarily for small link sets (<= 5 links). Should skip AI and fetch all directly.
+
+### Medium
+- **B (P2):** `getUserPreferredModel()` blocks critical path serially (before Promise.all) for API-authenticated requests -- ~100-200ms
+- **C (P2):** `ragPreworkPromise` awaited outside parallel group, partially negating overlap benefit -- ~50-150ms
+- **E (P2):** `match_knowledge_chunks` RPC not in any migration file -- manually created, not version-controlled
+
+### Low
+- **D (P3):** `getActiveHandoff()` queries DB on every request even when handoff not configured -- ~30-80ms
+- **F (P3):** HNSW `ef_search` not tuned (using default 40) -- matters at >1000 chunks
+- **I (P3):** Fetches 50 messages but only uses 10 in prompt -- ~10-30ms wasted transfer
+- **K (P3):** Agent presence query inline in widget config -- ~30-80ms on widget init
+- **L (P3):** No `stale-while-revalidate` on widget config cache header
 
 ## Database State
-- **Table:** `knowledge_chunks` — 117 chunks, 1 chatbot, all have 1536-dim embeddings
-- **HNSW index:** `idx_knowledge_chunks_embedding` on `(embedding vector_cosine_ops)` with DEFAULT params (m=16, ef_construction=64) — adequate for 117 vectors
-- **Composite index missing:** No composite index on `(chatbot_id, embedding)` — the `match_knowledge_chunks` function filters by `chatbot_id` first
+- **Table:** `knowledge_chunks` -- 117 chunks, 1 chatbot, all 1536-dim OpenAI ada-002 embeddings
+- **Pending migrations:** 6 SQL files in supabase/migrations/ (20260321200000 through 20260321600000)
+- **Missing:** `pipeline_timings` JSONB column on `chat_performance_log`
+- **Missing:** `match_knowledge_chunks` RPC not in migrations
 
-## Embedding Configuration
-- Configured embedding model: Gemini Embedding 001 (Google) — outputs 1536d (via `outputDimensionality: 1536` in batchEmbed call)
-- OpenAI models available: `text-embedding-3-small`, `text-embedding-3-large`, `text-embedding-ada-002`
-- `resolveEmbeddingConfig()` is called 2x per RAG request: once in `isEmbeddingsAvailable()`, once in `generateQueryEmbedding()` — each does a DB call to `app_settings` + `ai_models`
-- Settings are cached for 60s via `getAppSettings()`, but `getEmbeddingModel()` also queries `ai_models` (no cache)
+## Key Config Values
+- Chunk size: 500 tokens, overlap: 50 tokens
+- Similarity threshold: 0.7, live fetch threshold: 0.80 (per-chatbot configurable)
+- Embedding cache: 200 entries LRU, no TTL
+- Live fetch caches: links 10min, AI pick 5min, content 30min
+- HNSW: m=16, ef_construction=128, ef_search=40 (default, not tuned)
 
-## Performance Data (18 requests, last 30 days)
-- Avg total: 15,100ms | Avg RAG: 10,602ms | Avg TTFT: 13,787ms
-- Avg embedding generation: 1,599ms
-- Avg similarity search: 2,088ms
-- Avg live fetch: 10,602ms (= RAG total because it dominates)
-- Live fetch triggered: 100% of requests (due to 0.00 confidence bug)
-- Avg chunks returned: 30 (all priority chunks, since similarity returns nothing)
-
-## Threshold Configuration
-- `LOW_CONFIDENCE_THRESHOLD = 0.9` in `src/lib/chatbots/rag.ts` line 12 — hardcoded, not configurable per-chatbot
-- `similarityThreshold = 0.7` default param in `getRAGContext()` line 34
-- `match_knowledge_chunks` SQL function default: `p_match_threshold = 0.7`
-
-## Live Fetch Architecture (the 7.5s bottleneck)
-Three-phase process in `src/lib/chatbots/knowledge/live-fetch.ts`:
-1. Fetch pinned URL HTML + extract all links (~1-2s)
-2. AI call to pick best link(s) from list (~2-3s) — uses `generate()` with full AI roundtrip
-3. Fetch picked URL(s) via Jina Reader (~2-3s per URL, max 2 URLs)
-No caching at any layer. Every request re-fetches, re-parses, re-asks AI.
-
-## Chunking Parameters
-- `maxTokens: 500`, `overlap: 50`, `preserveHeaders: true` in `src/lib/chatbots/knowledge/processor.ts` line 118-122
-- Avg actual token count: ~417 tokens per chunk
+## Performance Estimates
+- **Post-fix baseline (no live fetch):** ~3,000-3,500ms total, ~2,500-3,000ms TTFT
+- **With Findings B+C+D applied:** ~2,600-3,100ms total, ~2,200-2,600ms TTFT
+- **With Finding G on cold live fetch path:** saves ~1,500ms

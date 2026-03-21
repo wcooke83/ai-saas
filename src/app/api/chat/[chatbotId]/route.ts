@@ -23,6 +23,7 @@ import {
 import { validateAPIKey } from '@/lib/auth/api-keys';
 import {
   getRAGContext,
+  startRAGPrework,
   buildRAGPrompt,
   buildSystemPrompt,
   formatConversationHistory,
@@ -39,6 +40,7 @@ import { logAPICall } from '@/lib/api/logging';
 import type { Chatbot, Message, Attachment, FileUploadConfig } from '@/lib/chatbots/types';
 import { DEFAULT_FILE_UPLOAD_CONFIG, FILE_TYPE_MAP } from '@/lib/chatbots/types';
 import { getActiveHandoff, forwardVisitorMessage } from '@/lib/telegram/handoff';
+import { analyzeConversationSentiment, updateVisitorLoyalty } from '@/lib/chatbots/sentiment';
 import type { AIModelWithProvider } from '@/types/ai-models';
 
 // ── Per-stage timing helper ──────────────────────────────────────────
@@ -85,6 +87,8 @@ interface PerfLogData {
   message_length: number;
   response_length: number;
   is_streaming: boolean;
+  user_message: string;
+  assistant_response: string;
 }
 
 function savePerfLog(supabase: any, data: PerfLogData): void {
@@ -116,6 +120,8 @@ function savePerfLog(supabase: any, data: PerfLogData): void {
       response_length: data.response_length,
       is_streaming: data.is_streaming,
       pipeline_timings: data.pipelineTimings ?? null,
+      user_message: data.user_message.slice(0, 500),
+      assistant_response: data.assistant_response.slice(0, 500),
     })
     .then(({ error }: any) => {
       if (error) console.warn('[Chat:Perf] Failed to save timing:', error?.message);
@@ -241,8 +247,10 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     );
   }
 
+  const { chatbotId } = await params;
+  let chatbotUserId: string | null = null;
+
   try {
-    const { chatbotId } = await params;
     const _t0 = Date.now();
     const _timings: Record<string, number> = {};
     const _perf = (label: string) => {
@@ -257,7 +265,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     _stages.start('chatbot_loaded');
     const { data: chatbotData, error: chatbotError } = await supabase
       .from('chatbots')
-      .select('*')
+      .select('id, user_id, is_published, status, monthly_message_limit, messages_this_month, language, file_upload_config, memory_enabled, memory_days, model, temperature, max_tokens, system_prompt, enable_prompt_protection, live_fetch_threshold')
       .eq('id', chatbotId)
       .single();
 
@@ -266,8 +274,13 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     }
 
     const chatbot = chatbotData as Chatbot;
+    chatbotUserId = chatbot.user_id;
     _perf('chatbot_loaded');
     _stages.end('chatbot_loaded');
+    _stages.start('validate_and_parse');
+
+    // Finding #15: Start RAG pre-work immediately (overlaps with conversation setup)
+    const ragPreworkPromise = startRAGPrework(chatbotId);
 
     // Check if chatbot is published/active
     if (!chatbot.is_published || chatbot.status !== 'active') {
@@ -332,6 +345,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const sessionId = input.session_id || generateSessionId();
 
     // Get or create conversation (pass admin client to bypass RLS)
+    _stages.end('validate_and_parse');
     _stages.start('conversation_ready');
     const channel = authHeader ? 'api' : 'widget';
     const conversation = await getOrCreateConversation(
@@ -404,6 +418,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     _perf('conversation_ready');
     _stages.end('conversation_ready');
+    _stages.start('setup_pipeline');
 
     // Detect language switch request
     const requestedLanguage = detectLanguageSwitch(input.message);
@@ -436,6 +451,8 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     // For long messages, fire RAG right away with the raw query.
     // For short messages, wait for history so we can enhance the query.
     _stages.start('rag_context');
+    // Await prework that was started right after chatbot loaded (Finding #15)
+    const ragPrework = await ragPreworkPromise;
     const ragPromise = (isShortMessage
       ? historyReady.then((msgs) => {
           let ragQuery = input.message;
@@ -444,9 +461,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
             ragQuery = `${lastAssistantMsg.content} ${input.message}`;
             console.log('[Chat] Enhanced RAG query with conversation context:', ragQuery);
           }
-          return getRAGContext(chatbot, ragQuery);
+          return getRAGContext(chatbot, ragQuery, 5, 0.45, ragPrework);
         })
-      : getRAGContext(chatbot, input.message)
+      : getRAGContext(chatbot, input.message, 5, 0.45, ragPrework)
     ).then((r) => { _stages.end('rag_context'); return r; });
 
     // Attachment processing — no dependency on history or conversation
@@ -545,6 +562,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     })();
 
     // Fire everything in parallel
+    _stages.end('setup_pipeline');
     _perf('pre_parallel');
     _stages.start('get_history');
     _stages.start('save_message');
@@ -706,6 +724,26 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
                 .catch(() => {});
             }
 
+            // Fire-and-forget: auto-sentiment analysis (after 4+ messages in conversation)
+            const totalMessages = messages.length + 2; // existing + user + assistant
+            if (totalMessages >= 4) {
+              const allMsgs = [...messages, { role: 'user', content: input.message } as Message, { role: 'assistant', content: fullResponse } as Message];
+              analyzeConversationSentiment(allMsgs)
+                .then(async (result) => {
+                  if (!result) return;
+                  await supabase.from('conversations').update({
+                    sentiment_score: result.score,
+                    sentiment_label: result.label,
+                    sentiment_summary: result.summary,
+                    sentiment_analyzed_at: new Date().toISOString(),
+                  }).eq('id', conversation.id);
+                  if (input.visitor_id) {
+                    await updateVisitorLoyalty(chatbotId, input.visitor_id, supabase);
+                  }
+                })
+                .catch(() => {});
+            }
+
             // Fire-and-forget: save performance timing
             _perf('total');
             // Merge RAG sub-stage timings into pipeline_timings
@@ -731,10 +769,12 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
               rag_chunks_count: ragContext.chunks.length,
               rag_confidence: ragContext.confidence,
               rag_timings: ragContext.perfTimings,
-              live_fetch_triggered: ragContext.pinnedUrls.length > 0 && ragContext.confidence < 0.9,
+              live_fetch_triggered: ragContext.pinnedUrls.length > 0 && ragContext.confidence < ((chatbot as any).live_fetch_threshold ?? 0.80),
               message_length: input.message.length,
               response_length: fullResponse.length,
               is_streaming: true,
+              user_message: input.message,
+              assistant_response: fullResponse,
             });
           } catch (error) {
             try {
@@ -797,6 +837,26 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         .catch(() => {});
     }
 
+    // Fire-and-forget: auto-sentiment analysis (after 4+ messages in conversation)
+    const totalMsgCount = messages.length + 2;
+    if (totalMsgCount >= 4) {
+      const allMsgs = [...messages, { role: 'user', content: input.message } as Message, { role: 'assistant', content: result.content } as Message];
+      analyzeConversationSentiment(allMsgs)
+        .then(async (sentResult) => {
+          if (!sentResult) return;
+          await supabase.from('conversations').update({
+            sentiment_score: sentResult.score,
+            sentiment_label: sentResult.label,
+            sentiment_summary: sentResult.summary,
+            sentiment_analyzed_at: new Date().toISOString(),
+          }).eq('id', conversation.id);
+          if (input.visitor_id) {
+            await updateVisitorLoyalty(chatbotId, input.visitor_id, supabase);
+          }
+        })
+        .catch(() => {});
+    }
+
     // Fire-and-forget: save performance timing
     _perf('total');
     // Merge RAG sub-stage timings into pipeline_timings
@@ -820,10 +880,12 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       rag_chunks_count: ragContext.chunks.length,
       rag_confidence: ragContext.confidence,
       rag_timings: ragContext.perfTimings,
-      live_fetch_triggered: ragContext.pinnedUrls.length > 0 && ragContext.confidence < 0.9,
+      live_fetch_triggered: ragContext.pinnedUrls.length > 0 && ragContext.confidence < ((chatbot as any).live_fetch_threshold ?? 0.80),
       message_length: input.message.length,
       response_length: result.content.length,
       is_streaming: false,
+      user_message: input.message,
+      assistant_response: result.content,
     });
 
     // Log API call for usage tracking (fire-and-forget, don't block response)
@@ -869,28 +931,20 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       }
     );
   } catch (error) {
-    // Log failed API call
-    try {
-      const { chatbotId } = await params;
-      const supabase = createAdminClient() as any;
-      const { data: chatbotData } = await supabase
-        .from('chatbots')
-        .select('user_id')
-        .eq('id', chatbotId)
-        .single();
-      
-      if (chatbotData) {
+    // Log failed API call using captured user_id (no extra DB query)
+    if (chatbotUserId) {
+      try {
         await logAPICall({
-          user_id: chatbotData.user_id,
+          user_id: chatbotUserId,
           endpoint: `/api/chat/${chatbotId}`,
           method: 'POST',
           status_code: error instanceof APIError ? error.statusCode : 500,
           error_message: error instanceof Error ? error.message : 'Unknown error',
           duration_ms: 0,
         });
+      } catch {
+        // Ignore logging errors
       }
-    } catch (logError) {
-      // Ignore logging errors
     }
     return errorResponse(error);
   }
@@ -912,5 +966,5 @@ export async function OPTIONS() {
  * Generate a unique session ID
  */
 function generateSessionId(): string {
-  return `session_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+  return `session_${crypto.randomUUID()}`;
 }

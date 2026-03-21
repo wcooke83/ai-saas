@@ -6,23 +6,112 @@
  * 2. Ask the AI which link(s) would answer the user's question (Pass 1)
  * 3. Fetch those pages via Jina Reader
  * 4. Return the content for inclusion in the main AI prompt (Pass 2)
+ *
+ * All three stages are cached in-memory with configurable TTLs.
  */
 
 import * as cheerio from 'cheerio';
-import { extractURL } from './extractors/url';
+import { extractURL, LIVE_FETCH_TIMEOUT } from './extractors/url';
 import { generate } from '@/lib/ai/provider';
 
 // Max total chars for fetched content (~10K tokens, leaves room for conversation history within 131K limit)
 const MAX_CONTENT_CHARS = 40000;
+
+// ============================================
+// CACHE CONFIGURATION
+// ============================================
+
+export interface LiveFetchCacheConfig {
+  /** TTL for extracted links per pinned URL (ms). Default: 10 minutes */
+  linksTtlMs: number;
+  /** TTL for Jina Reader content per URL (ms). Default: 30 minutes */
+  contentTtlMs: number;
+  /** TTL for AI link-picking results by query+URL set (ms). Default: 5 minutes */
+  aiPickTtlMs: number;
+}
+
+const DEFAULT_CACHE_CONFIG: LiveFetchCacheConfig = {
+  linksTtlMs: 10 * 60 * 1000,    // 10 minutes
+  contentTtlMs: 30 * 60 * 1000,  // 30 minutes
+  aiPickTtlMs: 5 * 60 * 1000,    // 5 minutes
+};
+
+let cacheConfig: LiveFetchCacheConfig = { ...DEFAULT_CACHE_CONFIG };
+
+/** Override cache TTLs at runtime */
+export function configureLiveFetchCache(config: Partial<LiveFetchCacheConfig>): void {
+  cacheConfig = { ...cacheConfig, ...config };
+}
+
+// ============================================
+// IN-MEMORY TTL CACHE
+// ============================================
+
+interface CacheEntry<T> {
+  value: T;
+  expiresAt: number;
+}
+
+class TtlCache<T> {
+  private store = new Map<string, CacheEntry<T>>();
+
+  get(key: string): T | undefined {
+    const entry = this.store.get(key);
+    if (!entry) return undefined;
+    if (Date.now() > entry.expiresAt) {
+      this.store.delete(key);
+      return undefined;
+    }
+    return entry.value;
+  }
+
+  set(key: string, value: T, ttlMs: number): void {
+    this.store.set(key, { value, expiresAt: Date.now() + ttlMs });
+    // Lazy cleanup: prune expired entries when map grows large
+    if (this.store.size > 500) this.prune();
+  }
+
+  private prune(): void {
+    const now = Date.now();
+    for (const [key, entry] of this.store) {
+      if (now > entry.expiresAt) this.store.delete(key);
+    }
+  }
+
+  get size(): number { return this.store.size; }
+
+  clear(): void { this.store.clear(); }
+}
+
+// Separate caches for each stage
+const linksCache = new TtlCache<PageLink[]>();
+const contentCache = new TtlCache<string | null>();
+const aiPickCache = new TtlCache<string[]>();
+
+/** Clear all live fetch caches (useful for testing) */
+export function clearLiveFetchCaches(): void {
+  linksCache.clear();
+  contentCache.clear();
+  aiPickCache.clear();
+}
+
+// ============================================
+// TYPES
+// ============================================
 
 interface PageLink {
   url: string;
   text: string;
 }
 
+// ============================================
+// MAIN ENTRY POINT
+// ============================================
+
 /**
  * Fetch relevant page content from pinned URLs using a two-pass AI approach.
  * Pass 1: AI picks the best link from the site. Pass 2: content is returned for the main prompt.
+ * All stages are cached with configurable TTLs.
  */
 export async function fetchPinnedUrlContent(
   pinnedUrls: string[],
@@ -35,14 +124,9 @@ export async function fetchPinnedUrlContent(
     return '';
   }
 
-  // Step 1: For each pinned URL, extract all links from the page (in parallel)
+  // Step 1: For each pinned URL, extract all links (cached per URL)
   const linkResults = await Promise.all(
-    pinnedUrls.map(async (url) => {
-      console.log(`[Live Fetch] Extracting links from pinned URL: ${url}`);
-      const links = await extractLinksFromUrl(url);
-      console.log(`[Live Fetch] Found ${links.length} links on ${url}`);
-      return links;
-    })
+    pinnedUrls.map((url) => getCachedLinks(url))
   );
   const allLinks: PageLink[] = linkResults.flat();
 
@@ -59,67 +143,27 @@ export async function fetchPinnedUrlContent(
     return true;
   });
 
-  // Step 2: Ask the AI which link(s) would answer the user's question
-  const linkList = uniqueLinks
-    .map((link, i) => `${i + 1}. "${link.text}" — ${link.url}`)
-    .join('\n');
+  // Step 2: Pick which link(s) to fetch
+  // For small link sets, skip the AI call entirely — just fetch them all.
+  // The AI picker adds ~1-2s of latency and is only worthwhile when choosing from many links.
+  const SKIP_AI_THRESHOLD = 5;
+  let aiPickedUrls: string[];
 
-  const pickPrompt = `The user asked: "${query}"
-
-Here are the links found on the website. Which link(s) would most likely contain the answer to the user's question? Reply with ONLY the URL(s), one per line, nothing else.
-
-${linkList}`;
-
-  console.log(`[Live Fetch] Asking AI to pick best link(s) from ${uniqueLinks.length} options...`);
-  console.log(`[Live Fetch] First 10 links:`);
-  uniqueLinks.slice(0, 10).forEach((l, i) => console.log(`  ${i + 1}. "${l.text}" → ${l.url}`));
-  console.log(`[Live Fetch] Pick prompt length: ${pickPrompt.length} chars`);
-
-  let aiPickedUrls: string[] = [];
-  try {
-    const result = await generate(pickPrompt, {
-      maxTokens: 300,
-      temperature: 0,
-      systemPrompt: 'You are a helpful assistant. Given a user question and a list of website links, identify which link(s) would contain the answer. Reply with ONLY the full URL(s), one per line.',
-    });
-
-    console.log(`[Live Fetch] AI raw response:`, JSON.stringify(result.content));
-    console.log(`[Live Fetch] AI used ${result.tokensInput} input tokens, ${result.tokensOutput} output tokens, ${result.durationMs}ms`);
-
-    // Parse URLs from the AI's response
-    aiPickedUrls = result.content
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line.startsWith('http'));
-
-    console.log(`[Live Fetch] AI picked ${aiPickedUrls.length} URL(s):`, aiPickedUrls);
-  } catch (err: any) {
-    console.error('[Live Fetch] AI link picker failed:', err?.message || err);
-    console.error('[Live Fetch] Full error:', JSON.stringify(err, null, 2));
-    return '';
+  if (uniqueLinks.length <= SKIP_AI_THRESHOLD) {
+    console.log(`[Live Fetch] Only ${uniqueLinks.length} links (<= ${SKIP_AI_THRESHOLD}), skipping AI picker`);
+    aiPickedUrls = uniqueLinks.map((l) => l.url);
+  } else {
+    aiPickedUrls = await getCachedAiPick(uniqueLinks, query);
   }
 
   if (aiPickedUrls.length === 0) {
-    console.log('[Live Fetch] AI did not pick any valid URLs');
+    console.log('[Live Fetch] No valid URLs to fetch');
     return '';
   }
 
-  // Step 3: Fetch the picked pages via Jina Reader in parallel
+  // Step 3: Fetch the picked pages via Jina Reader (cached per URL)
   const fetchResults = await Promise.all(
-    aiPickedUrls.slice(0, 2).map(async (url) => {
-      try {
-        let content = await extractURL(url);
-        if (!content || content.trim().length < 50) return null;
-
-        console.log(`[Live Fetch] Fetched ${url}: ${content.length} chars raw`);
-        content = cleanContent(content);
-        console.log(`[Live Fetch] After cleaning: ${content.length} chars`);
-        return content;
-      } catch (err) {
-        console.warn(`[Live Fetch] Failed to fetch ${url}:`, err);
-        return null;
-      }
-    })
+    aiPickedUrls.slice(0, 2).map((url) => getCachedContent(url))
   );
 
   // Assemble results respecting char limit
@@ -139,6 +183,122 @@ ${linkList}`;
 
   console.log(`[Live Fetch] Total fetched content: ${totalChars} chars`);
   return results.join('\n\n---\n\n');
+}
+
+// ============================================
+// CACHED STAGE FUNCTIONS
+// ============================================
+
+/** Stage 1: Extract links from a URL, with cache */
+async function getCachedLinks(url: string): Promise<PageLink[]> {
+  const cached = linksCache.get(url);
+  if (cached) {
+    console.log(`[Live Fetch] Links cache HIT for ${url} (${cached.length} links)`);
+    return cached;
+  }
+
+  console.log(`[Live Fetch] Links cache MISS for ${url}, fetching...`);
+  const links = await extractLinksFromUrl(url);
+  console.log(`[Live Fetch] Found ${links.length} links on ${url}`);
+  linksCache.set(url, links, cacheConfig.linksTtlMs);
+  return links;
+}
+
+/** Stage 2: AI link picker, with cache keyed on query + sorted URL set */
+async function getCachedAiPick(uniqueLinks: PageLink[], query: string): Promise<string[]> {
+  // Cache key: hash of query + sorted link URLs
+  const urlsKey = uniqueLinks.map((l) => l.url).sort().join('|');
+  const cacheKey = `${simpleHash(query)}:${simpleHash(urlsKey)}`;
+
+  const cached = aiPickCache.get(cacheKey);
+  if (cached) {
+    console.log(`[Live Fetch] AI pick cache HIT (${cached.length} URLs)`);
+    return cached;
+  }
+
+  console.log(`[Live Fetch] AI pick cache MISS, asking AI to pick from ${uniqueLinks.length} links...`);
+
+  const linkList = uniqueLinks
+    .map((link, i) => `${i + 1}. "${link.text}" — ${link.url}`)
+    .join('\n');
+
+  const pickPrompt = `The user asked: "${query}"
+
+Here are the links found on the website. Which link(s) would most likely contain the answer to the user's question? Reply with ONLY the URL(s), one per line, nothing else.
+
+${linkList}`;
+
+  console.log(`[Live Fetch] First 10 links:`);
+  uniqueLinks.slice(0, 10).forEach((l, i) => console.log(`  ${i + 1}. "${l.text}" → ${l.url}`));
+
+  let aiPickedUrls: string[] = [];
+  try {
+    const result = await generate(pickPrompt, {
+      maxTokens: 300,
+      temperature: 0,
+      systemPrompt: 'You are a helpful assistant. Given a user question and a list of website links, identify which link(s) would contain the answer. Reply with ONLY the full URL(s), one per line.',
+    });
+
+    console.log(`[Live Fetch] AI raw response:`, JSON.stringify(result.content));
+    console.log(`[Live Fetch] AI used ${result.tokensInput} input tokens, ${result.tokensOutput} output tokens, ${result.durationMs}ms`);
+
+    aiPickedUrls = result.content
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.startsWith('http'));
+
+    console.log(`[Live Fetch] AI picked ${aiPickedUrls.length} URL(s):`, aiPickedUrls);
+  } catch (err: any) {
+    console.error('[Live Fetch] AI link picker failed:', err?.message || err);
+    return [];
+  }
+
+  aiPickCache.set(cacheKey, aiPickedUrls, cacheConfig.aiPickTtlMs);
+  return aiPickedUrls;
+}
+
+/** Stage 3: Fetch and clean content from a URL, with cache */
+async function getCachedContent(url: string): Promise<string | null> {
+  const cached = contentCache.get(url);
+  if (cached !== undefined) {
+    console.log(`[Live Fetch] Content cache HIT for ${url} (${cached?.length ?? 0} chars)`);
+    return cached;
+  }
+
+  console.log(`[Live Fetch] Content cache MISS for ${url}, fetching...`);
+  try {
+    let content = await extractURL(url, LIVE_FETCH_TIMEOUT);
+    if (!content || content.trim().length < 50) {
+      contentCache.set(url, null, cacheConfig.contentTtlMs);
+      return null;
+    }
+
+    console.log(`[Live Fetch] Fetched ${url}: ${content.length} chars raw`);
+    content = cleanContent(content);
+    console.log(`[Live Fetch] After cleaning: ${content.length} chars`);
+
+    contentCache.set(url, content, cacheConfig.contentTtlMs);
+    return content;
+  } catch (err) {
+    console.warn(`[Live Fetch] Failed to fetch ${url}:`, err);
+    contentCache.set(url, null, cacheConfig.contentTtlMs);
+    return null;
+  }
+}
+
+// ============================================
+// HELPERS
+// ============================================
+
+/** Simple string hash for cache keys */
+function simpleHash(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0; // Convert to 32-bit integer
+  }
+  return hash.toString(36);
 }
 
 /**

@@ -7,8 +7,30 @@ export type Json =
   | Json[]
 
 export type Database = {
-  __InternalSupabase: {
-    PostgrestVersion: "14.1"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -19,6 +41,7 @@ export type Database = {
           cost_output_per_mtok: number | null
           created_at: string | null
           display_order: number | null
+          grade: string
           id: string
           is_default: boolean | null
           is_enabled: boolean | null
@@ -40,6 +63,7 @@ export type Database = {
           cost_output_per_mtok?: number | null
           created_at?: string | null
           display_order?: number | null
+          grade: string
           id?: string
           is_default?: boolean | null
           is_enabled?: boolean | null
@@ -61,6 +85,7 @@ export type Database = {
           cost_output_per_mtok?: number | null
           created_at?: string | null
           display_order?: number | null
+          grade?: string
           id?: string
           is_default?: boolean | null
           is_enabled?: boolean | null
@@ -125,7 +150,7 @@ export type Database = {
       api_keys: {
         Row: {
           allowed_domains: string[] | null
-          created_at: string | null
+          created_at: string
           expires_at: string | null
           id: string
           key_hash: string
@@ -137,7 +162,7 @@ export type Database = {
         }
         Insert: {
           allowed_domains?: string[] | null
-          created_at?: string | null
+          created_at?: string
           expires_at?: string | null
           id?: string
           key_hash: string
@@ -149,7 +174,7 @@ export type Database = {
         }
         Update: {
           allowed_domains?: string[] | null
-          created_at?: string | null
+          created_at?: string
           expires_at?: string | null
           id?: string
           key_hash?: string
@@ -159,123 +184,70 @@ export type Database = {
           scopes?: string[] | null
           user_id?: string
         }
-        Relationships: []
-      }
-      api_logs: {
-        Row: {
-          created_at: string
-          duration_ms: number | null
-          endpoint: string
-          error_message: string | null
-          id: string
-          ip_address: string | null
-          method: string
-          model: string | null
-          provider: string | null
-          raw_ai_prompt: string | null
-          raw_ai_response: string | null
-          request_body: Json | null
-          response_body: Json | null
-          status_code: number | null
-          tokens_billed: number | null
-          tokens_input: number | null
-          tokens_output: number | null
-          tokens_total: number | null
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          duration_ms?: number | null
-          endpoint: string
-          error_message?: string | null
-          id?: string
-          ip_address?: string | null
-          method?: string
-          model?: string | null
-          provider?: string | null
-          raw_ai_prompt?: string | null
-          raw_ai_response?: string | null
-          request_body?: Json | null
-          response_body?: Json | null
-          status_code?: number | null
-          tokens_billed?: number | null
-          tokens_input?: number | null
-          tokens_output?: number | null
-          tokens_total?: number | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          duration_ms?: number | null
-          endpoint?: string
-          error_message?: string | null
-          id?: string
-          ip_address?: string | null
-          method?: string
-          model?: string | null
-          provider?: string | null
-          raw_ai_prompt?: string | null
-          raw_ai_response?: string | null
-          request_body?: Json | null
-          response_body?: Json | null
-          status_code?: number | null
-          tokens_billed?: number | null
-          tokens_input?: number | null
-          tokens_output?: number | null
-          tokens_total?: number | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "api_keys_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       app_settings: {
         Row: {
           ai_provider: string
           id: string
+          local_api_key: string | null
           local_api_path: string | null
           local_api_provider: string | null
           local_api_timeout: number | null
           multiplier_claude: number | null
           multiplier_local: number | null
           multiplier_openai: number | null
-          token_multiplier: number
           updated_at: string
           updated_by: string | null
         }
         Insert: {
           ai_provider?: string
           id?: string
+          local_api_key?: string | null
           local_api_path?: string | null
           local_api_provider?: string | null
           local_api_timeout?: number | null
           multiplier_claude?: number | null
           multiplier_local?: number | null
           multiplier_openai?: number | null
-          token_multiplier?: number
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
           ai_provider?: string
           id?: string
+          local_api_key?: string | null
           local_api_path?: string | null
           local_api_provider?: string | null
           local_api_timeout?: number | null
           multiplier_claude?: number | null
           multiplier_local?: number | null
           multiplier_openai?: number | null
-          token_multiplier?: number
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "app_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       audit_log: {
         Row: {
           action: string
-          created_at: string | null
+          created_at: string
           entity_id: string | null
           entity_type: string
           id: string
@@ -286,7 +258,7 @@ export type Database = {
         }
         Insert: {
           action: string
-          created_at?: string | null
+          created_at?: string
           entity_id?: string | null
           entity_type: string
           id?: string
@@ -297,7 +269,7 @@ export type Database = {
         }
         Update: {
           action?: string
-          created_at?: string | null
+          created_at?: string
           entity_id?: string | null
           entity_type?: string
           id?: string
@@ -306,7 +278,15 @@ export type Database = {
           user_agent?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "audit_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chatbot_analytics: {
         Row: {
@@ -351,7 +331,15 @@ export type Database = {
           top_questions?: Json | null
           unique_visitors?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_analytics_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chatbot_api_keys: {
         Row: {
@@ -396,15 +384,30 @@ export type Database = {
           scopes?: string[] | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_api_keys_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chatbot_api_keys_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chatbots: {
         Row: {
           created_at: string | null
           description: string | null
+          enable_prompt_protection: boolean
           id: string
           is_published: boolean | null
-          language: string
           logo_url: string | null
           max_tokens: number | null
           messages_this_month: number | null
@@ -422,19 +425,13 @@ export type Database = {
           user_id: string
           welcome_message: string | null
           widget_config: Json | null
-          memory_enabled: boolean
-          memory_days: number
-          custom_text_updated_at: string | null
-          language_updated_at: string | null
-          file_upload_config: Json | null
-          transcript_config: Json | null
         }
         Insert: {
           created_at?: string | null
           description?: string | null
+          enable_prompt_protection?: boolean
           id?: string
           is_published?: boolean | null
-          language?: string
           logo_url?: string | null
           max_tokens?: number | null
           messages_this_month?: number | null
@@ -452,19 +449,13 @@ export type Database = {
           user_id: string
           welcome_message?: string | null
           widget_config?: Json | null
-          memory_enabled?: boolean
-          memory_days?: number
-          custom_text_updated_at?: string | null
-          language_updated_at?: string | null
-          file_upload_config?: Json | null
-          transcript_config?: Json | null
         }
         Update: {
           created_at?: string | null
           description?: string | null
+          enable_prompt_protection?: boolean
           id?: string
           is_published?: boolean | null
-          language?: string
           logo_url?: string | null
           max_tokens?: number | null
           messages_this_month?: number | null
@@ -482,14 +473,16 @@ export type Database = {
           user_id?: string
           welcome_message?: string | null
           widget_config?: Json | null
-          memory_enabled?: boolean
-          memory_days?: number
-          custom_text_updated_at?: string | null
-          language_updated_at?: string | null
-          file_upload_config?: Json | null
-          transcript_config?: Json | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "chatbots_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       conversations: {
         Row: {
@@ -499,20 +492,14 @@ export type Database = {
           feedback_text: string | null
           first_message_at: string | null
           id: string
-          language: string | null
           last_message_at: string | null
           message_count: number | null
           rating: number | null
           session_id: string
           status: string | null
-          summary: string | null
           updated_at: string | null
           visitor_id: string | null
           visitor_metadata: Json | null
-          sentiment_score: number | null
-          sentiment_label: string | null
-          sentiment_summary: string | null
-          sentiment_analyzed_at: string | null
         }
         Insert: {
           channel?: string | null
@@ -521,20 +508,14 @@ export type Database = {
           feedback_text?: string | null
           first_message_at?: string | null
           id?: string
-          language?: string | null
           last_message_at?: string | null
           message_count?: number | null
           rating?: number | null
           session_id: string
           status?: string | null
-          summary?: string | null
           updated_at?: string | null
           visitor_id?: string | null
           visitor_metadata?: Json | null
-          sentiment_score?: number | null
-          sentiment_label?: string | null
-          sentiment_summary?: string | null
-          sentiment_analyzed_at?: string | null
         }
         Update: {
           channel?: string | null
@@ -543,151 +524,24 @@ export type Database = {
           feedback_text?: string | null
           first_message_at?: string | null
           id?: string
-          language?: string | null
           last_message_at?: string | null
           message_count?: number | null
           rating?: number | null
           session_id?: string
           status?: string | null
-          summary?: string | null
           updated_at?: string | null
           visitor_id?: string | null
           visitor_metadata?: Json | null
-          sentiment_score?: number | null
-          sentiment_label?: string | null
-          sentiment_summary?: string | null
-          sentiment_analyzed_at?: string | null
         }
-        Relationships: []
-      }
-      conversation_memory: {
-        Row: {
-          id: string
-          chatbot_id: string
-          visitor_id: string
-          key_facts: Json
-          summary: string | null
-          last_accessed: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          chatbot_id: string
-          visitor_id: string
-          key_facts?: Json
-          summary?: string | null
-          last_accessed?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          chatbot_id?: string
-          visitor_id?: string
-          key_facts?: Json
-          summary?: string | null
-          last_accessed?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      conversation_memory_emails: {
-        Row: {
-          id: string
-          chatbot_id: string
-          email: string
-          visitor_id: string
-          verified_at: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          chatbot_id: string
-          email: string
-          visitor_id: string
-          verified_at?: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          chatbot_id?: string
-          email?: string
-          visitor_id?: string
-          verified_at?: string
-          created_at?: string
-        }
-        Relationships: []
-      }
-      memory_verification_codes: {
-        Row: {
-          id: string
-          chatbot_id: string
-          email: string
-          code: string
-          expires_at: string
-          used: boolean
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          chatbot_id: string
-          email: string
-          code: string
-          expires_at: string
-          used?: boolean
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          chatbot_id?: string
-          email?: string
-          code?: string
-          expires_at?: string
-          used?: boolean
-          created_at?: string
-        }
-        Relationships: []
-      }
-      visitor_loyalty: {
-        Row: {
-          id: string
-          chatbot_id: string
-          visitor_id: string
-          loyalty_score: number
-          loyalty_trend: string
-          total_sessions: number
-          avg_sentiment: number
-          last_sentiment_score: number | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          chatbot_id: string
-          visitor_id: string
-          loyalty_score?: number
-          loyalty_trend?: string
-          total_sessions?: number
-          avg_sentiment?: number
-          last_sentiment_score?: number | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          chatbot_id?: string
-          visitor_id?: string
-          loyalty_score?: number
-          loyalty_trend?: string
-          total_sessions?: number
-          avg_sentiment?: number
-          last_sentiment_score?: number | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "conversations_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       credit_transactions: {
         Row: {
@@ -735,64 +589,80 @@ export type Database = {
           type?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "credit_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       generations: {
         Row: {
-          created_at: string | null
+          created_at: string
           duration_ms: number | null
           error_message: string | null
           id: string
           is_favorite: boolean | null
           metadata: Json | null
-          model: string | null
+          model: string
           output: string | null
           prompt: string
           rating: number | null
-          status: string | null
+          status: string
           tokens_input: number | null
           tokens_output: number | null
-          tool_id: string | null
+          tool_id: string
           type: string
           user_id: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           duration_ms?: number | null
           error_message?: string | null
           id?: string
           is_favorite?: boolean | null
           metadata?: Json | null
-          model?: string | null
+          model?: string
           output?: string | null
           prompt: string
           rating?: number | null
-          status?: string | null
+          status?: string
           tokens_input?: number | null
           tokens_output?: number | null
-          tool_id?: string | null
+          tool_id: string
           type: string
           user_id: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           duration_ms?: number | null
           error_message?: string | null
           id?: string
           is_favorite?: boolean | null
           metadata?: Json | null
-          model?: string | null
+          model?: string
           output?: string | null
           prompt?: string
           rating?: number | null
-          status?: string | null
+          status?: string
           tokens_input?: number | null
           tokens_output?: number | null
-          tool_id?: string | null
+          tool_id?: string
           type?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "generations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       knowledge_chunks: {
         Row: {
@@ -828,7 +698,22 @@ export type Database = {
           source_id?: string
           token_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_chunks_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_chunks_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_sources"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       knowledge_sources: {
         Row: {
@@ -888,7 +773,15 @@ export type Database = {
           updated_at?: string | null
           url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_sources_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -904,7 +797,6 @@ export type Database = {
           thumbs_up: boolean | null
           tokens_input: number | null
           tokens_output: number | null
-          attachments: Json | null
         }
         Insert: {
           chatbot_id: string
@@ -919,7 +811,6 @@ export type Database = {
           thumbs_up?: boolean | null
           tokens_input?: number | null
           tokens_output?: number | null
-          attachments?: Json | null
         }
         Update: {
           chatbot_id?: string
@@ -934,45 +825,67 @@ export type Database = {
           thumbs_up?: boolean | null
           tokens_input?: number | null
           tokens_output?: number | null
-          attachments?: Json | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "messages_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
           avatar_url: string | null
-          created_at: string | null
+          created_at: string
           email: string
           full_name: string | null
           id: string
           is_admin: boolean
           is_affiliate: boolean | null
           preferred_model_id: string | null
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
           avatar_url?: string | null
-          created_at?: string | null
+          created_at?: string
           email: string
           full_name?: string | null
           id: string
           is_admin?: boolean
           is_affiliate?: boolean | null
           preferred_model_id?: string | null
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
           avatar_url?: string | null
-          created_at?: string | null
+          created_at?: string
           email?: string
           full_name?: string | null
           id?: string
           is_admin?: boolean
           is_affiliate?: boolean | null
           preferred_model_id?: string | null
-          updated_at?: string | null
+          updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_preferred_model_id_fkey"
+            columns: ["preferred_model_id"]
+            isOneToOne: false
+            referencedRelation: "ai_models"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rate_limit_usage: {
         Row: {
@@ -1008,7 +921,15 @@ export type Database = {
           window_end?: string
           window_start?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "rate_limit_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       slack_integrations: {
         Row: {
@@ -1053,7 +974,22 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "slack_integrations_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "slack_integrations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_plans: {
         Row: {
@@ -1067,6 +1003,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_featured: boolean | null
+          is_hidden: boolean | null
           name: string
           price_monthly_cents: number
           price_yearly_cents: number | null
@@ -1079,6 +1016,7 @@ export type Database = {
           trial_credits: number | null
           trial_days: number | null
           updated_at: string | null
+          usage_description: string | null
         }
         Insert: {
           api_keys_limit?: number | null
@@ -1091,6 +1029,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_hidden?: boolean | null
           name: string
           price_monthly_cents?: number
           price_yearly_cents?: number | null
@@ -1103,6 +1042,7 @@ export type Database = {
           trial_credits?: number | null
           trial_days?: number | null
           updated_at?: string | null
+          usage_description?: string | null
         }
         Update: {
           api_keys_limit?: number | null
@@ -1115,6 +1055,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_hidden?: boolean | null
           name?: string
           price_monthly_cents?: number
           price_yearly_cents?: number | null
@@ -1127,6 +1068,7 @@ export type Database = {
           trial_credits?: number | null
           trial_days?: number | null
           updated_at?: string | null
+          usage_description?: string | null
         }
         Relationships: []
       }
@@ -1134,170 +1076,120 @@ export type Database = {
         Row: {
           billing_interval: string | null
           cancel_at_period_end: boolean | null
-          created_at: string | null
+          created_at: string
           current_period_end: string | null
           current_period_start: string | null
+          grace_period_ends_at: string | null
           id: string
-          plan: string | null
+          payment_failed_at: string | null
+          plan: string
           plan_id: string | null
-          status: string | null
+          status: string
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           trial_ends_at: string | null
           trial_link_id: string | null
-          updated_at: string | null
-          user_id: string
-          purchase_source: string | null
-          external_license_key: string | null
-        }
-        Insert: {
-          billing_interval?: string | null
-          cancel_at_period_end?: boolean | null
-          created_at?: string | null
-          current_period_end?: string | null
-          current_period_start?: string | null
-          id?: string
-          plan?: string | null
-          plan_id?: string | null
-          status?: string | null
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          trial_ends_at?: string | null
-          trial_link_id?: string | null
-          updated_at?: string | null
-          user_id: string
-          purchase_source?: string | null
-          external_license_key?: string | null
-        }
-        Update: {
-          billing_interval?: string | null
-          cancel_at_period_end?: boolean | null
-          created_at?: string | null
-          current_period_end?: string | null
-          current_period_start?: string | null
-          id?: string
-          plan?: string | null
-          plan_id?: string | null
-          status?: string | null
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          trial_ends_at?: string | null
-          trial_link_id?: string | null
-          updated_at?: string | null
-          user_id?: string
-          purchase_source?: string | null
-          external_license_key?: string | null
-        }
-        Relationships: []
-      }
-      license_keys: {
-        Row: {
-          id: string
-          key: string
-          source: string
-          plan_slug: string
-          max_redemptions: number
-          redemptions_count: number
-          tier: number
-          is_active: boolean
-          expires_at: string | null
-          created_at: string
           updated_at: string
+          user_id: string
         }
         Insert: {
-          id?: string
-          key: string
-          source?: string
-          plan_slug: string
-          max_redemptions?: number
-          redemptions_count?: number
-          tier?: number
-          is_active?: boolean
-          expires_at?: string | null
+          billing_interval?: string | null
+          cancel_at_period_end?: boolean | null
           created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          grace_period_ends_at?: string | null
+          id?: string
+          payment_failed_at?: string | null
+          plan?: string
+          plan_id?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          trial_link_id?: string | null
           updated_at?: string
+          user_id: string
         }
         Update: {
-          id?: string
-          key?: string
-          source?: string
-          plan_slug?: string
-          max_redemptions?: number
-          redemptions_count?: number
-          tier?: number
-          is_active?: boolean
-          expires_at?: string | null
+          billing_interval?: string | null
+          cancel_at_period_end?: boolean | null
           created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          grace_period_ends_at?: string | null
+          id?: string
+          payment_failed_at?: string | null
+          plan?: string
+          plan_id?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          trial_link_id?: string | null
           updated_at?: string
-        }
-        Relationships: []
-      }
-      license_key_redemptions: {
-        Row: {
-          id: string
-          license_key_id: string
-          user_id: string
-          redeemed_at: string
-          previous_plan_slug: string | null
-          new_plan_slug: string
-          stacked_tier: number
-        }
-        Insert: {
-          id?: string
-          license_key_id: string
-          user_id: string
-          redeemed_at?: string
-          previous_plan_slug?: string | null
-          new_plan_slug: string
-          stacked_tier?: number
-        }
-        Update: {
-          id?: string
-          license_key_id?: string
           user_id?: string
-          redeemed_at?: string
-          previous_plan_slug?: string | null
-          new_plan_slug?: string
-          stacked_tier?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_trial_link_id_fkey"
+            columns: ["trial_link_id"]
+            isOneToOne: false
+            referencedRelation: "trial_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tools: {
         Row: {
           category: string
           config: Json | null
-          created_at: string | null
+          created_at: string
           description: string
           id: string
           is_active: boolean | null
           is_featured: boolean | null
           name: string
           slug: string
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
           category: string
           config?: Json | null
-          created_at?: string | null
+          created_at?: string
           description: string
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
           name: string
           slug: string
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
           category?: string
           config?: Json | null
-          created_at?: string | null
+          created_at?: string
           description?: string
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
           name?: string
           slug?: string
-          updated_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1353,7 +1245,22 @@ export type Database = {
           redemptions_count?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "trial_links_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trial_links_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trial_redemptions: {
         Row: {
@@ -1383,40 +1290,63 @@ export type Database = {
           trial_link_id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "trial_redemptions_trial_link_id_fkey"
+            columns: ["trial_link_id"]
+            isOneToOne: false
+            referencedRelation: "trial_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trial_redemptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       usage: {
         Row: {
-          created_at: string | null
-          credits_limit: number | null
-          credits_used: number | null
+          created_at: string
+          credits_limit: number
+          credits_used: number
           id: string
-          period_end: string | null
-          period_start: string | null
-          updated_at: string | null
+          period_end: string
+          period_start: string
+          updated_at: string
           user_id: string
         }
         Insert: {
-          created_at?: string | null
-          credits_limit?: number | null
-          credits_used?: number | null
+          created_at?: string
+          credits_limit?: number
+          credits_used?: number
           id?: string
-          period_end?: string | null
-          period_start?: string | null
-          updated_at?: string | null
+          period_end?: string
+          period_start?: string
+          updated_at?: string
           user_id: string
         }
         Update: {
-          created_at?: string | null
-          credits_limit?: number | null
-          credits_used?: number | null
+          created_at?: string
+          credits_limit?: number
+          credits_used?: number
           id?: string
-          period_end?: string | null
-          period_start?: string | null
-          updated_at?: string | null
+          period_end?: string
+          period_start?: string
+          updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_credits: {
         Row: {
@@ -1467,53 +1397,256 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_credits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       webhooks: {
         Row: {
-          created_at: string | null
+          created_at: string
           events: string[] | null
           failure_count: number | null
           id: string
           is_active: boolean | null
           last_triggered_at: string | null
           secret: string
-          updated_at: string | null
+          updated_at: string
           url: string
           user_id: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           events?: string[] | null
           failure_count?: number | null
           id?: string
           is_active?: boolean | null
           last_triggered_at?: string | null
           secret: string
-          updated_at?: string | null
+          updated_at?: string
           url: string
           user_id: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           events?: string[] | null
           failure_count?: number | null
           id?: string
           is_active?: boolean | null
           last_triggered_at?: string | null
           secret?: string
-          updated_at?: string | null
+          updated_at?: string
           url?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "webhooks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_bonus_credits: {
+        Args: { p_amount: number; p_description?: string; p_user_id: string }
+        Returns: number
+      }
+      add_purchased_credits: {
+        Args: {
+          p_amount: number
+          p_description?: string
+          p_payment_intent_id?: string
+          p_type?: string
+          p_user_id: string
+        }
+        Returns: number
+      }
+      aggregate_chatbot_analytics: {
+        Args: { p_date?: string }
+        Returns: undefined
+      }
+      change_subscription_plan: {
+        Args: {
+          p_billing_interval?: string
+          p_new_plan_id: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
+      check_rate_limit: {
+        Args: {
+          p_token_limit: number
+          p_tokens_requested: number
+          p_user_id: string
+          p_window_seconds: number
+        }
+        Returns: {
+          allowed: boolean
+          is_soft_cap: boolean
+          reset_at: string
+          tokens_remaining: number
+          tokens_used: number
+        }[]
+      }
+      check_subscription_status: {
+        Args: { p_user_id: string }
+        Returns: {
+          days_remaining: number
+          grace_period_ends_at: string
+          grace_period_expired: boolean
+          is_active: boolean
+          is_in_grace_period: boolean
+          is_past_due: boolean
+          subscription_status: string
+        }[]
+      }
+      cleanup_rate_limit_usage: { Args: never; Returns: number }
+      clear_payment_failure: {
+        Args: { p_stripe_subscription_id: string }
+        Returns: undefined
+      }
+      deduct_credits: {
+        Args: {
+          p_amount: number
+          p_description?: string
+          p_related_model_id?: string
+          p_related_usage_id?: string
+          p_user_id: string
+        }
+        Returns: {
+          deducted_from: string
+          remaining_total: number
+          success: boolean
+        }[]
+      }
+      end_trial: {
+        Args: { p_convert_to_paid?: boolean; p_user_id: string }
+        Returns: undefined
+      }
+      expire_trial: {
+        Args: { p_converted?: boolean; p_redemption_id: string }
+        Returns: boolean
+      }
+      get_active_trial: {
+        Args: { p_user_id: string }
+        Returns: {
+          credits_limit: number
+          expires_at: string
+          features: Json
+          plan_id: string
+          plan_slug: string
+          trial_id: string
+        }[]
+      }
+      get_credit_balance: {
+        Args: { p_user_id: string }
+        Returns: {
+          bonus_credits: number
+          plan_allocation: number
+          plan_remaining: number
+          plan_used: number
+          purchased_credits: number
+          total_available: number
+        }[]
+      }
+      get_effective_plan: {
+        Args: { p_user_id: string }
+        Returns: {
+          billing_status: string
+          credits_monthly: number
+          features: Json
+          is_trial: boolean
+          plan_id: string
+          plan_name: string
+          plan_slug: string
+          rate_limit_is_hard_cap: boolean
+          rate_limit_period_seconds: number
+          rate_limit_tokens: number
+          trial_expires_at: string
+        }[]
+      }
+      get_rate_limit_status: {
+        Args: { p_user_id: string }
+        Returns: {
+          is_hard_cap: boolean
+          reset_at: string
+          tokens_limit: number
+          tokens_remaining: number
+          tokens_used: number
+          window_seconds: number
+        }[]
+      }
+      increment_chatbot_messages: {
+        Args: { p_amount?: number; p_chatbot_id: string }
+        Returns: undefined
+      }
+      increment_conversation_messages: {
+        Args: { p_conversation_id: string }
+        Returns: undefined
+      }
+      increment_usage: {
+        Args: { p_amount?: number; p_user_id: string }
+        Returns: undefined
+      }
+      is_admin: { Args: { p_user_id: string }; Returns: boolean }
+      match_knowledge_chunks: {
+        Args: {
+          p_chatbot_id: string
+          p_match_count?: number
+          p_match_threshold?: number
+          p_query_embedding: string
+        }
+        Returns: {
+          content: string
+          id: string
+          metadata: Json
+          similarity: number
+        }[]
+      }
+      redeem_trial_link: {
+        Args: { p_code: string; p_user_id: string }
+        Returns: {
+          expires_at: string
+          message: string
+          success: boolean
+          trial_id: string
+        }[]
+      }
+      reset_monthly_message_counts: { Args: never; Returns: undefined }
+      reset_plan_credits: { Args: { p_user_id: string }; Returns: undefined }
+      set_payment_failed: {
+        Args: { p_grace_days?: number; p_stripe_subscription_id: string }
+        Returns: undefined
+      }
+      should_auto_topup: {
+        Args: { p_user_id: string }
+        Returns: {
+          amount: number
+          reason: string
+          should_trigger: boolean
+        }[]
+      }
+      start_subscription_trial: {
+        Args: {
+          p_plan_id: string
+          p_trial_days: number
+          p_trial_link_id?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
@@ -1524,16 +1657,129 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database["public"]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
-  TableName extends keyof DefaultSchema["Tables"]
-> = DefaultSchema["Tables"][TableName]["Row"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
 export type TablesInsert<
-  TableName extends keyof DefaultSchema["Tables"]
-> = DefaultSchema["Tables"][TableName]["Insert"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
 
 export type TablesUpdate<
-  TableName extends keyof DefaultSchema["Tables"]
-> = DefaultSchema["Tables"][TableName]["Update"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
+  public: {
+    Enums: {},
+  },
+} as const
+

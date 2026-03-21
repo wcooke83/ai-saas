@@ -154,9 +154,11 @@ export default function DeployPage({ params }: DeployPageProps) {
   strategy="afterInteractive"
 />`;
 
+  const iframeWidth = chatbot.widget_config?.width || 400;
+  const iframeHeight = chatbot.widget_config?.height || 600;
   const iframeCode = `<iframe
   src="${baseUrl}/widget/${id}"
-  style="border:none;width:400px;height:600px;"
+  style="border:none;width:${iframeWidth}px;height:${iframeHeight}px;"
   allow="clipboard-write"
 ></iframe>`;
 

@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useEffect, use, useMemo } from 'react';
+import { useState, useEffect, use, useMemo, useCallback, Suspense } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Timer, RefreshCw, Info, X, AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { ArrowLeft, Timer, Info, X, AlertTriangle } from 'lucide-react';
+import { MessagePreview } from '@/components/performance/MessagePreview';
+import { PerformanceFilterBar, type PerformanceFilters, DEFAULT_FILTERS } from '@/components/performance/PerformanceFilterBar';
+import { PerformancePagination } from '@/components/performance/PerformancePagination';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -35,12 +38,18 @@ interface PerfRow {
   response_length: number;
   is_streaming: boolean;
   pipeline_timings: Record<string, StageSpan> | null;
+  user_message: string | null;
+  assistant_response: string | null;
 }
 
 interface PerfData {
   total_requests: number;
-  days: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
   averages: Record<string, number | null>;
+  p95_total_ms: number | null;
+  available_models: string[];
   hourly: Array<Record<string, any>>;
   recent: PerfRow[];
 }
@@ -74,7 +83,9 @@ const STAGE_LABELS: Record<string, { label: string; color: string; tooltip: stri
 
 const WATERFALL_STAGE_ORDER = [
   { key: 'chatbot_loaded', label: 'Load Chatbot', color: '#94a3b8', indent: 0 },
+  { key: 'validate_and_parse', label: 'Validate & Parse', color: '#b0bec5', indent: 0 },
   { key: 'conversation_ready', label: 'Get Conversation', color: '#a78bfa', indent: 0 },
+  { key: 'setup_pipeline', label: 'Pipeline Setup', color: '#8892a0', indent: 0 },
   // Parallel group: history + save + handoff
   { key: 'get_history', label: 'Get History', color: '#818cf8', indent: 1 },
   { key: 'save_message', label: 'Save Message', color: '#7c3aed', indent: 1 },
@@ -236,6 +247,8 @@ function getWaterfallRows(row: PerfRow): WaterfallStageRow[] {
   for (const stage of WATERFALL_STAGE_ORDER) {
     const span = pt[stage.key];
     if (!span || span.end === undefined) continue;
+    // Skip stages with invalid/corrupted timing values
+    if (span.start < 0 || span.end < 0 || span.end < span.start) continue;
 
     // Determine parallel group index
     let parallelGroup = -1;
@@ -255,13 +268,45 @@ function getWaterfallRows(row: PerfRow): WaterfallStageRow[] {
     });
   }
 
+  // Detect gaps > 10ms between stages and insert "Overhead" bars
+  if (rows.length > 1) {
+    const sorted = [...rows].sort((a, b) => a.start - b.start);
+    let maxEnd = 0;
+    const gaps: Array<{ start: number; end: number }> = [];
+    for (const stage of sorted) {
+      if (stage.start > maxEnd + 10) {
+        gaps.push({ start: maxEnd, end: stage.start });
+      }
+      maxEnd = Math.max(maxEnd, stage.end);
+    }
+    // Insert in reverse order to preserve array indices
+    for (let gi = gaps.length - 1; gi >= 0; gi--) {
+      const gap = gaps[gi];
+      const idx = rows.findIndex(s => s.start >= gap.end);
+      const overhead: WaterfallStageRow = {
+        key: `overhead_${gi}`,
+        label: 'Overhead',
+        color: '#9ca3af',
+        indent: 0,
+        start: gap.start,
+        end: gap.end,
+        duration: Math.round(gap.end - gap.start),
+        parallelGroup: -1,
+      };
+      if (idx >= 0) rows.splice(idx, 0, overhead);
+      else rows.push(overhead);
+    }
+  }
+
   return rows;
 }
 
 // Tooltip descriptions for each waterfall stage
 const STAGE_TOOLTIPS: Record<string, string> = {
   chatbot_loaded: 'Fetches chatbot config, system prompt, and knowledge source metadata from the database',
+  validate_and_parse: 'Validates request input, checks chatbot publish status and message limits, authenticates API key if provided, and parses the message payload',
   conversation_ready: 'Finds or creates the conversation record, loads visitor session context, and handles welcome/proactive messages',
+  setup_pipeline: 'Detects language preferences, awaits RAG pre-work (embedding prework started during chatbot load), and configures the parallel processing pipeline',
   get_history: 'Loads recent message history from the database for conversation context (runs in parallel)',
   save_message: 'Saves the incoming user message to the database (runs in parallel)',
   check_handoff: 'Checks if a live agent handoff is active for this conversation (runs in parallel)',
@@ -318,6 +363,7 @@ function RequestWaterfall({
           No per-stage timing data available for this request. New requests will include detailed pipeline timings.
         </p>
         <RequestMetadata row={row} />
+        <MessagePreview userMessage={row.user_message} assistantResponse={row.assistant_response} />
       </div>
     );
   }
@@ -476,6 +522,7 @@ function RequestWaterfall({
 
       {/* Metadata */}
       <RequestMetadata row={row} />
+      <MessagePreview userMessage={row.user_message} assistantResponse={row.assistant_response} />
     </div>
   );
 }
@@ -655,9 +702,12 @@ function WaterfallOverview({
 
 // Stage legend
 function WaterfallLegend() {
-  const legendItems = WATERFALL_STAGE_ORDER
-    .filter((s) => !['generate'].includes(s.key)) // hide non-streaming variant from legend
-    .map((s) => ({ key: s.key, label: s.label, color: s.color }));
+  const legendItems = [
+    ...WATERFALL_STAGE_ORDER
+      .filter((s) => !['generate'].includes(s.key)) // hide non-streaming variant from legend
+      .map((s) => ({ key: s.key, label: s.label, color: s.color })),
+    { key: 'overhead', label: 'Overhead', color: '#9ca3af' },
+  ];
   return (
     <div className="flex flex-wrap gap-x-4 gap-y-1">
       {legendItems.map((s) => (
@@ -735,28 +785,100 @@ function TimelineChart({ hourly, field }: { hourly: Array<Record<string, any>>; 
   );
 }
 
+function filtersFromSearchParams(sp: URLSearchParams): PerformanceFilters {
+  const days = sp.get('days');
+  return {
+    days: days !== null ? parseInt(days) : (sp.get('from') ? null : DEFAULT_FILTERS.days),
+    from: sp.get('from') || null,
+    to: sp.get('to') || null,
+    models: sp.get('models') ? sp.get('models')!.split(',').filter(Boolean) : [],
+    liveFetchTriggered: sp.get('live_fetch') === 'true' ? true : null,
+    slowOnly: sp.get('slow') === 'true',
+  };
+}
+
+function filtersToSearchParams(filters: PerformanceFilters, page: number): string {
+  const params = new URLSearchParams();
+  if (filters.days !== null) params.set('days', String(filters.days));
+  if (filters.from) params.set('from', filters.from);
+  if (filters.to) params.set('to', filters.to);
+  if (filters.models.length > 0) params.set('models', filters.models.join(','));
+  if (filters.liveFetchTriggered === true) params.set('live_fetch', 'true');
+  if (filters.slowOnly) params.set('slow', 'true');
+  if (page > 1) params.set('page', String(page));
+  return params.toString();
+}
+
 export default function PerformancePage({ params }: PerformancePageProps) {
+  return (
+    <Suspense fallback={
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Skeleton className="h-64" />
+          <Skeleton className="h-64" />
+        </div>
+      </div>
+    }>
+      <PerformancePageInner params={params} />
+    </Suspense>
+  );
+}
+
+function PerformancePageInner({ params }: PerformancePageProps) {
   const { id } = use(params);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [data, setData] = useState<PerfData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [days, setDays] = useState(7);
+  const [filters, setFilters] = useState<PerformanceFilters>(() => filtersFromSearchParams(searchParams));
+  const [page, setPage] = useState(() => parseInt(searchParams.get('page') || '1'));
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async (f: PerformanceFilters, p: number) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/chatbots/${id}/performance?days=${days}`);
+      const apiParams = new URLSearchParams();
+      if (f.days !== null) apiParams.set('days', String(f.days));
+      if (f.from) apiParams.set('from', f.from);
+      if (f.to) apiParams.set('to', f.to);
+      if (f.models.length > 0) apiParams.set('models', f.models.join(','));
+      if (f.liveFetchTriggered === true) apiParams.set('live_fetch', 'true');
+      apiParams.set('page', String(p));
+
+      const res = await fetch(`/api/chatbots/${id}/performance?${apiParams}`);
       if (!res.ok) throw new Error('Failed to fetch');
       const json = await res.json();
+
+      // Client-side slow filter (>2x avg)
+      if (f.slowOnly && json.data?.averages?.total_ms) {
+        const threshold = json.data.averages.total_ms * 2;
+        json.data.recent = json.data.recent.filter((r: PerfRow) => (r.total_ms ?? 0) > threshold);
+      }
+
       setData(json.data);
     } catch {
       setData(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  useEffect(() => { fetchData(); }, [id, days]);
+  useEffect(() => { fetchData(filters, page); }, [filters, page, fetchData]);
+
+  const handleFiltersChange = useCallback((newFilters: PerformanceFilters) => {
+    setFilters(newFilters);
+    setPage(1);
+    setSelectedIndex(null);
+    router.replace(`?${filtersToSearchParams(newFilters, 1)}`, { scroll: false });
+  }, [router]);
+
+  const handlePageChange = useCallback((newPage: number) => {
+    setPage(newPage);
+    setSelectedIndex(null);
+    router.replace(`?${filtersToSearchParams(filters, newPage)}`, { scroll: false });
+  }, [router, filters]);
 
   const avgBars = useMemo(() => {
     if (!data?.averages) return [];
@@ -792,39 +914,28 @@ export default function PerformancePage({ params }: PerformancePageProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <Link
-            href={`/dashboard/chatbots/${id}`}
-            className="inline-flex items-center text-sm text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Chatbot
-          </Link>
-          <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
-            <Timer className="w-6 h-6" />
-            Performance
-          </h1>
-          <p className="text-secondary-600 dark:text-secondary-400 mt-1">
-            Response time analytics for each pipeline stage
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <select
-            value={days}
-            onChange={(e) => setDays(parseInt(e.target.value))}
-            className="rounded-md border border-secondary-200 dark:border-secondary-700 px-3 py-2 text-sm"
-            style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
-          >
-            <option value={1}>Last 24 hours</option>
-            <option value={7}>Last 7 days</option>
-            <option value={30}>Last 30 days</option>
-          </select>
-          <Button variant="outline" onClick={fetchData}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
-        </div>
+      <div>
+        <Link
+          href={`/dashboard/chatbots/${id}`}
+          className="inline-flex items-center text-sm text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100 mb-4"
+        >
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          Back to Chatbot
+        </Link>
+        <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
+          <Timer className="w-6 h-6" />
+          Performance
+        </h1>
+        <p className="text-secondary-600 dark:text-secondary-400 mt-1 mb-4">
+          Response time analytics for each pipeline stage
+        </p>
+        <PerformanceFilterBar
+          filters={filters}
+          onChange={handleFiltersChange}
+          availableModels={data?.available_models ?? []}
+          loading={loading}
+          onRefresh={() => fetchData(filters, page)}
+        />
       </div>
 
       {!data || data.total_requests === 0 ? (
@@ -843,20 +954,20 @@ export default function PerformancePage({ params }: PerformancePageProps) {
       ) : (
         <>
           {/* Summary cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <Card>
               <CardContent className="pt-4 pb-4">
-                <Tooltip content="Total number of chat messages processed in the selected time period" side="bottom">
+                <Tooltip content="Total number of chat messages processed matching the current filters" side="bottom">
                   <p className="text-xs text-secondary-500 dark:text-secondary-400 inline-flex items-center gap-1 cursor-help">
                     Total Requests <Info className="w-3 h-3" />
                   </p>
                 </Tooltip>
-                <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">{data.total_requests}</p>
+                <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">{data.total_requests.toLocaleString()}</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-4 pb-4">
-                <Tooltip content="Average end-to-end response time across all requests, from receiving the message to completing the reply" side="bottom">
+                <Tooltip content="Average end-to-end response time across all filtered requests" side="bottom">
                   <p className="text-xs text-secondary-500 dark:text-secondary-400 inline-flex items-center gap-1 cursor-help">
                     Avg Total <Info className="w-3 h-3" />
                   </p>
@@ -868,9 +979,21 @@ export default function PerformancePage({ params }: PerformancePageProps) {
             </Card>
             <Card>
               <CardContent className="pt-4 pb-4">
-                <Tooltip content="Average time until the first token appears in the chat. This is what the user perceives as 'thinking time' before text starts streaming" side="bottom">
+                <Tooltip content="95th percentile response time — 95% of requests complete within this time. Better than average for catching outliers" side="bottom">
                   <p className="text-xs text-secondary-500 dark:text-secondary-400 inline-flex items-center gap-1 cursor-help">
-                    Avg First Token <Info className="w-3 h-3" />
+                    P95 Total <Info className="w-3 h-3" />
+                  </p>
+                </Tooltip>
+                <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  {data.p95_total_ms != null ? `${(data.p95_total_ms / 1000).toFixed(1)}s` : '—'}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4 pb-4">
+                <Tooltip content="Average time until the first token appears. This is what the user perceives as 'thinking time'" side="bottom">
+                  <p className="text-xs text-secondary-500 dark:text-secondary-400 inline-flex items-center gap-1 cursor-help">
+                    Avg TTFT <Info className="w-3 h-3" />
                   </p>
                 </Tooltip>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
@@ -880,7 +1003,7 @@ export default function PerformancePage({ params }: PerformancePageProps) {
             </Card>
             <Card>
               <CardContent className="pt-4 pb-4">
-                <Tooltip content="Average time for the knowledge retrieval pipeline: embedding the query, searching the vector database, and optionally fetching live URLs" side="bottom">
+                <Tooltip content="Average time for the knowledge retrieval pipeline: embedding + search + live fetch" side="bottom">
                   <p className="text-xs text-secondary-500 dark:text-secondary-400 inline-flex items-center gap-1 cursor-help">
                     Avg RAG <Info className="w-3 h-3" />
                   </p>
@@ -919,6 +1042,14 @@ export default function PerformancePage({ params }: PerformancePageProps) {
                   onClose={() => setSelectedIndex(null)}
                 />
               )}
+              <PerformancePagination
+                currentPage={page}
+                totalPages={data.total_pages}
+                totalItems={data.total_requests}
+                pageSize={data.page_size}
+                onPageChange={handlePageChange}
+                loading={loading}
+              />
             </CardContent>
           </Card>
 
@@ -927,7 +1058,7 @@ export default function PerformancePage({ params }: PerformancePageProps) {
             <Card>
               <CardHeader>
                 <CardTitle>Average Pipeline Breakdown</CardTitle>
-                <CardDescription>Mean time per stage across {data.total_requests} requests</CardDescription>
+                <CardDescription>Mean time per stage across {data.total_requests.toLocaleString()} requests</CardDescription>
               </CardHeader>
               <CardContent>
                 <BarChart data={avgBars} maxValue={maxAvg} />
@@ -973,7 +1104,7 @@ export default function PerformancePage({ params }: PerformancePageProps) {
           <Card>
             <CardHeader>
               <CardTitle>Recent Requests</CardTitle>
-              <CardDescription>Last {data.recent.length} requests (newest first)</CardDescription>
+              <CardDescription>Page {page} of {data.total_pages} ({data.total_requests.toLocaleString()} total requests)</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -1066,6 +1197,14 @@ export default function PerformancePage({ params }: PerformancePageProps) {
                   </tbody>
                 </table>
               </div>
+              <PerformancePagination
+                currentPage={page}
+                totalPages={data.total_pages}
+                totalItems={data.total_requests}
+                pageSize={data.page_size}
+                onPageChange={handlePageChange}
+                loading={loading}
+              />
             </CardContent>
           </Card>
         </>

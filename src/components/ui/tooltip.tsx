@@ -22,7 +22,8 @@ export function Tooltip({
   delayDuration = 200,
 }: TooltipProps) {
   const [isVisible, setIsVisible] = React.useState(false);
-  const [position, setPosition] = React.useState({ x: 0, y: 0 });
+  const [position, setPosition] = React.useState({ x: -9999, y: -9999 });
+  const [positioned, setPositioned] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
   const triggerRef = React.useRef<HTMLDivElement>(null);
   const tooltipRef = React.useRef<HTMLDivElement>(null);
@@ -35,6 +36,8 @@ export function Tooltip({
 
   const showTooltip = React.useCallback(() => {
     timeoutRef.current = setTimeout(() => {
+      setPositioned(false);
+      setPosition({ x: -9999, y: -9999 });
       setIsVisible(true);
     }, delayDuration);
   }, [delayDuration]);
@@ -45,6 +48,7 @@ export function Tooltip({
       timeoutRef.current = null;
     }
     setIsVisible(false);
+    setPositioned(false);
   }, []);
 
   React.useEffect(() => {
@@ -110,6 +114,7 @@ export function Tooltip({
     y = Math.max(padding, Math.min(y, window.innerHeight - tooltip.height - padding));
 
     setPosition({ x, y });
+    setPositioned(true);
   }, [isVisible, side, align]);
 
   React.useEffect(() => {
@@ -126,13 +131,14 @@ export function Tooltip({
       role="tooltip"
       className={cn(
         'fixed z-[99999] px-3 py-1.5 text-xs font-medium rounded-md shadow-md',
-        'animate-in fade-in-0 zoom-in-95 duration-100',
         'break-words',
+        positioned ? 'opacity-100' : 'opacity-0 pointer-events-none',
         className
       )}
       style={{
         left: position.x,
         top: position.y,
+        transition: 'opacity 100ms ease-in',
         backgroundColor: 'rgb(var(--tooltip-bg, 15 23 42))',
         color: 'rgb(var(--tooltip-text, 248 250 252))',
         borderWidth: '1px',
@@ -143,7 +149,6 @@ export function Tooltip({
       }}
     >
       {content}
-      {/* Arrow - hidden since positioning varies with portal */}
     </div>
   );
 

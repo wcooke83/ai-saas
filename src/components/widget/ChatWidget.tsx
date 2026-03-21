@@ -241,7 +241,7 @@ interface ChatWidgetProps {
   transcriptConfig?: TranscriptConfig;
   escalationConfig?: EscalationConfig;
   liveHandoffConfig?: LiveHandoffConfig;
-  agentsAvailable?: boolean;
+  agentsAvailable?: boolean | 'check';
   memoryEnabled?: boolean;
   sessionTtlHours?: number;
   userData?: Record<string, string> | null;
@@ -276,13 +276,13 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
   const [sessionRestoredRef] = useState(() => ({ current: false }));
   const [sessionId] = useState(() => {
     if (persistedSession?.sessionId) return persistedSession.sessionId;
-    return `session_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    return `session_${crypto.randomUUID()}`;
   });
   const [visitorId, setVisitorId] = useState(() => {
-    if (typeof window === 'undefined') return `visitor_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    if (typeof window === 'undefined') return `visitor_${crypto.randomUUID()}`;
     const stored = localStorage.getItem(`chatbot_visitor_${chatbotId}`);
     if (stored) return stored;
-    const newId = `visitor_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    const newId = `visitor_${crypto.randomUUID()}`;
     localStorage.setItem(`chatbot_visitor_${chatbotId}`, newId);
     return newId;
   });
@@ -317,11 +317,35 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
 
   // Handoff state
   const [handoffActive, setHandoffActive] = useState(persistedSession?.handoffActive || false);
-  const showHandoffIcon = liveHandoffEnabled && agentsAvailable && !handoffActive;
+  // Poll agent presence when config says 'check' (agent console mode)
+  // Agent presence: initial value comes from config (no extra round trip),
+  // then poll for updates every 30s if live handoff is enabled
+  const [polledAgentsAvailable, setPolledAgentsAvailable] = useState(agentsAvailable === true);
+  useEffect(() => {
+    setPolledAgentsAvailable(agentsAvailable === true);
+    if (!liveHandoffEnabled) return;
+    let active = true;
+    const poll = () => {
+      fetch(`/api/widget/${chatbotId}/agent-heartbeat`)
+        .then(r => r.json())
+        .then(d => { if (active) setPolledAgentsAvailable(!!d.available); })
+        .catch(() => { if (active) setPolledAgentsAvailable(false); });
+    };
+    // If config returned 'check', poll immediately to get real status;
+    // otherwise first poll after 30s (initial value already set from config)
+    if (agentsAvailable === 'check') poll();
+    const interval = setInterval(poll, 30_000);
+    return () => { active = false; clearInterval(interval); };
+  }, [agentsAvailable, chatbotId, liveHandoffEnabled]);
+  const showHandoffIcon = liveHandoffEnabled && polledAgentsAvailable && !handoffActive;
   const [handoffStatus, setHandoffStatus] = useState<string | null>(null);
   const [handoffAgentName, setHandoffAgentName] = useState<string | null>(null);
+  const handoffAgentNameRef = useRef<string | null>(null);
   const realtimeChannelRef = useRef<RealtimeChannel | null>(null);
   const lastMessageCountRef = useRef(0);
+
+  // Keep agent name ref in sync for use in callbacks after state is cleared
+  if (handoffAgentName) handoffAgentNameRef.current = handoffAgentName;
 
   // Typing indicator & presence state
   const [agentIsTyping, setAgentIsTyping] = useState(false);
@@ -332,8 +356,15 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
   // Handoff inactivity timeout
   const handoffWarningRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handoffCloseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handoffCountdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const handoffWarningShownRef = useRef(false);
   const resetHandoffTimerRef = useRef<() => void>(() => {});
+  const [handoffCountdownSeconds, setHandoffCountdownSeconds] = useState<number | null>(null);
+
+  // Handoff end transition
+  const [handoffEndedInfo, setHandoffEndedInfo] = useState<{ agentName: string } | null>(null);
+  const [handoffRating, setHandoffRating] = useState<number | null>(null);
+  const [handoffRatingSubmitted, setHandoffRatingSubmitted] = useState(false);
 
   // Build accepted MIME types from config
   const acceptedMimes = (() => {
@@ -916,7 +947,10 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
+    // Only show "thinking" dots for AI responses, not during live agent handoff
+    if (!handoffActive) {
+      setIsLoading(true);
+    }
 
     try {
       const response = await fetch(`/api/chat/${chatbotId}`, {
@@ -1414,6 +1448,9 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
         if (metadata.agent_name) {
           setHandoffAgentName(metadata.agent_name as string);
         }
+
+        // Agent replied — reset inactivity timer (conversation is active)
+        resetHandoffTimerRef.current();
       })
       .on('postgres_changes', {
         event: '*',
@@ -1431,18 +1468,16 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
           setHandoffAgentName(session.agent_name as string);
         }
 
-        // Handoff resolved - back to AI
+        // Handoff resolved - show transition card
         if (status === 'resolved') {
+          const agentName = (session.agent_name as string) || handoffAgentNameRef.current || 'your agent';
           setHandoffActive(false);
           setHandoffStatus(null);
           setHandoffAgentName(null);
-          setMessages((prev) => [...prev, {
-            id: `handoff_end_${Date.now()}`,
-            role: 'assistant',
-            content: 'You\'re back with the AI assistant. How can I help you?',
-            timestamp: new Date(),
-            metadata: { is_system: true },
-          }]);
+          clearHandoffTimers();
+          setHandoffEndedInfo({ agentName });
+          setHandoffRating(null);
+          setHandoffRatingSubmitted(false);
 
           // Clean up the subscription since handoff is over
           if (realtimeChannelRef.current) {
@@ -1566,7 +1601,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     };
   }, [handoffActive, conversationId, sessionId]);
 
-  // Handoff inactivity timeout: warn visitor, then auto-resolve
+  // Handoff inactivity timeout: warn visitor with countdown, then auto-resolve
   const clearHandoffTimers = useCallback(() => {
     if (handoffWarningRef.current) {
       clearTimeout(handoffWarningRef.current);
@@ -1576,8 +1611,21 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
       clearTimeout(handoffCloseRef.current);
       handoffCloseRef.current = null;
     }
+    if (handoffCountdownRef.current) {
+      clearInterval(handoffCountdownRef.current);
+      handoffCountdownRef.current = null;
+    }
     handoffWarningShownRef.current = false;
+    setHandoffCountdownSeconds(null);
   }, []);
+
+  // "I'm here" button handler — resets inactivity timer
+  const handleImHere = useCallback(() => {
+    clearHandoffTimers();
+    // Remove the warning message
+    setMessages((prev) => prev.filter((m) => !m.metadata?.is_warning));
+    resetHandoffTimerRef.current();
+  }, [clearHandoffTimers]);
 
   const resetHandoffInactivityTimer = useCallback(() => {
     if (!handoffActive || handoffTimeoutMinutes <= 0) return;
@@ -1588,7 +1636,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     const remainingMs = timeoutMs - warningMs;
     const remainingMinutes = Math.ceil(remainingMs / 60000);
 
-    // Warning timer
+    // Warning timer — shows message with "I'm here" button + starts countdown bar
     handoffWarningRef.current = setTimeout(() => {
       if (!handoffWarningShownRef.current) {
         handoffWarningShownRef.current = true;
@@ -1599,8 +1647,20 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
           content: tt.handoffInactivityWarning
             || `Are you still there? This conversation will close in ${remainingMinutes} minute${remainingMinutes === 1 ? '' : 's'} due to inactivity.`,
           timestamp: new Date(),
-          metadata: { is_system: true, is_warning: true },
+          metadata: { is_system: true, is_warning: true, has_im_here: true },
         }]);
+
+        // Start countdown
+        const closeAt = Date.now() + remainingMs;
+        setHandoffCountdownSeconds(Math.ceil(remainingMs / 1000));
+        handoffCountdownRef.current = setInterval(() => {
+          const secsLeft = Math.max(0, Math.ceil((closeAt - Date.now()) / 1000));
+          setHandoffCountdownSeconds(secsLeft);
+          if (secsLeft <= 0 && handoffCountdownRef.current) {
+            clearInterval(handoffCountdownRef.current);
+            handoffCountdownRef.current = null;
+          }
+        }, 1000);
 
         // Update tab title if widget is minimized
         if (!isOpen) {
@@ -1611,24 +1671,34 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
       }
     }, warningMs);
 
-    // Close timer
+    // Close timer — resolves both client and server side
     handoffCloseRef.current = setTimeout(() => {
-      // End the handoff on the widget side
-      // The agent console will see the visitor go offline via presence and can close/resolve
       setHandoffActive(false);
       setHandoffStatus(null);
       setHandoffAgentName(null);
       clearHandoffTimers();
 
       const tt = tRef.current;
-      setMessages((prev) => [...prev, {
-        id: `handoff_timeout_${Date.now()}`,
-        role: 'assistant',
-        content: tt.handoffInactivityClosed
-          || 'This conversation was closed due to inactivity. Feel free to start a new chat!',
-        timestamp: new Date(),
-        metadata: { is_system: true },
-      }]);
+      setMessages((prev) => [
+        ...prev.filter((m) => !m.metadata?.is_warning),
+        {
+          id: `handoff_timeout_${Date.now()}`,
+          role: 'assistant',
+          content: tt.handoffInactivityClosed
+            || 'This conversation was closed due to inactivity. Feel free to start a new chat!',
+          timestamp: new Date(),
+          metadata: { is_system: true },
+        },
+      ]);
+
+      // Resolve server-side handoff session
+      if (conversationId) {
+        fetch(`/api/widget/${chatbotId}/agent-actions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ conversation_id: conversationId, action: 'resolve' }),
+        }).catch(() => {});
+      }
     }, timeoutMs);
   }, [handoffActive, handoffTimeoutMinutes, clearHandoffTimers, conversationId, chatbotId, sessionId, isOpen]);
 
@@ -1770,7 +1840,10 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      if (!response.ok) throw new Error('Handoff failed');
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData?.error?.message || 'Handoff failed');
+      }
       const data = await response.json();
 
       if (data.data?.handoff_initiated && conversationId) {
@@ -1785,13 +1858,42 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
           timestamp: new Date(),
           metadata: { is_system: true },
         }]);
+        setShowHandoffConfirm(false);
+        setHandoffContext('');
+        if (currentView !== 'chat') setCurrentView('chat');
+      } else if (!conversationId) {
+        // No conversation yet — prompt user to send a message first
+        setMessages((prev) => [...prev, {
+          id: `handoff_err_${Date.now()}`,
+          role: 'assistant',
+          content: 'Please send a message first so we can connect you with an agent.',
+          timestamp: new Date(),
+          metadata: { is_system: true },
+        }]);
+        setShowHandoffConfirm(false);
+        if (currentView !== 'chat') setCurrentView('chat');
+      } else {
+        setMessages((prev) => [...prev, {
+          id: `handoff_err_${Date.now()}`,
+          role: 'assistant',
+          content: 'Unable to connect to support right now. Please try again later.',
+          timestamp: new Date(),
+          metadata: { is_system: true },
+        }]);
+        setShowHandoffConfirm(false);
+        if (currentView !== 'chat') setCurrentView('chat');
       }
-
-      setShowHandoffConfirm(false);
-      setHandoffContext('');
-      if (currentView !== 'chat') setCurrentView('chat');
     } catch (err) {
       console.warn('Failed to initiate handoff:', err);
+      setMessages((prev) => [...prev, {
+        id: `handoff_err_${Date.now()}`,
+        role: 'assistant',
+        content: 'Unable to connect to support right now. Please try again later.',
+        timestamp: new Date(),
+        metadata: { is_system: true },
+      }]);
+      setShowHandoffConfirm(false);
+      if (currentView !== 'chat') setCurrentView('chat');
     } finally {
       setHandoffConnecting(false);
     }
@@ -1922,7 +2024,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
             // Privacy: use a fresh visitorId for proactive-initiated chats
             // unless admin passed authenticated user data via ChatWidget.init({ user: {} })
             if (!hasUserDataRef.current) {
-              const freshId = `visitor_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+              const freshId = `visitor_${crypto.randomUUID()}`;
               console.log('[ChatWidget] Proactive session without userData — using fresh visitorId:', freshId);
               setVisitorId(freshId);
               visitorIdRef.current = freshId;
@@ -2319,6 +2421,20 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                         ) : (
                           message.content
                         )}
+                        {/* "I'm here" button on inactivity warning */}
+                        {(message as any).metadata?.has_im_here && handoffCountdownSeconds !== null && (
+                          <button
+                            onClick={handleImHere}
+                            style={{
+                              marginTop: '8px', padding: '6px 16px',
+                              backgroundColor: config.primaryColor, color: '#fff',
+                              border: 'none', borderRadius: '6px', fontSize: '13px',
+                              fontWeight: 600, cursor: 'pointer', width: '100%',
+                            }}
+                          >
+                            I&apos;m here
+                          </button>
+                        )}
                         {/* Attachments */}
                         {message.attachments && message.attachments.length > 0 && (
                           <div className="chat-widget-attachments">
@@ -2512,6 +2628,132 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                       </button>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* Handoff inactivity countdown bar */}
+              {handoffCountdownSeconds !== null && handoffCountdownSeconds > 0 && (
+                <div className="chat-widget-countdown-bar" style={{
+                  padding: '6px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '12px',
+                  backgroundColor: handoffCountdownSeconds <= 30 ? '#FEE2E2' : '#FEF3C7',
+                  color: handoffCountdownSeconds <= 30 ? '#991B1B' : '#92400E',
+                  borderTop: `1px solid ${handoffCountdownSeconds <= 30 ? '#FECACA' : '#FDE68A'}`,
+                  transition: 'background-color 0.3s, color 0.3s',
+                }}>
+                  <div style={{ flex: 1, height: '4px', backgroundColor: handoffCountdownSeconds <= 30 ? '#FCA5A5' : '#FCD34D', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%',
+                      backgroundColor: handoffCountdownSeconds <= 30 ? '#DC2626' : '#F59E0B',
+                      borderRadius: '2px',
+                      width: `${Math.min(100, (handoffCountdownSeconds / 120) * 100)}%`,
+                      transition: 'width 1s linear',
+                    }} />
+                  </div>
+                  <span style={{ fontWeight: 500, whiteSpace: 'nowrap' }}>
+                    {Math.floor(handoffCountdownSeconds / 60)}:{String(handoffCountdownSeconds % 60).padStart(2, '0')}
+                  </span>
+                </div>
+              )}
+
+              {/* Handoff ended transition card */}
+              {handoffEndedInfo && (
+                <div className="chat-widget-handoff-ended" style={{
+                  padding: '16px',
+                  margin: '0 12px 8px',
+                  backgroundColor: config.formBackgroundColor || '#f9fafb',
+                  borderRadius: '12px',
+                  border: `1px solid ${config.formBorderColor || '#e5e7eb'}`,
+                  textAlign: 'center',
+                }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: config.formTitleColor || config.textColor, marginBottom: '12px' }}>
+                    Conversation with {handoffEndedInfo.agentName} ended
+                  </div>
+                  {!handoffRatingSubmitted ? (
+                    <>
+                      <div style={{ fontSize: '12px', color: config.formDescriptionColor || '#6b7280', marginBottom: '8px' }}>
+                        How was your experience?
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginBottom: '8px' }}>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <button
+                            key={n}
+                            onClick={() => {
+                              setHandoffRating(n);
+                              setHandoffRatingSubmitted(true);
+                              // Fire-and-forget: save rating
+                              if (conversationId) {
+                                fetch(`/api/chatbots/${chatbotId}/surveys`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    conversation_id: conversationId,
+                                    session_id: sessionId,
+                                    responses: [{ question: 'Agent rating', type: 'rating', answer: n }],
+                                  }),
+                                }).catch(() => {});
+                              }
+                            }}
+                            style={{
+                              width: '36px', height: '36px', borderRadius: '50%',
+                              border: `2px solid ${handoffRating === n ? config.primaryColor : (config.formBorderColor || '#d1d5db')}`,
+                              backgroundColor: handoffRating === n ? config.primaryColor : 'transparent',
+                              color: handoffRating === n ? '#fff' : (config.formLabelColor || config.textColor),
+                              fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+                              transition: 'all 0.15s',
+                            }}
+                          >
+                            {n}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => {
+                          setHandoffEndedInfo(null);
+                          setMessages((prev) => [...prev, {
+                            id: `ai_return_${Date.now()}`,
+                            role: 'assistant',
+                            content: 'You\'re now chatting with the AI assistant.',
+                            timestamp: new Date(),
+                            metadata: { is_system: true },
+                          }]);
+                        }}
+                        style={{
+                          fontSize: '11px', color: config.formDescriptionColor || '#9ca3af',
+                          background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline',
+                        }}
+                      >
+                        Skip
+                      </button>
+                    </>
+                  ) : (
+                    <div style={{ fontSize: '12px', color: config.formDescriptionColor || '#6b7280', marginBottom: '8px' }}>
+                      Thanks for your feedback!
+                    </div>
+                  )}
+                  <button
+                    onClick={() => {
+                      setHandoffEndedInfo(null);
+                      setMessages((prev) => [...prev, {
+                        id: `ai_return_${Date.now()}`,
+                        role: 'assistant',
+                        content: 'You\'re now chatting with the AI assistant.',
+                        timestamp: new Date(),
+                        metadata: { is_system: true },
+                      }]);
+                    }}
+                    style={{
+                      marginTop: '8px', width: '100%', padding: '8px 16px',
+                      backgroundColor: config.primaryColor, color: '#fff',
+                      border: 'none', borderRadius: '8px', fontSize: '13px',
+                      fontWeight: 600, cursor: 'pointer',
+                    }}
+                  >
+                    Continue with AI assistant
+                  </button>
                 </div>
               )}
 
@@ -2797,7 +3039,15 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                 {translateDefault(postChatSurveyConfig.thankYouMessage, DEFAULT_POST_CHAT_SURVEY_CONFIG.thankYouMessage, t.postChatThankYou)}
               </p>
               <button
-                onClick={() => setCurrentView('chat')}
+                onClick={() => {
+                  setMessages((prev) => [...prev, {
+                    id: `survey_thanks_${Date.now()}`,
+                    role: 'assistant' as const,
+                    content: translateDefault(postChatSurveyConfig.thankYouMessage, DEFAULT_POST_CHAT_SURVEY_CONFIG.thankYouMessage, t.postChatThankYou),
+                    timestamp: new Date(),
+                  }]);
+                  setCurrentView('chat');
+                }}
                 className="chat-widget-thanks-back"
               >
                 {t.backToChat}

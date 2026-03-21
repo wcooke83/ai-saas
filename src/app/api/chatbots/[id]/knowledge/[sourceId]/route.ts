@@ -16,8 +16,11 @@ import {
   updateKnowledgeSource,
 } from '@/lib/chatbots/api';
 
+import { reprocessKnowledgeSource } from '@/lib/chatbots/knowledge/processor';
+
 const updateSourceSchema = z.object({
   is_priority: z.boolean().optional(),
+  action: z.enum(['reprocess']).optional(),
 });
 
 interface RouteParams {
@@ -121,7 +124,15 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     }
 
     const input = await parseBody(req, updateSourceSchema);
-    const updated = await updateKnowledgeSource(sourceId, input);
+
+    // Handle reprocess action
+    if (input.action === 'reprocess') {
+      reprocessKnowledgeSource(sourceId).catch(console.error);
+      return successResponse({ reprocessing: true });
+    }
+
+    const { action: _, ...updates } = input;
+    const updated = await updateKnowledgeSource(sourceId, updates);
 
     return successResponse({ source: updated });
   } catch (error) {

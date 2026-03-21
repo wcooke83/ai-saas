@@ -389,28 +389,13 @@ export async function getOrCreateConversation(
 ): Promise<Conversation> {
   const supabase = supabaseClient || await createClient() as SupabaseAny;
 
-  // Try to find existing conversation
-  const { data: existing } = await supabase
-    .from('conversations')
-    .select('*')
-    .eq('chatbot_id', chatbotId)
-    .eq('session_id', sessionId)
-    .eq('status', 'active')
-    .single();
-
-  if (existing) return existing as Conversation;
-
-  // Create new conversation
-  const { data, error } = await supabase
-    .from('conversations')
-    .insert({
-      chatbot_id: chatbotId,
-      session_id: sessionId,
-      channel,
-      visitor_id: visitorId,
-    })
-    .select()
-    .single();
+  // Single DB round trip via RPC
+  const { data, error } = await supabase.rpc('get_or_create_conversation', {
+    p_chatbot_id: chatbotId,
+    p_session_id: sessionId,
+    p_channel: channel,
+    p_visitor_id: visitorId || null,
+  });
 
   if (error) throw error;
   return data as Conversation;
@@ -420,12 +405,12 @@ export async function getOrCreateConversation(
 // MESSAGES
 // ============================================
 
-export async function getMessages(conversationId: string, supabaseClient?: SupabaseAny): Promise<Message[]> {
+export async function getMessages(conversationId: string, supabaseClient?: SupabaseAny, columns: string = 'id, role, content, created_at'): Promise<Message[]> {
   const supabase = supabaseClient || await createClient() as SupabaseAny;
 
   const { data, error } = await supabase
     .from('messages')
-    .select('*')
+    .select(columns)
     .eq('conversation_id', conversationId)
     .order('created_at', { ascending: false })
     .limit(50);

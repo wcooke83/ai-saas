@@ -4,12 +4,12 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/admin';
-import { generateQueryEmbedding, isEmbeddingsAvailable, resolveEmbeddingConfig, type EmbeddingConfig, type EmbeddingProvider } from './knowledge/embeddings';
+import { generateQueryEmbedding, resolveEmbeddingConfig, type EmbeddingConfig, type EmbeddingProvider } from './knowledge/embeddings';
 import { fetchPinnedUrlContent } from './knowledge/live-fetch';
 import { getLanguageName } from './translations';
 import type { Chatbot, Message, KnowledgeChunkMatch } from './types';
 
-const LOW_CONFIDENCE_THRESHOLD = 0.9;
+const DEFAULT_LOW_CONFIDENCE_THRESHOLD = 0.55;
 
 interface StageSpan { start: number; end: number }
 
@@ -24,14 +24,69 @@ export interface RAGContext {
   stageTimings?: Record<string, StageSpan>;
 }
 
+// --- Finding #17: Greeting/small-talk short-circuit ---
+const GREETING_PATTERNS = /^(h(i|ey|ello|owdy)|yo|sup|thanks?|thank\s*you|cheers|bye|goodbye|good\s*(morning|afternoon|evening|night)|ok(ay)?|cool|nice|great|sure|yep|yeah|yes|no|nah|nope|please|sorry|welcome|what'?s?\s*up)\.?!?$/i;
+const MAX_GREETING_WORDS = 4;
+
+function isGreetingMessage(message: string): boolean {
+  const trimmed = message.trim();
+  const wordCount = trimmed.split(/\s+/).length;
+  if (wordCount > MAX_GREETING_WORDS) return false;
+  return GREETING_PATTERNS.test(trimmed);
+}
+
+/**
+ * Pre-resolved data that can be fetched before getRAGContext runs.
+ * Start this as early as possible (once chatbotId is known) to overlap with conversation setup.
+ */
+export interface RAGPrework {
+  resolvedEmbeddingConfig: EmbeddingConfig | null;
+  sourceEmbeddingInfo: Array<{ embedding_provider: string; embedding_model: string }> | null;
+  prioritySources: Array<{ id: string; url: string; name: string; is_priority: boolean }> | null;
+}
+
+/**
+ * Start RAG pre-work as soon as chatbotId is available (Finding #15).
+ * This overlaps embedding config resolution + knowledge_sources queries
+ * with conversation creation, saving ~200-400ms.
+ */
+export async function startRAGPrework(chatbotId: string): Promise<RAGPrework> {
+  const supabase = createAdminClient() as any;
+
+  const [resolvedEmbeddingConfig, sourceAndPriorityResult] = await Promise.all([
+    resolveEmbeddingConfig(),
+    Promise.all([
+      supabase
+        .from('knowledge_sources')
+        .select('embedding_provider, embedding_model')
+        .eq('chatbot_id', chatbotId)
+        .not('embedding_provider', 'is', null)
+        .limit(1),
+      supabase
+        .from('knowledge_sources')
+        .select('id, url, name, is_priority')
+        .eq('chatbot_id', chatbotId)
+        .eq('is_priority', true),
+    ]),
+  ]);
+
+  return {
+    resolvedEmbeddingConfig,
+    sourceEmbeddingInfo: sourceAndPriorityResult[0].data,
+    prioritySources: sourceAndPriorityResult[1].data,
+  };
+}
+
 /**
  * Get relevant context for a user query using vector similarity search
+ * @param prework - Pre-resolved data from startRAGPrework() to avoid duplicate DB calls
  */
 export async function getRAGContext(
   chatbot: Chatbot,
   query: string,
   maxChunks: number = 5,
-  similarityThreshold: number = 0.7
+  similarityThreshold: number = 0.45,
+  prework?: RAGPrework,
 ): Promise<RAGContext> {
   const _rt0 = Date.now();
   const _timingsRag: Record<string, number> = {};
@@ -40,68 +95,95 @@ export async function getRAGContext(
     _timingsRag[label] = ms;
     console.log(`[RAG:Perf] ${label}: ${ms}ms`);
   };
-  // Per-stage start/end tracking (relative to _rt0)
   const _ragStages: Record<string, StageSpan> = {};
   const _rs = (label: string) => { _ragStages[label] = { start: Date.now() - _rt0, end: 0 }; };
   const _re = (label: string) => { if (_ragStages[label]) _ragStages[label].end = Date.now() - _rt0; };
 
-  // Skip RAG if embeddings are not available (no embedding-capable provider)
-  if (!(await isEmbeddingsAvailable())) {
+  const emptyResult: RAGContext = {
+    chunks: [],
+    systemPrompt: chatbot.system_prompt,
+    contextText: '',
+    confidence: 0,
+    pinnedUrls: [],
+  };
+
+  // Finding #17: Short-circuit for greetings — skip entire RAG pipeline
+  if (isGreetingMessage(query)) {
+    console.log(`[RAG] Greeting detected ("${query}"), skipping RAG pipeline`);
+    return emptyResult;
+  }
+
+  // Use pre-resolved data if available, otherwise resolve now
+  const resolvedEmbeddingConfig = prework?.resolvedEmbeddingConfig ?? await resolveEmbeddingConfig();
+
+  if (!resolvedEmbeddingConfig) {
     console.log('[RAG] Skipping RAG - no embedding-capable AI provider available');
-    return {
-      chunks: [],
-      systemPrompt: chatbot.system_prompt,
-      contextText: '',
-      confidence: 0,
-      pinnedUrls: [],
-    };
+    return emptyResult;
   }
 
   const supabase = createAdminClient() as any;
 
-  // Look up what embedding model was used for this chatbot's chunks + priority sources in parallel
   _rperf('start');
   _rs('embedding');
-  const [{ data: sourceEmbeddingInfo }, { data: prioritySources }] = await Promise.all([
-    supabase
-      .from('knowledge_sources')
-      .select('embedding_provider, embedding_model')
-      .eq('chatbot_id', chatbot.id)
-      .not('embedding_provider', 'is', null)
-      .limit(1),
-    supabase
-      .from('knowledge_sources')
-      .select('id, url, name, is_priority')
-      .eq('chatbot_id', chatbot.id)
-      .eq('is_priority', true),
-  ]);
+
+  // Use pre-resolved source info if available, otherwise query now
+  let sourceEmbeddingInfo = prework?.sourceEmbeddingInfo;
+  let prioritySources = prework?.prioritySources;
+
+  if (!prework) {
+    const [srcResult, prioResult] = await Promise.all([
+      supabase
+        .from('knowledge_sources')
+        .select('embedding_provider, embedding_model')
+        .eq('chatbot_id', chatbot.id)
+        .not('embedding_provider', 'is', null)
+        .limit(1),
+      supabase
+        .from('knowledge_sources')
+        .select('id, url, name, is_priority')
+        .eq('chatbot_id', chatbot.id)
+        .eq('is_priority', true),
+    ]);
+    sourceEmbeddingInfo = srcResult.data;
+    prioritySources = prioResult.data;
+  }
 
   // Determine the correct embedding config: must match what chunks were embedded with
   let queryEmbeddingConfig: EmbeddingConfig | undefined;
+  const openaiKey = process.env.OPENAI_API_KEY;
+  const hasValidOpenAI = !!openaiKey && openaiKey.startsWith('sk-') && openaiKey.length > 20;
+
   if (sourceEmbeddingInfo?.[0]?.embedding_provider) {
-    queryEmbeddingConfig = {
-      provider: sourceEmbeddingInfo[0].embedding_provider as EmbeddingProvider,
-      model: sourceEmbeddingInfo[0].embedding_model,
-      dimensions: 1536,
-    };
-    // Warn if there's a mismatch with current config
-    const currentConfig = await resolveEmbeddingConfig();
-    if (currentConfig && currentConfig.provider !== queryEmbeddingConfig.provider) {
+    const recordedProvider = sourceEmbeddingInfo[0].embedding_provider as EmbeddingProvider;
+    const recordedModel = sourceEmbeddingInfo[0].embedding_model;
+
+    if (recordedProvider === 'openai' && !hasValidOpenAI) {
       console.warn(
-        `[RAG] Embedding model mismatch detected! Chunks use ${queryEmbeddingConfig.provider}/${queryEmbeddingConfig.model}, ` +
-        `config says ${currentConfig.provider}/${currentConfig.model}. Using chunk model for query to ensure compatibility.`
+        `[RAG] Chunks were embedded with OpenAI but no valid OpenAI key available. ` +
+        `Falling back to current embedding provider — results may be less accurate. ` +
+        `Re-process knowledge sources to re-embed with the current provider.`
       );
+    } else {
+      queryEmbeddingConfig = {
+        provider: recordedProvider,
+        model: recordedModel,
+        dimensions: 1536,
+      };
+      if (resolvedEmbeddingConfig.provider !== queryEmbeddingConfig.provider) {
+        console.warn(
+          `[RAG] Embedding model mismatch detected! Chunks use ${queryEmbeddingConfig.provider}/${queryEmbeddingConfig.model}, ` +
+          `config says ${resolvedEmbeddingConfig.provider}/${resolvedEmbeddingConfig.model}. Using chunk model for query to ensure compatibility.`
+        );
+      }
     }
   } else {
-    // No recorded model — legacy chunks were all embedded with OpenAI ada-002
-    const hasOpenAI = process.env.OPENAI_API_KEY?.startsWith('sk-');
-    if (hasOpenAI) {
+    if (hasValidOpenAI) {
       console.log('[RAG] No embedding model recorded on sources, defaulting to OpenAI ada-002 (legacy chunks)');
       queryEmbeddingConfig = { provider: 'openai', model: 'text-embedding-ada-002', dimensions: 1536 };
     }
   }
 
-  const queryEmbedding = await generateQueryEmbedding(query, queryEmbeddingConfig);
+  const queryEmbedding = await generateQueryEmbedding(query, queryEmbeddingConfig || resolvedEmbeddingConfig);
   _re('embedding');
 
   _rperf('embedding_and_priority_sources');
@@ -110,7 +192,7 @@ export async function getRAGContext(
     .filter((s: any) => s.url)
     .map((s: any) => ({ url: s.url, name: s.name || s.url }));
 
-  // Fetch similarity chunks and priority chunks in parallel
+  // Fetch similarity chunks and priority chunks in parallel (both use similarity search)
   _rs('similarity');
   const queries: [Promise<any>, Promise<any>] = [
     supabase.rpc('match_knowledge_chunks', {
@@ -120,12 +202,13 @@ export async function getRAGContext(
       p_match_count: maxChunks,
     }),
     prioritySourceIds.length > 0
-      ? supabase
-          .from('knowledge_chunks')
-          .select('id, content, metadata')
-          .eq('chatbot_id', chatbot.id)
-          .in('source_id', prioritySourceIds)
-          .limit(30)
+      ? supabase.rpc('match_priority_knowledge_chunks', {
+          p_chatbot_id: chatbot.id,
+          p_query_embedding: JSON.stringify(queryEmbedding),
+          p_match_threshold: similarityThreshold,
+          p_match_count: maxChunks,
+          p_source_ids: prioritySourceIds,
+        })
       : Promise.resolve({ data: [], error: null }),
   ];
 
@@ -142,15 +225,8 @@ export async function getRAGContext(
 
   const similarChunks: KnowledgeChunkMatch[] = similarityResult.data || [];
 
-  // Convert priority chunks to KnowledgeChunkMatch format (similarity = 1.0)
-  const priorityChunks: KnowledgeChunkMatch[] = (priorityResult.data || []).map(
-    (chunk: { id: string; content: string; metadata: any }) => ({
-      id: chunk.id,
-      content: chunk.content,
-      similarity: 1.0,
-      metadata: chunk.metadata,
-    })
-  );
+  // Priority chunks now come from similarity search with real scores
+  const priorityChunks: KnowledgeChunkMatch[] = (priorityResult.data || []) as KnowledgeChunkMatch[];
 
   // Merge: priority chunks first, then similarity chunks (deduplicated)
   const priorityIds = new Set(priorityChunks.map((c) => c.id));
@@ -159,20 +235,24 @@ export async function getRAGContext(
     ...similarChunks.filter((c) => !priorityIds.has(c.id)),
   ];
 
-  // Calculate confidence score
-  const bestSimilarity = similarChunks.length > 0
-    ? Math.max(...similarChunks.map((c) => c.similarity))
+  // Calculate confidence score from all chunks (similarity + priority)
+  const allScoredChunks = [...similarChunks, ...priorityChunks];
+  const bestSimilarity = allScoredChunks.length > 0
+    ? Math.max(...allScoredChunks.map((c) => c.similarity))
     : 0;
+
+  // Finding #19: Use per-chatbot configurable threshold, fall back to default
+  const liveFetchThreshold = (chatbot as any).live_fetch_threshold ?? DEFAULT_LOW_CONFIDENCE_THRESHOLD;
 
   console.log(`[RAG] Best similarity: ${bestSimilarity.toFixed(3)}, chunks: ${mergedChunks.length}, pinned URLs: ${pinnedUrls.length}`);
   console.log(`[RAG] Pinned URLs:`, pinnedUrls.map((p) => p.url));
-  console.log(`[RAG] Threshold: ${LOW_CONFIDENCE_THRESHOLD}, will fetch: ${bestSimilarity < LOW_CONFIDENCE_THRESHOLD && pinnedUrls.length > 0}`);
+  console.log(`[RAG] Threshold: ${liveFetchThreshold}, will fetch: ${bestSimilarity < liveFetchThreshold && pinnedUrls.length > 0}`);
 
   // If confidence is low and we have pinned URLs, fetch relevant content
   let liveContent = '';
   _rs('live_fetch');
-  if (bestSimilarity < LOW_CONFIDENCE_THRESHOLD && pinnedUrls.length > 0) {
-    console.log(`[RAG] Low confidence (${bestSimilarity.toFixed(3)} < ${LOW_CONFIDENCE_THRESHOLD}), fetching pinned URLs...`);
+  if (bestSimilarity < liveFetchThreshold && pinnedUrls.length > 0) {
+    console.log(`[RAG] Low confidence (${bestSimilarity.toFixed(3)} < ${liveFetchThreshold}), fetching pinned URLs...`);
     try {
       const urls = pinnedUrls.map((p) => p.url);
       console.log(`[RAG] Calling fetchPinnedUrlContent with URLs:`, urls);
@@ -187,7 +267,7 @@ export async function getRAGContext(
       console.error('[RAG] Pinned URL fetch failed:', err?.message || err);
     }
   } else {
-    console.log(`[RAG] Skipping pinned URL fetch (confidence ${bestSimilarity.toFixed(3)} >= ${LOW_CONFIDENCE_THRESHOLD} OR no pinned URLs)`);
+    console.log(`[RAG] Skipping pinned URL fetch (confidence ${bestSimilarity.toFixed(3)} >= ${liveFetchThreshold} OR no pinned URLs)`);
   }
 
   _re('live_fetch');

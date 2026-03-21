@@ -114,32 +114,15 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
             ...DEFAULT_LIVE_HANDOFF_CONFIG,
             ...(chatbot.live_handoff_config || {}),
           },
-          agentsAvailable: await (async () => {
-            try {
-              const lhConfig = { ...DEFAULT_LIVE_HANDOFF_CONFIG, ...(chatbot.live_handoff_config || {}) };
-              if (!lhConfig.enabled) return false;
-
-              // Telegram is one channel
-              const tc = { ...DEFAULT_TELEGRAM_CONFIG, ...(chatbot.telegram_config || {}) };
-              const telegramReady = tc.enabled && !!tc.bot_token && !!tc.chat_id;
-              if (telegramReady) return true;
-
-              // Check online agents via heartbeat table
-              if (lhConfig.require_agent_online !== false) {
-                const admin = createAdminClient();
-                const cutoff = new Date(Date.now() - 60_000).toISOString();
-                const { count } = await (admin as any)
-                  .from('agent_presence')
-                  .select('id', { count: 'exact', head: true })
-                  .eq('chatbot_id', chatbotId)
-                  .gte('last_heartbeat', cutoff);
-                return (count ?? 0) > 0;
-              }
-
-              return true;
-            } catch {
-              return false;
-            }
+          agentsAvailable: (() => {
+            const lhConfig = { ...DEFAULT_LIVE_HANDOFF_CONFIG, ...(chatbot.live_handoff_config || {}) };
+            if (!lhConfig.enabled) return false;
+            // Telegram is always-on if configured
+            const tc = { ...DEFAULT_TELEGRAM_CONFIG, ...(chatbot.telegram_config || {}) };
+            if (tc.enabled && !!tc.bot_token && !!tc.chat_id) return true;
+            // For agent console, let the widget poll /agent-heartbeat separately
+            // instead of blocking the config response with a DB query
+            return 'check';
           })(),
           memoryEnabled: chatbot.memory_enabled === true,
           sessionTtlHours: chatbot.session_ttl_hours ?? 24,

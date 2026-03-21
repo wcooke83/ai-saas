@@ -410,7 +410,7 @@ export const DEFAULT_TRANSCRIPT_CONFIG: TranscriptConfig = {
   enabled: false,
   email_mode: 'ask',
   show_header_icon: true,
-  show_chat_prompt: true,
+  show_chat_prompt: false,
 };
 
 // ============================================

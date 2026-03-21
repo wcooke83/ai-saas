@@ -6,7 +6,7 @@
 import { NextRequest } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { EscalationReason, EscalationConfig, TelegramConfig } from '@/lib/chatbots/types';
-import { DEFAULT_TELEGRAM_CONFIG } from '@/lib/chatbots/types';
+import { DEFAULT_TELEGRAM_CONFIG, DEFAULT_LIVE_HANDOFF_CONFIG } from '@/lib/chatbots/types';
 import { initiateHandoff } from '@/lib/telegram/handoff';
 
 const VALID_REASONS: EscalationReason[] = ['wrong_answer', 'offensive_content', 'need_human_help', 'other'];
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     // Verify chatbot exists and is active
     const { data: chatbot, error: chatbotError } = await (supabase as any)
       .from('chatbots')
-      .select('id, status, escalation_config, telegram_config')
+      .select('id, status, escalation_config, live_handoff_config, telegram_config')
       .eq('id', chatbotId)
       .single();
 
@@ -66,11 +66,22 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Check escalation_config is enabled
+    // Check escalation_config — required for report/complaint reasons,
+    // but handoff (need_human_help) is gated by live_handoff_config instead
     const escalationConfig = chatbot.escalation_config as EscalationConfig | null;
-    if (!escalationConfig?.enabled) {
+    const isHandoffRequest = reason === 'need_human_help' || reason === 'other';
+    const liveHandoffConfig = { ...DEFAULT_LIVE_HANDOFF_CONFIG, ...(chatbot.live_handoff_config || {}) };
+
+    if (!isHandoffRequest && !escalationConfig?.enabled) {
       return new Response(
         JSON.stringify({ success: false, error: { message: 'Escalation reporting is not enabled for this chatbot' } }),
+        { status: 403, headers: corsHeaders }
+      );
+    }
+
+    if (isHandoffRequest && !liveHandoffConfig.enabled) {
+      return new Response(
+        JSON.stringify({ success: false, error: { message: 'Live handoff is not enabled for this chatbot' } }),
         { status: 403, headers: corsHeaders }
       );
     }

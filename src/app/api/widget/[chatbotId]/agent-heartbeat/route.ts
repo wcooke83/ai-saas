@@ -12,7 +12,7 @@ import { validateChatbotAPIKey } from '@/lib/chatbots/api';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, DELETE, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
@@ -48,6 +48,28 @@ async function authenticateAgent(req: NextRequest, chatbotId: string): Promise<{
 
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
+}
+
+/** GET — Check if any agents are online (public, lightweight, short cache) */
+export async function GET(_req: NextRequest, { params }: RouteParams) {
+  const { chatbotId } = await params;
+
+  try {
+    const admin = createAdminClient();
+    const cutoff = new Date(Date.now() - 60_000).toISOString();
+    const { count } = await (admin as any)
+      .from('agent_presence')
+      .select('id', { count: 'exact', head: true })
+      .eq('chatbot_id', chatbotId)
+      .gte('last_heartbeat', cutoff);
+
+    return NextResponse.json(
+      { available: (count ?? 0) > 0 },
+      { headers: { ...CORS_HEADERS, 'Cache-Control': 'public, max-age=15' } }
+    );
+  } catch {
+    return NextResponse.json({ available: false }, { headers: CORS_HEADERS });
+  }
 }
 
 export async function POST(req: NextRequest, { params }: RouteParams) {
