@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, use } from 'react';
+import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import {
@@ -24,6 +24,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getClient } from '@/lib/supabase/client';
+import { H1 } from '@/components/ui/heading';
 import type { KnowledgeSource } from '@/lib/chatbots/types';
 
 interface KnowledgePageProps {
@@ -46,10 +48,6 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
   const [qaQuestion, setQaQuestion] = useState('');
   const [qaAnswer, setQaAnswer] = useState('');
 
-  // Track whether any sources are still processing using a ref
-  // so the polling interval always sees the latest value
-  const hasProcessingRef = useRef(false);
-
   const fetchSources = useCallback(async (signal?: AbortSignal) => {
     try {
       const response = await fetch(`/api/chatbots/${id}/knowledge`, { signal });
@@ -60,9 +58,6 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
       const data = await response.json();
       const fetched: KnowledgeSource[] = data.data.sources;
       setSources(fetched);
-      hasProcessingRef.current = fetched.some(
-        (s) => s.status === 'pending' || s.status === 'processing'
-      );
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return;
       toast.error(err instanceof Error ? err.message : 'An error occurred');
@@ -71,20 +66,29 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
     }
   }, [id]);
 
+  // Initial fetch + Realtime subscription for knowledge source changes
   useEffect(() => {
     const controller = new AbortController();
     fetchSources(controller.signal);
-    // Poll every 3s while any source is pending/processing
-    const interval = setInterval(() => {
-      if (hasProcessingRef.current) {
+
+    const supabase = getClient();
+    const channel = supabase
+      .channel(`knowledge-sources-${id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'knowledge_sources',
+        filter: `chatbot_id=eq.${id}`,
+      }, () => {
         fetchSources();
-      }
-    }, 3000);
+      })
+      .subscribe();
+
     return () => {
       controller.abort();
-      clearInterval(interval);
+      supabase.removeChannel(channel);
     };
-  }, [fetchSources]);
+  }, [fetchSources, id]);
 
   const handleAddSource = async () => {
     setSubmitting(true);
@@ -213,9 +217,9 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
             <ArrowLeft className="w-4 h-4 mr-1" />
             Back to Chatbot
           </Link>
-          <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+          <H1 variant="dashboard">
             Knowledge Base
-          </h1>
+          </H1>
           <p className="text-secondary-600 dark:text-secondary-400 mt-1">
             Train your chatbot with custom knowledge
           </p>

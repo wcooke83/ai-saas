@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { H1 } from '@/components/ui/heading';
 import { FaqSearch, SearchResults } from './faq-search';
 import { PopularQuestions } from './popular-questions';
 import { faqCategories, FaqQuestion } from './faq-data';
@@ -131,9 +132,9 @@ export function FaqContent() {
               <HelpCircle className="w-3.5 h-3.5 mr-1.5" />
               Help Center
             </Badge>
-            <h1 className="text-3xl md:text-4xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
+            <H1 className="text-3xl md:text-4xl mb-4">
               How can we help you?
-            </h1>
+            </H1>
             <p className="text-lg text-secondary-600 dark:text-secondary-400">
               Find answers to common questions about AI SaaS Tools
             </p>

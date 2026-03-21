@@ -2,12 +2,13 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Code, Copy, Check, ExternalLink, Globe, Terminal, MessageSquare, HelpCircle, Info, BookOpen, FileCode, Zap } from 'lucide-react';
+import { ArrowLeft, Code, Copy, Check, ExternalLink, Globe, Terminal, MessageSquare, HelpCircle, Info, BookOpen, FileCode, Zap, Headphones } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip } from '@/components/ui/tooltip';
+import { H1 } from '@/components/ui/heading';
 import type { Chatbot } from '@/lib/chatbots/types';
 
 // Code block component with syntax highlighting feel and copy button
@@ -181,6 +182,28 @@ export default function DeployPage({ params }: DeployPageProps) {
   });
 </script>`;
 
+  const agentConsoleOneLiner = `<script
+  src="${baseUrl}/agent-console/sdk.js"
+  data-chatbot-id="${id}"
+  data-api-key="YOUR_API_KEY"
+></script>`;
+
+  const agentConsoleManualCode = `<script src="${baseUrl}/agent-console/sdk.js"></script>
+<script>
+  AgentConsole.init({
+    chatbotId: '${id}',
+    apiKey: 'YOUR_API_KEY',
+    position: 'full',       // 'full' or 'sidebar'
+    container: '#my-console' // CSS selector or DOM element
+  });
+</script>`;
+
+  const agentConsoleIframeCode = `<iframe
+  src="${baseUrl}/agent-console/${id}#key=YOUR_API_KEY"
+  style="border:none;width:100%;height:700px;"
+  allow="clipboard-write"
+></iframe>`;
+
   const apiExample = `curl -X POST "${baseUrl}/api/chat/${id}" \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
@@ -212,9 +235,9 @@ const data = await res.json();`;
         </Link>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+            <H1 variant="dashboard">
               Deploy Chatbot
-            </h1>
+            </H1>
             <p className="text-secondary-600 dark:text-secondary-400 mt-1">
               Add your chatbot to any website with just a few lines of code
             </p>
@@ -446,6 +469,103 @@ const data = await res.json();`;
                 </svg>
               </button>
             )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Agent Console Embed */}
+      <Card className="border-orange-200 dark:border-orange-800 ring-1 ring-orange-100 dark:ring-orange-900/50">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-orange-100 dark:bg-orange-900/50 rounded-lg">
+              <Headphones className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <CardTitle>Agent Console</CardTitle>
+                <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300 text-[10px]">
+                  Live Handoff
+                </Badge>
+              </div>
+              <CardDescription>Embed the agent console on your website so your team can manage live conversations without logging into the dashboard</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* One-liner */}
+          <div>
+            <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
+              Quick Embed
+            </p>
+            <CodeBlock
+              code={agentConsoleOneLiner}
+              language="html"
+              copyId="agent-oneliner"
+              copiedCode={copiedCode}
+              onCopy={copyToClipboard}
+            />
+            <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-2">
+              Renders a full-page agent console. Add <code className="bg-secondary-100 dark:bg-secondary-800 px-1 py-0.5 rounded text-[11px]">data-position=&quot;sidebar&quot;</code> for a fixed sidebar instead.
+            </p>
+          </div>
+
+          {/* Manual Init */}
+          <div>
+            <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
+              Manual Init (mount into a container)
+            </p>
+            <CodeBlock
+              code={agentConsoleManualCode}
+              language="html"
+              copyId="agent-manual"
+              copiedCode={copiedCode}
+              onCopy={copyToClipboard}
+            />
+          </div>
+
+          {/* iFrame */}
+          <div>
+            <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
+              iFrame Embed
+            </p>
+            <CodeBlock
+              code={agentConsoleIframeCode}
+              language="html"
+              copyId="agent-iframe"
+              copiedCode={copiedCode}
+              onCopy={copyToClipboard}
+            />
+          </div>
+
+          {/* Info boxes */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg border border-secondary-200 dark:border-secondary-700">
+              <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">position: full</p>
+              <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                Fills the parent container or viewport. Use <code className="bg-secondary-100 dark:bg-secondary-800 px-1 py-0.5 rounded text-[11px]">container</code> to mount into a specific element.
+              </p>
+            </div>
+            <div className="p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg border border-secondary-200 dark:border-secondary-700">
+              <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">position: sidebar</p>
+              <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                Fixed 420px sidebar docked to the right edge. Great for internal support dashboards.
+              </p>
+            </div>
+          </div>
+
+          {/* API Key notice */}
+          <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+            <Info className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-amber-900 dark:text-amber-100">API Key Required</p>
+              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                The agent console requires a valid API key for authentication. Get one from the{' '}
+                <Link href="/dashboard/api-keys" className="text-amber-800 dark:text-amber-200 underline hover:no-underline font-medium">
+                  API Keys page
+                </Link>
+                . Keep your API key server-side or in a protected admin area — never expose it to end users.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { H1 } from '@/components/ui/heading';
 import {
   ArrowLeft,
   Loader2,
@@ -209,9 +210,9 @@ export default function UpgradePage() {
             Back to Billing
           </Link>
         </Button>
-        <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+        <H1 variant="dashboard">
           Upgrade Your Plan
-        </h1>
+        </H1>
         <p className="text-secondary-600 dark:text-secondary-400">
           Choose the plan that&apos;s right for you. Upgrade or downgrade anytime.
         </p>

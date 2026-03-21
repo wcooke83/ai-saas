@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { SYSTEM_PROMPT_TEMPLATES } from '@/lib/chatbots/types';
+import { H1 } from '@/components/ui/heading';
 import { SUPPORTED_LANGUAGES, getLanguageByCode } from '@/lib/chatbots/translations';
 
 const steps = [
@@ -105,9 +106,9 @@ export default function NewChatbotPage() {
           <ArrowLeft className="w-4 h-4 mr-1" />
           Back to Chatbots
         </Link>
-        <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+        <H1 variant="dashboard">
           Create New Chatbot
-        </h1>
+        </H1>
         <p className="text-secondary-600 dark:text-secondary-400 mt-1">
           Set up your AI chatbot in just a few steps
         </p>

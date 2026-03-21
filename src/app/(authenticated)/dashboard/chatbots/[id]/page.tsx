@@ -21,12 +21,18 @@ import {
   Inbox,
   ClipboardList,
   Brain,
+  Flag,
+  Headphones,
+  Timer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ActionCard } from '@/components/ui/action-card';
+import { Tooltip } from '@/components/ui/tooltip';
+import { Info } from 'lucide-react';
+import { H1 } from '@/components/ui/heading';
 import type { Chatbot } from '@/lib/chatbots/types';
 
 interface ChatbotDetailProps {
@@ -168,6 +174,24 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
       description: 'Analyze outcomes',
     },
     {
+      href: `/dashboard/chatbots/${id}/conversations`,
+      icon: Headphones,
+      label: 'Agent Console',
+      description: 'Live conversations',
+    },
+    {
+      href: `/dashboard/chatbots/${id}/performance`,
+      icon: Timer,
+      label: 'Performance',
+      description: 'Response time analytics',
+    },
+    {
+      href: `/dashboard/chatbots/${id}/escalations`,
+      icon: Flag,
+      label: 'Reports',
+      description: 'View reported issues',
+    },
+    {
       href: `/dashboard/chatbots/${id}/deploy`,
       icon: Code,
       label: 'Deploy',
@@ -200,9 +224,9 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
               </div>
             )}
             <div>
-              <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+              <H1 variant="dashboard">
                 {chatbot.name}
-              </h1>
+              </H1>
               <div className="flex items-center gap-2 mt-1">
                 <Badge className={statusColors[chatbot.status]}>
                   {chatbot.status}
@@ -252,7 +276,12 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                   {stats.conversations}
                 </p>
-                <p className="text-sm text-secondary-500">Conversations</p>
+                <p className="text-sm text-secondary-500 flex items-center gap-1">
+                  Conversations
+                  <Tooltip content="Total unique chat sessions started by visitors on this chatbot.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </p>
               </div>
             </div>
           </CardContent>
@@ -267,7 +296,12 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                   {stats.messages}
                 </p>
-                <p className="text-sm text-secondary-500">Messages</p>
+                <p className="text-sm text-secondary-500 flex items-center gap-1">
+                  Messages
+                  <Tooltip content="Total messages exchanged, including both visitor and bot messages.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </p>
               </div>
             </div>
           </CardContent>
@@ -282,7 +316,12 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                   {stats.satisfaction}%
                 </p>
-                <p className="text-sm text-secondary-500">Satisfaction</p>
+                <p className="text-sm text-secondary-500 flex items-center gap-1">
+                  Satisfaction
+                  <Tooltip content="Percentage of positive post-chat survey ratings from visitors.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </p>
               </div>
             </div>
           </CardContent>
@@ -297,7 +336,12 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                   {chatbot.messages_this_month}
                 </p>
-                <p className="text-sm text-secondary-500">This Month</p>
+                <p className="text-sm text-secondary-500 flex items-center gap-1">
+                  This Month
+                  <Tooltip content="Total messages sent and received during the current calendar month.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </p>
               </div>
             </div>
           </CardContent>

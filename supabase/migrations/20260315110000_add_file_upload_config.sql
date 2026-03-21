@@ -8,5 +8,6 @@ ADD COLUMN IF NOT EXISTS file_upload_config jsonb NOT NULL DEFAULT '{
     "spreadsheets": false,
     "archives": false
   },
-  "max_file_size_mb": 10
+  "max_file_size_mb": 2,
+  "max_files_per_message": 3
 }'::jsonb;

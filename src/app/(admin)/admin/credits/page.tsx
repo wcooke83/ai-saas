@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { H1 } from '@/components/ui/heading';
 import {
   Shield,
   Plus,
@@ -218,9 +219,9 @@ export default function AdminCreditsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+        <H1 variant="dashboard">
           Credit Adjustments
-        </h1>
+        </H1>
         <p className="text-secondary-500 dark:text-secondary-400 mt-1">
           Manually add or remove credits for users. Adjustments appear in their usage history.
         </p>

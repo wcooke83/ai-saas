@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Loader2, BookOpen } from 'lucide-react';
 import { MarkdownRenderer } from '@/components/wiki/MarkdownRenderer';
 import { Card } from '@/components/ui/card';
+import { H1 } from '@/components/ui/heading';
 import * as LucideIcons from 'lucide-react';
 
 interface WikiPageProps {
@@ -120,9 +121,9 @@ export default function WikiPage({ params }: WikiPageProps) {
           <div className="p-2 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
             <CategoryIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
           </div>
-          <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
+          <H1 variant="dashboard" className="text-3xl">
             {pageData.frontmatter.title}
-          </h1>
+          </H1>
         </div>
         {pageData.frontmatter.description && (
           <p className="text-lg text-secondary-600 dark:text-secondary-400">

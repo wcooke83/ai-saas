@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { H1 } from '@/components/ui/heading';
 import type { Chatbot } from '@/lib/chatbots/types';
 
 interface AnalyticsPageProps {
@@ -178,9 +179,9 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
             <ArrowLeft className="w-4 h-4 mr-1" />
             Back to Chatbot
           </Link>
-          <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+          <H1 variant="dashboard">
             Analytics
-          </h1>
+          </H1>
           <p className="text-secondary-600 dark:text-secondary-400 mt-1">
             Track performance and engagement for {chatbot.name}
           </p>

@@ -75,7 +75,7 @@ export async function GET() {
 
     // Drag handle (transparent overlay on header area)
     var dh = document.createElement('div');
-    dh.style.cssText = 'position:absolute;top:0;left:0;right:120px;height:50px;cursor:grab;z-index:10001;display:none;border-radius:12px 0 0 0;';
+    dh.style.cssText = 'position:absolute;top:0;left:0;right:180px;height:50px;cursor:grab;z-index:10001;display:none;border-radius:12px 0 0 0;';
 
     // Widget ID for iframe communication
     var wid = 'w-' + chatbotId + '-' + Date.now();
@@ -85,10 +85,6 @@ export async function GET() {
     // ========================================
     var bubble = null;
     var bubbleClose = null;
-    var activeBubbleRuleId = null;
-    var activeBubbleRule = null; // Track the rule for navigation behavior
-    var widgetIsOpen = false;
-    var proactiveWidgetRule = null; // Track if widget was opened by proactive trigger
 
     // Bubble style from config (with defaults)
     var bs = (proactiveConfig && proactiveConfig.bubbleStyle) || {};
@@ -355,6 +351,10 @@ export async function GET() {
   // Proactive Messaging - Tracking Engine
   // ========================================
   var CW_LOG_PREFIX = '[ChatWidget:Proactive]';
+  var activeBubbleRuleId = null;
+  var activeBubbleRule = null;
+  var widgetIsOpen = false;
+  var proactiveWidgetRule = null;
 
   function startProactiveTracking(rules, iframe, onTrigger) {
     var timers = [];

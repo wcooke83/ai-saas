@@ -13,6 +13,7 @@ const footerLinks = {
     { label: 'Dashboard', href: '/dashboard' },
   ],
   resources: [
+    { label: 'Documentation', href: '/wiki' },
     { label: 'Help Center', href: '/help' },
     { label: 'FAQ', href: '/faq' },
   ],

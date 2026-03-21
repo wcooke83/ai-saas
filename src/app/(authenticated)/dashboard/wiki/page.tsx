@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { BookOpen, Loader2 } from 'lucide-react';
 import { WikiCard } from '@/components/wiki/WikiCard';
+import { H1 } from '@/components/ui/heading';
 import * as LucideIcons from 'lucide-react';
 
 interface WikiPage {
@@ -76,9 +77,9 @@ export default function WikiIndexPage() {
           <div className="p-2 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
             <BookOpen className="w-6 h-6 text-primary-600 dark:text-primary-400" />
           </div>
-          <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
+          <H1 variant="dashboard" className="text-3xl">
             Documentation Wiki
-          </h1>
+          </H1>
         </div>
         <p className="text-secondary-600 dark:text-secondary-400">
           Learn how to use AI SaaS Tools features and integrate them into your applications

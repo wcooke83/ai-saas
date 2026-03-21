@@ -33,8 +33,11 @@ When memory is enabled, the chatbot:
 3. Toggle **Enable Conversation Memory**
 4. Set **Memory Retention Period**:
    - 7 days
+   - 14 days
    - 30 days
+   - 60 days
    - 90 days
+   - 180 days
    - 1 year
    - Unlimited
 
@@ -105,8 +108,9 @@ System checks: "This email has 3 previous conversations"
 │ Welcome back!                        │
 │                                      │
 │ We found previous conversations      │
-│ with this email. Would you like to   │
-│ recall your chat history?            │
+│ linked to sarah@example.com.         │
+│ Would you like the chatbot to recall │
+│ your previous context?               │
 │                                      │
 │ [Yes, Send Code]  [No, Start Fresh] │
 └─────────────────────────────────────┘
@@ -115,7 +119,7 @@ System checks: "This email has 3 previous conversations"
 #### Step 3: OTP Email Sent
 ```
 To: sarah@example.com
-Subject: Your Verification Code
+Subject: Your verification code: 847392
 
 Your verification code is: 847392
 

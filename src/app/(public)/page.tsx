@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { H1 } from '@/components/ui/heading';
 import { Header } from '@/components/layout';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
@@ -93,10 +94,10 @@ export default function HomePage() {
         {/* Hero */}
         <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center container mx-auto px-4 py-12 text-center">
           <Badge className="mb-4">AI-Powered Tools</Badge>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl mb-6 text-secondary-900 dark:text-secondary-100">
+          <H1 className="text-4xl sm:text-5xl md:text-6xl mb-6">
             Work Smarter with{' '}
             <span className="text-primary-500">AI Tools</span>
-          </h1>
+          </H1>
           <p className="mx-auto max-w-2xl text-lg text-secondary-600 dark:text-secondary-400 mb-8">
             Supercharge your productivity with our suite of AI-powered tools.
             Generate emails, create reports, and automate workflows in seconds.

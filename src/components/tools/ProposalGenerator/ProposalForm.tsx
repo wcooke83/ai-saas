@@ -16,7 +16,8 @@ import {
   type SectionType,
 } from '@/types/proposal';
 import { DEFAULT_SECTIONS_BY_TYPE, ALL_SECTIONS } from '@/lib/ai/prompts/proposal-generator';
-import { Loader2, FileText, Users, Building, Target, Settings, Check } from 'lucide-react';
+import { Loader2, FileText, Users, Building, Target, Settings, Check, Info } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 interface ProposalFormProps {
@@ -82,8 +83,11 @@ export function ProposalForm({
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <label htmlFor={proposalTypeId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+              <label htmlFor={proposalTypeId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1">
                 Proposal Type <span className="text-red-500">*</span>
+                <Tooltip content="Determines the proposal structure and language. Sales proposals focus on value, RFP responses on requirements, Technical on specs.">
+                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                </Tooltip>
               </label>
               <Select
                 id={proposalTypeId}
@@ -93,8 +97,11 @@ export function ProposalForm({
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor={industryId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+              <label htmlFor={industryId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1">
                 Industry <span className="text-red-500">*</span>
+                <Tooltip content="Adds industry-specific terminology and standards to make the proposal more relevant to the client.">
+                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                </Tooltip>
               </label>
               <Select
                 id={industryId}
@@ -317,9 +324,12 @@ export function ProposalForm({
           </div>
 
           <div className="space-y-2">
-            <label htmlFor={advantageId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+            <label htmlFor={advantageId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1">
               Your Competitive Advantage
-              <span className="ml-1 text-xs text-secondary-500 dark:text-secondary-400 font-normal">(optional)</span>
+              <span className="text-xs text-secondary-500 dark:text-secondary-400 font-normal">(optional)</span>
+              <Tooltip content="Highlight what sets you apart — unique expertise, past results, or proprietary methods. This is woven throughout the proposal.">
+                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+              </Tooltip>
             </label>
             <Textarea
               id={advantageId}

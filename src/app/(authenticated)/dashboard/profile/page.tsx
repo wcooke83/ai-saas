@@ -20,6 +20,7 @@ import {
   Briefcase,
   Calendar,
 } from 'lucide-react';
+import { H1 } from '@/components/ui/heading';
 import type { Database } from '@/types/database';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -144,7 +145,7 @@ export default function ProfilePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">Profile</h1>
+        <H1 variant="dashboard">Profile</H1>
         <p className="text-secondary-600 dark:text-secondary-400">Manage your public profile information</p>
       </div>
 

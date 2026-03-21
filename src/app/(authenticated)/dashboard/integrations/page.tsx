@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { H1 } from '@/components/ui/heading';
 import { toolsList } from '@/lib/constants/tools-config';
 
 // Map icon names to actual icon components
@@ -84,9 +85,9 @@ export default function IntegrationsPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+        <H1 variant="dashboard">
           Integrations
-        </h1>
+        </H1>
         <p className="text-secondary-600 dark:text-secondary-400 mt-1">
           Add AI tools to your website with embed codes or REST API
         </p>

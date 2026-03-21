@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { Plus, Bot, MessageSquare, Users, MoreVertical, Palette, Trash2, Eye, ExternalLink } from 'lucide-react';
+import { Plus, Bot, MessageSquare, Users, MoreVertical, Palette, Trash2, Eye, ExternalLink, Headphones } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getClient } from '@/lib/supabase/client';
+import { H1 } from '@/components/ui/heading';
 import type { ChatbotWithStats } from '@/lib/chatbots/types';
 
 export default function ChatbotsPage() {
@@ -32,6 +34,42 @@ export default function ChatbotsPage() {
 
     fetchChatbots();
   }, []);
+
+  // Realtime: update agent online counts when agent_presence changes
+  const updateAgentCounts = useCallback((chatbotId: string, delta: number) => {
+    setChatbots(prev => prev.map(c =>
+      c.id === chatbotId
+        ? { ...c, agents_online: Math.max(0, (c.agents_online ?? 0) + delta) }
+        : c
+    ));
+  }, []);
+
+  useEffect(() => {
+    if (chatbots.length === 0) return;
+
+    const supabase = getClient() as any;
+    const channel = supabase
+      .channel('agent-presence-dashboard')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'agent_presence',
+      }, (payload: any) => {
+        updateAgentCounts(payload.new.chatbot_id, 1);
+      })
+      .on('postgres_changes', {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'agent_presence',
+      }, (payload: any) => {
+        updateAgentCounts(payload.old.chatbot_id, -1);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [chatbots.length > 0]); // subscribe once chatbots are loaded
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this chatbot? This action cannot be undone.')) {
@@ -78,9 +116,9 @@ export default function ChatbotsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+          <H1 variant="dashboard">
             Chatbots
-          </h1>
+          </H1>
           <p className="text-secondary-600 dark:text-secondary-400 mt-1">
             Create and manage your AI chatbots
           </p>
@@ -166,9 +204,27 @@ function ChatbotCard({ chatbot, onDelete }: ChatbotCardProps) {
             )}
             <div>
               <CardTitle className="text-lg">{chatbot.name}</CardTitle>
-              <Badge className={statusColors[chatbot.status]}>
-                {chatbot.status}
-              </Badge>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge className={statusColors[chatbot.status]}>
+                  {chatbot.status}
+                </Badge>
+                {(chatbot as any).live_handoff_config?.enabled && (
+                  <span className={`inline-flex items-center gap-1 text-xs ${
+                    (chatbot.agents_online ?? 0) > 0
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-secondary-400 dark:text-secondary-500'
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${
+                      (chatbot.agents_online ?? 0) > 0
+                        ? 'bg-green-500'
+                        : 'bg-secondary-300 dark:bg-secondary-600'
+                    }`} />
+                    {(chatbot.agents_online ?? 0) > 0
+                      ? `${chatbot.agents_online} online`
+                      : 'No agents'}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <div className="relative">
@@ -203,6 +259,14 @@ function ChatbotCard({ chatbot, onDelete }: ChatbotCardProps) {
                   >
                     <Palette className="w-4 h-4" />
                     Customize
+                  </Link>
+                  <Link
+                    href={`/dashboard/chatbots/${chatbot.id}/conversations`}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-700"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <Headphones className="w-4 h-4" />
+                    Agent Console
                   </Link>
                   {chatbot.is_published && (
                     <a

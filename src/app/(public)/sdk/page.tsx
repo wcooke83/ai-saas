@@ -10,6 +10,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { H1 } from '@/components/ui/heading';
 import { cn } from '@/lib/utils';
 import { toolsConfig, toolsList } from '@/lib/constants/tools-config';
 import {
@@ -26,6 +27,7 @@ import {
   Share2,
   ExternalLink,
   LucideIcon,
+  Headphones,
 } from 'lucide-react';
 
 const iconMap: Record<string, LucideIcon> = {
@@ -177,6 +179,18 @@ export default function SDKDocsPage() {
                 <MessageSquare className="w-4 h-4" />
                 Custom Chatbots
               </button>
+              <button
+                onClick={() => handleToolSelect('agent-console')}
+                className={cn(
+                  'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2',
+                  selectedTool === 'agent-console'
+                    ? 'bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 font-medium'
+                    : 'text-secondary-600 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-800'
+                )}
+              >
+                <Headphones className="w-4 h-4" />
+                Agent Console
+              </button>
             </div>
           </aside>
 
@@ -314,9 +328,9 @@ export default function SDKDocsPage() {
                     <MessageSquare className="w-6 h-6 text-primary-600 dark:text-primary-400" />
                   </div>
                   <div>
-                    <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                    <H1 className="text-2xl">
                       Custom Chatbots
-                    </h1>
+                    </H1>
                     <p className="text-secondary-600 dark:text-secondary-400">
                       Build AI chatbots trained on your own content with RAG (Retrieval-Augmented Generation).
                     </p>
@@ -423,6 +437,197 @@ Authorization: Bearer YOUR_API_KEY
                   </CardContent>
                 </Card>
               </>
+            ) : selectedTool === 'agent-console' ? (
+              /* Agent Console documentation */
+              <>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-3 rounded-lg bg-orange-100 dark:bg-orange-900/50">
+                    <Headphones className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div>
+                    <H1 className="text-2xl">
+                      Agent Console
+                    </H1>
+                    <p className="text-secondary-600 dark:text-secondary-400">
+                      Embed a live agent console on your website so your team can manage handoff conversations.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 mb-6">
+                  <Badge variant="success">Embed Available</Badge>
+                  <Badge variant="success">API Key Auth</Badge>
+                </div>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Code className="w-5 h-5 text-primary-500" />
+                      Quick Embed
+                    </CardTitle>
+                    <CardDescription>
+                      Add the agent console to any page with a single script tag.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="relative">
+                      <pre className="text-sm bg-secondary-900 text-secondary-100 p-4 rounded-lg overflow-x-auto">
+{`<script
+  src="https://yoursite.com/agent-console/sdk.js"
+  data-chatbot-id="CHATBOT_ID"
+  data-api-key="YOUR_API_KEY"
+></script>`}
+                      </pre>
+                      <button
+                        onClick={() => copyToClipboard(`<script\n  src="https://yoursite.com/agent-console/sdk.js"\n  data-chatbot-id="CHATBOT_ID"\n  data-api-key="YOUR_API_KEY"\n></script>`, 'agent-quick')}
+                        className="absolute top-2 right-2 p-2 hover:bg-secondary-700 rounded"
+                        aria-label="Copy embed code"
+                      >
+                        {copied === 'agent-quick' ? (
+                          <Check className="w-4 h-4 text-green-400" />
+                        ) : (
+                          <Copy className="w-4 h-4 text-secondary-400" />
+                        )}
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Code className="w-5 h-5 text-primary-500" />
+                      Manual Initialization
+                    </CardTitle>
+                    <CardDescription>
+                      Mount the console into a specific container with full control over options.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="relative">
+                      <pre className="text-sm bg-secondary-900 text-secondary-100 p-4 rounded-lg overflow-x-auto">
+{`<div id="my-console" style="height:700px"></div>
+
+<script src="https://yoursite.com/agent-console/sdk.js"></script>
+<script>
+  AgentConsole.init({
+    chatbotId: 'CHATBOT_ID',
+    apiKey: 'YOUR_API_KEY',
+    position: 'full',        // 'full' or 'sidebar'
+    container: '#my-console'  // CSS selector or DOM element
+  });
+</script>`}
+                      </pre>
+                      <button
+                        onClick={() => copyToClipboard(`<div id="my-console" style="height:700px"></div>\n\n<script src="https://yoursite.com/agent-console/sdk.js"></script>\n<script>\n  AgentConsole.init({\n    chatbotId: 'CHATBOT_ID',\n    apiKey: 'YOUR_API_KEY',\n    position: 'full',\n    container: '#my-console'\n  });\n</script>`, 'agent-manual')}
+                        className="absolute top-2 right-2 p-2 hover:bg-secondary-700 rounded"
+                        aria-label="Copy manual init code"
+                      >
+                        {copied === 'agent-manual' ? (
+                          <Check className="w-4 h-4 text-green-400" />
+                        ) : (
+                          <Copy className="w-4 h-4 text-secondary-400" />
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300">Configuration Options</p>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-secondary-200 dark:border-secondary-700">
+                              <th className="text-left py-2 pr-4 font-medium text-secondary-700 dark:text-secondary-300">Option</th>
+                              <th className="text-left py-2 pr-4 font-medium text-secondary-700 dark:text-secondary-300">Type</th>
+                              <th className="text-left py-2 font-medium text-secondary-700 dark:text-secondary-300">Description</th>
+                            </tr>
+                          </thead>
+                          <tbody className="text-secondary-600 dark:text-secondary-400">
+                            <tr className="border-b border-secondary-100 dark:border-secondary-800">
+                              <td className="py-2 pr-4"><code className="bg-secondary-100 dark:bg-secondary-800 px-1 rounded text-xs">chatbotId</code></td>
+                              <td className="py-2 pr-4">string</td>
+                              <td className="py-2">Required. Your chatbot ID.</td>
+                            </tr>
+                            <tr className="border-b border-secondary-100 dark:border-secondary-800">
+                              <td className="py-2 pr-4"><code className="bg-secondary-100 dark:bg-secondary-800 px-1 rounded text-xs">apiKey</code></td>
+                              <td className="py-2 pr-4">string</td>
+                              <td className="py-2">Required. Your API key for authentication.</td>
+                            </tr>
+                            <tr className="border-b border-secondary-100 dark:border-secondary-800">
+                              <td className="py-2 pr-4"><code className="bg-secondary-100 dark:bg-secondary-800 px-1 rounded text-xs">position</code></td>
+                              <td className="py-2 pr-4">string</td>
+                              <td className="py-2"><code className="bg-secondary-100 dark:bg-secondary-800 px-1 rounded text-xs">&quot;full&quot;</code> (default) fills the container. <code className="bg-secondary-100 dark:bg-secondary-800 px-1 rounded text-xs">&quot;sidebar&quot;</code> docks a 420px panel to the right.</td>
+                            </tr>
+                            <tr>
+                              <td className="py-2 pr-4"><code className="bg-secondary-100 dark:bg-secondary-800 px-1 rounded text-xs">container</code></td>
+                              <td className="py-2 pr-4">string | Element</td>
+                              <td className="py-2">CSS selector or DOM element to mount into. Only used in <code className="bg-secondary-100 dark:bg-secondary-800 px-1 rounded text-xs">&quot;full&quot;</code> mode.</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ExternalLink className="w-5 h-5 text-primary-500" />
+                      iFrame Embed
+                    </CardTitle>
+                    <CardDescription>
+                      Embed the console directly via iframe for simpler integrations.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="relative">
+                      <pre className="text-sm bg-secondary-900 text-secondary-100 p-4 rounded-lg overflow-x-auto">
+{`<iframe
+  src="https://yoursite.com/agent-console/CHATBOT_ID#key=YOUR_API_KEY"
+  style="border:none;width:100%;height:700px;"
+  allow="clipboard-write"
+></iframe>`}
+                      </pre>
+                      <button
+                        onClick={() => copyToClipboard(`<iframe\n  src="https://yoursite.com/agent-console/CHATBOT_ID#key=YOUR_API_KEY"\n  style="border:none;width:100%;height:700px;"\n  allow="clipboard-write"\n></iframe>`, 'agent-iframe')}
+                        className="absolute top-2 right-2 p-2 hover:bg-secondary-700 rounded"
+                        aria-label="Copy iframe code"
+                      >
+                        {copied === 'agent-iframe' ? (
+                          <Check className="w-4 h-4 text-green-400" />
+                        ) : (
+                          <Copy className="w-4 h-4 text-secondary-400" />
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                      The API key is passed via the URL hash fragment (<code className="bg-secondary-100 dark:bg-secondary-800 px-1 rounded text-xs">#key=...</code>) so it is not sent to the server in the request.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-secondary-900 dark:text-secondary-100">
+                          Manage Your Chatbots
+                        </p>
+                        <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                          Create chatbots and get your chatbot ID and API key from the dashboard
+                        </p>
+                      </div>
+                      <Button asChild>
+                        <Link href="/dashboard/chatbots">
+                          Go to Dashboard
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
             ) : selectedToolConfig ? (
               /* Tool-specific documentation */
               <>
@@ -436,9 +641,9 @@ Authorization: Bearer YOUR_API_KEY
                     );
                   })()}
                   <div>
-                    <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                    <H1 className="text-2xl">
                       {selectedToolConfig.name}
-                    </h1>
+                    </H1>
                     <p className="text-secondary-600 dark:text-secondary-400">
                       {selectedToolConfig.description}
                     </p>
@@ -623,7 +828,7 @@ Authorization: Bearer YOUR_API_KEY`}
         </div>
 
         {/* CTA Section */}
-        <section className="mt-16 mb-8">
+        <section className="mt-64 mb-48">
           <div className="max-w-3xl mx-auto text-center">
             <div className="rounded-3xl bg-gradient-to-br from-primary-700 to-primary-800 p-12 text-white shadow-xl">
               <h2 className="text-3xl font-bold mb-4">Ready to integrate AI into your app?</h2>

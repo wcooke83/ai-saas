@@ -2,10 +2,68 @@
 
 import { useState, useRef, useEffect, useCallback, Fragment } from 'react';
 import { MessageSquare, X, Send, ThumbsUp, ThumbsDown, Loader2, MessageCircle, Paperclip, FileIcon, Download, XCircle, Mail, Check, Expand, Shrink } from 'lucide-react';
-import type { WidgetConfig, Chatbot, PreChatFormConfig, PostChatSurveyConfig, PreChatFormField, ProactiveMessagesConfig, FileUploadConfig, Attachment, TranscriptConfig } from '@/lib/chatbots/types';
+import { createClient, type RealtimeChannel } from '@supabase/supabase-js';
+import type { WidgetConfig, Chatbot, PreChatFormConfig, PostChatSurveyConfig, PreChatFormField, ProactiveMessagesConfig, FileUploadConfig, Attachment, TranscriptConfig, EscalationConfig, LiveHandoffConfig } from '@/lib/chatbots/types';
 import { getTranslations, translateDefault } from '@/lib/chatbots/translations';
 import { DEFAULT_PRE_CHAT_FORM_CONFIG, DEFAULT_POST_CHAT_SURVEY_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, FILE_TYPE_MAP } from '@/lib/chatbots/types';
 import type { FileUploadAllowedTypes } from '@/lib/chatbots/types';
+
+// Singleton Supabase client for widget Realtime subscriptions (anon key)
+let widgetSupabaseClient: ReturnType<typeof createClient> | null = null;
+function getWidgetSupabase() {
+  if (!widgetSupabaseClient) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !key) return null;
+    widgetSupabaseClient = createClient(url, key);
+  }
+  return widgetSupabaseClient;
+}
+
+// Session persistence helpers
+const DEFAULT_SESSION_TTL_HOURS = 24;
+const SESSION_INACTIVITY_MS = 30 * 60 * 1000; // 30 minutes of inactivity
+
+interface PersistedSession {
+  sessionId: string;
+  conversationId: string | null;
+  preChatCompleted: boolean;
+  preChatFormData: Record<string, string>;
+  handoffActive: boolean;
+  lastActivity: number;
+  createdAt: number;
+}
+
+function getSessionStorageKey(chatbotId: string) {
+  return `chatbot_session_${chatbotId}`;
+}
+
+function loadPersistedSession(chatbotId: string, sessionTtlHours?: number): PersistedSession | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(getSessionStorageKey(chatbotId));
+    if (!raw) return null;
+    const session: PersistedSession = JSON.parse(raw);
+    const now = Date.now();
+    const maxAgeMs = (sessionTtlHours ?? DEFAULT_SESSION_TTL_HOURS) * 60 * 60 * 1000;
+    // Check TTL: inactive too long or too old
+    if (now - session.lastActivity > SESSION_INACTIVITY_MS || now - session.createdAt > maxAgeMs) {
+      localStorage.removeItem(getSessionStorageKey(chatbotId));
+      return null;
+    }
+    return session;
+  } catch {
+    return null;
+  }
+}
+
+function savePersistedSession(chatbotId: string, session: PersistedSession) {
+  if (typeof window === 'undefined') return;
+  try {
+    session.lastActivity = Date.now();
+    localStorage.setItem(getSessionStorageKey(chatbotId), JSON.stringify(session));
+  } catch { /* storage full or blocked */ }
+}
 
 // Map of Google Font names to their URL-friendly versions
 const GOOGLE_FONTS: Record<string, string> = {
@@ -34,6 +92,27 @@ const GOOGLE_FONTS: Record<string, string> = {
   'Comfortaa': 'Comfortaa:wght@400;500;700',
   'Varela Round': 'Varela+Round',
 };
+
+/**
+ * Sanitize user-provided CSS to remove dangerous constructs
+ * that could be used for data exfiltration or code execution.
+ */
+function sanitizeCSS(css: string): string {
+  let sanitized = css;
+  // Remove @import statements
+  sanitized = sanitized.replace(/@import\s+[^;]+;?/gi, '');
+  // Remove url() references except data: URIs
+  sanitized = sanitized.replace(/url\s*\(\s*(?!['"]?data:)([^)]*)\)/gi, '');
+  // Remove expression() (IE legacy)
+  sanitized = sanitized.replace(/expression\s*\([^)]*\)/gi, '');
+  // Remove -moz-binding
+  sanitized = sanitized.replace(/-moz-binding\s*:[^;]+;?/gi, '');
+  // Remove javascript: references
+  sanitized = sanitized.replace(/javascript\s*:/gi, '');
+  // Remove behavior: property (IE HTC)
+  sanitized = sanitized.replace(/behavior\s*:[^;]+;?/gi, '');
+  return sanitized;
+}
 
 function extractFontName(fontFamily: string): string | null {
   // Extract the first font name from the font-family string
@@ -70,9 +149,10 @@ interface Message {
   checkInActions?: CheckInAction[];
   clickedAction?: string;
   attachments?: Attachment[];
+  metadata?: Record<string, unknown>;
 }
 
-type WidgetView = 'pre-chat-form' | 'verify-email' | 'chat' | 'survey' | 'survey-thanks';
+type WidgetView = 'pre-chat-form' | 'verify-email' | 'chat' | 'survey' | 'survey-thanks' | 'report';
 
 /**
  * Lightweight markdown-to-HTML renderer for chat bubbles.
@@ -159,12 +239,16 @@ interface ChatWidgetProps {
   fileUploadConfig?: FileUploadConfig;
   proactiveMessagesConfig?: ProactiveMessagesConfig;
   transcriptConfig?: TranscriptConfig;
+  escalationConfig?: EscalationConfig;
+  liveHandoffConfig?: LiveHandoffConfig;
+  agentsAvailable?: boolean;
   memoryEnabled?: boolean;
+  sessionTtlHours?: number;
   userData?: Record<string, string> | null;
   userContext?: Record<string, unknown> | null;
 }
 
-export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, postChatSurveyConfig, language = 'en', fileUploadConfig, proactiveMessagesConfig, transcriptConfig, memoryEnabled = false, userData, userContext }: ChatWidgetProps) {
+export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, postChatSurveyConfig, language = 'en', fileUploadConfig, proactiveMessagesConfig, transcriptConfig, escalationConfig, liveHandoffConfig, agentsAvailable = false, memoryEnabled = false, sessionTtlHours, userData, userContext }: ChatWidgetProps) {
   const [activeLanguage, setActiveLanguage] = useState(language);
   const t = getTranslations(activeLanguage);
   const tRef = useRef(t);
@@ -173,7 +257,13 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
   const showPreChat = preChatFormConfig?.enabled === true && !hasUserData;
   const showPostChat = postChatSurveyConfig?.enabled === true;
 
-  const [currentView, setCurrentView] = useState<WidgetView>(showPreChat ? 'pre-chat-form' : 'chat');
+  // Restore persisted session if available
+  const [persistedSession] = useState(() => loadPersistedSession(chatbotId, sessionTtlHours));
+  const preChatAlreadyCompleted = !!(persistedSession?.preChatCompleted);
+
+  const [currentView, setCurrentView] = useState<WidgetView>(
+    showPreChat && !preChatAlreadyCompleted ? 'pre-chat-form' : 'chat'
+  );
   const [isOpen, setIsOpen] = useState(config.autoOpen);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileMode, setIsMobileMode] = useState(false);
@@ -183,7 +273,11 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
   const [isLoading, setIsLoading] = useState(false);
   const [isInIframe, setIsInIframe] = useState(false);
   const [widgetId, setWidgetId] = useState<string | null>(null);
-  const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`);
+  const [sessionRestoredRef] = useState(() => ({ current: false }));
+  const [sessionId] = useState(() => {
+    if (persistedSession?.sessionId) return persistedSession.sessionId;
+    return `session_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+  });
   const [visitorId, setVisitorId] = useState(() => {
     if (typeof window === 'undefined') return `visitor_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     const stored = localStorage.getItem(`chatbot_visitor_${chatbotId}`);
@@ -206,6 +300,40 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
   const [transcriptSent, setTranscriptSent] = useState(false);
   const [transcriptError, setTranscriptError] = useState('');
   const [showTranscriptInput, setShowTranscriptInput] = useState(false);
+  const pendingSurveyAfterTranscript = useRef(false);
+
+  // Escalation / Report state
+  const escalationEnabled = escalationConfig?.enabled === true;
+  const liveHandoffEnabled = liveHandoffConfig?.enabled === true;
+  const handoffTimeoutMinutes = liveHandoffConfig?.handoff_timeout_minutes ?? escalationConfig?.handoff_timeout_minutes ?? 5;
+  const [conversationId, setConversationId] = useState<string | null>(persistedSession?.conversationId || null);
+  const [reportingMessageId, setReportingMessageId] = useState<string | null>(null);
+  const [reportConversation, setReportConversation] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDetails, setReportDetails] = useState('');
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [reportedMessageIds, setReportedMessageIds] = useState<Set<string>>(new Set());
+  const [reportSuccess, setReportSuccess] = useState(false);
+
+  // Handoff state
+  const [handoffActive, setHandoffActive] = useState(persistedSession?.handoffActive || false);
+  const showHandoffIcon = liveHandoffEnabled && agentsAvailable && !handoffActive;
+  const [handoffStatus, setHandoffStatus] = useState<string | null>(null);
+  const [handoffAgentName, setHandoffAgentName] = useState<string | null>(null);
+  const realtimeChannelRef = useRef<RealtimeChannel | null>(null);
+  const lastMessageCountRef = useRef(0);
+
+  // Typing indicator & presence state
+  const [agentIsTyping, setAgentIsTyping] = useState(false);
+  const agentTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTypingBroadcastRef = useRef<number>(0);
+  const presenceChannelRef = useRef<RealtimeChannel | null>(null);
+
+  // Handoff inactivity timeout
+  const handoffWarningRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handoffCloseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handoffWarningShownRef = useRef(false);
+  const resetHandoffTimerRef = useRef<() => void>(() => {});
 
   // Build accepted MIME types from config
   const acceptedMimes = (() => {
@@ -223,57 +351,60 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const file = files[0];
     // Reset input so same file can be selected again
     e.target.value = '';
 
-    // Validate max files per message
     const maxFiles = uploadConfig.max_files_per_message ?? 3;
-    if (pendingAttachments.length >= maxFiles) {
-      alert(`You can attach up to ${maxFiles} file(s) per message.`);
-      return;
-    }
+    const remaining = maxFiles - pendingAttachments.length;
+    if (remaining <= 0) return;
 
-    // Validate file size
+    // Take only as many files as slots remain
+    const selectedFiles = Array.from(files).slice(0, remaining);
+
+    // Validate file size and type
     const maxBytes = uploadConfig.max_file_size_mb * 1024 * 1024;
-    if (file.size > maxBytes) {
-      alert(t.fileTooLarge.replace('{size}', String(uploadConfig.max_file_size_mb)));
-      return;
-    }
-
-    // Validate file type
     const allowedMimes: string[] = [];
     for (const [category, cfg] of Object.entries(FILE_TYPE_MAP)) {
       if (uploadConfig.allowed_types[category as keyof FileUploadAllowedTypes]) {
         allowedMimes.push(...cfg.mimes);
       }
     }
-    if (!allowedMimes.includes(file.type)) {
-      alert(t.fileTypeNotAllowed);
-      return;
-    }
+
+    const validFiles = selectedFiles.filter((file) => {
+      if (file.size > maxBytes) return false;
+      if (!allowedMimes.includes(file.type)) return false;
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
 
     setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('session_id', sessionId);
+      const uploaded: Attachment[] = [];
+      for (const file of validFiles) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('session_id', sessionId);
 
-      const response = await fetch(`/api/widget/${chatbotId}/upload`, {
-        method: 'POST',
-        body: formData,
-      });
+        const response = await fetch(`/api/widget/${chatbotId}/upload`, {
+          method: 'POST',
+          body: formData,
+        });
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error?.message || t.uploadFailed);
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          console.warn(`Upload failed for ${file.name}:`, data.error?.message);
+          continue;
+        }
+
+        const data = await response.json();
+        uploaded.push(data.data);
       }
-
-      const data = await response.json();
-      const attachment: Attachment = data.data;
-      setPendingAttachments((prev) => [...prev, attachment]);
+      if (uploaded.length > 0) {
+        setPendingAttachments((prev) => [...prev, ...uploaded]);
+      }
     } catch (err) {
-      alert(err instanceof Error ? err.message : t.uploadFailed);
+      console.warn('File upload error:', err);
     } finally {
       setIsUploading(false);
     }
@@ -301,23 +432,12 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     }
   }, []);
 
-  // Re-translate check-in/follow-up messages when language changes mid-conversation
+  // Re-translate survey/transcript action messages when language changes mid-conversation
   useEffect(() => {
     setMessages((prev) => {
       let changed = false;
       const updated = prev.map((msg) => {
-        if (msg.id.startsWith('checkin_resolved-check_')) {
-          changed = true;
-          return {
-            ...msg,
-            content: t.checkInQuestion,
-            checkInActions: msg.checkInActions?.map((a) => ({
-              ...a,
-              label: a.action === 'resolved-yes' ? t.checkInYes : a.action === 'resolved-no' ? t.checkInNo : a.label,
-            })),
-          };
-        }
-        if (msg.id.startsWith('checkin_survey-suggest_')) {
+        if (msg.id.startsWith('survey_suggest_')) {
           changed = true;
           return {
             ...msg,
@@ -327,10 +447,6 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
               label: a.action === 'survey-yes' ? t.surveyYes : a.action === 'survey-no' ? t.surveyNo : a.label,
             })),
           };
-        }
-        if (msg.id.startsWith('followup_')) {
-          changed = true;
-          return { ...msg, content: t.followUp };
         }
         return msg;
       });
@@ -344,12 +460,12 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
       setVisitorId(userData.id);
     }
   }, [userData]);
-  const [preChatFormData, setPreChatFormData] = useState<Record<string, string>>({});
+  const [preChatFormData, setPreChatFormData] = useState<Record<string, string>>(persistedSession?.preChatFormData || {});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [surveyResponses, setSurveyResponses] = useState<Record<string, unknown>>({});
   const [surveySubmitting, setSurveySubmitting] = useState(false);
-  const [checkInState, setCheckInState] = useState<'idle' | 'waiting' | 'shown' | 'suggesting-survey'>('idle');
-  const checkInTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [endOfChatState, setEndOfChatState] = useState<'idle' | 'waiting' | 'offered'>('idle');
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [surveyCompleted, setSurveyCompleted] = useState(false);
   const [surveyResponseId, setSurveyResponseId] = useState<string | null>(null);
   const [isPreChatSubmitting, setIsPreChatSubmitting] = useState(false);
@@ -389,6 +505,24 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Scroll to bottom when history is first loaded (initial fetch only)
+  useEffect(() => {
+    if (historyLoaded && historyMessages.length > 0) {
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+      });
+    }
+  }, [historyLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Scroll to bottom when returning to chat view (e.g. after survey)
+  useEffect(() => {
+    if (currentView === 'chat') {
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+      });
+    }
+  }, [currentView]);
 
   // Focus input when opened
   useEffect(() => {
@@ -509,6 +643,15 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     return () => container.removeEventListener('scroll', handleScroll);
   }, [historyLoaded, historyHasMore, historyLoading, historyNextCursor, visitorId, fetchHistory]);
 
+  // Load conversation history on initial open (when no pre-chat form or already completed)
+  useEffect(() => {
+    if (!isOpen || historyLoaded || historyLoading) return;
+    if (currentView !== 'chat') return;
+    // Skip if proactive-initiated without user data
+    if (proactiveInitiatedRef.current && !hasUserData) return;
+    fetchHistory(visitorId);
+  }, [isOpen, currentView, historyLoaded, historyLoading, visitorId, hasUserData, fetchHistory]);
+
   // Helper to convert field label to placeholder name (e.g., "Company Name" -> "company_name")
   const getPlaceholderName = (label: string): string => {
     return label
@@ -551,8 +694,8 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     // Match pattern: {{placeholder_name}}
     processedMessage = processedMessage.replace(/\{\{(\w+)\}\}/g, (match, placeholder) => {
       const value = placeholderMap[placeholder];
-      return value !== undefined ? value : match;
-    });
+      return value !== undefined ? value : '';
+    }).replace(/  +/g, ' ').trim();
 
     // Auto-inject name into common greeting patterns if no {{name}} placeholder was used
     // and the message still doesn't contain the visitor's name
@@ -567,6 +710,70 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     return processedMessage;
   }, [preChatFormConfig, preChatFormData]);
 
+  // Restore messages from server when we have a persisted conversation
+  // Store the persisted convId + handoff flag in a ref so the effect below
+  // (which runs after startHandoffSubscription is defined) can use them.
+  const pendingHandoffResubRef = useRef<string | null>(
+    persistedSession?.handoffActive && persistedSession?.conversationId
+      ? persistedSession.conversationId
+      : null
+  );
+
+  useEffect(() => {
+    const convId = persistedSession?.conversationId;
+    if (!convId || sessionRestoredRef.current) return;
+    sessionRestoredRef.current = true;
+
+    async function restoreSession() {
+      try {
+        const res = await fetch(
+          `/api/widget/${chatbotId}/history?visitor_id=${encodeURIComponent(visitorId)}&limit=50`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.success || !data.data.groups?.length) return;
+
+        // Find the group matching our persisted conversation
+        const group = data.data.groups.find(
+          (g: { conversation_id: string }) => g.conversation_id === convId
+        );
+        if (!group?.messages?.length) return;
+
+        const restored: Message[] = group.messages.map((m: { id: string; role: string; content: string; created_at: string }) => ({
+          id: m.id,
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+          timestamp: new Date(m.created_at),
+        }));
+
+        setMessages(restored);
+      } catch (err) {
+        console.warn('[ChatWidget] Failed to restore session:', err);
+      }
+    }
+
+    restoreSession();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatbotId, visitorId]);
+
+  // Persist session state to localStorage on key changes
+  useEffect(() => {
+    // Only persist once we have a conversationId (i.e., first message was sent)
+    if (!conversationId) return;
+    const preChatCompleted = currentView !== 'pre-chat-form' && (
+      !showPreChat || Object.keys(preChatFormData).length > 0
+    );
+    savePersistedSession(chatbotId, {
+      sessionId,
+      conversationId,
+      preChatCompleted,
+      preChatFormData,
+      handoffActive,
+      lastActivity: Date.now(),
+      createdAt: persistedSession?.createdAt || Date.now(),
+    });
+  }, [chatbotId, sessionId, conversationId, currentView, showPreChat, preChatFormData, handoffActive, persistedSession?.createdAt]);
+
   // Add welcome message on first open (after pre-chat form if enabled)
   useEffect(() => {
     // Only show welcome message when:
@@ -574,8 +781,10 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     // 2. No messages yet
     // 3. Welcome message exists
     // 4. Either no pre-chat form, or pre-chat form was submitted (currentView === 'chat')
-    const shouldShowWelcome = isOpen && 
-      messages.length === 0 && 
+    // 5. Not restoring a persisted session
+    const shouldShowWelcome = isOpen &&
+      messages.length === 0 &&
+      !persistedSession?.conversationId &&
       chatbot.welcome_message &&
       (!showPreChat || currentView === 'chat');
     
@@ -608,6 +817,62 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     }
   }, [isOpen, messages.length, chatbot.welcome_message, showPreChat, currentView, processWelcomeMessage, chatbotId, sessionId, visitorId, userData, userContext]);
 
+  // Trigger end-of-chat flow: offer transcript (if enabled) then survey
+  const triggerEndOfChat = useCallback(() => {
+    if (endOfChatState !== 'idle' && endOfChatState !== 'waiting') return;
+    setEndOfChatState('offered');
+
+    const currentT = tRef.current;
+
+    // If transcript chat prompt is enabled, offer that first
+    if (transcriptEnabled && transcriptConfig?.show_chat_prompt !== false && !transcriptSent) {
+      const transcriptActions: CheckInAction[] = [
+        { label: currentT.emailTranscript, action: 'transcript-yes', primary: true },
+        { label: currentT.skip, action: 'transcript-skip' },
+      ];
+      setMessages((prev) => [...prev, {
+        id: `transcript_offer_${Date.now()}`,
+        role: 'assistant',
+        content: currentT.transcriptPrompt,
+        timestamp: new Date(),
+        checkInActions: transcriptActions,
+      }]);
+    } else if (showPostChat && !surveyCompleted) {
+      // Go straight to survey offer
+      setMessages((prev) => [...prev, {
+        id: `survey_suggest_${Date.now()}`,
+        role: 'assistant',
+        content: currentT.surveyPrompt,
+        timestamp: new Date(),
+        checkInActions: [
+          { label: currentT.surveyYes, action: 'survey-yes', primary: true },
+          { label: currentT.surveyNo, action: 'survey-no' },
+        ],
+      }]);
+    }
+  }, [endOfChatState, transcriptEnabled, transcriptConfig, transcriptSent, showPostChat, surveyCompleted]);
+
+  // Reset the inactivity timer (called after each assistant response)
+  const resetInactivityTimer = useCallback(() => {
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
+    }
+    // Only start timer if there's something to offer
+    const hasTranscriptPrompt = transcriptEnabled && transcriptConfig?.show_chat_prompt !== false && !transcriptSent;
+    const hasSurvey = showPostChat && !surveyCompleted;
+    if (!hasTranscriptPrompt && !hasSurvey) return;
+    if (endOfChatState === 'offered') return;
+
+    const userMessageCount = messages.filter(m => m.role === 'user').length;
+    if (userMessageCount < 2) return; // Need at least 2 exchanges
+
+    setEndOfChatState('waiting');
+    inactivityTimerRef.current = setTimeout(() => {
+      triggerEndOfChat();
+    }, 120_000); // 2 minutes of inactivity
+  }, [transcriptEnabled, transcriptConfig, transcriptSent, showPostChat, surveyCompleted, endOfChatState, messages, triggerEndOfChat]);
+
   const sendMessage = useCallback(async () => {
     if ((!input.trim() && pendingAttachments.length === 0) || isLoading) return;
 
@@ -617,19 +882,25 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     // Clear input immediately
     setInput('');
 
+    // Reset handoff inactivity timer on visitor message
+    if (handoffActive) resetHandoffTimerRef.current();
+
+    // Stop typing indicator on send
+    if (handoffActive) broadcastVisitorTyping(false);
+
     // Wait for any pending proactive message save to complete first
     if (pendingProactiveSaveRef.current) {
       console.log('[ChatWidget] Waiting for proactive message save to complete before sending...');
       await pendingProactiveSaveRef.current;
     }
 
-    // Clear any pending check-in when user sends a message
-    if (checkInTimerRef.current) {
-      clearTimeout(checkInTimerRef.current);
-      checkInTimerRef.current = null;
+    // Clear inactivity timer when user sends a message
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
     }
-    if (checkInState !== 'idle') {
-      setCheckInState('idle');
+    if (endOfChatState === 'waiting') {
+      setEndOfChatState('idle');
     }
 
     // Capture and clear pending attachments
@@ -655,7 +926,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
           message: userMessage.content,
           session_id: sessionId,
           visitor_id: visitorId,
-          stream: false,
+          stream: true,
           ...(userData ? { user_data: userData } : {}),
           ...(userContext ? { user_context: userContext } : {}),
           ...(messageAttachments.length > 0 ? { attachments: messageAttachments } : {}),
@@ -666,32 +937,94 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
         throw new Error('Failed to send message');
       }
 
-      const data = await response.json();
+      const contentType = response.headers.get('Content-Type') || '';
 
-      // Update active language if it changed (e.g., user requested language switch)
-      if (data.data.language && data.data.language !== activeLanguage) {
-        setActiveLanguage(data.data.language);
+      if (contentType.includes('application/json')) {
+        // Non-streaming response (handoff case or fallback)
+        const data = await response.json();
+
+        if (data.data.conversation_id) {
+          setConversationId(data.data.conversation_id);
+        }
+        if (data.data.language && data.data.language !== activeLanguage) {
+          setActiveLanguage(data.data.language);
+        }
+
+        if (data.data.handoff_active) {
+          setHandoffActive(true);
+          setHandoffStatus(data.data.handoff_status || 'pending');
+          setHandoffAgentName(data.data.agent_name || null);
+          startHandoffSubscription(data.data.conversation_id);
+          setIsLoading(false);
+          return;
+        }
+
+        const assistantMessage: Message = {
+          id: data.data.message_id || `assistant_${Date.now()}`,
+          role: 'assistant',
+          content: data.data.message,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+      } else {
+        // Streaming response — read NDJSON events
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error('No response body');
+
+        const decoder = new TextDecoder();
+        const assistantId = `assistant_${Date.now()}`;
+        let streamedContent = '';
+        let buffer = '';
+
+        // Add empty assistant message that we'll update progressively
+        setMessages((prev) => [...prev, { id: assistantId, role: 'assistant', content: '', timestamp: new Date() }]);
+        setIsLoading(false);
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+          for (const line of lines) {
+            if (!line.trim()) continue;
+            try {
+              const event = JSON.parse(line);
+              if (event.type === 'meta') {
+                if (event.data.conversation_id) setConversationId(event.data.conversation_id);
+                if (event.data.language && event.data.language !== activeLanguage) setActiveLanguage(event.data.language);
+              } else if (event.type === 'token') {
+                streamedContent += event.content;
+                setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: streamedContent } : m));
+              } else if (event.type === 'done') {
+                // Update message with final ID from server
+                if (event.data?.message_id) {
+                  setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, id: event.data.message_id } : m));
+                }
+              }
+            } catch {
+              // Skip malformed lines
+            }
+          }
+        }
+
+        // Process any remaining buffer
+        if (buffer.trim()) {
+          try {
+            const event = JSON.parse(buffer);
+            if (event.type === 'token') {
+              streamedContent += event.content;
+              setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: streamedContent } : m));
+            }
+          } catch { /* ignore */ }
+        }
       }
 
-      const assistantMessage: Message = {
-        id: data.data.message_id || `assistant_${Date.now()}`,
-        role: 'assistant',
-        content: data.data.message,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-
-      // Trigger check-in after assistant responds (if post-chat survey is enabled and not already completed)
-      if (showPostChat && !surveyCompleted && checkInState === 'idle') {
-        const userMessageCount = messages.filter(m => m.role === 'user').length;
-        // Only show check-in after at least 1 user message
-        if (userMessageCount >= 1) {
-          setCheckInState('waiting');
-          checkInTimerRef.current = setTimeout(() => {
-            addCheckInMessage('resolved-check');
-          }, 20000); // 20 seconds of inactivity
-        }
+      // Start inactivity timer after assistant responds
+      if (endOfChatState !== 'offered') {
+        resetInactivityTimer();
       }
     } catch (error) {
       console.error('Chat error:', error);
@@ -707,7 +1040,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, chatbotId, sessionId, visitorId, userData, userContext, t, activeLanguage, showPostChat, surveyCompleted, checkInState, messages, pendingAttachments]);
+  }, [input, isLoading, chatbotId, sessionId, visitorId, userData, userContext, t, activeLanguage, endOfChatState, messages, pendingAttachments, handoffActive, resetInactivityTimer]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -1007,98 +1340,490 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
       }
       setTranscriptSent(true);
       setShowTranscriptInput(false);
+      if (pendingSurveyAfterTranscript.current && showPostChat && !surveyCompleted) {
+        pendingSurveyAfterTranscript.current = false;
+        const currentT = tRef.current;
+        setTimeout(() => {
+          setMessages((prev) => [...prev, {
+            id: `survey_suggest_${Date.now()}`,
+            role: 'assistant',
+            content: currentT.surveyPrompt,
+            timestamp: new Date(),
+            checkInActions: [
+              { label: currentT.surveyYes, action: 'survey-yes', primary: true },
+              { label: currentT.surveyNo, action: 'survey-no' },
+            ],
+          }]);
+        }, 500);
+      }
     } catch {
       setTranscriptError(t.emailTranscriptFailed);
     } finally {
       setTranscriptSending(false);
     }
-  }, [transcriptEmail, chatbotId, sessionId, t]);
+  }, [transcriptEmail, chatbotId, sessionId, t, showPostChat, surveyCompleted]);
+
+  // Escalation: submit report
+  // Handoff Realtime: subscribe to new agent messages during active handoff
+  const seenMessageIdsRef = useRef<Set<string>>(new Set());
+
+  const startHandoffSubscription = useCallback((convId: string) => {
+    // Clean up any existing subscription
+    if (realtimeChannelRef.current) {
+      const supabase = getWidgetSupabase();
+      if (supabase) supabase.removeChannel(realtimeChannelRef.current);
+      realtimeChannelRef.current = null;
+    }
+
+    const supabase = getWidgetSupabase();
+    if (!supabase) {
+      console.warn('[ChatWidget] No Supabase client for Realtime, cannot subscribe');
+      return;
+    }
+
+    seenMessageIdsRef.current = new Set();
+
+    const channel = supabase
+      .channel(`widget-handoff-${convId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `conversation_id=eq.${convId}`,
+      }, (payload) => {
+        const msg = payload.new as Record<string, unknown>;
+        // Only handle agent messages (not user messages or AI responses)
+        const metadata = msg.metadata as Record<string, unknown> | null;
+        if (!metadata?.is_human_agent) return;
+
+        const msgId = msg.id as string;
+        if (seenMessageIdsRef.current.has(msgId)) return;
+        seenMessageIdsRef.current.add(msgId);
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: msgId,
+            role: 'assistant' as const,
+            content: msg.content as string,
+            timestamp: new Date(msg.created_at as string),
+            metadata: { is_human_agent: true, agent_name: metadata.agent_name },
+          },
+        ]);
+
+        if (metadata.agent_name) {
+          setHandoffAgentName(metadata.agent_name as string);
+        }
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'telegram_handoff_sessions',
+        filter: `conversation_id=eq.${convId}`,
+      }, (payload) => {
+        const session = payload.new as Record<string, unknown> | null;
+        if (!session) return;
+
+        const status = session.status as string;
+        setHandoffStatus(status);
+
+        if (session.agent_name) {
+          setHandoffAgentName(session.agent_name as string);
+        }
+
+        // Handoff resolved - back to AI
+        if (status === 'resolved') {
+          setHandoffActive(false);
+          setHandoffStatus(null);
+          setHandoffAgentName(null);
+          setMessages((prev) => [...prev, {
+            id: `handoff_end_${Date.now()}`,
+            role: 'assistant',
+            content: 'You\'re back with the AI assistant. How can I help you?',
+            timestamp: new Date(),
+            metadata: { is_system: true },
+          }]);
+
+          // Clean up the subscription since handoff is over
+          if (realtimeChannelRef.current) {
+            supabase.removeChannel(realtimeChannelRef.current);
+            realtimeChannelRef.current = null;
+          }
+        }
+      })
+      .subscribe();
+
+    realtimeChannelRef.current = channel;
+  }, []);
+
+  // Re-subscribe to handoff Realtime if restoring a session with active handoff
+  useEffect(() => {
+    const convId = pendingHandoffResubRef.current;
+    if (convId) {
+      pendingHandoffResubRef.current = null;
+      setHandoffActive(true);
+      setHandoffStatus('pending');
+      startHandoffSubscription(convId);
+    }
+  }, [startHandoffSubscription]);
+
+  // Cleanup Realtime subscription on unmount
+  useEffect(() => {
+    return () => {
+      if (realtimeChannelRef.current) {
+        const supabase = getWidgetSupabase();
+        if (supabase) supabase.removeChannel(realtimeChannelRef.current);
+        realtimeChannelRef.current = null;
+      }
+    };
+  }, []);
+
+  // Typing indicator: broadcast visitor typing to agents (throttled to 2s)
+  const broadcastVisitorTyping = useCallback((isTyping: boolean) => {
+    const channel = presenceChannelRef.current;
+    if (!channel) return;
+    const now = Date.now();
+    if (isTyping && now - lastTypingBroadcastRef.current < 2000) return;
+    lastTypingBroadcastRef.current = now;
+    channel.send({
+      type: 'broadcast',
+      event: 'typing',
+      payload: { typing: isTyping, role: 'visitor' },
+    });
+  }, []);
+
+  // Presence + typing channel: join when handoff becomes active, leave when resolved
+  useEffect(() => {
+    if (!handoffActive || !conversationId) {
+      // Clean up presence channel when handoff ends
+      if (presenceChannelRef.current) {
+        const supabase = getWidgetSupabase();
+        if (supabase) supabase.removeChannel(presenceChannelRef.current);
+        presenceChannelRef.current = null;
+      }
+      setAgentIsTyping(false);
+      return;
+    }
+
+    const supabase = getWidgetSupabase();
+    if (!supabase) return;
+
+    const channel = supabase.channel(`conversation:${conversationId}`, {
+      config: { presence: { key: `visitor-${sessionId}` } },
+    });
+
+    channel
+      .on('broadcast', { event: 'typing' }, ({ payload }) => {
+        if (payload?.role === 'agent') {
+          if (payload.typing) {
+            setAgentIsTyping(true);
+            if (agentTypingTimeoutRef.current) clearTimeout(agentTypingTimeoutRef.current);
+            agentTypingTimeoutRef.current = setTimeout(() => setAgentIsTyping(false), 3000);
+          } else {
+            setAgentIsTyping(false);
+            if (agentTypingTimeoutRef.current) {
+              clearTimeout(agentTypingTimeoutRef.current);
+              agentTypingTimeoutRef.current = null;
+            }
+          }
+        }
+      })
+      .on('presence', { event: 'sync' }, () => {
+        // Widget doesn't need to react to presence sync
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            role: 'visitor',
+            page_url: window.location.href,
+            page_title: document.title,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    presenceChannelRef.current = channel;
+
+    // Update presence when page URL changes (popstate for SPA navigation)
+    const handlePopState = () => {
+      channel.track({
+        role: 'visitor',
+        page_url: window.location.href,
+        page_title: document.title,
+        online_at: new Date().toISOString(),
+      });
+    };
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      if (agentTypingTimeoutRef.current) {
+        clearTimeout(agentTypingTimeoutRef.current);
+        agentTypingTimeoutRef.current = null;
+      }
+      supabase.removeChannel(channel);
+      presenceChannelRef.current = null;
+    };
+  }, [handoffActive, conversationId, sessionId]);
+
+  // Handoff inactivity timeout: warn visitor, then auto-resolve
+  const clearHandoffTimers = useCallback(() => {
+    if (handoffWarningRef.current) {
+      clearTimeout(handoffWarningRef.current);
+      handoffWarningRef.current = null;
+    }
+    if (handoffCloseRef.current) {
+      clearTimeout(handoffCloseRef.current);
+      handoffCloseRef.current = null;
+    }
+    handoffWarningShownRef.current = false;
+  }, []);
+
+  const resetHandoffInactivityTimer = useCallback(() => {
+    if (!handoffActive || handoffTimeoutMinutes <= 0) return;
+    clearHandoffTimers();
+
+    const timeoutMs = handoffTimeoutMinutes * 60 * 1000;
+    const warningMs = Math.floor(timeoutMs * 0.6); // warn at 60% mark
+    const remainingMs = timeoutMs - warningMs;
+    const remainingMinutes = Math.ceil(remainingMs / 60000);
+
+    // Warning timer
+    handoffWarningRef.current = setTimeout(() => {
+      if (!handoffWarningShownRef.current) {
+        handoffWarningShownRef.current = true;
+        const tt = tRef.current;
+        setMessages((prev) => [...prev, {
+          id: `handoff_warning_${Date.now()}`,
+          role: 'assistant',
+          content: tt.handoffInactivityWarning
+            || `Are you still there? This conversation will close in ${remainingMinutes} minute${remainingMinutes === 1 ? '' : 's'} due to inactivity.`,
+          timestamp: new Date(),
+          metadata: { is_system: true, is_warning: true },
+        }]);
+
+        // Update tab title if widget is minimized
+        if (!isOpen) {
+          const originalTitle = document.title;
+          document.title = 'Your chat is ending...';
+          setTimeout(() => { document.title = originalTitle; }, 5000);
+        }
+      }
+    }, warningMs);
+
+    // Close timer
+    handoffCloseRef.current = setTimeout(() => {
+      // End the handoff on the widget side
+      // The agent console will see the visitor go offline via presence and can close/resolve
+      setHandoffActive(false);
+      setHandoffStatus(null);
+      setHandoffAgentName(null);
+      clearHandoffTimers();
+
+      const tt = tRef.current;
+      setMessages((prev) => [...prev, {
+        id: `handoff_timeout_${Date.now()}`,
+        role: 'assistant',
+        content: tt.handoffInactivityClosed
+          || 'This conversation was closed due to inactivity. Feel free to start a new chat!',
+        timestamp: new Date(),
+        metadata: { is_system: true },
+      }]);
+    }, timeoutMs);
+  }, [handoffActive, handoffTimeoutMinutes, clearHandoffTimers, conversationId, chatbotId, sessionId, isOpen]);
+
+  // Keep ref in sync so sendMessage (defined earlier) can call it
+  resetHandoffTimerRef.current = resetHandoffInactivityTimer;
+
+  // Start/stop inactivity timer when handoff state changes
+  useEffect(() => {
+    if (handoffActive && handoffTimeoutMinutes > 0) {
+      resetHandoffInactivityTimer();
+    } else {
+      clearHandoffTimers();
+    }
+    return clearHandoffTimers;
+  }, [handoffActive, handoffTimeoutMinutes, resetHandoffInactivityTimer, clearHandoffTimers]);
+
+  // Contextual placeholder and submit label based on selected reason
+  const getReportPlaceholder = useCallback((reason: string) => {
+    const tt = tRef.current;
+    switch (reason) {
+      case 'wrong_answer': return tt.reportDetailsWrongAnswer || 'What was incorrect?';
+      case 'offensive_content': return tt.reportDetailsOffensive || 'What was offensive?';
+      case 'need_human_help': return tt.reportDetailsHumanHelp || 'Briefly describe what you need help with...';
+      default: return tt.reportDetailsPlaceholder;
+    }
+  }, []);
+
+  const getReportSubmitLabel = useCallback((reason: string, submitting: boolean) => {
+    const tt = tRef.current;
+    if (submitting) return tt.reportSubmitting;
+    switch (reason) {
+      case 'wrong_answer': return tt.reportSubmitWrongAnswer || 'Report wrong answer';
+      case 'offensive_content': return tt.reportSubmitOffensive || 'Report offensive content';
+      case 'need_human_help': return tt.reportSubmitHumanHelp || 'Connect to support';
+      default: return tt.reportSubmit;
+    }
+  }, []);
+
+  const handleReportSubmit = useCallback(async () => {
+    if (!reportReason || reportSubmitting) return;
+    setReportSubmitting(true);
+    try {
+      const body: Record<string, unknown> = {
+        session_id: sessionId,
+        conversation_id: conversationId,
+        reason: reportReason,
+        details: reportDetails || null,
+      };
+      if (reportingMessageId) {
+        body.message_id = reportingMessageId;
+      }
+      // Include visitor info for Telegram handoff context
+      if (userData?.name) body.visitor_name = userData.name;
+      if (userData?.email) body.visitor_email = userData.email;
+
+      const response = await fetch(`/api/widget/${chatbotId}/report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) throw new Error('Report failed');
+      const data = await response.json();
+
+      // Mark message as reported
+      if (reportingMessageId) {
+        setReportedMessageIds((prev) => new Set(prev).add(reportingMessageId));
+      }
+
+      // Check if handoff was initiated
+      if (data.data?.handoff_initiated && conversationId) {
+        setHandoffActive(true);
+        setHandoffStatus('pending');
+        startHandoffSubscription(conversationId);
+        // Add a system message about the handoff
+        const tt = tRef.current;
+        setMessages((prev) => [...prev, {
+          id: `handoff_${Date.now()}`,
+          role: 'assistant',
+          content: tt.reportConnected || 'Connected! An agent will respond shortly.',
+          timestamp: new Date(),
+          metadata: { is_system: true },
+        }]);
+        // Go straight back to chat to see the handoff
+        setReportSuccess(false);
+        setReportingMessageId(null);
+        setReportConversation(false);
+        setReportReason('');
+        setReportDetails('');
+        if (currentView === 'report') setCurrentView('chat');
+        return;
+      }
+
+      setReportSuccess(true);
+    } catch (err) {
+      console.warn('Failed to submit report:', err);
+    } finally {
+      setReportSubmitting(false);
+    }
+  }, [reportReason, reportDetails, reportSubmitting, reportingMessageId, sessionId, conversationId, chatbotId, currentView, startHandoffSubscription]);
+
+  const closeReportForm = useCallback(() => {
+    setReportingMessageId(null);
+    setReportConversation(false);
+    setReportReason('');
+    setReportDetails('');
+    setReportSuccess(false);
+    if (currentView === 'report') setCurrentView('chat');
+  }, [currentView]);
+
+  const dismissReportSuccess = useCallback(() => {
+    setReportSuccess(false);
+    setReportingMessageId(null);
+    setReportConversation(false);
+    setReportReason('');
+    setReportDetails('');
+    if (currentView === 'report') setCurrentView('chat');
+  }, [currentView]);
+
+  // Direct handoff — triggered by the headset icon
+  const [showHandoffConfirm, setShowHandoffConfirm] = useState(false);
+  const [handoffContext, setHandoffContext] = useState('');
+  const [handoffConnecting, setHandoffConnecting] = useState(false);
+
+  const initiateDirectHandoff = useCallback(async () => {
+    if (handoffConnecting) return;
+    setHandoffConnecting(true);
+    try {
+      const body: Record<string, unknown> = {
+        session_id: sessionId,
+        conversation_id: conversationId,
+        reason: 'need_human_help',
+        details: handoffContext || null,
+      };
+      if (userData?.name) body.visitor_name = userData.name;
+      if (userData?.email) body.visitor_email = userData.email;
+
+      const response = await fetch(`/api/widget/${chatbotId}/report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) throw new Error('Handoff failed');
+      const data = await response.json();
+
+      if (data.data?.handoff_initiated && conversationId) {
+        setHandoffActive(true);
+        setHandoffStatus('pending');
+        startHandoffSubscription(conversationId);
+        const tt = tRef.current;
+        setMessages((prev) => [...prev, {
+          id: `handoff_${Date.now()}`,
+          role: 'assistant',
+          content: tt.reportConnected || 'Connected! An agent will respond shortly.',
+          timestamp: new Date(),
+          metadata: { is_system: true },
+        }]);
+      }
+
+      setShowHandoffConfirm(false);
+      setHandoffContext('');
+      if (currentView !== 'chat') setCurrentView('chat');
+    } catch (err) {
+      console.warn('Failed to initiate handoff:', err);
+    } finally {
+      setHandoffConnecting(false);
+    }
+  }, [handoffConnecting, sessionId, conversationId, handoffContext, chatbotId, currentView, startHandoffSubscription, userData]);
 
   // Generate CSS from config
   const styles = generateStyles(config, isInIframe, isExpanded);
 
-  // Add check-in message to conversation
-  // Uses tRef to always get current translations, even from stale setTimeout closures
-  const addCheckInMessage = useCallback((type: 'resolved-check' | 'survey-suggest') => {
-    const currentT = tRef.current;
-    const content = type === 'resolved-check'
-      ? currentT.checkInQuestion
-      : currentT.surveyPrompt;
-
-    const checkInActions: CheckInAction[] = type === 'resolved-check'
-      ? [
-          { label: currentT.checkInYes, action: 'resolved-yes', primary: true },
-          { label: currentT.checkInNo, action: 'resolved-no' },
-        ]
-      : [
-          { label: currentT.surveyYes, action: 'survey-yes', primary: true },
-          { label: currentT.surveyNo, action: 'survey-no' },
-        ];
-
-    const checkInMessage: Message = {
-      id: `checkin_${type}_${Date.now()}`,
-      role: 'assistant',
-      content,
-      timestamp: new Date(),
-      checkInActions,
-    };
-
-    setMessages((prev) => [...prev, checkInMessage]);
-    setCheckInState(type === 'resolved-check' ? 'shown' : 'suggesting-survey');
-  }, []);
-
-  // Handle check-in button clicks
+  // Handle action button clicks (survey, transcript offers)
   const handleCheckInClick = useCallback((action: string, messageId: string) => {
-    // Mark this message's clicked action to disable all buttons
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === messageId ? { ...msg, clickedAction: action } : msg
-      )
-    );
+    // Remove buttons from the message and add a user message with the clicked label
+    setMessages((prev) => {
+      const msg = prev.find((m) => m.id === messageId);
+      const clickedLabel = msg?.checkInActions?.find((a) => a.action === action)?.label || action;
+      const updated = prev.map((m) =>
+        m.id === messageId ? { ...m, checkInActions: undefined, clickedAction: action } : m
+      );
+      updated.push({
+        id: `action_reply_${Date.now()}`,
+        role: 'user',
+        content: clickedLabel,
+        timestamp: new Date(),
+      });
+      return updated;
+    });
 
     switch (action) {
-      case 'resolved-yes':
-        // User is satisfied — offer transcript if enabled, then suggest survey
-        if (transcriptEnabled && !transcriptSent) {
-          setTimeout(() => {
-            const currentT = tRef.current;
-            const transcriptActions: CheckInAction[] = [
-              { label: currentT.emailTranscript, action: 'transcript-yes', primary: true },
-              { label: currentT.skip, action: 'transcript-skip' },
-            ];
-            setMessages((prev) => [...prev, {
-              id: `transcript_offer_${Date.now()}`,
-              role: 'assistant',
-              content: currentT.transcriptPrompt,
-              timestamp: new Date(),
-              checkInActions: transcriptActions,
-            }]);
-          }, 300);
-        } else {
-          setTimeout(() => addCheckInMessage('survey-suggest'), 300);
-        }
-        break;
-      case 'resolved-no':
-        // User has more questions, add follow-up and let them continue
-        setCheckInState('idle');
-        setTimeout(() => {
-          setMessages((prev) => [...prev, {
-            id: `followup_${Date.now()}`,
-            role: 'assistant',
-            content: tRef.current.followUp,
-            timestamp: new Date(),
-          }]);
-        }, 300);
-        break;
       case 'survey-yes':
-        // Go to survey
         setSurveyCompleted(true);
-        setCheckInState('idle');
         setCurrentView('survey');
         break;
       case 'survey-no':
-        // Dismiss with thanks
-        setCheckInState('idle');
         setTimeout(() => {
           setMessages((prev) => [...prev, {
             id: `thanks_${Date.now()}`,
@@ -1109,17 +1834,30 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
         }, 300);
         break;
       case 'transcript-yes':
-        // User wants transcript — trigger the email flow
+        // User wants transcript — trigger the email flow, defer survey until after submission
+        pendingSurveyAfterTranscript.current = true;
         handleTranscriptClick();
-        // Then suggest survey after a short delay
-        setTimeout(() => addCheckInMessage('survey-suggest'), 500);
         break;
       case 'transcript-skip':
-        // User skipped transcript, suggest survey
-        setTimeout(() => addCheckInMessage('survey-suggest'), 300);
+        // User skipped transcript, offer survey if enabled
+        if (showPostChat && !surveyCompleted) {
+          const currentT = tRef.current;
+          setTimeout(() => {
+            setMessages((prev) => [...prev, {
+              id: `survey_suggest_${Date.now()}`,
+              role: 'assistant',
+              content: currentT.surveyPrompt,
+              timestamp: new Date(),
+              checkInActions: [
+                { label: currentT.surveyYes, action: 'survey-yes', primary: true },
+                { label: currentT.surveyNo, action: 'survey-no' },
+              ],
+            }]);
+          }, 300);
+        }
         break;
     }
-  }, [addCheckInMessage, t, transcriptEnabled, transcriptSent, handleTranscriptClick]);
+  }, [t, handleTranscriptClick, showPostChat, surveyCompleted]);
 
   // Track which proactive rule IDs have been shown (prevent duplicates)
   const proactiveFiredRef = useRef<Set<string>>(new Set());
@@ -1266,10 +2004,53 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                 <span className="chat-widget-title">
                   {translateDefault(config.headerText, 'Chat with us', t.headerTitle) || chatbot.name || 'Chat'}
                 </span>
-                <span className="chat-widget-status">{t.online}</span>
+                <span className="chat-widget-status">
+                  {handoffActive
+                    ? (handoffAgentName ? `${handoffAgentName} connected` : 'Connecting to agent...')
+                    : t.online}
+                </span>
               </div>
             </div>
-            {transcriptEnabled && currentView === 'chat' && (
+            {escalationEnabled && (currentView === 'chat' || currentView === 'report') && (
+              <button
+                onClick={() => {
+                  if (currentView === 'report') {
+                    closeReportForm();
+                    setCurrentView('chat');
+                  } else {
+                    setReportConversation(true);
+                    setReportingMessageId(null);
+                    setReportReason('');
+                    setReportDetails('');
+                    setReportSuccess(false);
+                    setCurrentView('report');
+                  }
+                }}
+                className="chat-widget-close"
+                aria-label={t.reportIssue}
+                title={t.reportIssue}
+                style={{ marginRight: 4 }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill={currentView === 'report' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+              </button>
+            )}
+            {showHandoffIcon && currentView === 'chat' && (
+              <button
+                onClick={() => setShowHandoffConfirm(true)}
+                className="chat-widget-close"
+                aria-label={t.reportConnectToHuman || 'Talk to a person'}
+                title={t.reportConnectToHuman || 'Talk to a person'}
+                style={{ marginRight: 4 }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>
+              </button>
+            )}
+            {handoffActive && currentView === 'chat' && (
+              <span className="chat-widget-handoff-indicator" title="Connected to agent">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>
+              </span>
+            )}
+            {transcriptEnabled && transcriptConfig?.show_header_icon !== false && currentView === 'chat' && (
               <button
                 onClick={handleTranscriptClick}
                 className="chat-widget-close"
@@ -1293,25 +2074,16 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
             )}
             <button
               onClick={() => {
-                console.log('[ChatWidget] Close button clicked');
-                console.log('[ChatWidget] In iframe:', window.self !== window.top);
-                console.log('[ChatWidget] Widget ID:', widgetId);
-                
+                // Trigger end-of-chat offers if not already shown and there's been conversation
+                const userMsgCount = messages.filter(m => m.role === 'user').length;
+                if (endOfChatState !== 'offered' && userMsgCount >= 2) {
+                  triggerEndOfChat();
+                }
+
                 // If in iframe, notify parent and let parent decide what to do
                 if (window.self !== window.top) {
-                  const message = {
-                    type: 'close-chat-widget',
-                    widgetId: widgetId
-                  };
-                  console.log('[ChatWidget] Sending message to parent:', message);
-                  try {
-                    window.parent.postMessage(message, '*');
-                    console.log('[ChatWidget] Message sent successfully');
-                  } catch (error) {
-                    console.error('[ChatWidget] Error sending message:', error);
-                  }
+                  window.parent.postMessage({ type: 'close-chat-widget', widgetId }, '*');
                 } else {
-                  console.log('[ChatWidget] Not in iframe, setting isOpen to false');
                   setIsOpen(false);
                 }
               }}
@@ -1321,6 +2093,9 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
               <X size={20} />
             </button>
           </div>
+
+          {/* Body wrapper — provides positioning context for overlays like handoff confirm */}
+          <div className="chat-widget-body-wrapper">
 
           {/* Pre-Chat Form View */}
           {currentView === 'pre-chat-form' && preChatFormConfig && (
@@ -1340,34 +2115,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                       {field.label}
                       {field.required && <span className="chat-widget-required">*</span>}
                     </label>
-                    {field.type === 'select' ? (
-                      <select
-                        value={preChatFormData[field.id] || ''}
-                        onChange={(e) => {
-                          setPreChatFormData((prev) => ({ ...prev, [field.id]: e.target.value }));
-                          clearFieldError(field.id);
-                        }}
-                        className="chat-widget-form-select"
-                        disabled={isPreChatSubmitting}
-                      >
-                        <option value="">{field.placeholder || t.selectDefault}</option>
-                        {(field.options || []).map((opt) => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </select>
-                    ) : field.type === 'textarea' ? (
-                      <textarea
-                        value={preChatFormData[field.id] || ''}
-                        onChange={(e) => {
-                          setPreChatFormData((prev) => ({ ...prev, [field.id]: e.target.value }));
-                          clearFieldError(field.id);
-                        }}
-                        placeholder={field.placeholder}
-                        className="chat-widget-form-textarea"
-                        disabled={isPreChatSubmitting}
-                      />
-                    ) : (
-                      <input
+                    <input
                         type={field.type === 'email' ? 'email' : field.type === 'phone' ? 'tel' : 'text'}
                         value={preChatFormData[field.id] || ''}
                         onChange={(e) => {
@@ -1378,7 +2126,6 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                         className="chat-widget-form-input"
                         disabled={isPreChatSubmitting}
                       />
-                    )}
                     {fieldErrors[field.id] && (
                       <span className="chat-widget-form-error-message">{fieldErrors[field.id]}</span>
                     )}
@@ -1547,42 +2294,98 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                     <span>{t.newConversation}</span>
                   </div>
                 )}
+                {/* Conversation-level report moved to full-view 'report' currentView */}
                 {/* Current session messages */}
                 {messages.map((message) => (
                   <div
                     key={message.id}
                     className={`chat-widget-message chat-widget-message-${message.role}`}
                   >
-                    <div className={`chat-widget-bubble chat-widget-bubble-${message.role}`}>
-                      {message.role === 'assistant' ? (
-                        <span 
-                          dangerouslySetInnerHTML={{ 
-                            __html: renderMarkdown(message.content) 
-                          }}
-                          style={{ cursor: 'default' }}
-                        />
-                      ) : (
-                        message.content
-                      )}
-                      {/* Attachments */}
-                      {message.attachments && message.attachments.length > 0 && (
-                        <div className="chat-widget-attachments">
-                          {message.attachments.map((att, i) => (
-                            att.file_type.startsWith('image/') ? (
-                              <a key={i} href={att.url} onClick={(e) => { e.preventDefault(); downloadAttachment(att.url, att.file_name); }} className="chat-widget-attachment-image" style={{ cursor: 'pointer' }}>
-                                <img src={att.url} alt={att.file_name} />
-                              </a>
-                            ) : (
-                              <a key={i} href={att.url} onClick={(e) => { e.preventDefault(); downloadAttachment(att.url, att.file_name); }} className="chat-widget-attachment-file" style={{ cursor: 'pointer' }}>
-                                <FileIcon size={16} />
-                                <span className="chat-widget-attachment-name">{att.file_name}</span>
-                                <Download size={14} />
-                              </a>
-                            )
-                          ))}
-                        </div>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4, width: '100%', justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start' }} className={message.role === 'assistant' ? 'chat-widget-msg-row' : ''}>
+                      <div className={`chat-widget-bubble chat-widget-bubble-${message.role}`}>
+                        {message.role === 'assistant' && (message as any).metadata?.is_human_agent && (
+                          <div style={{ fontSize: '11px', fontWeight: 600, color: config.primaryColor, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#22c55e', display: 'inline-block' }} />
+                            {(message as any).metadata?.agent_name || 'Agent'}
+                          </div>
+                        )}
+                        {message.role === 'assistant' ? (
+                          <span
+                            dangerouslySetInnerHTML={{
+                              __html: renderMarkdown(message.content)
+                            }}
+                            style={{ cursor: 'default' }}
+                          />
+                        ) : (
+                          message.content
+                        )}
+                        {/* Attachments */}
+                        {message.attachments && message.attachments.length > 0 && (
+                          <div className="chat-widget-attachments">
+                            {message.attachments.map((att, i) => (
+                              att.file_type.startsWith('image/') ? (
+                                <a key={i} href={att.url} onClick={(e) => { e.preventDefault(); downloadAttachment(att.url, att.file_name); }} className="chat-widget-attachment-image" style={{ cursor: 'pointer' }}>
+                                  <img src={att.url} alt={att.file_name} />
+                                </a>
+                              ) : (
+                                <a key={i} href={att.url} onClick={(e) => { e.preventDefault(); downloadAttachment(att.url, att.file_name); }} className="chat-widget-attachment-file" style={{ cursor: 'pointer' }}>
+                                  <FileIcon size={16} />
+                                  <span className="chat-widget-attachment-name">{att.file_name}</span>
+                                  <Download size={14} />
+                                </a>
+                              )
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {/* Per-message report flag — larger touch target (44px min) */}
+                      {escalationEnabled && message.role === 'assistant' && (
+                        <button
+                          type="button"
+                          className="chat-widget-report-btn"
+                          title={reportedMessageIds.has(message.id) ? t.reportSuccess : t.reportFlagMessage}
+                          disabled={reportedMessageIds.has(message.id)}
+                          onClick={() => { if (!reportedMessageIds.has(message.id)) { setReportingMessageId(message.id); setReportConversation(false); setReportReason(''); setReportDetails(''); } }}
+                        >
+                          {reportedMessageIds.has(message.id) ? (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                          ) : (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                          )}
+                        </button>
                       )}
                     </div>
+                    {/* Inline report form for this message */}
+                    {reportingMessageId === message.id && escalationEnabled && (
+                      <div className="chat-widget-report-form" ref={(el) => { if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }}>
+                        {reportSuccess ? (
+                          <div className="chat-widget-report-success">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" style={{ margin: '0 auto 4px' }}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            <span style={{ fontWeight: 500 }}>{t.reportSuccess}</span>
+                            <span style={{ fontSize: 12, opacity: 0.8 }}>{t.reportSuccessDetail}</span>
+                            <button type="button" className="chat-widget-report-back-btn" onClick={dismissReportSuccess}>{t.reportBackToConversation}</button>
+                          </div>
+                        ) : (
+                          <>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                              <span style={{ fontWeight: 500, fontSize: 13, color: config.reportTextColor || config.textColor }}>{t.reportFlagMessage}</span>
+                              <button onClick={closeReportForm} className="chat-widget-report-close" aria-label={t.closeAriaLabel}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                              </button>
+                            </div>
+                            <div className="chat-widget-report-reasons">
+                              <button type="button" className={`chat-widget-report-reason-btn ${reportReason === 'wrong_answer' ? 'selected' : ''}`} onClick={() => setReportReason('wrong_answer')}>{t.reportWrongAnswer}</button>
+                              <button type="button" className={`chat-widget-report-reason-btn ${reportReason === 'offensive_content' ? 'selected' : ''}`} onClick={() => setReportReason('offensive_content')}>{t.reportOffensiveContent}</button>
+                              <button type="button" className={`chat-widget-report-reason-btn ${reportReason === 'other' ? 'selected' : ''}`} onClick={() => setReportReason('other')}>{t.reportOther}</button>
+                            </div>
+                            <textarea className="chat-widget-report-textarea" rows={2} value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} placeholder={getReportPlaceholder(reportReason)} />
+                            <button type="button" className="chat-widget-report-submit" disabled={!reportReason || reportSubmitting} onClick={handleReportSubmit}>
+                              {getReportSubmitLabel(reportReason, reportSubmitting)}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
                     {/* Check-in action buttons */}
                     {message.checkInActions && message.checkInActions.length > 0 && (
                       <div className="chat-widget-checkin-actions">
@@ -1590,7 +2393,6 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                           <button
                             key={action.action}
                             type="button"
-                            disabled={!!message.clickedAction}
                             className={`chat-widget-checkin-btn ${action.primary ? 'chat-widget-checkin-btn-primary' : ''}`}
                             onClick={() => handleCheckInClick(action.action, message.id)}
                           >
@@ -1615,6 +2417,14 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                     </div>
                   </div>
                 )}
+                {agentIsTyping && !isLoading && (
+                  <div className="chat-widget-agent-typing-indicator">
+                    Agent is typing
+                    <span className="chat-widget-agent-typing-dots">
+                      <span>.</span><span>.</span><span>.</span>
+                    </span>
+                  </div>
+                )}
                 <div ref={messagesEndRef} />
               </div>
 
@@ -1622,7 +2432,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
               {showTranscriptInput && (
                 <div className="chat-widget-input-container" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '6px' }}>
                   <div style={{ fontSize: 'inherit', color: config.inputTextColor, fontWeight: 500 }}>
-                    {t.transcriptPrompt}
+                    {t.transcriptEmailLabel}
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <input
@@ -1643,7 +2453,25 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                       {transcriptSending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                     </button>
                     <button
-                      onClick={() => setShowTranscriptInput(false)}
+                      onClick={() => {
+                        setShowTranscriptInput(false);
+                        if (pendingSurveyAfterTranscript.current && showPostChat && !surveyCompleted) {
+                          pendingSurveyAfterTranscript.current = false;
+                          const currentT = tRef.current;
+                          setTimeout(() => {
+                            setMessages((prev) => [...prev, {
+                              id: `survey_suggest_${Date.now()}`,
+                              role: 'assistant',
+                              content: currentT.surveyPrompt,
+                              timestamp: new Date(),
+                              checkInActions: [
+                                { label: currentT.surveyYes, action: 'survey-yes', primary: true },
+                                { label: currentT.surveyNo, action: 'survey-no' },
+                              ],
+                            }]);
+                          }, 300);
+                        }
+                      }}
                       style={{
                         padding: '6px',
                         background: 'none',
@@ -1696,41 +2524,50 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                     type="file"
                     accept={acceptedMimes}
                     onChange={handleFileSelect}
+                    multiple
                     style={{ display: 'none' }}
                   />
                 )}
                 {/* Attach button */}
-                {uploadConfig.enabled && (
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading || isLoading}
-                    className="chat-widget-attach-btn"
-                    aria-label={t.attachFile}
-                    title={t.attachFile}
-                  >
-                    {isUploading ? <Loader2 size={18} className="animate-spin" /> : <Paperclip size={18} />}
-                  </button>
-                )}
+                {uploadConfig.enabled && (() => {
+                  const maxFiles = uploadConfig.max_files_per_message ?? 3;
+                  const atLimit = pendingAttachments.length >= maxFiles;
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading || isLoading || atLimit}
+                      className="chat-widget-attach-btn"
+                      aria-label={atLimit ? `Max ${maxFiles} files` : t.attachFile}
+                      title={atLimit ? `Max ${maxFiles} files` : t.attachFile}
+                      style={atLimit ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
+                    >
+                      {isUploading ? <Loader2 size={18} className="animate-spin" /> : <Paperclip size={18} />}
+                    </button>
+                  );
+                })()}
                 <input
                   ref={inputRef}
                   type="text"
                   value={input}
                   onChange={(e) => {
                     setInput(e.target.value);
-                    // Disable all check-in buttons if user starts typing
-                    if (checkInState === 'shown' || checkInState === 'suggesting-survey') {
-                      setCheckInState('idle');
-                      if (checkInTimerRef.current) {
-                        clearTimeout(checkInTimerRef.current);
-                        checkInTimerRef.current = null;
-                      }
-                      // Mark all check-in messages as clicked to disable their buttons
+                    // Broadcast typing indicator during handoff
+                    if (handoffActive) {
+                      broadcastVisitorTyping(e.target.value.length > 0);
+                    }
+                    // Dismiss action buttons and reset inactivity timer if user starts typing
+                    if (endOfChatState === 'offered') {
+                      setEndOfChatState('idle');
                       setMessages((prev) =>
                         prev.map((msg) =>
-                          msg.checkInActions ? { ...msg, clickedAction: 'typing' } : msg
+                          msg.checkInActions ? { ...msg, checkInActions: undefined } : msg
                         )
                       );
+                    }
+                    if (inactivityTimerRef.current) {
+                      clearTimeout(inactivityTimerRef.current);
+                      inactivityTimerRef.current = null;
                     }
                   }}
                   onKeyPress={handleKeyPress}
@@ -1747,6 +2584,105 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                 </button>
               </div>
             </>
+          )}
+
+          {/* Report View (full-view replacement for conversation-level escalation) */}
+          {currentView === 'report' && escalationEnabled && (
+            <div className="chat-widget-report-view">
+              {reportSuccess ? (
+                <div className="chat-widget-report-view-success">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  <p style={{ fontSize: 15, fontWeight: 500, color: config.reportTextColor || config.textColor, marginTop: 8 }}>
+                    {t.reportSuccess}
+                  </p>
+                  <p style={{ fontSize: 13, color: config.reportTextColor || config.textColor, opacity: 0.7, marginTop: 4 }}>
+                    {t.reportSuccessDetail}
+                  </p>
+                  <button type="button" className="chat-widget-report-back-btn" onClick={dismissReportSuccess} style={{ marginTop: 16 }}>
+                    {t.reportBackToConversation}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="chat-widget-report-view-header">
+                    <h3 style={{ fontSize: 15, fontWeight: 600, color: config.reportTextColor || config.textColor, margin: 0 }}>{t.reportIssue}</h3>
+                    <button onClick={closeReportForm} className="chat-widget-report-close" aria-label={t.closeAriaLabel}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  </div>
+
+                  <div className="chat-widget-report-view-body">
+                    {/* Report reasons — 3-item grid */}
+                    <div className="chat-widget-report-reasons">
+                      <button type="button" className={`chat-widget-report-reason-btn ${reportReason === 'wrong_answer' ? 'selected' : ''}`} onClick={() => setReportReason('wrong_answer')}>{t.reportWrongAnswer}</button>
+                      <button type="button" className={`chat-widget-report-reason-btn ${reportReason === 'offensive_content' ? 'selected' : ''}`} onClick={() => setReportReason('offensive_content')}>{t.reportOffensiveContent}</button>
+                      <button type="button" className={`chat-widget-report-reason-btn ${reportReason === 'other' ? 'selected' : ''}`} onClick={() => setReportReason('other')}>{t.reportOther}</button>
+                    </div>
+
+                    {/* Details textarea */}
+                    <textarea
+                      className="chat-widget-report-textarea"
+                      rows={3}
+                      value={reportDetails}
+                      onChange={(e) => setReportDetails(e.target.value)}
+                      placeholder={getReportPlaceholder(reportReason)}
+                    />
+                  </div>
+
+                  <div className="chat-widget-report-view-footer">
+                    <button type="button" className="chat-widget-report-submit" disabled={!reportReason || reportSubmitting} onClick={handleReportSubmit}>
+                      {getReportSubmitLabel(reportReason, reportSubmitting)}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Handoff Confirmation Panel — form layout matching other views */}
+          {showHandoffConfirm && currentView === 'chat' && (
+            <div className="chat-widget-handoff-confirm" role="dialog" aria-labelledby="handoff-title" onKeyDown={(e) => { if (e.key === 'Escape') { setShowHandoffConfirm(false); setHandoffContext(''); } }}>
+              <div className="chat-widget-form-header">
+                <h3 id="handoff-title" className="chat-widget-form-title">
+                  {t.reportConnectToHuman || 'Chat with a person'}
+                </h3>
+                <p className="chat-widget-form-desc">
+                  {t.handoffConfirmDescription || 'A team member will join this conversation and can see your messages so far.'}
+                </p>
+              </div>
+              <div className="chat-widget-form-fields">
+                <div className="chat-widget-form-field">
+                  <label className="chat-widget-form-label">
+                    {t.reportDetailsHumanHelp || 'What can we help with? (optional)'}
+                  </label>
+                  <textarea
+                    className="chat-widget-handoff-textarea"
+                    rows={3}
+                    value={handoffContext}
+                    onChange={(e) => setHandoffContext(e.target.value)}
+                    placeholder={t.reportDetailsHumanHelp || 'What can we help with? (optional)'}
+                    aria-label="Describe what you need help with"
+                  />
+                </div>
+              </div>
+              <div className="chat-widget-handoff-footer">
+                <button
+                  type="button"
+                  className="chat-widget-form-submit"
+                  disabled={handoffConnecting}
+                  onClick={initiateDirectHandoff}
+                >
+                  {handoffConnecting ? (t.reportConnecting || 'Connecting...') : (t.reportSubmitHumanHelp || 'Connect to support')}
+                </button>
+                <button
+                  type="button"
+                  className="chat-widget-handoff-cancel"
+                  onClick={() => { setShowHandoffConfirm(false); setHandoffContext(''); }}
+                >
+                  {t.cancelLabel || 'Cancel'}
+                </button>
+              </div>
+            </div>
           )}
 
           {/* Survey View */}
@@ -1875,6 +2811,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
               {t.poweredBy} <a href="/" target="_blank" rel="noopener noreferrer">AI SaaS</a>
             </div>
           )}
+          </div>{/* close body-wrapper */}
         </div>
       )}
     </>
@@ -2026,10 +2963,12 @@ function generateStyles(config: WidgetConfig, isInIframe: boolean, isExpanded: b
 
     .chat-widget-bubble {
       max-width: 80%;
+      width: fit-content;
       padding: 12px 16px;
       border-radius: 16px;
       line-height: 1.5;
       word-wrap: break-word;
+      overflow-wrap: break-word;
     }
 
     .chat-widget-bubble-user {
@@ -2116,6 +3055,28 @@ function generateStyles(config: WidgetConfig, isInIframe: boolean, isExpanded: b
     @keyframes typing {
       0%, 60%, 100% { transform: translateY(0); }
       30% { transform: translateY(-8px); }
+    }
+
+    .chat-widget-agent-typing-indicator {
+      font-size: 12px;
+      color: #9ca3af;
+      padding: 2px 4px;
+      display: flex;
+      align-items: center;
+      gap: 1px;
+    }
+
+    .chat-widget-agent-typing-dots span {
+      animation: agentDotPulse 1.4s infinite ease-in-out;
+      font-weight: bold;
+    }
+    .chat-widget-agent-typing-dots span:nth-child(1) { animation-delay: 0s; }
+    .chat-widget-agent-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .chat-widget-agent-typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes agentDotPulse {
+      0%, 60%, 100% { opacity: 0.3; }
+      30% { opacity: 1; }
     }
 
     .chat-widget-input-container {
@@ -2713,6 +3674,360 @@ function generateStyles(config: WidgetConfig, isInIframe: boolean, isExpanded: b
       color: ${config.primaryColor};
     }
 
-    ${config.customCss || ''}
+    /* Report / Escalation */
+    .chat-widget-msg-row .chat-widget-report-btn {
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .chat-widget-msg-row:hover .chat-widget-report-btn {
+      opacity: 0.5;
+    }
+
+    .chat-widget-report-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 12px;
+      margin: -8px;
+      color: #9ca3af;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      border-radius: 4px;
+      transition: color 0.15s, opacity 0.15s;
+      margin-top: -4px;
+    }
+
+    .chat-widget-report-btn:hover:not(:disabled) {
+      color: ${config.primaryColor};
+      opacity: 1 !important;
+    }
+
+    .chat-widget-report-btn:disabled {
+      cursor: default;
+      color: ${config.primaryColor};
+      opacity: 0.7 !important;
+    }
+
+    .chat-widget-report-form {
+      background: ${config.reportBackgroundColor || config.formBackgroundColor || config.backgroundColor} !important;
+      border: 1px solid ${config.reportInputBorderColor || config.formBorderColor || '#e5e7eb'} !important;
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 4px;
+      max-width: 90%;
+      animation: checkinSlideUp 0.2s ease-out;
+    }
+
+    .chat-widget-report-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #9ca3af;
+      padding: 2px;
+      display: flex;
+      align-items: center;
+      border-radius: 4px;
+    }
+
+    .chat-widget-report-close:hover {
+      color: ${config.reportTextColor || config.textColor};
+    }
+
+    .chat-widget-report-reasons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .chat-widget-report-reason-btn {
+      padding: 6px 8px;
+      border: 1px solid ${config.reportInputBorderColor || config.formBorderColor || '#e5e7eb'} !important;
+      border-radius: 6px;
+      background: ${config.reportReasonButtonColor || config.backgroundColor} !important;
+      color: ${config.reportReasonButtonTextColor || config.textColor} !important;
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chat-widget-report-reason-btn:hover {
+      border-color: ${config.reportReasonSelectedColor || config.primaryColor} !important;
+    }
+
+    .chat-widget-report-reason-btn.selected {
+      background: ${config.reportReasonSelectedColor || config.primaryColor} !important;
+      color: ${config.reportReasonSelectedTextColor || '#ffffff'} !important;
+      border-color: ${config.reportReasonSelectedColor || config.primaryColor} !important;
+    }
+
+    .chat-widget-report-textarea {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid ${config.reportInputBorderColor || config.formBorderColor || '#e5e7eb'} !important;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 12px;
+      outline: none;
+      resize: none;
+      margin-bottom: 8px;
+      background: ${config.reportInputBackgroundColor || config.formInputBackgroundColor || config.inputBackgroundColor} !important;
+      background-color: ${config.reportInputBackgroundColor || config.formInputBackgroundColor || config.inputBackgroundColor} !important;
+      color: ${config.reportInputTextColor || config.formInputTextColor || config.inputTextColor} !important;
+      -webkit-text-fill-color: ${config.reportInputTextColor || config.formInputTextColor || config.inputTextColor} !important;
+      box-sizing: border-box;
+    }
+
+    .chat-widget-report-textarea::placeholder {
+      color: ${config.formPlaceholderColor || config.inputPlaceholderColor || '#9ca3b8'} !important;
+      -webkit-text-fill-color: ${config.formPlaceholderColor || config.inputPlaceholderColor || '#9ca3b8'} !important;
+      opacity: 1 !important;
+    }
+
+    .chat-widget-report-textarea:focus {
+      border-color: ${config.reportReasonSelectedColor || config.primaryColor} !important;
+    }
+
+    .chat-widget-report-submit {
+      width: 100%;
+      padding: 7px 12px;
+      border: none;
+      border-radius: 6px;
+      background: ${config.reportSubmitButtonColor || config.primaryColor} !important;
+      color: ${config.reportSubmitButtonTextColor || config.formSubmitButtonTextColor || '#ffffff'} !important;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .chat-widget-report-submit:hover:not(:disabled) {
+      opacity: 0.9;
+    }
+
+    .chat-widget-report-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .chat-widget-report-success {
+      text-align: center;
+      color: ${config.reportTextColor || config.textColor};
+      font-size: 13px;
+      font-weight: 400;
+      padding: 8px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .chat-widget-report-back-btn {
+      background: none;
+      border: none;
+      color: ${config.primaryColor || '#6366f1'};
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .chat-widget-report-back-btn:hover {
+      background: ${config.primaryColor || '#6366f1'}15;
+    }
+
+    /* Body wrapper — positioning context for overlays */
+    .chat-widget-body-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Handoff confirmation — form layout matching other views */
+    .chat-widget-handoff-confirm {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      background: ${config.reportBackgroundColor || config.formBackgroundColor || config.backgroundColor} !important;
+      z-index: 5;
+    }
+    .chat-widget-handoff-confirm .chat-widget-form-title {
+      color: ${config.reportTextColor || config.formTitleColor || config.textColor} !important;
+    }
+    .chat-widget-handoff-confirm .chat-widget-form-desc {
+      color: ${config.reportTextColor || config.formDescriptionColor || '#6b7280'} !important;
+    }
+    .chat-widget-handoff-confirm .chat-widget-form-label {
+      color: ${config.reportTextColor || config.formLabelColor || config.textColor} !important;
+    }
+    .chat-widget-handoff-textarea {
+      width: 100%;
+      border: 1px solid ${config.reportInputBorderColor || config.formBorderColor || '#e5e7eb'} !important;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-family: inherit;
+      color: ${config.reportInputTextColor || config.formInputTextColor || config.inputTextColor} !important;
+      -webkit-text-fill-color: ${config.reportInputTextColor || config.formInputTextColor || config.inputTextColor} !important;
+      background: ${config.reportInputBackgroundColor || config.formInputBackgroundColor || config.inputBackgroundColor} !important;
+      resize: none;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .chat-widget-handoff-textarea::placeholder {
+      color: ${config.formPlaceholderColor || config.inputPlaceholderColor || '#94a3b8'} !important;
+    }
+    .chat-widget-handoff-textarea:focus {
+      border-color: ${config.reportReasonSelectedColor || config.primaryColor};
+      box-shadow: 0 0 0 3px ${config.reportReasonSelectedColor || config.primaryColor}1a;
+    }
+    .chat-widget-handoff-footer {
+      padding: 0 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .chat-widget-handoff-cancel {
+      width: 100%;
+      background: ${config.secondaryButtonColor || 'transparent'};
+      border: 1px solid ${config.secondaryButtonBorderColor || config.reportInputBorderColor || '#d1d5db'};
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      color: ${config.secondaryButtonTextColor || config.reportTextColor || config.textColor};
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .chat-widget-handoff-cancel:hover {
+      background: ${config.reportReasonButtonColor || config.secondaryColor || '#f1f5f9'};
+    }
+
+    /* Handoff active indicator in header */
+    .chat-widget-handoff-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      color: #22c55e;
+      margin-right: 4px;
+      position: relative;
+    }
+    .chat-widget-handoff-indicator::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 8px;
+      height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      border: 2px solid ${(config as any).headerBgColor || config.primaryColor || '#6366f1'};
+    }
+
+    /* Full-view report panel */
+    .chat-widget-report-view {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: ${config.reportBackgroundColor || config.formBackgroundColor || config.backgroundColor} !important;
+    }
+
+    .chat-widget-report-view-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 16px 0;
+    }
+
+    .chat-widget-report-view-body {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .chat-widget-report-view-body .chat-widget-report-reasons {
+      margin-bottom: 12px;
+    }
+
+    .chat-widget-report-view-body .chat-widget-report-reason-btn {
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+
+    .chat-widget-report-view-body .chat-widget-report-textarea {
+      font-size: 13px;
+      padding: 10px 12px;
+    }
+
+    .chat-widget-report-view-footer {
+      padding: 0 16px 16px;
+    }
+
+    .chat-widget-report-view-footer .chat-widget-report-submit {
+      font-size: 13px;
+      padding: 10px 16px;
+    }
+
+    .chat-widget-report-view-success {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+    }
+
+    /* "Connect to human" separated button */
+    .chat-widget-report-human-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      margin-bottom: 12px;
+      border: 2px dashed ${config.reportInputBorderColor || config.formBorderColor || '#e5e7eb'} !important;
+      border-radius: 8px;
+      background: transparent !important;
+      color: ${config.reportTextColor || config.textColor} !important;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .chat-widget-report-human-btn:hover {
+      border-color: ${config.reportReasonSelectedColor || config.primaryColor} !important;
+      color: ${config.reportReasonSelectedColor || config.primaryColor} !important;
+    }
+
+    .chat-widget-report-human-btn.selected {
+      border-style: solid;
+      border-color: ${config.reportReasonSelectedColor || config.primaryColor} !important;
+      background: ${config.reportReasonSelectedColor || config.primaryColor} !important;
+      color: ${config.reportReasonSelectedTextColor || '#ffffff'} !important;
+    }
+
+    ${sanitizeCSS(config.customCss || '')}
   `;
 }

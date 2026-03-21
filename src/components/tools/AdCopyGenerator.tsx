@@ -25,7 +25,9 @@ import {
   Music,
   Image as ImageIcon,
   AlertCircle,
+  Info,
 } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import {
   type AdPlatform,
@@ -266,8 +268,11 @@ export function AdCopyGenerator({
         <CardContent className="space-y-6">
           {/* Platform Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+            <label className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1">
               Platform <span className="text-red-500">*</span>
+              <Tooltip content="Each platform has different character limits and ad field requirements. Copy is optimized for the selected platform.">
+                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+              </Tooltip>
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {PLATFORM_OPTIONS.map((platform) => {
@@ -370,9 +375,12 @@ export function AdCopyGenerator({
             <div className="space-y-2">
               <label
                 htmlFor={`${formId}-tone`}
-                className="text-sm font-medium text-secondary-700 dark:text-secondary-300"
+                className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1"
               >
                 Tone
+                <Tooltip content="Sets the voice of your ad. Urgent for limited offers, Bold for brand statements, Elegant for premium products.">
+                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                </Tooltip>
               </label>
               <Select
                 id={`${formId}-tone`}
@@ -384,9 +392,12 @@ export function AdCopyGenerator({
             <div className="space-y-2">
               <label
                 htmlFor={`${formId}-variations`}
-                className="text-sm font-medium text-secondary-700 dark:text-secondary-300"
+                className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1"
               >
                 Variations
+                <Tooltip content="Generate multiple versions to A/B test. More variations give you more options to compare.">
+                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                </Tooltip>
               </label>
               <Select
                 id={`${formId}-variations`}
@@ -401,9 +412,12 @@ export function AdCopyGenerator({
           <div className="space-y-2">
             <label
               htmlFor={`${formId}-cta`}
-              className="text-sm font-medium text-secondary-700 dark:text-secondary-300"
+              className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1"
             >
               CTA Goal <span className="text-red-500">*</span>
+              <Tooltip content="The action you want viewers to take. This shapes the ad's closing message and button text.">
+                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+              </Tooltip>
             </label>
             <Input
               id={`${formId}-cta`}

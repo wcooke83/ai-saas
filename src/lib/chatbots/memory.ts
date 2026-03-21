@@ -50,11 +50,13 @@ export async function getUserMemory(
     }
   }
 
-  // Update last_accessed timestamp
-  await supabase
+  // Update last_accessed timestamp (fire-and-forget, don't block return)
+  supabase
     .from('conversation_memory')
     .update({ last_accessed: new Date().toISOString() })
-    .eq('id', data.id);
+    .eq('id', data.id)
+    .then(() => {})
+    .catch(() => {});
 
   return {
     ...data,

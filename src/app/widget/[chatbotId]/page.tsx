@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import { ChatWidget } from '@/components/widget/ChatWidget';
-import type { WidgetConfig, Chatbot, PreChatFormConfig, PostChatSurveyConfig, FileUploadConfig, ProactiveMessagesConfig, TranscriptConfig } from '@/lib/chatbots/types';
+import type { WidgetConfig, Chatbot, PreChatFormConfig, PostChatSurveyConfig, FileUploadConfig, ProactiveMessagesConfig, TranscriptConfig, EscalationConfig, LiveHandoffConfig } from '@/lib/chatbots/types';
 
 interface WidgetPageProps {
   params: Promise<{ chatbotId: string }>;
@@ -18,7 +18,11 @@ export default function WidgetPage({ params }: WidgetPageProps) {
     fileUploadConfig?: FileUploadConfig;
     proactiveMessagesConfig?: ProactiveMessagesConfig;
     transcriptConfig?: TranscriptConfig;
+    escalationConfig?: EscalationConfig;
+    liveHandoffConfig?: LiveHandoffConfig;
+    agentsAvailable?: boolean;
     memoryEnabled?: boolean;
+    sessionTtlHours?: number;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,10 +53,11 @@ export default function WidgetPage({ params }: WidgetPageProps) {
         // Add cache-busting to ensure fresh config
         const cacheBuster = Date.now();
         const response = await fetch(`/api/widget/${chatbotId}/config?_t=${cacheBuster}`);
-        if (!response.ok) {
-          throw new Error('Chatbot not found or not available');
-        }
         const data = await response.json();
+        if (!response.ok) {
+          const detail = data?.error?.details || data?.error?.message || `HTTP ${response.status}`;
+          throw new Error(detail);
+        }
         setConfig(data.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load chatbot');
@@ -98,7 +103,11 @@ export default function WidgetPage({ params }: WidgetPageProps) {
       fileUploadConfig={config.fileUploadConfig}
       proactiveMessagesConfig={config.proactiveMessagesConfig}
       transcriptConfig={config.transcriptConfig}
+      escalationConfig={config.escalationConfig}
+      liveHandoffConfig={config.liveHandoffConfig}
+      agentsAvailable={config.agentsAvailable === true}
       memoryEnabled={config.memoryEnabled === true}
+      sessionTtlHours={config.sessionTtlHours}
       userData={userData}
       userContext={userContext}
     />

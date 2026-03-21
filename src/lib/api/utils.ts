@@ -167,8 +167,15 @@ export async function parseBody<T>(
   req: NextRequest,
   schema: ZodSchema<T>
 ): Promise<T> {
+  let body: unknown;
   try {
-    const body = await req.json();
+    body = await req.json();
+  } catch (jsonError) {
+    console.error('[parseBody] Failed to parse JSON:', jsonError instanceof Error ? jsonError.message : jsonError);
+    console.error('[parseBody] Content-Type:', req.headers.get('content-type'));
+    throw new APIError('Invalid JSON body', 400, 'INVALID_JSON');
+  }
+  try {
     return schema.parse(body);
   } catch (error) {
     if (error instanceof ZodError) {
@@ -179,7 +186,7 @@ export async function parseBody<T>(
         { issues: error.errors }
       );
     }
-    throw new APIError('Invalid JSON body', 400, 'INVALID_JSON');
+    throw error;
   }
 }
 

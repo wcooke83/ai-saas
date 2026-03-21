@@ -21,7 +21,9 @@ import {
   ChevronDown,
   User,
   CheckSquare,
+  Info,
 } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import {
   type MeetingType,
@@ -230,9 +232,12 @@ export function MeetingNotesSummarizer({
           <div className="space-y-2">
             <label
               htmlFor={meetingTypeId}
-              className="text-sm font-medium text-secondary-700 dark:text-secondary-300"
+              className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1"
             >
               Meeting Type
+              <Tooltip content="Tailors the summary structure. Standups focus on status updates, Sales on next steps, Interviews on candidate evaluation.">
+                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+              </Tooltip>
             </label>
             <Select
               id={meetingTypeId}
@@ -247,9 +252,12 @@ export function MeetingNotesSummarizer({
             <div className="flex items-center justify-between">
               <label
                 htmlFor={transcriptId}
-                className="text-sm font-medium text-secondary-700 dark:text-secondary-300"
+                className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1"
               >
                 Transcript <span className="text-red-500">*</span>
+                <Tooltip content="Paste raw text or upload a VTT/SRT subtitle file. Timestamps are automatically stripped from subtitle files.">
+                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                </Tooltip>
               </label>
               <div className="flex items-center gap-2">
                 <input
@@ -296,8 +304,11 @@ Sarah: I need access to the staging environment."
 
           {/* Sections to include */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+            <label className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1">
               Sections to Include
+              <Tooltip content="Choose which sections appear in the summary. Summary is always included. Default sections change based on meeting type.">
+                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+              </Tooltip>
             </label>
             <div className="grid gap-2 sm:grid-cols-2">
               {ALL_SECTIONS.map((section) => {
@@ -386,10 +397,13 @@ Sarah: I need access to the staging environment."
           <div className="space-y-2">
             <label
               htmlFor={contextId}
-              className="text-sm font-medium text-secondary-700 dark:text-secondary-300"
+              className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1"
             >
               Additional Context
-              <span className="ml-1 text-xs text-secondary-500 font-normal">(optional)</span>
+              <span className="text-xs text-secondary-500 font-normal">(optional)</span>
+              <Tooltip content="Add project names, acronyms, or team context to help the AI produce more accurate summaries.">
+                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+              </Tooltip>
             </label>
             <Textarea
               id={contextId}

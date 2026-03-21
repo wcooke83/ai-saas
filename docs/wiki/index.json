@@ -1,6 +1,35 @@
 {
   "categories": [
     {
+      "id": "getting-started",
+      "title": "Getting Started",
+      "icon": "Rocket",
+      "description": "Quick start guides and tutorials",
+      "pages": [
+        {
+          "id": "getting-started",
+          "file": "getting-started.md",
+          "title": "Getting Started",
+          "description": "A quick-start guide to setting up your first chatbot, connecting a knowledge base, and deploying it on your website",
+          "order": 1
+        },
+        {
+          "id": "deploying-your-chatbot",
+          "file": "deploying-your-chatbot.md",
+          "title": "Deploying Your Chatbot",
+          "description": "Learn how to embed your chatbot on any website using the JavaScript widget, iframe, or REST API",
+          "order": 2
+        },
+        {
+          "id": "credits-usage-guide",
+          "file": "credits-usage-guide.md",
+          "title": "Understanding Credits & Usage",
+          "description": "Learn how credits work, what consumes them, and how to monitor your usage across AI tools and chatbots",
+          "order": 3
+        }
+      ]
+    },
+    {
       "id": "chatbot-features",
       "title": "Chatbot Features",
       "icon": "Bot",
@@ -26,15 +55,100 @@
           "title": "Customizing Widget Appearance",
           "description": "Learn how to customize the chatbot widget to match your brand with colors, positioning, and styling options",
           "order": 3
+        },
+        {
+          "id": "telegram-live-handoff",
+          "file": "telegram-live-handoff.md",
+          "title": "Telegram Live Handoff",
+          "description": "Connect your chatbot to Telegram so visitors can be handed off to human agents in real-time",
+          "order": 4
+        },
+        {
+          "id": "knowledge-base-guide",
+          "file": "knowledge-base-guide.md",
+          "title": "Knowledge Base Guide",
+          "description": "Learn how to build and manage your chatbot's knowledge base with URLs, text, and Q&A sources",
+          "order": 5
+        },
+        {
+          "id": "sentiment-loyalty-guide",
+          "file": "sentiment-loyalty-guide.md",
+          "title": "Sentiment & Loyalty Analysis",
+          "description": "Understand how AI-powered sentiment analysis and visitor loyalty tracking work for your chatbot conversations",
+          "order": 6
+        },
+        {
+          "id": "leads-conversations-guide",
+          "file": "leads-conversations-guide.md",
+          "title": "Leads & Conversations",
+          "description": "Learn how to collect visitor information through pre-chat forms and manage conversation history",
+          "order": 7
+        },
+        {
+          "id": "surveys-guide",
+          "file": "surveys-guide.md",
+          "title": "Post-Chat Surveys",
+          "description": "Learn how to configure post-chat surveys, collect visitor feedback, and analyze rating data",
+          "order": 8
+        },
+        {
+          "id": "escalations-guide",
+          "file": "escalations-guide.md",
+          "title": "Escalations & Reporting",
+          "description": "Learn how conversation escalations work, including visitor-reported issues and live agent handoff",
+          "order": 9
         }
       ]
     },
     {
-      "id": "getting-started",
-      "title": "Getting Started",
-      "icon": "Rocket",
-      "description": "Quick start guides and tutorials",
-      "pages": []
+      "id": "ai-tools",
+      "title": "AI Tools",
+      "icon": "Sparkles",
+      "description": "Guides for each AI content generation tool",
+      "pages": [
+        {
+          "id": "email-writer-guide",
+          "file": "email-writer-guide.md",
+          "title": "Email Writer",
+          "description": "Generate professional emails with AI — cold outreach, follow-ups, introductions, and more with customizable tone and structure",
+          "order": 1
+        },
+        {
+          "id": "proposal-generator-guide",
+          "file": "proposal-generator-guide.md",
+          "title": "Proposal Generator",
+          "description": "Create professional business proposals with AI — sales, RFP responses, project, and technical proposals with export to PDF and Word",
+          "order": 2
+        },
+        {
+          "id": "blog-writer-guide",
+          "file": "blog-writer-guide.md",
+          "title": "Blog Writer",
+          "description": "Generate SEO-optimized blog posts with AI — from outline to full article with customizable format, tone, and word count",
+          "order": 3
+        },
+        {
+          "id": "meeting-summarizer-guide",
+          "file": "meeting-summarizer-guide.md",
+          "title": "Meeting Summarizer",
+          "description": "Transform meeting transcripts into structured summaries with action items, key decisions, and attendee lists using AI",
+          "order": 4
+        },
+        {
+          "id": "ad-copy-guide",
+          "file": "ad-copy-guide.md",
+          "title": "Ad Copy Generator",
+          "description": "Create platform-optimized ad copy for Google, Meta, LinkedIn, Twitter, TikTok, and Pinterest with character limit validation",
+          "order": 5
+        },
+        {
+          "id": "social-post-guide",
+          "file": "social-post-guide.md",
+          "title": "Social Post Generator",
+          "description": "Create platform-optimized social media posts for LinkedIn, Twitter, Instagram, and TikTok with hashtags and multiple variations",
+          "order": 6
+        }
+      ]
     },
     {
       "id": "api-integration",

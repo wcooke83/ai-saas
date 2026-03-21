@@ -17,18 +17,23 @@ import {
   ChevronRight,
   Mail,
   X,
+  Settings,
+  Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SortableTable, Column } from '@/components/ui/sortable-table';
+import { H1 } from '@/components/ui/heading';
 import { LeadDetailDialog } from '@/components/leads/lead-detail-dialog';
 import { ConversationDetailDialog } from '@/components/leads/conversation-detail-dialog';
 import { generateLeadsCsv, generateConversationsCsv, downloadCsv } from '@/lib/leads/export';
 
 interface Lead {
+  [key: string]: unknown;
   id: string;
   session_id: string;
   form_data: Record<string, string>;
@@ -36,6 +41,7 @@ interface Lead {
 }
 
 interface Conversation {
+  [key: string]: unknown;
   id: string;
   session_id: string;
   channel: string;
@@ -47,6 +53,11 @@ interface Conversation {
 
 interface ChatbotLeadsPageProps {
   params: Promise<{ id: string }>;
+}
+
+interface PreChatFormConfig {
+  enabled: boolean;
+  [key: string]: unknown;
 }
 
 function formatTimeAgo(dateString: string) {
@@ -96,12 +107,21 @@ export default function ChatbotLeadsPage({ params }: ChatbotLeadsPageProps) {
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
+  const [preChatFormEnabled, setPreChatFormEnabled] = useState<boolean | null>(null);
 
   useEffect(() => {
     async function fetchData() {
       try {
         setLoading(true);
-        
+
+        // Fetch chatbot info to check pre-chat form config
+        const chatbotRes = await fetch(`/api/chatbots/${chatbotId}`);
+        if (chatbotRes.ok) {
+          const chatbotData = await chatbotRes.json();
+          const config = chatbotData.data?.chatbot?.pre_chat_form_config as PreChatFormConfig | undefined;
+          setPreChatFormEnabled(config?.enabled ?? false);
+        }
+
         // Fetch leads
         const leadsResponse = await fetch(`/api/chatbots/${chatbotId}/leads?limit=100`);
         if (!leadsResponse.ok) {
@@ -396,9 +416,9 @@ export default function ChatbotLeadsPage({ params }: ChatbotLeadsPageProps) {
             <ArrowLeft className="w-4 h-4 mr-1" />
             Back to Chatbot
           </Link>
-          <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+          <H1 variant="dashboard">
             Leads & Conversations
-          </h1>
+          </H1>
           <p className="text-secondary-600 dark:text-secondary-400 mt-1">
             View pre-chat form submissions and chat history
           </p>
@@ -422,7 +442,12 @@ export default function ChatbotLeadsPage({ params }: ChatbotLeadsPageProps) {
           <CardContent className="p-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-secondary-500">Total Leads</p>
+                <p className="text-sm text-secondary-500 flex items-center gap-1">
+                  Total Leads
+                  <Tooltip content="Visitors who submitted the pre-chat form before starting a conversation.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-1">
                   {stats.totalLeads}
                 </p>
@@ -443,7 +468,12 @@ export default function ChatbotLeadsPage({ params }: ChatbotLeadsPageProps) {
           <CardContent className="p-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-secondary-500">Total Conversations</p>
+                <p className="text-sm text-secondary-500 flex items-center gap-1">
+                  Total Conversations
+                  <Tooltip content="All chat sessions, including those from visitors who skipped the pre-chat form.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-1">
                   {stats.totalConversations}
                 </p>
@@ -464,7 +494,12 @@ export default function ChatbotLeadsPage({ params }: ChatbotLeadsPageProps) {
           <CardContent className="p-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-secondary-500">Today's Activity</p>
+                <p className="text-sm text-secondary-500 flex items-center gap-1">
+                  Today&apos;s Activity
+                  <Tooltip content="Combined total of leads and conversations from the last 24 hours.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-1">
                   {stats.todayLeads + stats.todayConversations}
                 </p>
@@ -486,7 +521,12 @@ export default function ChatbotLeadsPage({ params }: ChatbotLeadsPageProps) {
           <CardContent className="p-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-secondary-500">Conversion Rate</p>
+                <p className="text-sm text-secondary-500 flex items-center gap-1">
+                  Conversion Rate
+                  <Tooltip content="Percentage of conversations where the visitor also submitted the pre-chat form.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-1">
                   {stats.totalConversations > 0
                     ? `${Math.round((stats.totalLeads / stats.totalConversations) * 100)}%`
@@ -552,22 +592,47 @@ export default function ChatbotLeadsPage({ params }: ChatbotLeadsPageProps) {
         <TabsContent value="leads" className="mt-4">
           <Card>
             <CardContent className="p-4">
-              <SortableTable
-                data={filteredLeads}
-                columns={leadColumns}
-                keyExtractor={(lead) => lead.id}
-                defaultSortKey="created_at"
-                defaultSortDirection="desc"
-                searchable={true}
-                searchPlaceholder="Search by name, email, or form data..."
-                paginated={true}
-                defaultPageSize={10}
-                emptyMessage="No leads found. Pre-chat form submissions will appear here."
-                onRowClick={(lead) => {
-                  setSelectedLead(lead);
-                  setLeadDialogOpen(true);
-                }}
-              />
+              {filteredLeads.length > 0 ? (
+                <SortableTable
+                  data={filteredLeads}
+                  columns={leadColumns}
+                  keyExtractor={(lead) => lead.id}
+                  defaultSortKey="created_at"
+                  defaultSortDirection="desc"
+                  searchable={true}
+                  searchPlaceholder="Search by name, email, or form data..."
+                  paginated={true}
+                  defaultPageSize={10}
+                  emptyMessage="No leads match your search."
+                  onRowClick={(lead) => {
+                    setSelectedLead(lead);
+                    setLeadDialogOpen(true);
+                  }}
+                />
+              ) : (
+                <div className="text-center py-12">
+                  <div className="p-4 bg-secondary-50 dark:bg-secondary-800/50 rounded-full inline-block mb-4">
+                    <Users className="w-8 h-8 text-secondary-400" />
+                  </div>
+                  {preChatFormEnabled === false ? (
+                    <>
+                      <p className="text-secondary-600 dark:text-secondary-400 mb-3">
+                        No leads yet. Enable the pre-chat form in Settings to start collecting visitor information.
+                      </p>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/dashboard/chatbots/${chatbotId}/settings`}>
+                          <Settings className="w-4 h-4 mr-2" />
+                          Go to Settings
+                        </Link>
+                      </Button>
+                    </>
+                  ) : (
+                    <p className="text-secondary-600 dark:text-secondary-400">
+                      No leads collected yet. Leads will appear here when visitors fill out the pre-chat form.
+                    </p>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

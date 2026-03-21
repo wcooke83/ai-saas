@@ -36,9 +36,13 @@ const updateChatbotSchema = z.object({
   language: z.string().max(10).optional(),
   memory_enabled: z.boolean().optional(),
   memory_days: z.number().min(0).max(365).optional(),
+  session_ttl_hours: z.number().min(1).max(720).optional(),
   file_upload_config: z.record(z.unknown()).optional(),
   proactive_messages_config: z.record(z.unknown()).optional(),
   transcript_config: z.record(z.unknown()).optional(),
+  escalation_config: z.record(z.unknown()).optional(),
+  live_handoff_config: z.record(z.unknown()).optional(),
+  telegram_config: z.record(z.unknown()).optional(),
 });
 
 interface RouteParams {

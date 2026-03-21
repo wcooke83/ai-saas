@@ -35,19 +35,16 @@ export async function fetchPinnedUrlContent(
     return '';
   }
 
-  // Step 1: For each pinned URL, extract all links from the page
-  const allLinks: PageLink[] = [];
-
-  for (const url of pinnedUrls) {
-    console.log(`[Live Fetch] Extracting links from pinned URL: ${url}`);
-    const links = await extractLinksFromUrl(url);
-    if (links.length > 0) {
+  // Step 1: For each pinned URL, extract all links from the page (in parallel)
+  const linkResults = await Promise.all(
+    pinnedUrls.map(async (url) => {
+      console.log(`[Live Fetch] Extracting links from pinned URL: ${url}`);
+      const links = await extractLinksFromUrl(url);
       console.log(`[Live Fetch] Found ${links.length} links on ${url}`);
-      allLinks.push(...links);
-    } else {
-      console.log(`[Live Fetch] No links found on ${url}`);
-    }
-  }
+      return links;
+    })
+  );
+  const allLinks: PageLink[] = linkResults.flat();
 
   if (allLinks.length === 0) {
     console.log('[Live Fetch] No links found on any pinned URL');
@@ -107,34 +104,35 @@ ${linkList}`;
     return '';
   }
 
-  // Step 3: Fetch the picked pages via Jina Reader — send full page to AI
+  // Step 3: Fetch the picked pages via Jina Reader in parallel
+  const fetchResults = await Promise.all(
+    aiPickedUrls.slice(0, 2).map(async (url) => {
+      try {
+        let content = await extractURL(url);
+        if (!content || content.trim().length < 50) return null;
+
+        console.log(`[Live Fetch] Fetched ${url}: ${content.length} chars raw`);
+        content = cleanContent(content);
+        console.log(`[Live Fetch] After cleaning: ${content.length} chars`);
+        return content;
+      } catch (err) {
+        console.warn(`[Live Fetch] Failed to fetch ${url}:`, err);
+        return null;
+      }
+    })
+  );
+
+  // Assemble results respecting char limit
   const results: string[] = [];
   let totalChars = 0;
-
-  for (const url of aiPickedUrls.slice(0, 2)) {
-    if (totalChars >= MAX_CONTENT_CHARS) break;
-
-    try {
-      let content = await extractURL(url);
-      if (!content || content.trim().length < 50) continue;
-
-      console.log(`[Live Fetch] Fetched ${url}: ${content.length} chars raw`);
-
-      // Clean content: remove markdown images and excessive whitespace
-      content = cleanContent(content);
-      console.log(`[Live Fetch] After cleaning: ${content.length} chars`);
-
-      // Cap to stay within limits
-      const remaining = MAX_CONTENT_CHARS - totalChars;
-      if (content.length > remaining) {
-        content = content.substring(0, remaining) + '\n[...truncated]';
-      }
-
-      results.push(content);
-      totalChars += content.length;
-    } catch (err) {
-      console.warn(`[Live Fetch] Failed to fetch ${url}:`, err);
-    }
+  for (const content of fetchResults) {
+    if (!content || totalChars >= MAX_CONTENT_CHARS) continue;
+    const remaining = MAX_CONTENT_CHARS - totalChars;
+    const trimmed = content.length > remaining
+      ? content.substring(0, remaining) + '\n[...truncated]'
+      : content;
+    results.push(trimmed);
+    totalChars += trimmed.length;
   }
 
   if (results.length === 0) return '';

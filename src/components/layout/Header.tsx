@@ -19,6 +19,7 @@ export interface NavItem {
 
 const defaultNavItems: NavItem[] = [
   { label: 'Tools', href: '/tools' },
+  { label: 'Docs', href: '/wiki' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'SDK', href: '/sdk' },
   { label: 'FAQ', href: '/faq' },
@@ -32,6 +33,7 @@ const menuLinks = {
     { label: 'Dashboard', href: '/dashboard' },
   ],
   resources: [
+    { label: 'Documentation', href: '/wiki' },
     { label: 'Help Center', href: '/help' },
     { label: 'FAQ', href: '/faq' },
   ],

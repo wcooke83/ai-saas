@@ -14,13 +14,16 @@ import {
   Calendar,
   Hash,
   TrendingUp,
+  Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip } from '@/components/ui/tooltip';
 import { SortableTable, Column } from '@/components/ui/sortable-table';
 import { SurveyDetailDialog } from '@/components/surveys/survey-detail-dialog';
+import { H1 } from '@/components/ui/heading';
 import type { SurveyResponse, SurveyStats, Chatbot } from '@/lib/chatbots/types';
 
 interface ChatbotSurveysPageProps {
@@ -348,9 +351,9 @@ export default function ChatbotSurveysPage({ params }: ChatbotSurveysPageProps) 
             <ArrowLeft className="w-4 h-4 mr-1" />
             Back to Chatbot
           </Link>
-          <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+          <H1 variant="dashboard">
             Survey Results
-          </h1>
+          </H1>
           <p className="text-secondary-600 dark:text-secondary-400 mt-1">
             View post-chat survey responses for {chatbot?.name}
           </p>
@@ -423,8 +426,11 @@ export default function ChatbotSurveysPage({ params }: ChatbotSurveysPageProps) 
                 <ClipboardList className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-sm text-secondary-500 dark:text-secondary-400">
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                   Total Responses
+                  <Tooltip content="Number of completed post-chat survey submissions from visitors.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
                 </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                   {stats?.total_responses || 0}
@@ -441,8 +447,11 @@ export default function ChatbotSurveysPage({ params }: ChatbotSurveysPageProps) 
                 <Star className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
               </div>
               <div>
-                <p className="text-sm text-secondary-500 dark:text-secondary-400">
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                   Average Rating
+                  <Tooltip content="Mean star rating (1-5) across all survey responses that include a rating question.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
                 </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                   {stats?.avg_rating?.toFixed(1) || 'N/A'}
@@ -465,8 +474,11 @@ export default function ChatbotSurveysPage({ params }: ChatbotSurveysPageProps) 
                 <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-sm text-secondary-500 dark:text-secondary-400">
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                   Recent (7 days)
+                  <Tooltip content="Survey responses received in the last 7 days, regardless of the date filter above.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
                 </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                   {recentStats.recentResponses}
@@ -483,8 +495,11 @@ export default function ChatbotSurveysPage({ params }: ChatbotSurveysPageProps) 
                 <MessageSquare className="w-6 h-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
-                <p className="text-sm text-secondary-500 dark:text-secondary-400">
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                   Survey Status
+                  <Tooltip content="Whether the post-chat survey is currently enabled in your chatbot settings.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
                 </p>
                 <p className="text-lg font-bold text-secondary-900 dark:text-secondary-100">
                   {hasSurveyConfig ? (
@@ -511,7 +526,12 @@ export default function ChatbotSurveysPage({ params }: ChatbotSurveysPageProps) 
               <Star className="w-5 h-5 text-yellow-500" />
               Rating Distribution
             </CardTitle>
-            <CardDescription>Breakdown of ratings across all responses</CardDescription>
+            <CardDescription className="flex items-center gap-1">
+              Breakdown of ratings across all responses
+              <Tooltip content="Shows how many visitors gave each star rating. Taller bars indicate more common ratings.">
+                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+              </Tooltip>
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <RatingDistributionChart distribution={stats.rating_distribution} />
@@ -549,11 +569,23 @@ export default function ChatbotSurveysPage({ params }: ChatbotSurveysPageProps) 
               <div className="p-4 bg-secondary-50 dark:bg-secondary-800/50 rounded-full inline-block mb-4">
                 <ClipboardList className="w-8 h-8 text-secondary-400" />
               </div>
-              <p className="text-secondary-600 dark:text-secondary-400">
-                {hasSurveyConfig
-                  ? 'No survey responses yet. Responses will appear here when users complete the post-chat survey.'
-                  : 'Enable the post-chat survey in settings to start collecting responses.'}
-              </p>
+              {hasSurveyConfig ? (
+                <p className="text-secondary-600 dark:text-secondary-400">
+                  No survey responses yet. Responses will appear here after visitors complete conversations.
+                </p>
+              ) : (
+                <>
+                  <p className="text-secondary-600 dark:text-secondary-400 mb-3">
+                    No survey responses yet. Enable the post-chat survey in Settings to start collecting feedback.
+                  </p>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/dashboard/chatbots/${chatbotId}/settings`}>
+                      <ClipboardList className="w-4 h-4 mr-2" />
+                      Go to Settings
+                    </Link>
+                  </Button>
+                </>
+              )}
             </div>
           )}
         </CardContent>

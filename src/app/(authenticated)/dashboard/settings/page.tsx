@@ -42,6 +42,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { H1 } from '@/components/ui/heading';
 import type { Database } from '@/types/database';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -385,7 +386,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">Settings</h1>
+        <H1 variant="dashboard">Settings</H1>
         <p className="text-secondary-600 dark:text-secondary-400">Manage your account settings and preferences</p>
       </div>
 

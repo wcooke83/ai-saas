@@ -4,12 +4,14 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/admin';
-import { generateQueryEmbedding, isEmbeddingsAvailable } from './knowledge/embeddings';
+import { generateQueryEmbedding, isEmbeddingsAvailable, resolveEmbeddingConfig, type EmbeddingConfig, type EmbeddingProvider } from './knowledge/embeddings';
 import { fetchPinnedUrlContent } from './knowledge/live-fetch';
 import { getLanguageName } from './translations';
 import type { Chatbot, Message, KnowledgeChunkMatch } from './types';
 
 const LOW_CONFIDENCE_THRESHOLD = 0.9;
+
+interface StageSpan { start: number; end: number }
 
 export interface RAGContext {
   chunks: KnowledgeChunkMatch[];
@@ -17,6 +19,9 @@ export interface RAGContext {
   contextText: string;
   confidence: number;
   pinnedUrls: string[];
+  perfTimings?: Record<string, number>;
+  /** Per-stage start/end timings (ms relative to RAG start) */
+  stageTimings?: Record<string, StageSpan>;
 }
 
 /**
@@ -28,6 +33,18 @@ export async function getRAGContext(
   maxChunks: number = 5,
   similarityThreshold: number = 0.7
 ): Promise<RAGContext> {
+  const _rt0 = Date.now();
+  const _timingsRag: Record<string, number> = {};
+  const _rperf = (label: string) => {
+    const ms = Date.now() - _rt0;
+    _timingsRag[label] = ms;
+    console.log(`[RAG:Perf] ${label}: ${ms}ms`);
+  };
+  // Per-stage start/end tracking (relative to _rt0)
+  const _ragStages: Record<string, StageSpan> = {};
+  const _rs = (label: string) => { _ragStages[label] = { start: Date.now() - _rt0, end: 0 }; };
+  const _re = (label: string) => { if (_ragStages[label]) _ragStages[label].end = Date.now() - _rt0; };
+
   // Skip RAG if embeddings are not available (no embedding-capable provider)
   if (!(await isEmbeddingsAvailable())) {
     console.log('[RAG] Skipping RAG - no embedding-capable AI provider available');
@@ -42,35 +59,59 @@ export async function getRAGContext(
 
   const supabase = createAdminClient() as any;
 
-  // Fetch priority source chunks and similarity-matched chunks in parallel
-  const queryEmbedding = await generateQueryEmbedding(query);
+  // Look up what embedding model was used for this chatbot's chunks + priority sources in parallel
+  _rperf('start');
+  _rs('embedding');
+  const [{ data: sourceEmbeddingInfo }, { data: prioritySources }] = await Promise.all([
+    supabase
+      .from('knowledge_sources')
+      .select('embedding_provider, embedding_model')
+      .eq('chatbot_id', chatbot.id)
+      .not('embedding_provider', 'is', null)
+      .limit(1),
+    supabase
+      .from('knowledge_sources')
+      .select('id, url, name, is_priority')
+      .eq('chatbot_id', chatbot.id)
+      .eq('is_priority', true),
+  ]);
 
-  // First, find priority sources (IDs + URLs)
-  const { data: prioritySources, error: priorityError } = await supabase
-    .from('knowledge_sources')
-    .select('id, url, name, is_priority')
-    .eq('chatbot_id', chatbot.id)
-    .eq('is_priority', true);
+  // Determine the correct embedding config: must match what chunks were embedded with
+  let queryEmbeddingConfig: EmbeddingConfig | undefined;
+  if (sourceEmbeddingInfo?.[0]?.embedding_provider) {
+    queryEmbeddingConfig = {
+      provider: sourceEmbeddingInfo[0].embedding_provider as EmbeddingProvider,
+      model: sourceEmbeddingInfo[0].embedding_model,
+      dimensions: 1536,
+    };
+    // Warn if there's a mismatch with current config
+    const currentConfig = await resolveEmbeddingConfig();
+    if (currentConfig && currentConfig.provider !== queryEmbeddingConfig.provider) {
+      console.warn(
+        `[RAG] Embedding model mismatch detected! Chunks use ${queryEmbeddingConfig.provider}/${queryEmbeddingConfig.model}, ` +
+        `config says ${currentConfig.provider}/${currentConfig.model}. Using chunk model for query to ensure compatibility.`
+      );
+    }
+  } else {
+    // No recorded model — legacy chunks were all embedded with OpenAI ada-002
+    const hasOpenAI = process.env.OPENAI_API_KEY?.startsWith('sk-');
+    if (hasOpenAI) {
+      console.log('[RAG] No embedding model recorded on sources, defaulting to OpenAI ada-002 (legacy chunks)');
+      queryEmbeddingConfig = { provider: 'openai', model: 'text-embedding-ada-002', dimensions: 1536 };
+    }
+  }
 
-  console.log(`[RAG] Priority sources query for chatbot ${chatbot.id}:`, {
-    error: priorityError?.message || null,
-    count: prioritySources?.length || 0,
-    sources: prioritySources,
-  });
+  const queryEmbedding = await generateQueryEmbedding(query, queryEmbeddingConfig);
+  _re('embedding');
 
-  // Also log ALL sources for this chatbot to debug
-  const { data: allSources } = await supabase
-    .from('knowledge_sources')
-    .select('id, url, name, type, is_priority')
-    .eq('chatbot_id', chatbot.id);
-  console.log(`[RAG] ALL sources for chatbot:`, allSources);
-
+  _rperf('embedding_and_priority_sources');
   const prioritySourceIds: string[] = (prioritySources || []).map((s: { id: string }) => s.id);
   const pinnedUrls: { url: string; name: string }[] = (prioritySources || [])
     .filter((s: any) => s.url)
     .map((s: any) => ({ url: s.url, name: s.name || s.url }));
 
   // Fetch similarity chunks and priority chunks in parallel
+  _rs('similarity');
   const queries: [Promise<any>, Promise<any>] = [
     supabase.rpc('match_knowledge_chunks', {
       p_chatbot_id: chatbot.id,
@@ -78,17 +119,19 @@ export async function getRAGContext(
       p_match_threshold: similarityThreshold,
       p_match_count: maxChunks,
     }),
-    // Only query priority chunks if there are priority sources
     prioritySourceIds.length > 0
       ? supabase
           .from('knowledge_chunks')
           .select('id, content, metadata')
           .eq('chatbot_id', chatbot.id)
           .in('source_id', prioritySourceIds)
+          .limit(30)
       : Promise.resolve({ data: [], error: null }),
   ];
 
   const [similarityResult, priorityResult] = await Promise.all(queries);
+  _re('similarity');
+  _rperf('similarity_and_chunks');
 
   if (similarityResult.error) {
     console.error('RAG similarity search error:', similarityResult.error);
@@ -127,6 +170,7 @@ export async function getRAGContext(
 
   // If confidence is low and we have pinned URLs, fetch relevant content
   let liveContent = '';
+  _rs('live_fetch');
   if (bestSimilarity < LOW_CONFIDENCE_THRESHOLD && pinnedUrls.length > 0) {
     console.log(`[RAG] Low confidence (${bestSimilarity.toFixed(3)} < ${LOW_CONFIDENCE_THRESHOLD}), fetching pinned URLs...`);
     try {
@@ -146,7 +190,10 @@ export async function getRAGContext(
     console.log(`[RAG] Skipping pinned URL fetch (confidence ${bestSimilarity.toFixed(3)} >= ${LOW_CONFIDENCE_THRESHOLD} OR no pinned URLs)`);
   }
 
+  _re('live_fetch');
+  _rperf('live_fetch_done');
   // Format context text - if confidence is 0.0 with live content, skip RAG chunks (they're just noise)
+  _rs('formatting');
   const parts: string[] = [];
 
   if (mergedChunks.length > 0 && bestSimilarity > 0) {
@@ -165,12 +212,17 @@ export async function getRAGContext(
 
   const contextText = parts.join('\n\n');
 
+  _re('formatting');
+  _rperf('complete');
+  console.log('[RAG:Perf] stageTimings:', JSON.stringify(_ragStages));
   return {
     chunks: mergedChunks,
     systemPrompt: chatbot.system_prompt,
     contextText,
     confidence: bestSimilarity,
     pinnedUrls: pinnedUrls.map((p) => p.url),
+    perfTimings: { ..._timingsRag },
+    stageTimings: { ..._ragStages },
   };
 }
 
@@ -224,8 +276,22 @@ User: ${userMessage}`);
 }
 
 /**
+ * Sanitize a string value to strip common prompt injection patterns.
+ */
+function sanitizeContextValue(value: string): string {
+  return value
+    .replace(/ignore\s+(all\s+)?(previous|above|prior)\s+(instructions|rules|prompts)/gi, '[filtered]')
+    .replace(/you\s+are\s+now\s+a?\s*/gi, '[filtered]')
+    .replace(/forget\s+(your|all)\s+(rules|instructions|prompts)/gi, '[filtered]')
+    .replace(/reveal\s+(your|the)\s+(system\s+)?prompt/gi, '[filtered]')
+    .replace(/##\s+/g, '')
+    .replace(/\n{3,}/g, '\n\n');
+}
+
+/**
  * Format arbitrary user context data into readable text for system prompt.
  * Handles nested objects and arrays, capped at ~8KB to prevent prompt bloat.
+ * Sanitizes values to mitigate prompt injection from host site data.
  */
 function formatUserContext(context: Record<string, unknown>, indent = 0, maxDepth = 3): string {
   if (indent >= maxDepth) return '  '.repeat(indent) + '(...)';
@@ -233,16 +299,16 @@ function formatUserContext(context: Record<string, unknown>, indent = 0, maxDept
   const prefix = '  '.repeat(indent);
 
   for (const [key, value] of Object.entries(context)) {
-    const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const label = sanitizeContextValue(key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
     if (value === null || value === undefined) {
       lines.push(`${prefix}- ${label}: N/A`);
     } else if (Array.isArray(value)) {
       lines.push(`${prefix}- ${label}:`);
       for (const item of value.slice(0, 10)) {
         if (typeof item === 'object' && item !== null) {
-          lines.push(`${prefix}  - ${Object.entries(item).map(([k, v]) => `${k}: ${v}`).join(', ')}`);
+          lines.push(`${prefix}  - ${Object.entries(item).map(([k, v]) => `${k}: ${sanitizeContextValue(String(v))}`).join(', ')}`);
         } else {
-          lines.push(`${prefix}  - ${item}`);
+          lines.push(`${prefix}  - ${sanitizeContextValue(String(item))}`);
         }
       }
       if (value.length > 10) lines.push(`${prefix}  ... and ${value.length - 10} more`);
@@ -250,7 +316,7 @@ function formatUserContext(context: Record<string, unknown>, indent = 0, maxDept
       lines.push(`${prefix}- ${label}:`);
       lines.push(formatUserContext(value as Record<string, unknown>, indent + 1, maxDepth));
     } else {
-      lines.push(`${prefix}- ${label}: ${value}`);
+      lines.push(`${prefix}- ${label}: ${sanitizeContextValue(String(value))}`);
     }
   }
 
@@ -364,14 +430,22 @@ Your default language is English. If a user asks you to switch languages (e.g., 
 
 1. NEVER say "check the website", "visit the website", "go to the website", or any variation. You ARE the website assistant — telling users to check the website defeats your purpose.
 2. NEVER mention "context", "knowledge base", "information provided to me", "the data I have", or reference your internal workings in any way.
-3. When Reference Information is provided (marked as [Live] or numbered sources), ALWAYS use it to answer the question directly. Do NOT say you don't have the information when it is clearly provided in the Reference Information section.
+3. When Reference Information (marked as [Live] or numbered sources) or Attached Documents are provided, ALWAYS use them to answer the question directly. Do NOT say you don't have the information when it is clearly present in either section.
 4. NEVER produce long numbered or bulleted lists unless the user explicitly asks for a list.
 5. Be concise — answer in 1-3 short sentences when possible.
 6. Speak naturally as if you inherently know the information. Do not hedge with "based on the information I have" or similar phrases.
 7. Handle different question types appropriately:
-   - For **factual business questions** (products, policies, services, locations, pricing) where the Reference Information is empty or doesn't contain the answer: say "I don't have that detail handy — would you like me to connect you with our team so they can help?"
-   - For **conversational/social questions** (your name, how are you, small talk, personal questions): respond naturally and warmly. If Visitor Information is provided above, use it to answer questions about the user's identity (e.g., "Your name is [name]"). Only say "I don't know yet — what would you like me to call you?" if you truly have no visitor information.
-8. Sound warm, friendly, and human — not robotic or corporate.`;
+   - For **factual business questions** (products, policies, services, locations, pricing) where the Reference Information is empty or doesn't contain the answer: politely tell the user you don't have that detail and offer to connect them with the team. Always respond in the current conversation language — never fall back to English.
+   - For **conversational/social questions** (your name, how are you, small talk, personal questions): respond naturally and warmly. If Visitor Information is provided above, use it to answer questions about the user's identity (e.g., "Your name is [name]"). Only say you don't know yet and ask what they'd like to be called if you truly have no visitor information.
+8. Sound warm, friendly, and human — not robotic or corporate.
+9. NEVER repeat a greeting. If the Conversation History already contains your greeting, a welcome message, or a proactive message (e.g., "Hi! How can I help you?" or "Need help with pricing?"), do NOT greet again in your next response. Just answer the user's question directly.
+10. For **superlative/comparative questions** (most expensive, cheapest, best, fastest, etc.): carefully review ALL items in the Reference Information before answering. Identify the single correct answer — do not list one item as the answer and then contradict yourself by mentioning a higher/lower value. If the data is incomplete, say so rather than giving a wrong answer.
+11. NEVER invent, guess, or fabricate URLs, links, phone numbers, email addresses, or specific figures (prices, dates, times) that are not explicitly present in the Reference Information or Attached Documents. If you don't have the exact data, say so.
+12. When the user attaches files (shown in the Attached Documents section), answer questions about their content directly. Never say you cannot access or read attached files.
+13. Stay consistent with your own prior answers in the Conversation History. If you need to correct something you said earlier, explicitly acknowledge the correction.
+14. If the user asks a multi-part question, address ALL parts of their question, not just the first or most prominent one.
+15. Never volunteer a full dump of the user's personal details, account data, or visitor information. Use such data naturally and contextually when relevant to the user's question, but do not recite it unprompted.
+16. All fallback phrases and responses must be in the current conversation language, not hardcoded English.`;
 
   return systemPrompt;
 }

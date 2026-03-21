@@ -14,7 +14,9 @@ import {
   Mail,
   Sparkles,
   RefreshCw,
+  Info,
 } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 interface EmailWriterProps {
@@ -148,8 +150,11 @@ export function EmailWriter({
           {/* Email Type & Tone */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <label htmlFor={typeId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+              <label htmlFor={typeId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1">
                 Email Type
+                <Tooltip content="Choose the type of email to set the right structure and opening style.">
+                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                </Tooltip>
               </label>
               <Select
                 id={typeId}
@@ -159,8 +164,11 @@ export function EmailWriter({
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor={toneId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+              <label htmlFor={toneId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1">
                 Tone
+                <Tooltip content="Controls the writing style. Formal for executives, Professional for business, Friendly for peers, Casual for informal.">
+                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                </Tooltip>
               </label>
               <Select
                 id={toneId}
@@ -273,9 +281,12 @@ export function EmailWriter({
 
           {/* Key Points */}
           <div className="space-y-2">
-            <label htmlFor={keyPointsId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+            <label htmlFor={keyPointsId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1">
               Key Points to Include
-              <span className="ml-1 text-xs text-secondary-500 dark:text-secondary-400 font-normal">(optional)</span>
+              <span className="text-xs text-secondary-500 dark:text-secondary-400 font-normal">(optional)</span>
+              <Tooltip content="List specific talking points, data, or references you want included in the email body.">
+                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+              </Tooltip>
             </label>
             <Textarea
               id={keyPointsId}
@@ -290,9 +301,12 @@ export function EmailWriter({
 
           {/* Call to Action */}
           <div className="space-y-2">
-            <label htmlFor={ctaId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+            <label htmlFor={ctaId} className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1">
               Desired Call to Action
-              <span className="ml-1 text-xs text-secondary-500 dark:text-secondary-400 font-normal">(optional)</span>
+              <span className="text-xs text-secondary-500 dark:text-secondary-400 font-normal">(optional)</span>
+              <Tooltip content="The specific action you want the recipient to take, such as booking a call or visiting a link.">
+                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+              </Tooltip>
             </label>
             <Input
               id={ctaId}

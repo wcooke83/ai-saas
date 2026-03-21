@@ -52,11 +52,16 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             );
           },
           // Pre blocks (code blocks container)
-          pre: ({ children, ...props }) => (
-            <pre className="bg-secondary-900 dark:bg-secondary-950 rounded-lg p-0 overflow-x-auto my-4" {...props}>
-              {children}
-            </pre>
-          ),
+          pre: ({ children, ...props }) => {
+            const codeChild = Array.isArray(children) ? children[0] : children;
+            const codeClassName = (codeChild as any)?.props?.className || '';
+            const hasHljs = codeClassName.includes('hljs');
+            return (
+              <pre className={`bg-secondary-900 dark:bg-secondary-950 rounded-lg ${hasHljs ? 'p-0' : 'p-4'} overflow-x-auto my-4`} {...props}>
+                {children}
+              </pre>
+            );
+          },
           // Links
           a: ({ children, href, ...props }) => (
             <a

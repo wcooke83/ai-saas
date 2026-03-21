@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { H1 } from '@/components/ui/heading';
 import {
   Users,
   Activity,
@@ -99,7 +100,7 @@ export default function AdminAnalyticsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">Analytics Dashboard</h1>
+          <H1 variant="dashboard">Analytics Dashboard</H1>
           <p className="text-secondary-600 dark:text-secondary-400">Business intelligence and usage metrics</p>
         </div>
         <div className="flex items-center gap-2">

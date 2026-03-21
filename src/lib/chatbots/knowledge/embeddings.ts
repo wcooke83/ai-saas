@@ -13,9 +13,9 @@ import { getActiveModelAndProvider } from '@/lib/ai/provider';
 import { getEmbeddingModel } from '@/lib/settings';
 import { generateGeminiEmbeddings, getGeminiEmbeddingDimensions } from '@/lib/ai/providers/gemini';
 
-type EmbeddingProvider = 'openai' | 'gemini';
+export type EmbeddingProvider = 'openai' | 'gemini';
 
-interface EmbeddingConfig {
+export interface EmbeddingConfig {
   provider: EmbeddingProvider;
   model: string;
   dimensions: number;
@@ -28,7 +28,7 @@ interface EmbeddingConfig {
  *   2. Active chat provider from admin AI config (if it supports embeddings)
  *   3. Fallback to any available embedding-capable provider
  */
-async function resolveEmbeddingConfig(): Promise<EmbeddingConfig | null> {
+export async function resolveEmbeddingConfig(): Promise<EmbeddingConfig | null> {
   // 1. Check for manually configured embedding model preference
   try {
     const embeddingModel = await getEmbeddingModel();
@@ -126,9 +126,10 @@ export interface EmbeddingResult {
 
 /**
  * Generate embeddings for multiple texts (batched)
+ * @param overrideConfig - If provided, uses this config instead of resolving from settings
  */
-export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
-  const config = await resolveEmbeddingConfig();
+export async function generateEmbeddings(texts: string[], overrideConfig?: EmbeddingConfig): Promise<number[][]> {
+  const config = overrideConfig || await resolveEmbeddingConfig();
 
   if (!config) {
     throw new Error(
@@ -204,9 +205,10 @@ async function generateOpenAIEmbeddings(
 
 /**
  * Generate embedding for a single text (for queries)
+ * @param overrideConfig - If provided, uses this config instead of resolving from settings
  */
-export async function generateQueryEmbedding(query: string): Promise<number[]> {
-  const embeddings = await generateEmbeddings([query]);
+export async function generateQueryEmbedding(query: string, overrideConfig?: EmbeddingConfig): Promise<number[]> {
+  const embeddings = await generateEmbeddings([query], overrideConfig);
   return embeddings[0];
 }
 

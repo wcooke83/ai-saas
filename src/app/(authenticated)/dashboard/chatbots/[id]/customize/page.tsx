@@ -3,12 +3,14 @@
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { ArrowLeft, Save, RotateCcw, Check, Palette, Type, Layout, Code } from 'lucide-react';
+import { ArrowLeft, Save, RotateCcw, Check, Palette, Type, Layout, Code, MousePointerClick, Flag, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip } from '@/components/ui/tooltip';
+import { H1 } from '@/components/ui/heading';
 import type { Chatbot, WidgetConfig } from '@/lib/chatbots/types';
 import { DEFAULT_WIDGET_CONFIG } from '@/lib/chatbots/types';
 import { getTranslations } from '@/lib/chatbots/translations';
@@ -82,6 +84,7 @@ function ColorPicker({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             className="w-full h-full opacity-0 cursor-pointer"
+            aria-label={`${label} color picker`}
           />
         </div>
         <Input
@@ -89,6 +92,7 @@ function ColorPicker({
           onChange={(e) => onChange(e.target.value)}
           className="font-mono text-sm"
           placeholder="#000000"
+          aria-label={`${label} hex value`}
         />
       </div>
     </div>
@@ -104,6 +108,8 @@ function PositionSelector({
   onChange: (value: WidgetConfig['position']) => void;
 }) {
   const positions: Array<{ value: WidgetConfig['position']; label: string }> = [
+    { value: 'top-left', label: 'Top Left' },
+    { value: 'top-right', label: 'Top Right' },
     { value: 'bottom-left', label: 'Bottom Left' },
     { value: 'bottom-right', label: 'Bottom Right' },
   ];
@@ -111,11 +117,13 @@ function PositionSelector({
   return (
     <div className="space-y-2">
       <Label>Widget Position</Label>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Widget Position">
         {positions.map((pos) => (
           <button
             key={pos.value}
             type="button"
+            role="radio"
+            aria-checked={value === pos.value}
             onClick={() => onChange(pos.value)}
             className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
               value === pos.value
@@ -138,8 +146,32 @@ export default function CustomizePage({ params }: CustomizePageProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [previewMode, setPreviewMode] = useState<'chat' | 'form' | 'verify'>('form');
+  const [previewMode, setPreviewMode] = useState<'chat' | 'form' | 'verify' | 'survey' | 'escalation' | 'handoff'>('form');
+  const [selectedReportReason, setSelectedReportReason] = useState<string | null>(null);
+  const [showAllColors, setShowAllColors] = useState(false);
   const t = getTranslations(chatbot?.language || 'en');
+
+  const TAB_LABELS: Record<string, string> = {
+    chat: 'Chat',
+    form: 'Pre-Chat',
+    verify: 'Verify',
+    survey: 'Post-Chat',
+    escalation: 'Report',
+    handoff: 'Handoff',
+  };
+
+  const COLOR_SECTIONS_BY_TAB: Record<string, string[]> = {
+    chat:       ['general', 'header', 'messages', 'inputArea', 'sendButton'],
+    form:       ['general', 'header', 'formColors'],
+    verify:     ['general', 'header', 'formColors', 'secondaryButton'],
+    survey:     ['general', 'header', 'formColors', 'secondaryButton'],
+    escalation: ['general', 'header', 'escalationReport'],
+    handoff:    ['general', 'header', 'escalationReport', 'secondaryButton'],
+  };
+
+  const visibleSections = showAllColors
+    ? ['general', 'header', 'messages', 'inputArea', 'sendButton', 'secondaryButton', 'formColors', 'escalationReport']
+    : COLOR_SECTIONS_BY_TAB[previewMode] || [];
 
   useEffect(() => {
     async function fetchChatbot() {
@@ -229,9 +261,9 @@ export default function CustomizePage({ params }: CustomizePageProps) {
             <ArrowLeft className="w-4 h-4 mr-1" />
             Back to Chatbot
           </Link>
-          <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+          <H1 variant="dashboard">
             Customize Widget
-          </h1>
+          </H1>
           <p className="text-secondary-600 dark:text-secondary-400 mt-1">
             Personalize the look and feel of your chatbot widget
           </p>
@@ -254,15 +286,30 @@ export default function CustomizePage({ params }: CustomizePageProps) {
           {/* Colors */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="w-5 h-5 text-primary-500" />
-                Colors
-              </CardTitle>
-              <CardDescription>Set your brand colors</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Palette className="w-5 h-5 text-primary-500" />
+                    Colors
+                  </CardTitle>
+                  <CardDescription>
+                    Showing colors for <span className="font-medium text-secondary-700 dark:text-secondary-300">{TAB_LABELS[previewMode]}</span> view
+                  </CardDescription>
+                </div>
+                <label className="flex items-center gap-2 text-xs text-secondary-500 dark:text-secondary-400 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={showAllColors}
+                    onChange={(e) => setShowAllColors(e.target.checked)}
+                    className="rounded border-secondary-300 dark:border-secondary-600"
+                  />
+                  Show all
+                </label>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* General */}
-              <div>
+              {visibleSections.includes('general') && (<div>
                 <h3 className="text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-3">General</h3>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <ColorPicker
@@ -275,11 +322,16 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                     value={config.backgroundColor}
                     onChange={(v) => updateConfig('backgroundColor', v)}
                   />
+                  <ColorPicker
+                    label="Text Color"
+                    value={config.textColor}
+                    onChange={(v) => updateConfig('textColor', v)}
+                  />
                 </div>
-              </div>
+              </div>)}
 
               {/* Header */}
-              <div>
+              {visibleSections.includes('header') && (<div>
                 <h3 className="text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-3">Header</h3>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <ColorPicker
@@ -288,10 +340,10 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                     onChange={(v) => updateConfig('headerTextColor', v)}
                   />
                 </div>
-              </div>
+              </div>)}
 
               {/* Messages */}
-              <div>
+              {visibleSections.includes('messages') && (<div>
                 <h3 className="text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-3">Messages</h3>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <ColorPicker
@@ -315,10 +367,10 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                     onChange={(v) => updateConfig('botBubbleTextColor', v)}
                   />
                 </div>
-              </div>
+              </div>)}
 
               {/* Input Area */}
-              <div>
+              {visibleSections.includes('inputArea') && (<div>
                 <h3 className="text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-3">Input Area</h3>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <ColorPicker
@@ -337,10 +389,10 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                     onChange={(v) => updateConfig('inputPlaceholderColor', v)}
                   />
                 </div>
-              </div>
+              </div>)}
 
               {/* Secondary Button */}
-              <div>
+              {visibleSections.includes('secondaryButton') && (<div>
                 <h3 className="text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-3">Secondary Button</h3>
                 <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-3">Used for actions like &quot;No thanks, start fresh&quot;</p>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -360,10 +412,10 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                     onChange={(v) => updateConfig('secondaryButtonBorderColor', v)}
                   />
                 </div>
-              </div>
+              </div>)}
 
               {/* Send Button */}
-              <div>
+              {visibleSections.includes('sendButton') && (<div>
                 <h3 className="text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-3">Send Button</h3>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <ColorPicker
@@ -377,10 +429,10 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                     onChange={(v) => updateConfig('sendButtonIconColor', v)}
                   />
                 </div>
-              </div>
+              </div>)}
 
               {/* Form Colors (Pre-Chat & Survey) */}
-              <div>
+              {visibleSections.includes('formColors') && (<div>
                 <h3 className="text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-3">Form Colors</h3>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <ColorPicker
@@ -429,7 +481,69 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                     onChange={(v) => updateConfig('formSubmitButtonTextColor', v)}
                   />
                 </div>
-              </div>
+              </div>)}
+              {/* Escalation / Report Colors */}
+              {visibleSections.includes('escalationReport') && (<div>
+                <h3 className="text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-3">Report Colors</h3>
+                <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-3">Colors for the &quot;Report an issue&quot; overlay</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <ColorPicker
+                    label="Background"
+                    value={config.reportBackgroundColor || '#ffffff'}
+                    onChange={(v) => updateConfig('reportBackgroundColor', v)}
+                  />
+                  <ColorPicker
+                    label="Text Color"
+                    value={config.reportTextColor || '#0f172a'}
+                    onChange={(v) => updateConfig('reportTextColor', v)}
+                  />
+                  <ColorPicker
+                    label="Reason Button"
+                    value={config.reportReasonButtonColor || '#f1f5f9'}
+                    onChange={(v) => updateConfig('reportReasonButtonColor', v)}
+                  />
+                  <ColorPicker
+                    label="Reason Button Text"
+                    value={config.reportReasonButtonTextColor || '#0f172a'}
+                    onChange={(v) => updateConfig('reportReasonButtonTextColor', v)}
+                  />
+                  <ColorPicker
+                    label="Selected Reason"
+                    value={config.reportReasonSelectedColor || config.primaryColor}
+                    onChange={(v) => updateConfig('reportReasonSelectedColor', v)}
+                  />
+                  <ColorPicker
+                    label="Selected Reason Text"
+                    value={config.reportReasonSelectedTextColor || '#ffffff'}
+                    onChange={(v) => updateConfig('reportReasonSelectedTextColor', v)}
+                  />
+                  <ColorPicker
+                    label="Submit Button"
+                    value={config.reportSubmitButtonColor || config.primaryColor}
+                    onChange={(v) => updateConfig('reportSubmitButtonColor', v)}
+                  />
+                  <ColorPicker
+                    label="Submit Button Text"
+                    value={config.reportSubmitButtonTextColor || '#ffffff'}
+                    onChange={(v) => updateConfig('reportSubmitButtonTextColor', v)}
+                  />
+                  <ColorPicker
+                    label="Input Background"
+                    value={config.reportInputBackgroundColor || '#f1f5f9'}
+                    onChange={(v) => updateConfig('reportInputBackgroundColor', v)}
+                  />
+                  <ColorPicker
+                    label="Input Text"
+                    value={config.reportInputTextColor || config.textColor}
+                    onChange={(v) => updateConfig('reportInputTextColor', v)}
+                  />
+                  <ColorPicker
+                    label="Input Border"
+                    value={config.reportInputBorderColor || '#e2e8f0'}
+                    onChange={(v) => updateConfig('reportInputBorderColor', v)}
+                  />
+                </div>
+              </div>)}
             </CardContent>
           </Card>
 
@@ -444,7 +558,12 @@ export default function CustomizePage({ params }: CustomizePageProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Font Family</Label>
+                <Label className="flex items-center gap-1">
+                  Font Family
+                  <Tooltip content="Google Fonts are loaded automatically. System fonts load instantly with no network request.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </Label>
                 <select
                   value={config.fontFamily}
                   onChange={(e) => updateConfig('fontFamily', e.target.value)}
@@ -503,42 +622,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                   value={config.fontSize}
                   onChange={(e) => updateConfig('fontSize', parseInt(e.target.value))}
                   className="w-full"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Container Border Radius: {config.containerBorderRadius}px</Label>
-                <input
-                  type="range"
-                  min="0"
-                  max="32"
-                  step="2"
-                  value={config.containerBorderRadius}
-                  onChange={(e) => updateConfig('containerBorderRadius', parseInt(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Input Border Radius: {config.inputBorderRadius}px</Label>
-                <input
-                  type="range"
-                  min="0"
-                  max="32"
-                  step="2"
-                  value={config.inputBorderRadius}
-                  onChange={(e) => updateConfig('inputBorderRadius', parseInt(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Button Border Radius: {config.buttonBorderRadius}%</Label>
-                <input
-                  type="range"
-                  min="0"
-                  max="50"
-                  step="5"
-                  value={config.buttonBorderRadius}
-                  onChange={(e) => updateConfig('buttonBorderRadius', parseInt(e.target.value))}
-                  className="w-full"
+                  aria-label="Font size"
                 />
               </div>
               <div className="space-y-2">
@@ -559,7 +643,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                 <Layout className="w-5 h-5 text-primary-500" />
                 Layout
               </CardTitle>
-              <CardDescription>Configure position and size</CardDescription>
+              <CardDescription>Configure position, size, and shape</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <PositionSelector
@@ -577,6 +661,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                     value={config.width}
                     onChange={(e) => updateConfig('width', parseInt(e.target.value))}
                     className="w-full"
+                    aria-label="Widget width"
                   />
                 </div>
                 <div className="space-y-2">
@@ -588,9 +673,59 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                     step="10"
                     value={config.height}
                     onChange={(e) => updateConfig('height', parseInt(e.target.value))}
+                    aria-label="Widget height"
                     className="w-full"
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1">
+                  Container Border Radius: {config.containerBorderRadius}px
+                  <Tooltip content="Rounds the corners of the entire chat widget container.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </Label>
+                <input
+                  type="range"
+                  min="0"
+                  max="32"
+                  step="2"
+                  value={config.containerBorderRadius}
+                  onChange={(e) => updateConfig('containerBorderRadius', parseInt(e.target.value))}
+                  className="w-full"
+                  aria-label="Container border radius"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Input Border Radius: {config.inputBorderRadius}px</Label>
+                <input
+                  type="range"
+                  min="0"
+                  max="32"
+                  step="2"
+                  value={config.inputBorderRadius}
+                  onChange={(e) => updateConfig('inputBorderRadius', parseInt(e.target.value))}
+                  className="w-full"
+                  aria-label="Input border radius"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1">
+                  Button Border Radius: {config.buttonBorderRadius}%
+                  <Tooltip content="Controls how round the send button appears. 50% creates a perfect circle.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </Label>
+                <input
+                  type="range"
+                  min="0"
+                  max="50"
+                  step="5"
+                  value={config.buttonBorderRadius}
+                  onChange={(e) => updateConfig('buttonBorderRadius', parseInt(e.target.value))}
+                  className="w-full"
+                  aria-label="Button border radius"
+                />
               </div>
               <div className="flex items-center gap-3">
                 <input
@@ -600,7 +735,12 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                   onChange={(e) => updateConfig('showBranding', e.target.checked)}
                   className="rounded border-secondary-300 dark:border-secondary-600"
                 />
-                <Label htmlFor="showBranding">Show "Powered by" branding</Label>
+                <Label htmlFor="showBranding" className="flex items-center gap-1">
+                  Show &quot;Powered by&quot; branding
+                  <Tooltip content="Displays a small 'Powered by AI SaaS' link at the bottom of the widget.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </Label>
               </div>
             </CardContent>
           </Card>
@@ -612,7 +752,12 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                 <Code className="w-5 h-5 text-primary-500" />
                 Custom CSS
               </CardTitle>
-              <CardDescription>Add custom styles (advanced)</CardDescription>
+              <div className="flex items-center gap-1 text-sm text-secondary-500 dark:text-secondary-400">
+                Add custom styles (advanced)
+                <Tooltip content="Override any widget style with CSS. Use .chat-widget-container as the root selector.">
+                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                </Tooltip>
+              </div>
             </CardHeader>
             <CardContent>
               <textarea
@@ -627,48 +772,194 @@ export default function CustomizePage({ params }: CustomizePageProps) {
               />
             </CardContent>
           </Card>
+
+          {/* Widget Behavior */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MousePointerClick className="w-5 h-5 text-primary-500" />
+                Widget Behavior
+              </CardTitle>
+              <CardDescription>Control how the widget behaves</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Auto Open */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="autoOpen" className="flex items-center gap-1">
+                      Auto Open
+                      <Tooltip content="Automatically opens the chat widget after the specified delay. Only triggers once per visitor session.">
+                        <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                      </Tooltip>
+                    </Label>
+                    <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                      Automatically open the widget after a delay
+                    </p>
+                  </div>
+                  <button
+                    id="autoOpen"
+                    type="button"
+                    role="switch"
+                    aria-checked={config.autoOpen}
+                    onClick={() => updateConfig('autoOpen', !config.autoOpen)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                      config.autoOpen ? 'bg-primary-500' : 'bg-secondary-200 dark:bg-secondary-700'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${
+                        config.autoOpen ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Auto Open Delay - only shown when autoOpen is enabled */}
+                {config.autoOpen && (
+                  <div className="space-y-2 pl-1 border-l-2 border-primary-200 dark:border-primary-800 ml-1">
+                    <div className="pl-3">
+                      <Label>Auto Open Delay: {(config.autoOpenDelay / 1000).toFixed(1)}s</Label>
+                      <input
+                        type="range"
+                        min="500"
+                        max="10000"
+                        step="500"
+                        value={config.autoOpenDelay}
+                        onChange={(e) => updateConfig('autoOpenDelay', parseInt(e.target.value))}
+                        aria-label="Auto open delay"
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-secondary-400">
+                        <span>0.5s</span>
+                        <span>10s</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Sound Notifications */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="soundEnabled" className="flex items-center gap-1">
+                    Sound Notifications
+                    <Tooltip content="Plays an audio chime when the bot sends a new message. Requires browser audio permission.">
+                      <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                    </Tooltip>
+                  </Label>
+                  <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                    Play a sound when new messages arrive
+                  </p>
+                </div>
+                <button
+                  id="soundEnabled"
+                  type="button"
+                  role="switch"
+                  aria-checked={config.soundEnabled}
+                  onClick={() => updateConfig('soundEnabled', !config.soundEnabled)}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                    config.soundEnabled ? 'bg-primary-500' : 'bg-secondary-200 dark:bg-secondary-700'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${
+                      config.soundEnabled ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Button Size */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1">
+                  Button Size: {config.buttonSize}px
+                  <Tooltip content="The size of the floating chat button that visitors click to open the widget.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </Label>
+                <input
+                  type="range"
+                  min="40"
+                  max="80"
+                  step="2"
+                  value={config.buttonSize}
+                  onChange={(e) => updateConfig('buttonSize', parseInt(e.target.value))}
+                  className="w-full"
+                  aria-label="Button size"
+                />
+                <div className="flex justify-between text-xs text-secondary-400">
+                  <span>40px</span>
+                  <span>80px</span>
+                </div>
+              </div>
+
+              {/* Position Offsets */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1">
+                    Offset X: {config.offsetX}px
+                    <Tooltip content="Horizontal distance from the edge of the screen to the widget button.">
+                      <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                    </Tooltip>
+                  </Label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value={config.offsetX}
+                    onChange={(e) => updateConfig('offsetX', parseInt(e.target.value))}
+                    className="w-full"
+                    aria-label="Horizontal offset"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1">
+                    Offset Y: {config.offsetY}px
+                    <Tooltip content="Vertical distance from the edge of the screen to the widget button.">
+                      <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                    </Tooltip>
+                  </Label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value={config.offsetY}
+                    onChange={(e) => updateConfig('offsetY', parseInt(e.target.value))}
+                    className="w-full"
+                    aria-label="Vertical offset"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Preview Panel */}
         <div className="lg:sticky lg:top-6 h-fit">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Live Preview</CardTitle>
-                  <CardDescription>See how your widget will look</CardDescription>
-                </div>
-                <div className="flex bg-secondary-100 dark:bg-secondary-800 rounded-lg p-1">
-                  <button
-                    onClick={() => setPreviewMode('chat')}
-                    className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                      previewMode === 'chat'
-                        ? 'bg-white dark:bg-secondary-700 text-secondary-900 dark:text-secondary-100 shadow-sm'
-                        : 'text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100'
-                    }`}
-                  >
-                    Chat
-                  </button>
-                  <button
-                    onClick={() => setPreviewMode('form')}
-                    className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                      previewMode === 'form'
-                        ? 'bg-white dark:bg-secondary-700 text-secondary-900 dark:text-secondary-100 shadow-sm'
-                        : 'text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100'
-                    }`}
-                  >
-                    Pre-Chat
-                  </button>
-                  <button
-                    onClick={() => setPreviewMode('verify')}
-                    className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                      previewMode === 'verify'
-                        ? 'bg-white dark:bg-secondary-700 text-secondary-900 dark:text-secondary-100 shadow-sm'
-                        : 'text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100'
-                    }`}
-                  >
-                    Verify
-                  </button>
+              <div>
+                <CardTitle>Live Preview</CardTitle>
+                <CardDescription>See how your widget will look</CardDescription>
+                <div className="flex flex-wrap bg-secondary-100 dark:bg-secondary-800 rounded-lg p-1 mt-3" role="tablist" aria-label="Preview mode">
+                  {(['chat', 'form', 'verify', 'survey', 'escalation', 'handoff'] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      role="tab"
+                      aria-selected={previewMode === mode}
+                      onClick={() => setPreviewMode(mode)}
+                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                        previewMode === mode
+                          ? 'bg-white dark:bg-secondary-700 text-secondary-900 dark:text-secondary-100 shadow-sm'
+                          : 'text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100'
+                      }`}
+                    >
+                      {TAB_LABELS[mode]}
+                    </button>
+                  ))}
                 </div>
               </div>
             </CardHeader>
@@ -692,15 +983,21 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                     -webkit-text-fill-color: ${config.formPlaceholderColor || config.inputPlaceholderColor} !important;
                     opacity: 1 !important;
                   }
+                  .preview-report-input::placeholder {
+                    color: ${config.formPlaceholderColor || config.inputPlaceholderColor} !important;
+                    -webkit-text-fill-color: ${config.formPlaceholderColor || config.inputPlaceholderColor} !important;
+                    opacity: 0.6 !important;
+                  }
                 `}</style>
                 <div
                   className="absolute shadow-xl overflow-hidden"
                   style={{
                     width: `${Math.min(config.width, 380)}px`,
                     height: `${Math.min(config.height, 550)}px`,
-                    bottom: '20px',
-                    right: config.position === 'bottom-right' ? '20px' : 'auto',
-                    left: config.position === 'bottom-left' ? '20px' : 'auto',
+                    bottom: config.position.startsWith('bottom') ? '20px' : 'auto',
+                    top: config.position.startsWith('top') ? '20px' : 'auto',
+                    right: config.position.endsWith('right') ? '20px' : 'auto',
+                    left: config.position.endsWith('left') ? '20px' : 'auto',
                     backgroundColor: config.backgroundColor,
                     fontFamily: config.fontFamily,
                     fontSize: `${config.fontSize}px`,
@@ -709,18 +1006,137 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                 >
                   {/* Header */}
                   <div
-                    className="p-4 flex items-start gap-3"
-                    style={{ backgroundColor: config.primaryColor }}
+                    style={{
+                      backgroundColor: config.primaryColor,
+                      color: config.headerTextColor,
+                      padding: 16,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
                   >
-                    <div>
-                      <p className="font-semibold" style={{ color: config.headerTextColor }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <span style={{ fontWeight: 600, fontSize: 16, lineHeight: 1.2 }}>
                         {config.headerText === 'Chat with us' || !config.headerText ? t.headerTitle : config.headerText}
-                      </p>
-                      <p className="text-sm" style={{ color: config.headerTextColor, opacity: 0.7 }}>{t.online}</p>
+                      </span>
+                      <span style={{ fontSize: 12, opacity: 0.9, lineHeight: 1 }}>{t.online}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      {/* Flag icon */}
+                      <span style={{ padding: 4, borderRadius: 4, marginRight: 4, display: 'flex' }} title="Report">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                      </span>
+                      {/* Headset icon */}
+                      <span style={{ padding: 4, borderRadius: 4, marginRight: 4, display: 'flex' }} title="Handoff">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>
+                      </span>
+                      {/* Expand icon */}
+                      <span style={{ padding: 4, borderRadius: 4, marginRight: 4, display: 'flex' }} title="Expand">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>
+                      </span>
+                      {/* Close icon */}
+                      <span style={{ padding: 4, borderRadius: 4, display: 'flex' }} title="Close">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      </span>
                     </div>
                   </div>
 
-                  {previewMode === 'verify' ? (
+                  {previewMode === 'survey' ? (
+                    /* Post-Chat Survey Preview */
+                    <div
+                      className="p-4 space-y-4 flex flex-col"
+                      style={{
+                        height: 'calc(100% - 72px)',
+                        overflowY: 'auto',
+                        backgroundColor: config.formBackgroundColor || config.backgroundColor,
+                      }}
+                    >
+                      <div>
+                        <h3
+                          className="font-semibold mb-1"
+                          style={{ color: config.formTitleColor || config.textColor }}
+                        >
+                          {t.postChatTitle}
+                        </h3>
+                        <p
+                          className="text-sm"
+                          style={{ color: config.formDescriptionColor || '#6b7280' }}
+                        >
+                          {t.postChatDescription}
+                        </p>
+                      </div>
+                      <div className="space-y-3 flex-1">
+                        {/* Rating question */}
+                        <div>
+                          <label
+                            className="block text-sm font-medium mb-1"
+                            style={{ color: config.formLabelColor || config.textColor }}
+                          >
+                            {t.postChatTitle === 'How did we do?' ? 'How would you rate your experience?' : t.postChatTitle} <span style={{ color: '#ef4444' }}>*</span>
+                          </label>
+                          <div className="flex gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <span
+                                key={star}
+                                className="text-xl cursor-default"
+                                style={{ color: star <= 4 ? '#f59e0b' : '#d1d5db' }}
+                              >
+                                ★
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        {/* Text question */}
+                        <div>
+                          <label
+                            className="block text-sm font-medium mb-1"
+                            style={{ color: config.formLabelColor || config.textColor }}
+                          >
+                            Any additional feedback?
+                          </label>
+                          <textarea
+                            placeholder={t.surveyPlaceholder}
+                            disabled
+                            className="w-full px-3 py-2 text-sm rounded-lg resize-none preview-form-input"
+                            rows={3}
+                            style={{
+                              backgroundColor: config.formInputBackgroundColor || config.inputBackgroundColor,
+                              color: config.formInputTextColor || config.inputTextColor,
+                              border: `1px solid ${config.formBorderColor || '#e5e7eb'}`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <button
+                          className="w-full py-2 px-4 rounded-lg font-medium text-sm"
+                          style={{
+                            backgroundColor: config.primaryColor,
+                            color: config.formSubmitButtonTextColor || '#ffffff',
+                          }}
+                          disabled
+                        >
+                          {t.postChatSubmit}
+                        </button>
+                        <button
+                          className="w-full py-2 px-4 rounded-lg text-sm"
+                          style={{
+                            backgroundColor: 'transparent',
+                            color: '#6b7280',
+                            border: 'none',
+                          }}
+                          disabled
+                        >
+                          {t.skip}
+                        </button>
+                      </div>
+                      {config.showBranding && (
+                        <div className="text-center text-xs pt-2 pb-2" style={{ color: '#9ca3af', borderTop: '1px solid #e5e7eb' }}>
+                          {t.poweredBy} AI SaaS
+                        </div>
+                      )}
+                    </div>
+                  ) : previewMode === 'verify' ? (
                     /* Verify Email Preview */
                     <div
                       className="p-4 space-y-4 flex flex-col"
@@ -767,9 +1183,9 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                         </button>
                       </div>
                       {config.showBranding && (
-                        <p className="text-center text-xs mt-2 opacity-50" style={{ color: config.textColor }}>
-                          Powered by AI SaaS
-                        </p>
+                        <div className="text-center text-xs pt-2 pb-2" style={{ color: '#9ca3af', borderTop: '1px solid #e5e7eb' }}>
+                          {t.poweredBy} AI SaaS
+                        </div>
                       )}
                     </div>
                   ) : previewMode === 'form' ? (
@@ -777,7 +1193,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                     <div
                       className="p-4 space-y-4 flex flex-col"
                       style={{
-                        height: 'calc(100% - 140px)',
+                        height: 'calc(100% - 72px)',
                         overflowY: 'auto',
                         backgroundColor: config.formBackgroundColor || config.backgroundColor,
                       }}
@@ -846,6 +1262,182 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                       >
                         {t.preChatSubmit}
                       </button>
+                      {config.showBranding && (
+                        <div className="text-center text-xs pt-2 pb-2" style={{ color: '#9ca3af', borderTop: '1px solid #e5e7eb' }}>
+                          {t.poweredBy} AI SaaS
+                        </div>
+                      )}
+                    </div>
+                  ) : previewMode === 'escalation' ? (
+                    /* Escalation Report Preview — full-view replacement matching actual widget */
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: 'calc(100% - 72px)',
+                        backgroundColor: config.reportBackgroundColor || config.formBackgroundColor || config.backgroundColor,
+                      }}
+                    >
+                      {/* Header */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 16px 0' }}>
+                        <span
+                          style={{ fontSize: 15, fontWeight: 600, color: config.reportTextColor || config.textColor }}
+                        >
+                          {t.reportIssue}
+                        </span>
+                        <span
+                          className="cursor-default"
+                          style={{ color: config.reportTextColor || config.textColor, opacity: 0.4 }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </span>
+                      </div>
+
+                      {/* Body */}
+                      <div style={{ flex: 1, padding: 16, overflowY: 'auto' }}>
+                        {/* 3-reason grid */}
+                        <div className="grid grid-cols-2 gap-2" style={{ marginBottom: 12 }}>
+                          {[
+                            { key: 'wrong_answer', label: t.reportWrongAnswer },
+                            { key: 'offensive_content', label: t.reportOffensiveContent },
+                            { key: 'other', label: t.reportOther },
+                          ].map((reason) => (
+                            <button
+                              key={reason.key}
+                              onClick={() => setSelectedReportReason(selectedReportReason === reason.key ? null : reason.key)}
+                              className="px-3 py-2.5 rounded-lg text-xs font-medium transition-colors text-center"
+                              style={{
+                                backgroundColor: selectedReportReason === reason.key
+                                  ? (config.reportReasonSelectedColor || config.primaryColor)
+                                  : (config.reportReasonButtonColor || config.backgroundColor),
+                                color: selectedReportReason === reason.key
+                                  ? (config.reportReasonSelectedTextColor || '#ffffff')
+                                  : (config.reportReasonButtonTextColor || config.textColor),
+                                border: `1px solid ${selectedReportReason === reason.key
+                                  ? (config.reportReasonSelectedColor || config.primaryColor)
+                                  : (config.reportInputBorderColor || config.formBorderColor || '#e5e7eb')}`,
+                              }}
+                            >
+                              {reason.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Textarea */}
+                        <textarea
+                          placeholder={
+                            selectedReportReason === 'wrong_answer' ? (t.reportDetailsWrongAnswer || 'What was incorrect?')
+                            : selectedReportReason === 'offensive_content' ? (t.reportDetailsOffensive || 'What was offensive?')
+                            : selectedReportReason === 'need_human_help' ? (t.reportDetailsHumanHelp || 'Briefly describe what you need help with...')
+                            : t.reportDetailsPlaceholder
+                          }
+                          rows={3}
+                          className="w-full px-3 py-2.5 text-sm rounded-lg resize-none preview-report-input"
+                          disabled
+                          style={{
+                            backgroundColor: config.reportInputBackgroundColor || config.formInputBackgroundColor || config.inputBackgroundColor,
+                            color: config.reportInputTextColor || config.textColor,
+                            border: `1px solid ${config.reportInputBorderColor || config.formBorderColor || '#e5e7eb'}`,
+                            marginBottom: 0,
+                          }}
+                        />
+                      </div>
+
+                      {/* Footer */}
+                      <div style={{ padding: '0 16px 16px' }}>
+                        <button
+                          className="w-full py-2.5 px-4 rounded-lg font-medium text-sm"
+                          style={{
+                            backgroundColor: config.reportSubmitButtonColor || config.primaryColor,
+                            color: config.reportSubmitButtonTextColor || '#ffffff',
+                            opacity: selectedReportReason ? 1 : 0.5,
+                          }}
+                          disabled
+                        >
+                          {selectedReportReason === 'wrong_answer' ? (t.reportSubmitWrongAnswer || 'Report wrong answer')
+                            : selectedReportReason === 'offensive_content' ? (t.reportSubmitOffensive || 'Report offensive content')
+                            : t.reportSubmit}
+                        </button>
+                        {config.showBranding && (
+                          <div className="text-center text-xs pt-2 pb-2" style={{ color: '#9ca3af', borderTop: '1px solid #e5e7eb' }}>
+                            {t.poweredBy} AI SaaS
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : previewMode === 'handoff' ? (
+                    /* Handoff / Chat with a person Preview — form layout matching other tabs */
+                    <div
+                      className="p-4 space-y-4 flex flex-col"
+                      style={{
+                        height: 'calc(100% - 72px)',
+                        overflowY: 'auto',
+                        backgroundColor: config.reportBackgroundColor || config.formBackgroundColor || config.backgroundColor,
+                      }}
+                    >
+                      <div>
+                        <h3
+                          className="font-semibold mb-1"
+                          style={{ color: config.reportTextColor || config.formTitleColor || config.textColor }}
+                        >
+                          {t.reportConnectToHuman || 'Chat with a person'}
+                        </h3>
+                        <p
+                          className="text-sm"
+                          style={{ color: config.reportTextColor || config.formDescriptionColor || '#6b7280' }}
+                        >
+                          {t.handoffConfirmDescription || 'A team member will join this conversation and can see your messages so far.'}
+                        </p>
+                      </div>
+                      <div className="space-y-3 flex-1">
+                        <div>
+                          <label
+                            className="block text-sm font-medium mb-1"
+                            style={{ color: config.reportTextColor || config.formLabelColor || config.textColor }}
+                          >
+                            {t.reportDetailsHumanHelp || 'What can we help with? (optional)'}
+                          </label>
+                          <textarea
+                            placeholder={t.reportDetailsHumanHelp || 'What can we help with? (optional)'}
+                            rows={3}
+                            className="w-full px-3 py-2 text-sm rounded-lg resize-none preview-report-input"
+                            disabled
+                            style={{
+                              backgroundColor: config.reportInputBackgroundColor || config.formInputBackgroundColor || config.inputBackgroundColor,
+                              color: config.reportInputTextColor || config.formInputTextColor || config.inputTextColor,
+                              border: `1px solid ${config.reportInputBorderColor || config.formBorderColor || '#e5e7eb'}`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <button
+                          className="w-full py-2 px-4 rounded-lg font-medium text-sm"
+                          style={{
+                            backgroundColor: config.reportSubmitButtonColor || config.primaryColor,
+                            color: config.reportSubmitButtonTextColor || config.formSubmitButtonTextColor || '#ffffff',
+                          }}
+                          disabled
+                        >
+                          {t.reportSubmitHumanHelp || 'Connect to support'}
+                        </button>
+                        <button
+                          className="w-full py-2 px-4 rounded-lg text-sm"
+                          style={{
+                            backgroundColor: config.secondaryButtonColor || 'transparent',
+                            color: config.secondaryButtonTextColor || config.reportTextColor || config.textColor,
+                            border: `1px solid ${config.secondaryButtonBorderColor || config.reportInputBorderColor || '#d1d5db'}`,
+                          }}
+                          disabled
+                        >
+                          {t.cancelLabel || 'Cancel'}
+                        </button>
+                      </div>
+                      {config.showBranding && (
+                        <div className="text-center text-xs pt-2 pb-2" style={{ color: '#9ca3af', borderTop: '1px solid #e5e7eb' }}>
+                          {t.poweredBy} AI SaaS
+                        </div>
+                      )}
                     </div>
                   ) : (
                     /* Chat Preview */
@@ -854,24 +1446,24 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                       <div className="p-4 space-y-3" style={{ height: 'calc(100% - 140px)', overflowY: 'auto' }}>
                         {/* Bot message */}
                         <div
-                          className="p-3 rounded-lg max-w-[80%]"
-                          style={{ backgroundColor: config.botBubbleColor, color: config.botBubbleTextColor }}
+                          className="p-3 max-w-[80%]"
+                          style={{ backgroundColor: config.botBubbleColor, color: config.botBubbleTextColor, borderRadius: '8px 8px 8px 4px' }}
                         >
                           {chatbot.welcome_message || 'Hello! How can I help you today?'}
                         </div>
 
                         {/* User message */}
                         <div
-                          className="p-3 rounded-lg max-w-[80%] ml-auto"
-                          style={{ backgroundColor: config.userBubbleColor, color: config.userBubbleTextColor }}
+                          className="p-3 max-w-[80%] ml-auto"
+                          style={{ backgroundColor: config.userBubbleColor, color: config.userBubbleTextColor, borderRadius: '8px 8px 4px 8px' }}
                         >
                           {t.previewUserMessage}
                         </div>
 
                         {/* Bot reply */}
                         <div
-                          className="p-3 rounded-lg max-w-[80%]"
-                          style={{ backgroundColor: config.botBubbleColor, color: config.botBubbleTextColor }}
+                          className="p-3 max-w-[80%]"
+                          style={{ backgroundColor: config.botBubbleColor, color: config.botBubbleTextColor, borderRadius: '8px 8px 8px 4px' }}
                         >
                           {t.previewBotReply}
                         </div>
@@ -880,7 +1472,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                       {/* Input */}
                       <div
                         className="absolute bottom-0 left-0 right-0 p-4 border-t"
-                        style={{ borderColor: `${config.inputTextColor}20`, backgroundColor: config.backgroundColor }}
+                        style={{ borderColor: '#e5e7eb', backgroundColor: config.backgroundColor }}
                       >
                         <div className="flex items-center gap-2">
                           <input
@@ -889,7 +1481,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                             className="preview-input flex-1 px-4 py-2 border text-sm"
                             style={{
                               backgroundColor: config.inputBackgroundColor,
-                              borderColor: `${config.inputTextColor}30`,
+                              borderColor: '#e5e7eb',
                               color: config.inputTextColor,
                               borderRadius: `${config.inputBorderRadius}px`,
                             }}
@@ -919,9 +1511,9 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                           </button>
                         </div>
                         {config.showBranding && (
-                          <p className="text-center text-xs mt-2 opacity-50" style={{ color: config.textColor }}>
+                          <div className="text-center text-xs pt-2 pb-2" style={{ color: '#9ca3af', borderTop: '1px solid #e5e7eb' }}>
                             {t.poweredBy} AI SaaS
-                          </p>
+                          </div>
                         )}
                       </div>
                     </>

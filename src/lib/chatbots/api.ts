@@ -56,6 +56,22 @@ export async function getChatbotsWithStats(userId: string): Promise<ChatbotWithS
   if (error) throw error;
   if (!chatbots) return [];
 
+  // Get agent presence counts for handoff-enabled chatbots
+  const chatbotIds = (chatbots as Chatbot[]).map((c: Chatbot) => c.id);
+  const cutoff = new Date(Date.now() - 60_000).toISOString();
+  const { data: presenceRows } = await supabase
+    .from('agent_presence')
+    .select('chatbot_id')
+    .in('chatbot_id', chatbotIds)
+    .gte('last_heartbeat', cutoff);
+
+  const agentCounts: Record<string, number> = {};
+  if (presenceRows) {
+    for (const row of presenceRows) {
+      agentCounts[row.chatbot_id] = (agentCounts[row.chatbot_id] || 0) + 1;
+    }
+  }
+
   // Get stats for each chatbot
   const chatbotsWithStats = await Promise.all(
     (chatbots as Chatbot[]).map(async (chatbot: Chatbot) => {
@@ -73,6 +89,7 @@ export async function getChatbotsWithStats(userId: string): Promise<ChatbotWithS
         ...chatbot,
         total_conversations: conversationCount || 0,
         total_messages: messageCount || 0,
+        agents_online: agentCounts[chatbot.id] || 0,
       };
     })
   );
@@ -410,10 +427,12 @@ export async function getMessages(conversationId: string, supabaseClient?: Supab
     .from('messages')
     .select('*')
     .eq('conversation_id', conversationId)
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: false })
+    .limit(50);
 
   if (error) throw error;
-  return (data || []) as Message[];
+  // Reverse to chronological order (fetched newest-first so LIMIT keeps the latest 50)
+  return ((data || []) as Message[]).reverse();
 }
 
 export async function createMessage(message: MessageInsert, supabaseClient?: SupabaseAny): Promise<Message> {
@@ -427,23 +446,15 @@ export async function createMessage(message: MessageInsert, supabaseClient?: Sup
 
   if (error) throw error;
 
-  // Increment conversation message count (ignore errors - non-critical)
-  try {
-    await supabase.rpc('increment_conversation_messages', {
+  // Increment counters in parallel (non-critical, fire-and-forget)
+  Promise.all([
+    supabase.rpc('increment_conversation_messages', {
       p_conversation_id: message.conversation_id,
-    });
-  } catch (e) {
-    console.warn('Failed to increment conversation messages:', e);
-  }
-
-  // Increment chatbot monthly message count (ignore errors - non-critical)
-  try {
-    await supabase.rpc('increment_chatbot_messages', {
+    }).then(({ error }: any) => { if (error) console.warn('Failed to increment conversation messages:', error); }),
+    supabase.rpc('increment_chatbot_messages', {
       p_chatbot_id: message.chatbot_id,
-    });
-  } catch (e) {
-    console.warn('Failed to increment chatbot messages:', e);
-  }
+    }).then(({ error }: any) => { if (error) console.warn('Failed to increment chatbot messages:', error); }),
+  ]);
 
   return data as Message;
 }

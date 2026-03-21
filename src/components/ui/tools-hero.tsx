@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumbs, BreadcrumbItem } from '@/components/ui/breadcrumbs';
+import { H1 } from '@/components/ui/heading';
 import { Sparkles } from 'lucide-react';
 
 interface ToolsHeroProps {
@@ -32,9 +33,9 @@ export function ToolsHero({
           {badge}
         </Badge>
       )}
-      <h1 className="text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl mb-4 text-secondary-900 dark:text-secondary-100">
+      <H1 className="mb-4">
         {title}
-      </h1>
+      </H1>
       <p className="text-lg text-secondary-600 dark:text-secondary-400 max-w-2xl mx-auto">
         {description}
       </p>

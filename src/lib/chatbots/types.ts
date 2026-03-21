@@ -70,6 +70,19 @@ export interface WidgetConfig {
   autoOpenDelay: number;
   soundEnabled: boolean;
 
+  // Escalation / Report Colors
+  reportBackgroundColor?: string;
+  reportTextColor?: string;
+  reportReasonButtonColor?: string;
+  reportReasonButtonTextColor?: string;
+  reportReasonSelectedColor?: string;
+  reportReasonSelectedTextColor?: string;
+  reportSubmitButtonColor?: string;
+  reportSubmitButtonTextColor?: string;
+  reportInputBackgroundColor?: string;
+  reportInputTextColor?: string;
+  reportInputBorderColor?: string;
+
   // Custom CSS
   customCss: string;
 }
@@ -121,6 +134,17 @@ export const DEFAULT_WIDGET_CONFIG: WidgetConfig = {
   autoOpen: false,
   autoOpenDelay: 3000,
   soundEnabled: false,
+  reportBackgroundColor: '#ffffff',
+  reportTextColor: '#0f172a',
+  reportReasonButtonColor: '#f1f5f9',
+  reportReasonButtonTextColor: '#0f172a',
+  reportReasonSelectedColor: '#0ea5e9',
+  reportReasonSelectedTextColor: '#ffffff',
+  reportSubmitButtonColor: '#0ea5e9',
+  reportSubmitButtonTextColor: '#ffffff',
+  reportInputBackgroundColor: '#f1f5f9',
+  reportInputTextColor: '#0f172a',
+  reportInputBorderColor: '#e2e8f0',
   customCss: '',
 };
 
@@ -128,7 +152,7 @@ export const DEFAULT_WIDGET_CONFIG: WidgetConfig = {
 // PRE-CHAT FORM CONFIGURATION
 // ============================================
 
-export type PreChatFieldType = 'text' | 'email' | 'phone' | 'select' | 'textarea';
+export type PreChatFieldType = 'name' | 'email' | 'phone' | 'company' | 'custom';
 
 export interface PreChatFormField {
   id: string;
@@ -152,7 +176,7 @@ export const DEFAULT_PRE_CHAT_FORM_CONFIG: PreChatFormConfig = {
   title: 'Before we start',
   description: 'Please provide your details so we can assist you better.',
   fields: [
-    { id: 'name', type: 'text', label: 'Name', placeholder: 'Your name', required: true },
+    { id: 'name', type: 'name', label: 'Name', placeholder: 'Your name', required: true },
     { id: 'email', type: 'email', label: 'Email', placeholder: 'your@email.com', required: true },
   ],
   submitButtonText: 'Start Chat',
@@ -200,6 +224,7 @@ export const DEFAULT_POST_CHAT_SURVEY_CONFIG: PostChatSurveyConfig = {
 // ============================================
 
 export interface SurveyResponse {
+  [key: string]: unknown;
   id: string;
   chatbot_id: string;
   conversation_id: string | null;
@@ -375,12 +400,85 @@ export type TranscriptEmailMode = 'pre_chat' | 'ask';
 export interface TranscriptConfig {
   enabled: boolean;
   email_mode: TranscriptEmailMode;
+  /** Show the envelope icon in the chat header */
+  show_header_icon: boolean;
+  /** Offer transcript via in-chat prompt at end of conversation */
+  show_chat_prompt: boolean;
 }
 
 export const DEFAULT_TRANSCRIPT_CONFIG: TranscriptConfig = {
   enabled: false,
   email_mode: 'ask',
+  show_header_icon: true,
+  show_chat_prompt: true,
 };
+
+// ============================================
+// ESCALATION CONFIGURATION
+// ============================================
+
+export type EscalationReason = 'wrong_answer' | 'offensive_content' | 'need_human_help' | 'other';
+export type EscalationStatus = 'open' | 'acknowledged' | 'resolved';
+
+export interface EscalationConfig {
+  enabled: boolean;
+  /** Inactivity timeout in minutes for live agent handoff (0 = disabled). Default: 5 */
+  handoff_timeout_minutes?: number;
+}
+
+export const DEFAULT_ESCALATION_CONFIG: EscalationConfig = {
+  enabled: false,
+  handoff_timeout_minutes: 5,
+};
+
+// ============================================
+// LIVE HANDOFF CONFIGURATION
+// ============================================
+
+export interface LiveHandoffConfig {
+  enabled: boolean;
+  /** Show handoff button only when agents are online. Default: true */
+  require_agent_online?: boolean;
+  /** Inactivity timeout in minutes for live agent handoff (0 = disabled). Default: 5 */
+  handoff_timeout_minutes?: number;
+}
+
+export const DEFAULT_LIVE_HANDOFF_CONFIG: LiveHandoffConfig = {
+  enabled: false,
+  require_agent_online: true,
+  handoff_timeout_minutes: 5,
+};
+
+// ============================================
+// TELEGRAM HANDOFF CONFIGURATION
+// ============================================
+
+export interface TelegramConfig {
+  enabled: boolean;
+  bot_token?: string;
+  chat_id?: string;
+  webhook_secret?: string;
+  auto_handoff_on_escalation?: boolean;
+}
+
+export const DEFAULT_TELEGRAM_CONFIG: TelegramConfig = {
+  enabled: false,
+  auto_handoff_on_escalation: true,
+};
+
+export interface Escalation {
+  [key: string]: unknown;
+  id: string;
+  chatbot_id: string;
+  conversation_id: string | null;
+  session_id: string | null;
+  message_id: string | null;
+  reason: EscalationReason;
+  details: string | null;
+  status: EscalationStatus;
+  created_at: string;
+  updated_at: string;
+}
 
 // ============================================
 // CHATBOT
@@ -409,6 +507,9 @@ export interface Chatbot {
   // Memory
   memory_enabled: boolean;
   memory_days: number;
+
+  // Session
+  session_ttl_hours: number;
 
   // Widget Configuration
   widget_config: WidgetConfig;
@@ -443,6 +544,15 @@ export interface Chatbot {
   // Transcript
   transcript_config: TranscriptConfig;
 
+  // Escalation Reporting
+  escalation_config?: EscalationConfig;
+
+  // Live Handoff
+  live_handoff_config?: LiveHandoffConfig;
+
+  // Telegram Handoff
+  telegram_config?: TelegramConfig;
+
   // Timestamps for tracking text/language updates
   custom_text_updated_at: string | null;
   language_updated_at: string | null;
@@ -464,6 +574,7 @@ export interface ChatbotInsert {
   language?: string;
   memory_enabled?: boolean;
   memory_days?: number;
+  session_ttl_hours?: number;
   widget_config?: WidgetConfig;
   logo_url?: string | null;
   welcome_message?: string;
@@ -477,6 +588,9 @@ export interface ChatbotInsert {
   file_upload_config?: FileUploadConfig;
   proactive_messages_config?: ProactiveMessagesConfig;
   transcript_config?: TranscriptConfig;
+  escalation_config?: EscalationConfig;
+  live_handoff_config?: LiveHandoffConfig;
+  telegram_config?: TelegramConfig;
   custom_text_updated_at?: string | null;
   language_updated_at?: string | null;
 }
@@ -493,6 +607,7 @@ export interface ChatbotUpdate {
   language?: string;
   memory_enabled?: boolean;
   memory_days?: number;
+  session_ttl_hours?: number;
   widget_config?: WidgetConfig;
   logo_url?: string | null;
   welcome_message?: string;
@@ -506,6 +621,9 @@ export interface ChatbotUpdate {
   file_upload_config?: FileUploadConfig;
   proactive_messages_config?: ProactiveMessagesConfig;
   transcript_config?: TranscriptConfig;
+  escalation_config?: EscalationConfig;
+  live_handoff_config?: LiveHandoffConfig;
+  telegram_config?: TelegramConfig;
   custom_text_updated_at?: string | null;
   language_updated_at?: string | null;
 }
@@ -515,6 +633,7 @@ export interface ChatbotWithStats extends Chatbot {
   total_conversations?: number;
   total_messages?: number;
   avg_rating?: number;
+  agents_online?: number;
 }
 
 // ============================================
@@ -548,6 +667,10 @@ export interface KnowledgeSource {
 
   // Priority flag — chunks always included in AI context
   is_priority: boolean;
+
+  // Embedding model tracking
+  embedding_provider: string | null;
+  embedding_model: string | null;
 
   // Metadata
   metadata: Json;
@@ -842,6 +965,7 @@ export interface UpdateChatbotRequest {
   language?: string;
   memory_enabled?: boolean;
   memory_days?: number;
+  session_ttl_hours?: number;
   widget_config?: Partial<WidgetConfig>;
   logo_url?: string;
   welcome_message?: string;

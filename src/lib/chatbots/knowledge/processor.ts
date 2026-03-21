@@ -6,7 +6,7 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { KnowledgeSource } from '../types';
 import { chunkText } from './chunker';
-import { generateEmbeddings } from './embeddings';
+import { generateEmbeddings, resolveEmbeddingConfig } from './embeddings';
 
 // Use admin client for all processor operations (runs as background task, no user session)
 function getAdminClient() {
@@ -125,6 +125,12 @@ export async function processKnowledgeSource(
       throw new Error('No chunks generated from content');
     }
 
+    // Resolve embedding config once for all batches
+    const embeddingConfig = await resolveEmbeddingConfig();
+    if (!embeddingConfig) {
+      throw new Error('No embedding-capable AI provider available');
+    }
+
     // Generate embeddings in batches
     const BATCH_SIZE = 20;
     let totalChunksCreated = 0;
@@ -133,8 +139,8 @@ export async function processKnowledgeSource(
       const batch = chunks.slice(i, i + BATCH_SIZE);
       const texts = batch.map((c) => c.content);
 
-      // Generate embeddings for batch
-      const embeddings = await generateEmbeddings(texts);
+      // Generate embeddings for batch using the resolved config
+      const embeddings = await generateEmbeddings(texts, embeddingConfig);
 
       // Store chunks with embeddings
       const chunkInserts = batch.map((chunk, index) => ({
@@ -155,6 +161,15 @@ export async function processKnowledgeSource(
 
       totalChunksCreated += batch.length;
     }
+
+    // Record which embedding model was used, then mark completed
+    await supabase
+      .from('knowledge_sources')
+      .update({
+        embedding_provider: embeddingConfig.provider,
+        embedding_model: embeddingConfig.model,
+      })
+      .eq('id', sourceId);
 
     // Update source status to completed
     await updateSourceStatus(sourceId, 'completed', undefined, totalChunksCreated);

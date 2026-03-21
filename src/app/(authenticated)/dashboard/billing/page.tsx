@@ -28,6 +28,7 @@ import type { Database } from '@/types/database';
 import AutoTopupSettings from '@/components/dashboard/AutoTopupSettings';
 import CreditPurchase from '@/components/dashboard/CreditPurchase';
 import LicenseKeyRedemption from '@/components/dashboard/LicenseKeyRedemption';
+import { H1 } from '@/components/ui/heading';
 
 type Subscription = Database['public']['Tables']['subscriptions']['Row'];
 
@@ -270,7 +271,7 @@ export default function BillingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">Billing</h1>
+        <H1 variant="dashboard">Billing</H1>
         <p className="text-secondary-600 dark:text-secondary-400">Manage your subscription, payment methods, and invoices</p>
       </div>
 

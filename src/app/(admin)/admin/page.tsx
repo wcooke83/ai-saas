@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { H1 } from '@/components/ui/heading';
 import {
   Settings,
   Cpu,
@@ -159,7 +160,7 @@ export default function AdminSettingsPage() {
             <Shield className="w-6 h-6 text-primary-600 dark:text-primary-400" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">Admin Settings</h1>
+            <H1 variant="dashboard">Admin Settings</H1>
             <p className="text-secondary-600 dark:text-secondary-400">Configure global application settings</p>
           </div>
         </div>

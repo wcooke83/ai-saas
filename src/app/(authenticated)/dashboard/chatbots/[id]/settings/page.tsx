@@ -21,10 +21,16 @@ import {
   Info,
   AlertCircle,
   Brain,
+  Cpu,
   Paperclip,
   Zap,
   Mail,
   Palette,
+  Flag,
+  Send,
+  Headphones,
+  ExternalLink,
+  Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -41,6 +47,9 @@ import {
   DEFAULT_FILE_UPLOAD_CONFIG,
   DEFAULT_PROACTIVE_MESSAGES_CONFIG,
   DEFAULT_TRANSCRIPT_CONFIG,
+  DEFAULT_ESCALATION_CONFIG,
+  DEFAULT_TELEGRAM_CONFIG,
+  DEFAULT_LIVE_HANDOFF_CONFIG,
 } from '@/lib/chatbots/types';
 import { SUPPORTED_LANGUAGES, getLanguageName, getDefaultTextsForLanguage } from '@/lib/chatbots/translations';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -54,8 +63,9 @@ import type {
   SurveyQuestion,
   SurveyQuestionType,
 } from '@/lib/chatbots/types';
-import type { FileUploadConfig, ProactiveMessagesConfig, ProactiveMessageRule, ProactiveTriggerType, ProactiveDisplayMode, ProactiveBubblePosition, ProactiveBubbleStyle, TranscriptConfig } from '@/lib/chatbots/types';
+import type { FileUploadConfig, ProactiveMessagesConfig, ProactiveMessageRule, ProactiveTriggerType, ProactiveDisplayMode, ProactiveBubblePosition, ProactiveBubbleStyle, TranscriptConfig, EscalationConfig, LiveHandoffConfig, TelegramConfig } from '@/lib/chatbots/types';
 import { DEFAULT_BUBBLE_STYLE } from '@/lib/chatbots/types';
+import { H1 } from '@/components/ui/heading';
 
 // Compute whether translation warnings should show based on DB timestamps
 function computeWarningsFromBot(bot: Chatbot): boolean {
@@ -106,9 +116,18 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
   const [postChatConfig, setPostChatConfig] = useState<PostChatSurveyConfig>(DEFAULT_POST_CHAT_SURVEY_CONFIG);
   const [memoryEnabled, setMemoryEnabled] = useState(false);
   const [memoryDays, setMemoryDays] = useState(30);
+  const [sessionTtlHours, setSessionTtlHours] = useState(24);
   const [fileUploadConfig, setFileUploadConfig] = useState<FileUploadConfig>(DEFAULT_FILE_UPLOAD_CONFIG);
   const [proactiveConfig, setProactiveConfig] = useState<ProactiveMessagesConfig>(DEFAULT_PROACTIVE_MESSAGES_CONFIG);
   const [transcriptConfig, setTranscriptConfig] = useState<TranscriptConfig>(DEFAULT_TRANSCRIPT_CONFIG);
+  const [escalationConfig, setEscalationConfig] = useState<EscalationConfig>(DEFAULT_ESCALATION_CONFIG);
+  const [liveHandoffConfig, setLiveHandoffConfig] = useState<LiveHandoffConfig>(DEFAULT_LIVE_HANDOFF_CONFIG);
+  const [telegramConfig, setTelegramConfig] = useState<TelegramConfig>(DEFAULT_TELEGRAM_CONFIG);
+  const [telegramWebhookStatus, setTelegramWebhookStatus] = useState<string | null>(null);
+  const [settingUpWebhook, setSettingUpWebhook] = useState(false);
+  const [modelTier, setModelTier] = useState<'fast' | 'balanced' | 'powerful'>('fast');
+  const [temperature, setTemperature] = useState(0.7);
+  const [maxTokens, setMaxTokens] = useState(1024);
 
   useEffect(() => {
     async function fetchChatbot() {
@@ -135,9 +154,21 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
         setPostChatConfig(bot.post_chat_survey_config || DEFAULT_POST_CHAT_SURVEY_CONFIG);
         setMemoryEnabled(bot.memory_enabled ?? false);
         setMemoryDays(bot.memory_days ?? 30);
+        setSessionTtlHours((bot as any).session_ttl_hours ?? 24);
         setFileUploadConfig(bot.file_upload_config ? { ...DEFAULT_FILE_UPLOAD_CONFIG, ...bot.file_upload_config } as FileUploadConfig : DEFAULT_FILE_UPLOAD_CONFIG);
         setProactiveConfig(bot.proactive_messages_config ? { ...DEFAULT_PROACTIVE_MESSAGES_CONFIG, ...bot.proactive_messages_config } as ProactiveMessagesConfig : DEFAULT_PROACTIVE_MESSAGES_CONFIG);
         setTranscriptConfig(bot.transcript_config ? { ...DEFAULT_TRANSCRIPT_CONFIG, ...bot.transcript_config } as TranscriptConfig : DEFAULT_TRANSCRIPT_CONFIG);
+        setEscalationConfig(bot.escalation_config ? { ...DEFAULT_ESCALATION_CONFIG, ...bot.escalation_config } as EscalationConfig : DEFAULT_ESCALATION_CONFIG);
+        setLiveHandoffConfig(bot.live_handoff_config ? { ...DEFAULT_LIVE_HANDOFF_CONFIG, ...bot.live_handoff_config } as LiveHandoffConfig : DEFAULT_LIVE_HANDOFF_CONFIG);
+        setTelegramConfig(bot.telegram_config ? { ...DEFAULT_TELEGRAM_CONFIG, ...bot.telegram_config } as TelegramConfig : DEFAULT_TELEGRAM_CONFIG);
+        // Initialize AI model settings
+        const model = (bot as any).model || '';
+        if (model.includes('opus') || model === 'powerful') setModelTier('powerful');
+        else if (model.includes('sonnet') || model === 'balanced') setModelTier('balanced');
+        else if (model.includes('haiku') || model === 'fast') setModelTier('fast');
+        else setModelTier('fast');
+        setTemperature((bot as any).temperature ?? 0.7);
+        setMaxTokens((bot as any).max_tokens ?? 1024);
         // Initialize translation warnings from DB timestamps
         const needsWarning = computeWarningsFromBot(bot);
         setShowGeneralWarning(needsWarning);
@@ -182,11 +213,18 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
           language,
           memory_enabled: memoryEnabled,
           memory_days: memoryDays,
+          session_ttl_hours: sessionTtlHours,
           pre_chat_form_config: (overrides?.pre_chat_form_config as PreChatFormConfig) ?? preChatConfig,
           post_chat_survey_config: (overrides?.post_chat_survey_config as PostChatSurveyConfig) ?? postChatConfig,
           file_upload_config: fileUploadConfig,
           proactive_messages_config: proactiveConfig,
           transcript_config: transcriptConfig,
+          escalation_config: escalationConfig,
+          live_handoff_config: liveHandoffConfig,
+          telegram_config: telegramConfig,
+          model: modelTier,
+          temperature,
+          max_tokens: maxTokens,
         }),
       });
 
@@ -234,15 +272,20 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
     );
   }
 
+  const hasPlaceholderWarning = !preChatConfig.enabled && /\{\{\w+\}\}/.test(welcomeMessage);
+
   const sections = [
-    { id: 'general', label: 'General', icon: Bot },
+    { id: 'general', label: 'General', icon: Bot, warning: hasPlaceholderWarning },
     { id: 'prompt', label: 'System Prompt', icon: MessageSquare },
+    { id: 'ai-model', label: 'AI Model', icon: Cpu },
     { id: 'memory', label: 'Memory', icon: Brain },
     { id: 'pre-chat', label: 'Pre-Chat Form', icon: ClipboardList },
     { id: 'post-chat', label: 'Post-Chat Survey', icon: Star },
     { id: 'file-uploads', label: 'File Uploads', icon: Paperclip },
     { id: 'proactive', label: 'Proactive', icon: Zap },
     { id: 'transcripts', label: 'Transcripts', icon: Mail },
+    { id: 'escalations', label: 'Reporting', icon: Flag },
+    { id: 'handoff', label: 'Live Handoff', icon: Headphones },
   ];
 
   const statusColors: Record<string, string> = {
@@ -277,9 +320,9 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               </div>
             )}
             <div>
-              <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+              <H1 variant="dashboard">
                 Settings
-              </h1>
+              </H1>
               <div className="flex items-center gap-2 mt-1">
                 <Badge className={statusColors[chatbot.status]}>
                   {chatbot.status}
@@ -319,6 +362,9 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
             >
               <section.icon className="w-4 h-4" />
               {section.label}
+              {'warning' in section && section.warning && (
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+              )}
             </button>
           ))}
         </div>
@@ -342,6 +388,9 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               >
                 <section.icon className="w-4 h-4 flex-shrink-0" />
                 {section.label}
+                {'warning' in section && section.warning && (
+                  <span className="w-2 h-2 rounded-full bg-amber-500 ml-auto" />
+                )}
               </button>
             ))}
           </div>
@@ -463,6 +512,21 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   The first message visitors see when they open the chat.
                   Use {'{{name}}'}, {'{{email}}'}, or {'{{company_name}}'} to personalize.
                 </p>
+                {!preChatConfig.enabled && /\{\{\w+\}\}/.test(welcomeMessage) && (
+                  <div className="flex gap-1 text-xs text-amber-600 dark:text-amber-400 mt-1">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                    <p>
+                      Placeholders require the{' '}
+                      <span
+                        className="underline whitespace-nowrap cursor-pointer hover:text-amber-700 dark:hover:text-amber-300"
+                        onClick={() => setActiveSection('pre-chat')}
+                      >
+                        pre-chat form
+                      </span>{' '}
+                      to be enabled.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -565,6 +629,92 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
         </div>
       )}
 
+      {/* AI Model Settings */}
+      {activeSection === 'ai-model' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Cpu className="w-5 h-5 text-primary-500" />
+              AI Model
+            </CardTitle>
+            <CardDescription>
+              Configure the AI model, creativity, and response length for your chatbot
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="model_tier">Model Tier</Label>
+              <select
+                id="model_tier"
+                value={modelTier}
+                onChange={(e) => setModelTier(e.target.value as 'fast' | 'balanced' | 'powerful')}
+                className="w-full px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+              >
+                <option value="fast">Fast (Claude Haiku) — Quick responses, lower cost</option>
+                <option value="balanced">Balanced (Claude Sonnet) — Good mix of speed and quality</option>
+                <option value="powerful">Powerful (Claude Opus) — Best quality, slower</option>
+              </select>
+              <p className="text-xs text-secondary-500">
+                Choose the AI model tier based on your needs for speed, quality, and cost
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="temperature">Temperature</Label>
+                <span className="text-sm font-mono text-secondary-700 dark:text-secondary-300 bg-secondary-100 dark:bg-secondary-800 px-2 py-0.5 rounded">
+                  {temperature.toFixed(1)}
+                </span>
+              </div>
+              <input
+                id="temperature"
+                type="range"
+                min={0}
+                max={2}
+                step={0.1}
+                value={temperature}
+                onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                className="w-full accent-primary-500"
+              />
+              <div className="flex justify-between text-xs text-secondary-400">
+                <span>Focused (0)</span>
+                <span>Creative (2)</span>
+              </div>
+              <p className="text-xs text-secondary-500">
+                Controls response randomness. Lower values are more focused, higher values more creative.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="max_tokens">Max Tokens</Label>
+                <span className="text-sm font-mono text-secondary-700 dark:text-secondary-300 bg-secondary-100 dark:bg-secondary-800 px-2 py-0.5 rounded">
+                  {maxTokens}
+                </span>
+              </div>
+              <input
+                id="max_tokens"
+                type="range"
+                min={100}
+                max={4096}
+                step={100}
+                value={maxTokens}
+                onChange={(e) => setMaxTokens(parseInt(e.target.value))}
+                className="w-full accent-primary-500"
+              />
+              <div className="flex justify-between text-xs text-secondary-400">
+                <span>Short (100)</span>
+                <span>Long (4096)</span>
+              </div>
+              <p className="text-xs text-secondary-500">
+                Maximum length of each response.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Memory Settings */}
       {activeSection === 'memory' && (
         <Card>
@@ -647,6 +797,46 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               </div>
             </CardContent>
           )}
+
+          {/* Session Duration — always visible regardless of memory toggle */}
+          <CardContent className="space-y-4 border-secondary-200 dark:border-secondary-700">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="session_ttl_hours">Session Duration</Label>
+                <Tooltip content="How long a chat session stays active. When a session expires, the visitor starts a new conversation. Previous conversations still appear as history if memory is enabled.">
+                  <Info className="w-4 h-4 text-secondary-400 cursor-help" />
+                </Tooltip>
+              </div>
+              <div className="flex items-center gap-3 max-w-xs">
+                <select
+                  id="session_ttl_hours"
+                  value={sessionTtlHours}
+                  onChange={(e) => setSessionTtlHours(Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+                >
+                  <option value={1}>1 hour</option>
+                  <option value={2}>2 hours</option>
+                  <option value={4}>4 hours</option>
+                  <option value={8}>8 hours</option>
+                  <option value={12}>12 hours</option>
+                  <option value={24}>24 hours</option>
+                  <option value={48}>2 days</option>
+                  <option value={72}>3 days</option>
+                  <option value={168}>7 days</option>
+                  <option value={336}>14 days</option>
+                  <option value={720}>30 days</option>
+                </select>
+              </div>
+              <p className="text-xs text-secondary-500">
+                {sessionTtlHours < 24
+                  ? `Sessions expire after ${sessionTtlHours} hour${sessionTtlHours === 1 ? '' : 's'} of inactivity`
+                  : sessionTtlHours === 24
+                    ? 'Sessions expire after 24 hours (default)'
+                    : `Sessions expire after ${sessionTtlHours / 24} day${sessionTtlHours / 24 === 1 ? '' : 's'}`}
+              </p>
+            </div>
+          </CardContent>
         </Card>
       )}
 
@@ -868,6 +1058,54 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
           </CardHeader>
           {transcriptConfig.enabled && (
             <CardContent className="space-y-6">
+              {/* Delivery Channels */}
+              <div>
+                <Label className="text-sm font-medium mb-3 block">Delivery Channels</Label>
+                <div className="space-y-3">
+                  <label className="flex items-center justify-between p-3 rounded-lg border border-secondary-200 dark:border-secondary-700 cursor-pointer hover:bg-secondary-50 dark:hover:bg-secondary-800/50 transition-colors">
+                    <div>
+                      <div className="font-medium text-sm text-secondary-900 dark:text-secondary-100">Header icon</div>
+                      <div className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">
+                        Show a mail icon in the chat header so visitors can request a transcript anytime.
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={transcriptConfig.show_header_icon !== false}
+                      onClick={() => setTranscriptConfig(prev => ({ ...prev, show_header_icon: !prev.show_header_icon }))}
+                      className={cn(
+                        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-3',
+                        transcriptConfig.show_header_icon !== false ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
+                      )}
+                    >
+                      <span className={cn('inline-block h-4 w-4 transform rounded-full bg-white transition-transform', transcriptConfig.show_header_icon !== false ? 'translate-x-6' : 'translate-x-1')} />
+                    </button>
+                  </label>
+                  <label className="flex items-center justify-between p-3 rounded-lg border border-secondary-200 dark:border-secondary-700 cursor-pointer hover:bg-secondary-50 dark:hover:bg-secondary-800/50 transition-colors">
+                    <div>
+                      <div className="font-medium text-sm text-secondary-900 dark:text-secondary-100">In-chat prompt</div>
+                      <div className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">
+                        Offer a transcript via an in-chat message after the conversation goes idle.
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={transcriptConfig.show_chat_prompt !== false}
+                      onClick={() => setTranscriptConfig(prev => ({ ...prev, show_chat_prompt: !prev.show_chat_prompt }))}
+                      className={cn(
+                        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-3',
+                        transcriptConfig.show_chat_prompt !== false ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
+                      )}
+                    >
+                      <span className={cn('inline-block h-4 w-4 transform rounded-full bg-white transition-transform', transcriptConfig.show_chat_prompt !== false ? 'translate-x-6' : 'translate-x-1')} />
+                    </button>
+                  </label>
+                </div>
+              </div>
+
+              {/* Email Collection Method */}
               <div>
                 <Label className="text-sm font-medium mb-3 block">Email Collection Method</Label>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -912,14 +1150,327 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   <div className="text-sm text-blue-800 dark:text-blue-300">
                     <p className="font-medium mb-1">How it works</p>
                     <ul className="list-disc list-inside space-y-1 text-xs text-blue-700 dark:text-blue-400">
-                      <li>A mail icon appears in the chat header for easy access</li>
-                      <li>During check-in, visitors are offered the option to email the transcript</li>
                       <li>The email includes a branded, formatted copy of the entire conversation</li>
+                      <li>Enable one or both delivery channels above</li>
+                      <li>In-chat prompts appear after 2 minutes of inactivity once the visitor has sent at least 2 messages</li>
                     </ul>
                   </div>
                 </div>
               </div>
             </CardContent>
+          )}
+        </Card>
+      )}
+
+      {activeSection === 'escalations' && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Flag className="w-5 h-5" />
+                  Issue Reporting
+                </CardTitle>
+                <CardDescription>
+                  Allow visitors to report issues such as wrong answers or offensive content.
+                </CardDescription>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={escalationConfig.enabled}
+                onClick={() => setEscalationConfig(prev => ({ ...prev, enabled: !prev.enabled }))}
+                className={cn(
+                  'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                  escalationConfig.enabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
+                )}
+              >
+                <span
+                  className={cn(
+                    'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                    escalationConfig.enabled ? 'translate-x-6' : 'translate-x-1'
+                  )}
+                />
+              </button>
+            </div>
+          </CardHeader>
+          {escalationConfig.enabled && (
+            <CardContent className="space-y-4">
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
+                <div className="flex items-start gap-2">
+                  <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
+                    <p>
+                      A flag button will appear in the chat widget header, allowing visitors to report wrong answers, offensive content, or other issues.
+                    </p>
+                    <p>
+                      Reports are tracked in the <strong>Reports</strong> tab. To let visitors transfer to a live agent, enable <strong>Live Handoff</strong> separately.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          )}
+        </Card>
+      )}
+
+      {activeSection === 'handoff' && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Headphones className="w-5 h-5" />
+                  Live Handoff
+                </CardTitle>
+                <CardDescription>
+                  Let visitors request a transfer to a human agent. A headset icon will appear in the chat widget.
+                </CardDescription>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={liveHandoffConfig.enabled}
+                onClick={() => setLiveHandoffConfig(prev => ({ ...prev, enabled: !prev.enabled }))}
+                className={cn(
+                  'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0',
+                  liveHandoffConfig.enabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
+                )}
+              >
+                <span
+                  className={cn(
+                    'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                    liveHandoffConfig.enabled ? 'translate-x-6' : 'translate-x-1'
+                  )}
+                />
+              </button>
+            </div>
+          </CardHeader>
+          {liveHandoffConfig.enabled && (
+          <CardContent className="space-y-4">
+            {/* Handoff timeout */}
+            <div>
+              <Label htmlFor="handoff-timeout-live" className="text-sm font-medium">
+                Handoff Inactivity Timeout
+              </Label>
+              <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5 mb-2">
+                Auto-close conversations after visitor inactivity. Set to 0 to disable.
+              </p>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="handoff-timeout-live"
+                  type="number"
+                  min={0}
+                  max={30}
+                  value={liveHandoffConfig.handoff_timeout_minutes ?? 5}
+                  onChange={(e) => setLiveHandoffConfig(prev => ({
+                    ...prev,
+                    handoff_timeout_minutes: Math.max(0, Math.min(30, parseInt(e.target.value) || 0)),
+                  }))}
+                  className="w-20"
+                />
+                <span className="text-sm text-secondary-500">minutes</span>
+              </div>
+            </div>
+
+            {/* Require agent online */}
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm font-medium">Require Agent Online</Label>
+                <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">
+                  Only show the handoff button when an agent is online in the Agent Console or Telegram is configured. Turn off to always show it.
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={liveHandoffConfig.require_agent_online !== false}
+                onClick={() => setLiveHandoffConfig(prev => ({ ...prev, require_agent_online: prev.require_agent_online === false ? true : false }))}
+                className={cn(
+                  'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0',
+                  liveHandoffConfig.require_agent_online !== false ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
+                )}
+              >
+                <span
+                  className={cn(
+                    'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                    liveHandoffConfig.require_agent_online !== false ? 'translate-x-6' : 'translate-x-1'
+                  )}
+                />
+              </button>
+            </div>
+
+            {/* Agent Console — always on */}
+            <div className="rounded-lg border border-secondary-200 dark:border-secondary-700 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary-50 dark:bg-primary-900/20">
+                    <Users className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Agent Console</p>
+                      <Badge variant="outline" className="text-xs text-green-600 border-green-300 dark:text-green-400 dark:border-green-700">
+                        Always on
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">
+                      Handoff requests always appear here. Agents can take over, reply, and resolve conversations.
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href={`/dashboard/chatbots/${id}/conversations`}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex-shrink-0"
+                >
+                  View conversations
+                  <ExternalLink className="w-3 h-3" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Telegram Notifications — optional */}
+            <div className="rounded-lg border border-secondary-200 dark:border-secondary-700 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                    <Send className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Telegram Notifications</p>
+                    <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">
+                      Send a notification to your Telegram group when a visitor requests human help.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-label="Enable Telegram notifications for handoff requests"
+                  aria-checked={telegramConfig.enabled}
+                  onClick={() => setTelegramConfig(prev => ({ ...prev, enabled: !prev.enabled }))}
+                  className={cn(
+                    'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0',
+                    telegramConfig.enabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                      telegramConfig.enabled ? 'translate-x-6' : 'translate-x-1'
+                    )}
+                  />
+                </button>
+              </div>
+
+              {telegramConfig.enabled && (
+                <div className="space-y-4 mt-4 pt-4 border-t border-secondary-200 dark:border-secondary-700">
+                  {/* Setup instructions */}
+                  <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3">
+                    <div className="flex items-start gap-2">
+                      <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                      <div className="text-xs text-blue-800 dark:text-blue-300 space-y-1">
+                        <p className="font-medium">Setup steps:</p>
+                        <ol className="list-decimal list-inside space-y-1">
+                          <li>Create a Telegram bot via @BotFather and copy the bot token</li>
+                          <li>Create a Telegram group for support and add the bot as admin</li>
+                          <li>Get the group Chat ID (forward a message to @userinfobot)</li>
+                          <li>Enter the details below and save, then click &quot;Setup Webhook&quot;</li>
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bot Token */}
+                  <div className="space-y-2">
+                    <Label htmlFor="telegram-bot-token">Bot Token</Label>
+                    <Input
+                      id="telegram-bot-token"
+                      type="password"
+                      placeholder="Paste your Telegram bot token"
+                      value={telegramConfig.bot_token || ''}
+                      onChange={(e) => setTelegramConfig(prev => ({ ...prev, bot_token: e.target.value }))}
+                    />
+                    <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                      Get this from @BotFather on Telegram
+                    </p>
+                  </div>
+
+                  {/* Chat ID */}
+                  <div className="space-y-2">
+                    <Label htmlFor="telegram-chat-id">Support Group Chat ID</Label>
+                    <Input
+                      id="telegram-chat-id"
+                      placeholder="-1001234567890"
+                      value={telegramConfig.chat_id || ''}
+                      onChange={(e) => setTelegramConfig(prev => ({ ...prev, chat_id: e.target.value }))}
+                    />
+                    <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                      The Telegram group where handoff messages will be sent
+                    </p>
+                  </div>
+
+                  {/* Webhook Secret (optional) */}
+                  <div className="space-y-2">
+                    <Label htmlFor="telegram-webhook-secret">Webhook Secret (optional)</Label>
+                    <Input
+                      id="telegram-webhook-secret"
+                      type="password"
+                      placeholder="Optional secret for webhook verification"
+                      value={telegramConfig.webhook_secret || ''}
+                      onChange={(e) => setTelegramConfig(prev => ({ ...prev, webhook_secret: e.target.value }))}
+                    />
+                  </div>
+
+                  {/* Webhook setup button */}
+                  {telegramConfig.bot_token && telegramConfig.chat_id && (
+                    <div className="border-t border-secondary-200 dark:border-secondary-700 pt-4">
+                      <div className="flex items-center gap-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={settingUpWebhook}
+                          onClick={async () => {
+                            setSettingUpWebhook(true);
+                            try {
+                              await handleSave();
+                              const res = await fetch(`/api/telegram/setup?chatbot_id=${id}`, { method: 'POST' });
+                              const data = await res.json();
+                              if (data.success) {
+                                setTelegramWebhookStatus('active');
+                                toast.success('Telegram webhook configured successfully');
+                              } else {
+                                toast.error(data.error || 'Failed to setup webhook');
+                              }
+                            } catch {
+                              toast.error('Failed to setup webhook');
+                            } finally {
+                              setSettingUpWebhook(false);
+                            }
+                          }}
+                        >
+                          {settingUpWebhook ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Send className="w-4 h-4 mr-2" />
+                          )}
+                          Setup Webhook
+                        </Button>
+                        {telegramWebhookStatus === 'active' && (
+                          <Badge variant="outline" className="text-green-600 border-green-300 dark:text-green-400 dark:border-green-700">
+                            Webhook Active
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-2">
+                        Save settings first, then click to configure the Telegram webhook.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </CardContent>
           )}
         </Card>
       )}
@@ -1044,6 +1595,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                         language: newLanguage,
                         memory_enabled: memoryEnabled,
                         memory_days: memoryDays,
+                        session_ttl_hours: sessionTtlHours,
                         pre_chat_form_config: newPreChatConfig,
                         post_chat_survey_config: newPostChatConfig,
                       }),
@@ -1348,6 +1900,15 @@ function PreChatFormEditor({ config, onChange, language, shouldShowWarning, onOp
               onChange={(e) => { updateConfig('submitButtonText', e.target.value); }}
               placeholder="Start Chat"
             />
+          </div>
+
+          <div className="pt-2">
+            <Link
+              href="./leads"
+              className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
+            >
+              View collected leads &rarr;
+            </Link>
           </div>
         </CardContent>
       )}
@@ -1698,6 +2259,15 @@ function PostChatSurveyEditor({ config, onChange, language, shouldShowWarning, o
               </div>
             </div>
           )}
+
+          <div className="pt-2">
+            <Link
+              href="./surveys"
+              className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
+            >
+              View survey results &rarr;
+            </Link>
+          </div>
         </CardContent>
       )}
     </Card>

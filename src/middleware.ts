@@ -37,8 +37,8 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // Handle embed routes - allow framing
-  if (pathname.startsWith('/embed/')) {
+  // Handle embed routes and agent console - allow framing
+  if (pathname.startsWith('/embed/') || pathname.startsWith('/agent-console/') || pathname.startsWith('/widget/')) {
     const response = NextResponse.next();
     // Remove X-Frame-Options to allow embedding
     response.headers.delete('X-Frame-Options');

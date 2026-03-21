@@ -25,7 +25,9 @@ import {
   Smile,
   FileText,
   FileJson,
+  Info,
 } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import {
   type Platform,
@@ -295,8 +297,11 @@ export function SocialPostGenerator({
 
           {/* Platforms */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+            <label className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1">
               Platforms <span className="text-red-500">*</span>
+              <Tooltip content="Posts are tailored to each platform's character limits and audience style. Select multiple to generate cross-platform content.">
+                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+              </Tooltip>
             </label>
             <div className="flex flex-wrap gap-2" role="group" aria-label="Select platforms">
               {(Object.keys(PLATFORM_CONFIG) as Platform[]).map((platform) => {
@@ -333,9 +338,12 @@ export function SocialPostGenerator({
             <div className="space-y-2">
               <label
                 htmlFor={`${formId}-type`}
-                className="text-sm font-medium text-secondary-700 dark:text-secondary-300"
+                className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1"
               >
                 Post Type
+                <Tooltip content="Shapes the content structure. Thought Leadership for insights, Educational for how-tos, Promotional for offers.">
+                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                </Tooltip>
               </label>
               <Select
                 id={`${formId}-type`}
@@ -364,9 +372,12 @@ export function SocialPostGenerator({
           <div className="space-y-2">
             <label
               htmlFor={`${formId}-variations`}
-              className="text-sm font-medium text-secondary-700 dark:text-secondary-300"
+              className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1"
             >
               Variations per platform
+              <Tooltip content="Number of unique post versions generated for each selected platform. More variations give you options to test.">
+                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+              </Tooltip>
             </label>
             <Select
               id={`${formId}-variations`}
@@ -381,8 +392,11 @@ export function SocialPostGenerator({
 
           {/* Features */}
           <div className="space-y-3">
-            <label className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+            <label className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1">
               Features
+              <Tooltip content="Hashtags boost discoverability. Emojis increase engagement. Both are optimized per platform.">
+                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+              </Tooltip>
             </label>
             <div className="flex flex-wrap gap-4">
               <label className="flex items-center gap-2 cursor-pointer">

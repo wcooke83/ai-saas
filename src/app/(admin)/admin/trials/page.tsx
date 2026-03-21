@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Gift, Plus, Copy, Trash2, ExternalLink, Loader2, Check, Calendar, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { H1 } from '@/components/ui/heading';
 import type { TrialLinkWithPlan, SubscriptionPlan } from '@/types/billing';
 
 export default function TrialsAdminPage() {
@@ -168,9 +169,9 @@ export default function TrialsAdminPage() {
             <Gift className="w-6 h-6 text-primary-600 dark:text-primary-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+            <H1 variant="dashboard">
               Trial Links
-            </h1>
+            </H1>
             <p className="text-secondary-600 dark:text-secondary-400">
               Create and manage shareable trial links
             </p>

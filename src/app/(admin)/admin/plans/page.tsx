@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { Tooltip } from '@/components/ui/tooltip';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { H1 } from '@/components/ui/heading';
 import { toast } from 'sonner';
 import type { SubscriptionPlan } from '@/types/billing';
 import { isCustomPricingPlan, formatPrice, formatCredits } from '@/lib/billing/utils';
@@ -559,9 +560,9 @@ export default function PlansAdminPage() {
             <Package className="w-6 h-6 text-primary-600 dark:text-primary-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+            <H1 variant="dashboard">
               Subscription Plans
-            </h1>
+            </H1>
             <p className="text-secondary-600 dark:text-secondary-400">
               Manage your subscription plans and pricing. Drag to reorder.
             </p>

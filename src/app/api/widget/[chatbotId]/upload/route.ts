@@ -63,19 +63,41 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Build list of allowed MIME types from config
+    // Build list of allowed MIME types and extensions from config
     const allowedMimes: string[] = [];
+    const allowedExtensions: string[] = [];
     const allowedTypes = uploadConfig.allowed_types;
     for (const [category, config] of Object.entries(FILE_TYPE_MAP)) {
       if (allowedTypes[category as keyof FileUploadAllowedTypes]) {
         allowedMimes.push(...config.mimes);
+        allowedExtensions.push(...config.extensions);
       }
     }
 
-    // Validate file type
+    // Validate file MIME type
     if (!allowedMimes.includes(file.type)) {
       throw APIError.badRequest(
         `File type "${file.type}" is not allowed. Allowed types: ${allowedMimes.join(', ')}`
+      );
+    }
+
+    // Validate file extension matches allowed types (prevent MIME spoofing)
+    const fileExt = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (!fileExt || !allowedExtensions.includes(fileExt)) {
+      throw APIError.badRequest(
+        `File extension "${fileExt}" is not allowed. Allowed extensions: ${allowedExtensions.join(', ')}`
+      );
+    }
+
+    // Enforce max_files_per_message by counting existing uploads in this session
+    const sessionPath = `${chatbotId}/${sessionId}`;
+    const { data: existingFiles } = await supabase.storage
+      .from('chat-attachments')
+      .list(sessionPath, { limit: 100 });
+    const currentFileCount = existingFiles?.length ?? 0;
+    if (currentFileCount >= uploadConfig.max_files_per_message) {
+      throw APIError.badRequest(
+        `Maximum ${uploadConfig.max_files_per_message} files allowed per session`
       );
     }
 

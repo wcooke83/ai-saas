@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { H1 } from '@/components/ui/heading';
 import {
   ScrollText,
   RefreshCw,
@@ -309,7 +310,7 @@ export default function AdminLogsPage() {
             <ScrollText className="w-6 h-6 text-primary-600 dark:text-primary-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-secondary-900 dark:text-white">API Logs</h1>
+            <H1 variant="dashboard" className="dark:text-white">API Logs</H1>
             <p className="text-secondary-500 dark:text-secondary-400 text-sm">
               Raw AI requests and responses
             </p>

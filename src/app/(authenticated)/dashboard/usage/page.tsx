@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { H1 } from '@/components/ui/heading';
 import { UsageChart } from '@/components/dashboard/UsageChart';
 import { UserLogEntry, type UserAPILog } from '@/components/dashboard/UserLogEntry';
 import {
@@ -336,7 +337,7 @@ export default function UsagePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">Usage & History</h1>
+          <H1 variant="dashboard">Usage & History</H1>
           <p className="text-secondary-600 dark:text-secondary-400">Track your AI generations and credit usage</p>
         </div>
         <div className="flex items-center gap-2">

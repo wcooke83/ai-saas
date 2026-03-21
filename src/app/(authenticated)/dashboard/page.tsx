@@ -22,6 +22,9 @@ import {
   Code,
   Bot,
 } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip';
+import { Info } from 'lucide-react';
+import { H1 } from '@/components/ui/heading';
 import type { Database } from '@/types/database';
 
 type Subscription = Database['public']['Tables']['subscriptions']['Row'];
@@ -172,7 +175,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">Dashboard</h1>
+        <H1 variant="dashboard">Dashboard</H1>
         <p className="text-secondary-600 dark:text-secondary-400">Welcome back! Here&apos;s an overview of your account.</p>
       </div>
 
@@ -200,7 +203,12 @@ export default async function DashboardPage() {
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardDescription>Credits Remaining</CardDescription>
+              <CardDescription className="flex items-center gap-1">
+                Credits Remaining
+                <Tooltip content="Token credits available this billing period. Credits are consumed by AI tool usage and chatbot messages.">
+                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                </Tooltip>
+              </CardDescription>
               <Sparkles className="w-4 h-4 text-secondary-400" aria-hidden="true" />
             </div>
             <CardTitle className="text-2xl">{creditsRemaining.toLocaleString()}</CardTitle>
@@ -230,7 +238,12 @@ export default async function DashboardPage() {
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardDescription>API Keys</CardDescription>
+              <CardDescription className="flex items-center gap-1">
+                API Keys
+                <Tooltip content="Number of active API keys. Use these to integrate AI tools into your own applications.">
+                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                </Tooltip>
+              </CardDescription>
               <Key className="w-4 h-4 text-secondary-400" aria-hidden="true" />
             </div>
             <CardTitle className="text-2xl">{apiKeysCount}</CardTitle>
@@ -249,7 +262,12 @@ export default async function DashboardPage() {
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardDescription>Total Generations</CardDescription>
+              <CardDescription className="flex items-center gap-1">
+                Total Generations
+                <Tooltip content="All-time count of AI content generated across all tools and chatbot interactions.">
+                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                </Tooltip>
+              </CardDescription>
               <TrendingUp className="w-4 h-4 text-secondary-400" aria-hidden="true" />
             </div>
             <CardTitle className="text-2xl">{totalGenerations.toLocaleString()}</CardTitle>

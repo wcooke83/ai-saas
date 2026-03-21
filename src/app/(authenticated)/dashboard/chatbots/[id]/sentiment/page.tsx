@@ -15,10 +15,13 @@ import {
   Meh,
   Frown,
   BarChart3,
+  Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip } from '@/components/ui/tooltip';
+import { H1 } from '@/components/ui/heading';
 import type { Chatbot } from '@/lib/chatbots/types';
 
 interface SentimentPageProps {
@@ -250,9 +253,9 @@ export default function SentimentPage({ params }: SentimentPageProps) {
             <ArrowLeft className="w-4 h-4 mr-1" />
             Back to Chatbot
           </Link>
-          <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+          <H1 variant="dashboard">
             Sentiment & Loyalty
-          </h1>
+          </H1>
           <p className="text-secondary-600 dark:text-secondary-400 mt-1">
             Analyze conversation outcomes and track visitor loyalty for {chatbot.name}
           </p>
@@ -295,8 +298,11 @@ export default function SentimentPage({ params }: SentimentPageProps) {
                   <BarChart3 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-secondary-500 dark:text-secondary-400">
+                  <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                     Avg. Sentiment
+                    <Tooltip content="Average sentiment score from 1 (very negative) to 5 (very positive), calculated by AI analysis of each conversation.">
+                      <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                    </Tooltip>
                   </p>
                   <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                     {stats.avg_score.toFixed(1)}<span className="text-sm font-normal text-secondary-400"> / 5</span>
@@ -313,8 +319,11 @@ export default function SentimentPage({ params }: SentimentPageProps) {
                   <SmilePlus className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-secondary-500 dark:text-secondary-400">
+                  <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                     Positive
+                    <Tooltip content="Percentage of conversations rated as positive or very positive sentiment.">
+                      <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                    </Tooltip>
                   </p>
                   <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                     {stats.positive_pct}%
@@ -331,8 +340,11 @@ export default function SentimentPage({ params }: SentimentPageProps) {
                   <Meh className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-secondary-500 dark:text-secondary-400">
+                  <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                     Neutral
+                    <Tooltip content="Percentage of conversations with neither clearly positive nor negative sentiment.">
+                      <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                    </Tooltip>
                   </p>
                   <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                     {stats.neutral_pct}%
@@ -349,8 +361,11 @@ export default function SentimentPage({ params }: SentimentPageProps) {
                   <Frown className="w-6 h-6 text-red-600 dark:text-red-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-secondary-500 dark:text-secondary-400">
+                  <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                     Negative
+                    <Tooltip content="Percentage of conversations rated as negative or very negative sentiment.">
+                      <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                    </Tooltip>
                   </p>
                   <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                     {stats.negative_pct}%
@@ -371,10 +386,13 @@ export default function SentimentPage({ params }: SentimentPageProps) {
               <h3 className="text-lg font-medium text-secondary-900 dark:text-secondary-100 mb-2">
                 No Sentiment Data Yet
               </h3>
-              <p className="text-secondary-500 dark:text-secondary-400 mb-6 max-w-md mx-auto">
+              <p className="text-secondary-500 dark:text-secondary-400 mb-2 max-w-md mx-auto">
                 {unanalyzedCount > 0
                   ? `You have ${unanalyzedCount} conversation${unanalyzedCount !== 1 ? 's' : ''} ready to analyze. Click the button above to process them.`
                   : 'Sentiment data will appear here once your chatbot has conversations with at least 2 messages.'}
+              </p>
+              <p className="text-sm text-secondary-400 dark:text-secondary-500 mb-6 max-w-md mx-auto">
+                Conversations must be completed before they can be analyzed for sentiment.
               </p>
               {unanalyzedCount > 0 && (
                 <Button onClick={handleAnalyze} disabled={analyzing}>
@@ -408,9 +426,30 @@ export default function SentimentPage({ params }: SentimentPageProps) {
                     <th className="text-left py-3 px-3 font-medium text-secondary-500 dark:text-secondary-400">Date</th>
                     <th className="text-left py-3 px-3 font-medium text-secondary-500 dark:text-secondary-400">Visitor</th>
                     <th className="text-left py-3 px-3 font-medium text-secondary-500 dark:text-secondary-400">Messages</th>
-                    <th className="text-left py-3 px-3 font-medium text-secondary-500 dark:text-secondary-400">Sentiment</th>
-                    <th className="text-left py-3 px-3 font-medium text-secondary-500 dark:text-secondary-400">Loyalty</th>
-                    <th className="text-left py-3 px-3 font-medium text-secondary-500 dark:text-secondary-400">Trend</th>
+                    <th className="text-left py-3 px-3 font-medium text-secondary-500 dark:text-secondary-400">
+                      <span className="flex items-center gap-1">
+                        Sentiment
+                        <Tooltip content="AI-analyzed sentiment score (1-5) and label for each conversation." side="bottom">
+                          <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                        </Tooltip>
+                      </span>
+                    </th>
+                    <th className="text-left py-3 px-3 font-medium text-secondary-500 dark:text-secondary-400">
+                      <span className="flex items-center gap-1">
+                        Loyalty
+                        <Tooltip content="Loyalty score (1-5) based on repeat visits and overall satisfaction across sessions." side="bottom">
+                          <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                        </Tooltip>
+                      </span>
+                    </th>
+                    <th className="text-left py-3 px-3 font-medium text-secondary-500 dark:text-secondary-400">
+                      <span className="flex items-center gap-1">
+                        Trend
+                        <Tooltip content="Visitor's sentiment direction over time: improving, declining, or stable." side="bottom">
+                          <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                        </Tooltip>
+                      </span>
+                    </th>
                     <th className="text-left py-3 px-3 font-medium text-secondary-500 dark:text-secondary-400">Summary</th>
                   </tr>
                 </thead>

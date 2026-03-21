@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, FileText, Sparkles } from 'lucide-react';
+import { Loader2, FileText, Sparkles, Info } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import type { BlogPostInput, PostFormat, BlogTone, WordCountPreset } from '@/lib/ai/prompts/blog-writer';
 import { POST_FORMATS, BLOG_TONES, WORD_COUNT_PRESETS } from '@/lib/ai/prompts/blog-writer';
@@ -58,9 +59,12 @@ export function BlogForm({
           <div className="space-y-2">
             <label
               htmlFor={formatId}
-              className="text-sm font-medium text-secondary-700 dark:text-secondary-300"
+              className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1"
             >
               Post Format
+              <Tooltip content="Determines the article structure. Listicles use numbered items, How-tos are step-based, Case Studies tell a results story.">
+                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+              </Tooltip>
             </label>
             <Select
               id={formatId}
@@ -136,12 +140,15 @@ export function BlogForm({
         <div className="space-y-2">
           <label
             htmlFor={keywordsId}
-            className="text-sm font-medium text-secondary-700 dark:text-secondary-300"
+            className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1"
           >
             SEO Keywords
-            <span className="ml-1 text-xs text-secondary-500 dark:text-secondary-400 font-normal">
+            <span className="text-xs text-secondary-500 dark:text-secondary-400 font-normal">
               (optional, comma-separated)
             </span>
+            <Tooltip content="Keywords are naturally woven into headings and body text to improve search engine rankings.">
+              <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+            </Tooltip>
           </label>
           <Input
             id={keywordsId}
@@ -153,8 +160,11 @@ export function BlogForm({
 
         {/* Word Count */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+          <label className="text-sm font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1">
             Target Word Count
+            <Tooltip content="Short (~500 words) for quick reads, Medium (~1000) for standard posts, Long (~2000) for in-depth guides.">
+              <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+            </Tooltip>
           </label>
           <div className="grid gap-2 sm:grid-cols-4">
             {WORD_COUNT_PRESETS.map((preset) => (

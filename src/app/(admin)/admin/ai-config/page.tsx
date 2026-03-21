@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, InfoTooltip } from '@/components/ui/tooltip';
+import { H1 } from '@/components/ui/heading';
 import {
   Cpu,
   Server,
@@ -719,9 +720,9 @@ export default function AIConfigPage() {
           <Shield className="w-6 h-6 text-primary-600 dark:text-primary-400" aria-hidden="true" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+          <H1 variant="dashboard">
             AI Configuration
-          </h1>
+          </H1>
           <p className="text-secondary-600 dark:text-secondary-400">
             Manage AI providers and models
           </p>
