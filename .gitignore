@@ -44,11 +44,10 @@ screenshots/
 .mcp.json
 
 # Test artifacts
-*.png
 playwright-report/
-playwright.config.ts
-tests/
+test-results/
+tests/auth/e2e-storage.json
+tests/screenshots/
 *.mjs
 capture-*.ts
 debug-*.ts
-test-*.ts
