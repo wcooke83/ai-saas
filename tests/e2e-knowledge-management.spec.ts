@@ -15,7 +15,7 @@ test.describe('Knowledge Management', () => {
     const res = await page.request.post(`/api/chatbots/${CHATBOT_ID}/knowledge`, {
       data: {
         type: 'text',
-        name: 'E2E Test Source',
+        name: `E2E Test Source ${Date.now()}`,
         content: 'This is test knowledge content for E2E testing. It contains information about our test product.',
       },
     });

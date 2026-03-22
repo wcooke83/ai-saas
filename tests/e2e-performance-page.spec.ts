@@ -7,7 +7,7 @@ test.describe('Performance Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(PERF_URL);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
+    await expect(page.locator('h1', { hasText: 'Performance' })).toBeVisible({ timeout: 20000 });
   });
 
   test('loads without errors', async ({ page }) => {
@@ -100,7 +100,11 @@ test.describe('Performance Page', () => {
   });
 
   test('shows empty state or data cards', async ({ page }) => {
-    await expect(page.locator('h1', { hasText: 'Performance' })).toBeVisible({ timeout: 10000 });
+    // This test can be slow — the beforeEach page load may not be enough
+    await page.goto(PERF_URL);
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(5000);
+    await expect(page.locator('h1', { hasText: 'Performance' })).toBeVisible({ timeout: 20000 });
 
     // Either we see the empty state or the summary cards
     const emptyState = page.locator('text=No performance data yet');

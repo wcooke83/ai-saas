@@ -6,17 +6,23 @@ const SESSION_ID = `e2e-session-${Date.now()}`;
 
 test.describe('Chat Message Flow', () => {
   test('send message and receive response (non-streaming)', async ({ page }) => {
+    // Ensure published first
+    await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
+
     const res = await page.request.post(CHAT_URL, {
       data: { message: 'Hello, what can you do?', stream: false, session_id: SESSION_ID },
     });
 
+    // Chat may return 403 if chatbot has status != 'active', or succeed
     expect(res.status()).toBeLessThan(500);
 
     if (res.ok()) {
       const body = await res.json();
       expect(body.success).toBe(true);
-      expect(body.data?.content).toBeTruthy();
-      expect(body.data?.content.length).toBeGreaterThan(0);
+      // API returns 'message' not 'content'
+      const responseText = body.data?.message || body.data?.content;
+      expect(responseText).toBeTruthy();
+      expect(responseText.length).toBeGreaterThan(0);
       expect(body.data?.conversation_id).toBeTruthy();
     }
   });
@@ -65,11 +71,14 @@ test.describe('Chat Message Flow', () => {
   });
 
   test('streaming response works', async ({ page }) => {
+    // Ensure published
+    await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
+
     const res = await page.request.post(CHAT_URL, {
-      data: { message: 'Tell me a fact', stream: true, session_id: 'e2e-stream' },
+      data: { message: 'Tell me a fact', stream: true, session_id: `e2e-stream-${Date.now()}` },
     });
+    // Chat may return 403 if not published/active
     expect(res.status()).toBeLessThan(500);
-    // Streaming returns chunked text, not JSON
     if (res.ok()) {
       const text = await res.text();
       expect(text.length).toBeGreaterThan(0);
