@@ -29,9 +29,7 @@ test.describe('Section 15: Analytics Dashboard', () => {
     await expect(page.getByText('Satisfaction Rate')).toBeVisible();
   });
 
-  // TODO: Skipped — analytics page intermittently fails to finish loading within test timeout.
-  // The date range buttons are not rendered until the API response completes, which takes >60s inconsistently.
-  test.skip('ANALYTICS-002: Date range filter (7d / 30d / 90d)', async ({ page }) => {
+  test('ANALYTICS-002: Date range filter (7d / 30d / 90d)', async ({ page }) => {
     await page.goto(`${BASE_URL}/analytics`);
     await waitForAnalytics(page);
 
@@ -104,8 +102,7 @@ test.describe('Section 32: Analytics Dashboard Details', () => {
     await expect(page.getByText('Growing')).toBeVisible();
   });
 
-  // TODO: Skipped — after switching date range, the re-fetch intermittently takes >60s causing timeout.
-  test.skip('DASH-002: Analytics daily data gap filling', async ({ page }) => {
+  test('DASH-002: Analytics daily data gap filling', async ({ page }) => {
     await page.goto(`${BASE_URL}/analytics`);
     await waitForAnalytics(page);
 
