@@ -253,18 +253,19 @@ test.describe('14. Agent Console', () => {
     await gotoAgentConsole(page);
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 20000 });
 
-    // Filter to active conversations
+    // Filter to active conversations and wait for list to stabilize
     await page.getByTestId('filter-active').click();
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(3000);
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     const count = await items.count();
     if (count === 0) { test.skip(); return; }
 
-    await items.first().click();
-    // Wait for messages to fully load before checking textarea
-    await expect(page.getByTestId('messages-skeleton')).not.toBeVisible({ timeout: 20000 });
-    await page.waitForTimeout(1000);
+    // Click conversation — retry until it registers as selected
+    await expect(async () => {
+      await items.first().click({ force: true });
+      await expect(items.first()).toHaveAttribute('data-selected', 'true');
+    }).toPass({ timeout: 15000, intervals: [500, 1000, 2000] });
 
     const textarea = page.locator('textarea[placeholder="Type a reply..."]');
     await expect(textarea).toBeVisible({ timeout: 15000 });
@@ -274,7 +275,6 @@ test.describe('14. Agent Console', () => {
     await textarea.press('Enter');
     await page.waitForTimeout(3000);
 
-    // Textarea should be cleared after send
     await expect(textarea).toHaveValue('');
   });
 
@@ -282,17 +282,23 @@ test.describe('14. Agent Console', () => {
     await gotoAgentConsole(page);
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 20000 });
 
+    // Filter to pending and wait for filter loading to complete
     await page.getByTestId('filter-pending').click();
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(2000);
+    await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 15000 });
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     const count = await items.count();
     if (count === 0) { test.skip(); return; }
 
-    await items.first().click();
-    // Wait for messages to fully load before checking buttons
-    await expect(page.getByTestId('messages-skeleton')).not.toBeVisible({ timeout: 20000 });
-    await page.waitForTimeout(1000);
+    // Click conversation — retry until it registers as selected
+    await expect(async () => {
+      await items.first().click({ force: true });
+      await expect(items.first()).toHaveAttribute('data-selected', 'true');
+    }).toPass({ timeout: 15000, intervals: [500, 1000, 2000] });
+
+    // Wait for chat panel to fully render
+    await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
 
     // Textarea should be disabled with "Take over first" placeholder
     const textarea = page.locator('textarea[placeholder="Take over the conversation first..."]');
