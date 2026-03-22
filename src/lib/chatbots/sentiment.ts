@@ -5,10 +5,10 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/admin';
+import type { TypedSupabaseClient } from '@/lib/supabase/admin';
 import { generate } from '@/lib/ai/provider';
 import type { Message, SentimentLabel, LoyaltyTrend } from './types';
 
-type SupabaseAny = any;
 
 // ============================================
 // TYPES
@@ -119,9 +119,9 @@ Rules:
 export async function updateVisitorLoyalty(
   chatbotId: string,
   visitorId: string,
-  supabaseClient?: SupabaseAny
+  supabaseClient?: TypedSupabaseClient
 ): Promise<void> {
-  const supabase = supabaseClient || (createAdminClient() as SupabaseAny);
+  const supabase = supabaseClient ||createAdminClient();
 
   // Fetch all sentiment-analyzed conversations for this visitor, ordered by date
   const { data: conversations, error } = await supabase
@@ -191,9 +191,9 @@ export async function updateVisitorLoyalty(
  */
 export async function processUnanalyzedConversations(
   chatbotId: string,
-  supabaseClient?: SupabaseAny
+  supabaseClient?: TypedSupabaseClient
 ): Promise<ProcessResult> {
-  const supabase = supabaseClient || (createAdminClient() as SupabaseAny);
+  const supabase = supabaseClient ||createAdminClient();
 
   // Find conversations without sentiment analysis that have at least 2 messages
   const { data: conversations, error: fetchError } = await supabase
@@ -290,9 +290,9 @@ export async function processUnanalyzedConversations(
  */
 export async function getUnanalyzedCount(
   chatbotId: string,
-  supabaseClient?: SupabaseAny
+  supabaseClient?: TypedSupabaseClient
 ): Promise<number> {
-  const supabase = supabaseClient || (createAdminClient() as SupabaseAny);
+  const supabase = supabaseClient ||createAdminClient();
 
   const { count, error } = await supabase
     .from('conversations')
@@ -310,7 +310,7 @@ export async function getUnanalyzedCount(
  */
 export async function getSentimentStats(
   chatbotId: string,
-  supabaseClient?: SupabaseAny
+  supabaseClient?: TypedSupabaseClient
 ): Promise<{
   total_analyzed: number;
   avg_score: number;
@@ -318,7 +318,7 @@ export async function getSentimentStats(
   neutral_pct: number;
   negative_pct: number;
 }> {
-  const supabase = supabaseClient || (createAdminClient() as SupabaseAny);
+  const supabase = supabaseClient ||createAdminClient();
 
   const { data, error } = await supabase
     .from('conversations')

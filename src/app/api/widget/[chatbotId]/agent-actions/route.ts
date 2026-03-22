@@ -80,7 +80,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const adminDb = createAdminClient() as any;
+    const adminDb = createAdminClient();
 
     // Verify conversation belongs to this chatbot
     const { data: conversation } = await adminDb

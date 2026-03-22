@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { ArrowLeft, Save, RotateCcw, Check, Palette, Type, Layout, Code, MousePointerClick, Flag, Info } from 'lucide-react';
+import { Save, RotateCcw, Check, Palette, Type, Layout, Code, MousePointerClick, Flag, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -146,7 +146,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [previewMode, setPreviewMode] = useState<'chat' | 'form' | 'verify' | 'survey' | 'escalation' | 'handoff'>('form');
+  const [previewMode, setPreviewMode] = useState<'chat' | 'form' | 'verify' | 'survey' | 'feedback' | 'escalation' | 'handoff'>('form');
   const [selectedReportReason, setSelectedReportReason] = useState<string | null>(null);
   const [showAllColors, setShowAllColors] = useState(false);
   const t = getTranslations(chatbot?.language || 'en');
@@ -156,6 +156,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
     form: 'Pre-Chat',
     verify: 'Verify',
     survey: 'Post-Chat',
+    feedback: 'Feedback',
     escalation: 'Report',
     handoff: 'Handoff',
   };
@@ -165,12 +166,13 @@ export default function CustomizePage({ params }: CustomizePageProps) {
     form:       ['general', 'header', 'formColors'],
     verify:     ['general', 'header', 'formColors', 'secondaryButton'],
     survey:     ['general', 'header', 'formColors', 'secondaryButton'],
+    feedback:   ['general', 'feedbackColors'],
     escalation: ['general', 'header', 'escalationReport'],
     handoff:    ['general', 'header', 'escalationReport', 'secondaryButton'],
   };
 
   const visibleSections = showAllColors
-    ? ['general', 'header', 'messages', 'inputArea', 'sendButton', 'secondaryButton', 'formColors', 'escalationReport']
+    ? ['general', 'header', 'messages', 'inputArea', 'sendButton', 'secondaryButton', 'formColors', 'feedbackColors', 'escalationReport']
     : COLOR_SECTIONS_BY_TAB[previewMode] || [];
 
   useEffect(() => {
@@ -254,13 +256,6 @@ export default function CustomizePage({ params }: CustomizePageProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <Link
-            href={`/dashboard/chatbots/${id}`}
-            className="inline-flex items-center text-sm text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Chatbot
-          </Link>
           <H1 variant="dashboard">
             Customize Widget
           </H1>
@@ -541,6 +536,33 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                     label="Input Border"
                     value={config.reportInputBorderColor || '#e2e8f0'}
                     onChange={(v) => updateConfig('reportInputBorderColor', v)}
+                  />
+                </div>
+              </div>)}
+
+              {visibleSections.includes('feedbackColors') && (<div>
+                <h3 className="text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-3">Feedback Colors</h3>
+                <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-3">Colors for the thumbs-down follow-up prompt</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <ColorPicker
+                    label="Background"
+                    value={config.feedbackBackgroundColor || config.botBubbleColor}
+                    onChange={(v) => updateConfig('feedbackBackgroundColor', v)}
+                  />
+                  <ColorPicker
+                    label="Text Color"
+                    value={config.feedbackTextColor || config.botBubbleTextColor}
+                    onChange={(v) => updateConfig('feedbackTextColor', v)}
+                  />
+                  <ColorPicker
+                    label="Button Color"
+                    value={config.feedbackButtonColor || config.backgroundColor}
+                    onChange={(v) => updateConfig('feedbackButtonColor', v)}
+                  />
+                  <ColorPicker
+                    label="Button Text"
+                    value={config.feedbackButtonTextColor || config.textColor}
+                    onChange={(v) => updateConfig('feedbackButtonTextColor', v)}
                   />
                 </div>
               </div>)}
@@ -944,22 +966,19 @@ export default function CustomizePage({ params }: CustomizePageProps) {
               <div>
                 <CardTitle>Live Preview</CardTitle>
                 <CardDescription>See how your widget will look</CardDescription>
-                <div className="flex flex-wrap bg-secondary-100 dark:bg-secondary-800 rounded-lg p-1 mt-3" role="tablist" aria-label="Preview mode">
-                  {(['chat', 'form', 'verify', 'survey', 'escalation', 'handoff'] as const).map((mode) => (
-                    <button
-                      key={mode}
-                      role="tab"
-                      aria-selected={previewMode === mode}
-                      onClick={() => setPreviewMode(mode)}
-                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                        previewMode === mode
-                          ? 'bg-white dark:bg-secondary-700 text-secondary-900 dark:text-secondary-100 shadow-sm'
-                          : 'text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100'
-                      }`}
-                    >
-                      {TAB_LABELS[mode]}
-                    </button>
-                  ))}
+                <div className="mt-3">
+                  <select
+                    value={previewMode}
+                    onChange={(e) => setPreviewMode(e.target.value as typeof previewMode)}
+                    className="w-full px-3 py-2 text-sm font-medium rounded-lg border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    aria-label="Preview mode"
+                  >
+                    {(['chat', 'form', 'verify', 'survey', 'feedback', 'escalation', 'handoff'] as const).map((mode) => (
+                      <option key={mode} value={mode}>
+                        {TAB_LABELS[mode]}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </CardHeader>
@@ -1267,6 +1286,76 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                           {t.poweredBy} AI SaaS
                         </div>
                       )}
+                    </div>
+                  ) : previewMode === 'feedback' ? (
+                    /* Feedback Follow-Up Preview */
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: 'calc(100% - 72px)',
+                        backgroundColor: config.backgroundColor,
+                        padding: '16px',
+                        gap: 12,
+                      }}
+                    >
+                      {/* Bot message */}
+                      <div style={{ maxWidth: '85%' }}>
+                        <div style={{
+                          backgroundColor: config.botBubbleColor,
+                          color: config.botBubbleTextColor,
+                          padding: '10px 14px',
+                          borderRadius: `2px ${config.containerBorderRadius || 16}px ${config.containerBorderRadius || 16}px ${config.containerBorderRadius || 16}px`,
+                          fontSize: config.fontSize || 14,
+                          fontFamily: config.fontFamily || 'inherit',
+                        }}>
+                          {t.previewBotReply}
+                        </div>
+                        {/* Feedback buttons */}
+                        <div style={{ display: 'flex', gap: 2, marginTop: 4 }}>
+                          <span style={{ padding: 6, color: '#9ca3af', lineHeight: 0 }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/></svg>
+                          </span>
+                          <span style={{ padding: 6, color: '#ef4444', lineHeight: 0 }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z"/></svg>
+                          </span>
+                        </div>
+                        {/* Follow-up prompt */}
+                        <div style={{
+                          marginTop: 6,
+                          background: config.feedbackBackgroundColor || config.botBubbleColor,
+                          borderRadius: 12,
+                          padding: '10px 14px',
+                          boxShadow: '0 0 0 1px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.04), 0 8px 16px rgba(0,0,0,0.08)',
+                          position: 'relative',
+                        }}>
+                          <div style={{
+                            position: 'absolute', top: 6, right: 6, width: 20, height: 20,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            borderRadius: '50%', color: config.feedbackTextColor || config.botBubbleTextColor || '#374151', opacity: 0.4,
+                          }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                          </div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: config.feedbackTextColor || config.botBubbleTextColor || '#374151', opacity: 0.7, marginBottom: 8 }}>
+                            {t.feedbackWhatWentWrong}
+                          </div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                            {[t.feedbackIncorrect, t.feedbackNotRelevant, t.feedbackTooVague, t.feedbackOther].map((label) => (
+                              <span key={label} style={{
+                                background: config.feedbackButtonColor || config.backgroundColor,
+                                color: config.feedbackButtonTextColor || config.textColor,
+                                border: '1px solid transparent',
+                                borderRadius: 16,
+                                padding: '5px 12px',
+                                fontSize: 12,
+                                fontWeight: 500,
+                              }}>
+                                {label}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ) : previewMode === 'escalation' ? (
                     /* Escalation Report Preview — full-view replacement matching actual widget */

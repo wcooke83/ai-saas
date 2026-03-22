@@ -19,7 +19,7 @@ interface RouteParams {
 export async function POST(req: NextRequest, { params }: RouteParams) {
   try {
     const { chatbotId } = await params;
-    const supabase = createAdminClient() as any;
+    const supabase = createAdminClient();
 
     // Get chatbot and its file upload config
     const { data: chatbot, error: chatbotError } = await supabase
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       throw APIError.forbidden('Chatbot is not available');
     }
 
-    const uploadConfig: FileUploadConfig = chatbot.file_upload_config || DEFAULT_FILE_UPLOAD_CONFIG;
+    const uploadConfig: FileUploadConfig = (chatbot.file_upload_config as unknown as FileUploadConfig) || DEFAULT_FILE_UPLOAD_CONFIG;
 
     if (!uploadConfig.enabled) {
       throw APIError.forbidden('File uploads are not enabled for this chatbot');

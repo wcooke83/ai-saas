@@ -2560,7 +2560,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                     className={`chat-widget-message chat-widget-message-${message.role}`}
                   >
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4, width: '100%', justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start' }} className={message.role === 'assistant' ? 'chat-widget-msg-row' : ''}>
-                      <div style={{ maxWidth: '80%' }}>
+                      <div style={{ maxWidth: '80%', display: 'flex', flexDirection: 'column' as const, alignItems: message.role === 'user' ? 'flex-end' : 'flex-start' }}>
                       <div className={`chat-widget-bubble chat-widget-bubble-${message.role}`} style={{
                         maxWidth: '100%',
                         ...(message.failed ? { opacity: 0.6 } : {}),

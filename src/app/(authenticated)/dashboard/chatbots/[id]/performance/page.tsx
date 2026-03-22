@@ -1,21 +1,19 @@
 'use client';
 
 import { useState, useEffect, use, useMemo, useCallback, Suspense } from 'react';
-import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Timer, Info, X, AlertTriangle } from 'lucide-react';
+import { Timer, Info, X, AlertTriangle } from 'lucide-react';
 import { MessagePreview } from '@/components/performance/MessagePreview';
 import { PerformanceFilterBar, type PerformanceFilters, DEFAULT_FILTERS } from '@/components/performance/PerformanceFilterBar';
 import { PerformancePagination } from '@/components/performance/PerformancePagination';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip } from '@/components/ui/tooltip';
+import type { StageSpan } from '@/lib/chatbots/rag';
 
 interface PerformancePageProps {
   params: Promise<{ id: string }>;
 }
-
-interface StageSpan { start: number; end: number }
 
 interface PerfRow {
   created_at: string;
@@ -407,7 +405,7 @@ function RequestWaterfall({
       </div>
 
       {/* Waterfall chart — fits container, no horizontal scroll */}
-      <div className="flex rounded bg-secondary-900/50 overflow-hidden">
+      <div className="flex rounded bg-secondary-100 dark:bg-secondary-900/50 overflow-hidden">
         {/* Left: stage labels with tooltips */}
         <div className="flex-shrink-0" style={{ width: LABEL_W }}>
           <div className="h-5 border-b border-secondary-700" />
@@ -418,7 +416,7 @@ function RequestWaterfall({
               side="right"
             >
               <div
-                className="flex items-center gap-1.5 px-2 border-b border-secondary-800/30 cursor-help"
+                className="flex items-center gap-1.5 px-2 border-b border-secondary-200 dark:border-secondary-800/30 cursor-help"
                 style={{ height: ROW_H, paddingLeft: 8 + s.indent * 16 }}
               >
                 <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
@@ -450,7 +448,7 @@ function RequestWaterfall({
             {ticks.map((t) => (
               <div
                 key={t}
-                className="absolute top-0 bottom-0 border-l border-secondary-800/40"
+                className="absolute top-0 bottom-0 border-l border-secondary-200 dark:border-secondary-800/40"
                 style={{ left: `${(t / scaleMax) * 100}%` }}
               />
             ))}
@@ -476,7 +474,7 @@ function RequestWaterfall({
               return (
                 <div
                   key={s.key}
-                  className="absolute border-b border-secondary-800/30"
+                  className="absolute border-b border-secondary-200 dark:border-secondary-800/30"
                   style={{ top: i * ROW_H, height: ROW_H, left: 0, right: 0 }}
                 >
                   {/* The bar */}
@@ -531,19 +529,19 @@ function RequestWaterfall({
 function RequestMetadata({ row }: { row: PerfRow }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      <div className="bg-secondary-800/40 rounded px-3 py-2">
+      <div className="bg-secondary-100 dark:bg-secondary-800/40 rounded px-3 py-2">
         <p className="text-[10px] text-secondary-400">Model</p>
         <p className="text-xs text-secondary-100 font-mono">{row.model ?? '—'}</p>
       </div>
-      <div className="bg-secondary-800/40 rounded px-3 py-2">
+      <div className="bg-secondary-100 dark:bg-secondary-800/40 rounded px-3 py-2">
         <p className="text-[10px] text-secondary-400">Message</p>
         <p className="text-xs text-secondary-100 font-mono">{row.message_length} chars</p>
       </div>
-      <div className="bg-secondary-800/40 rounded px-3 py-2">
+      <div className="bg-secondary-100 dark:bg-secondary-800/40 rounded px-3 py-2">
         <p className="text-[10px] text-secondary-400">Response</p>
         <p className="text-xs text-secondary-100 font-mono">{row.response_length} chars</p>
       </div>
-      <div className="bg-secondary-800/40 rounded px-3 py-2">
+      <div className="bg-secondary-100 dark:bg-secondary-800/40 rounded px-3 py-2">
         <p className="text-[10px] text-secondary-400">RAG</p>
         <p className="text-xs text-secondary-100 font-mono">
           {row.rag_chunks_count} chunks · {row.rag_confidence?.toFixed(2) ?? '—'} conf
@@ -593,10 +591,10 @@ function WaterfallOverview({
               key={i}
               className={`flex items-center justify-between px-2 cursor-pointer transition-colors ${
                 isSelected
-                  ? 'bg-blue-950/30 border-l-2 border-blue-500'
+                  ? 'bg-blue-100 dark:bg-blue-950/30 border-l-2 border-blue-500'
                   : isAnomaly
-                    ? 'border-l-2 border-red-500/50 hover:bg-secondary-800/30'
-                    : 'border-l-2 border-transparent hover:bg-secondary-800/30'
+                    ? 'border-l-2 border-red-500/50 hover:bg-secondary-100 dark:hover:bg-secondary-800/30'
+                    : 'border-l-2 border-transparent hover:bg-secondary-100 dark:hover:bg-secondary-800/30'
               }`}
               style={{ height: ROW_H }}
               onClick={() => onSelect(isSelected ? null : i)}
@@ -642,7 +640,7 @@ function WaterfallOverview({
 
           {/* Grid */}
           {ticks.map((t) => (
-            <div key={t} className="absolute top-0 bottom-0 border-l border-secondary-800/50" style={{ left: `${(t / scaleMax) * 100}%` }} />
+            <div key={t} className="absolute top-0 bottom-0 border-l border-secondary-200 dark:border-secondary-800/50" style={{ left: `${(t / scaleMax) * 100}%` }} />
           ))}
 
           {rows.map((row, i) => {
@@ -653,7 +651,7 @@ function WaterfallOverview({
               <div
                 key={i}
                 className={`absolute left-0 right-0 cursor-pointer transition-colors ${
-                  isSelected ? 'bg-blue-950/30' : 'hover:bg-secondary-800/30'
+                  isSelected ? 'bg-blue-100 dark:bg-blue-950/30' : 'hover:bg-secondary-100 dark:hover:bg-secondary-800/30'
                 }`}
                 style={{ top: i * ROW_H, height: ROW_H }}
                 onClick={() => onSelect(isSelected ? null : i)}
@@ -690,7 +688,7 @@ function WaterfallOverview({
                   />
                 )}
 
-                <div className="absolute left-0 right-0 border-b border-secondary-800/30" style={{ bottom: 0 }} />
+                <div className="absolute left-0 right-0 border-b border-secondary-200 dark:border-secondary-800/30" style={{ bottom: 0 }} />
               </div>
             );
           })}
@@ -915,13 +913,6 @@ function PerformancePageInner({ params }: PerformancePageProps) {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <Link
-          href={`/dashboard/chatbots/${id}`}
-          className="inline-flex items-center text-sm text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100 mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          Back to Chatbot
-        </Link>
         <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
           <Timer className="w-6 h-6" />
           Performance
@@ -1170,7 +1161,7 @@ function PerformancePageInner({ params }: PerformancePageProps) {
                         key={i}
                         className={`border-b border-secondary-100 dark:border-secondary-800 cursor-pointer transition-colors ${
                           selectedIndex === i
-                            ? 'bg-blue-50 dark:bg-blue-950/30 border-l-2 border-l-blue-500'
+                            ? 'bg-blue-50 dark:bg-blue-100 dark:bg-blue-950/30 border-l-2 border-l-blue-500'
                             : 'hover:bg-secondary-50 dark:hover:bg-secondary-800/50'
                         }`}
                         onClick={() => setSelectedIndex(selectedIndex === i ? null : i)}

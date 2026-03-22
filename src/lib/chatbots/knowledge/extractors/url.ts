@@ -48,7 +48,7 @@ export async function extractURL(url: string, timeoutMs?: number): Promise<strin
  * First successful result (>100 chars) wins.
  */
 async function extractURLRaced(url: string, timeout: number): Promise<string> {
-  const JINA_HEAD_START = 3000;
+  const JINA_HEAD_START = 1000;
 
   const jinaPromise = extractWithJina(url, timeout)
     .then((content) => (content && content.trim().length > 100 ? content : null))
@@ -65,17 +65,13 @@ async function extractURLRaced(url: string, timeout: number): Promise<string> {
     }, JINA_HEAD_START);
   });
 
-  // Wait for both, take the first non-null result (Jina preferred since it started first)
-  const [jinaResult, directResult] = await Promise.all([jinaPromise, directPromise]);
+  // Race: first non-null result wins
+  const result = await Promise.any([
+    jinaPromise.then((r) => { if (!r) throw new Error('empty'); console.log(`[URL Extractor] Jina Reader won race: ${r.length} chars`); return r; }),
+    directPromise.then((r) => { if (!r) throw new Error('empty'); console.log(`[URL Extractor] Direct fetch won race: ${r.length} chars`); return r; }),
+  ]).catch(() => null);
 
-  if (jinaResult) {
-    console.log(`[URL Extractor] Jina Reader won race: ${jinaResult.length} chars`);
-    return jinaResult;
-  }
-  if (directResult) {
-    console.log(`[URL Extractor] Direct fetch won race: ${directResult.length} chars`);
-    return directResult;
-  }
+  if (result) return result;
 
   throw new Error(`Failed to extract URL content from ${url}`);
 }

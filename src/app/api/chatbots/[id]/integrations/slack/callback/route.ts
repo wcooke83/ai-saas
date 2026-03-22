@@ -56,7 +56,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       result.team_id!,
       result.team_name!,
       result.access_token,
-      result.app_id!
+      user.id
     );
 
     // Redirect back to chatbot with success

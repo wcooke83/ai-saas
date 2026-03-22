@@ -35,7 +35,7 @@ Visitors can also add a **text description** explaining the issue in detail.
 
 ## Viewing Escalations
 
-Navigate to the **Escalations** page from your chatbot's dashboard to see:
+Navigate to the **Reports** page from your chatbot's dashboard to see:
 
 - A list of all reported issues with timestamps
 - The reason category for each escalation
@@ -44,7 +44,7 @@ Navigate to the **Escalations** page from your chatbot's dashboard to see:
 
 ## Configuring Escalations
 
-In your chatbot's **Settings**, the Escalation section lets you configure:
+In your chatbot's **Settings**, the escalation section lets you configure:
 
 - **Enable/disable** the report button on the widget
 - **Notification email** — Receive email alerts when escalations are submitted
@@ -62,7 +62,7 @@ See the [Telegram Live Handoff](./telegram-live-handoff) guide for setup instruc
 
 ## Customizing the Escalation UI
 
-The escalation overlay colors can be customized in the **Customize Widget** page under the **Escalation Report** color section:
+The escalation overlay colors can be customized in the **Customize** page under the **Escalation Report** color section:
 
 - Background, text, and button colors
 - Reason button colors (default and selected states)

@@ -5,6 +5,7 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/admin';
+import type { Json } from '@/types/database';
 import { sendTelegramMessage, formatHandoffMessage, formatVisitorMessage } from './client';
 import type { TelegramConfig, HandoffSession } from './types';
 import { DEFAULT_TELEGRAM_CONFIG } from './types';
@@ -13,22 +14,22 @@ import { DEFAULT_TELEGRAM_CONFIG } from './types';
  * Get the Telegram config for a chatbot
  */
 export async function getTelegramConfig(chatbotId: string): Promise<TelegramConfig> {
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
   const { data } = await supabase
     .from('chatbots')
     .select('telegram_config')
     .eq('id', chatbotId)
     .single();
 
-  if (!data?.telegram_config) return DEFAULT_TELEGRAM_CONFIG;
-  return { ...DEFAULT_TELEGRAM_CONFIG, ...data.telegram_config };
+  if (!data?.telegram_config || typeof data.telegram_config !== 'object' || Array.isArray(data.telegram_config)) return DEFAULT_TELEGRAM_CONFIG;
+  return { ...DEFAULT_TELEGRAM_CONFIG, ...(data.telegram_config as Record<string, unknown>) } as TelegramConfig;
 }
 
 /**
  * Get the active handoff session for a conversation
  */
 export async function getActiveHandoff(conversationId: string): Promise<HandoffSession | null> {
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
   const { data } = await supabase
     .from('telegram_handoff_sessions')
     .select('*')
@@ -54,7 +55,7 @@ export async function initiateHandoff(params: {
   visitorEmail?: string;
   pageUrl?: string;
 }): Promise<{ success: boolean; handoffId?: string; error?: string }> {
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
 
   // Get chatbot + telegram config
   const { data: chatbot } = await supabase
@@ -67,10 +68,13 @@ export async function initiateHandoff(params: {
     return { success: false, error: 'Chatbot not found' };
   }
 
+  const rawConfig = chatbot.telegram_config && typeof chatbot.telegram_config === 'object' && !Array.isArray(chatbot.telegram_config)
+    ? chatbot.telegram_config as Record<string, unknown>
+    : {};
   const config: TelegramConfig = {
     ...DEFAULT_TELEGRAM_CONFIG,
-    ...(chatbot.telegram_config || {}),
-  };
+    ...rawConfig,
+  } as TelegramConfig;
 
   if (!config.enabled || !config.bot_token || !config.chat_id) {
     return { success: false, error: 'Telegram handoff not configured' };
@@ -164,7 +168,7 @@ export async function forwardVisitorMessage(params: {
   const config = await getTelegramConfig(params.chatbotId);
   if (!config.enabled || !config.bot_token) return false;
 
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
 
   // Get the telegram thread message ID
   const { data: mapping } = await supabase
@@ -197,7 +201,7 @@ export async function handleAgentReply(params: {
   content: string;
   source?: 'telegram' | 'platform';
 }): Promise<{ success: boolean; error?: string }> {
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
   const source = params.source || 'telegram';
 
   // Update handoff session to active if pending
@@ -229,7 +233,7 @@ export async function handleAgentReply(params: {
     chatbot_id: params.chatbotId,
     role: 'assistant',
     content: params.content,
-    metadata,
+    metadata: metadata as Json,
   });
 
   if (error) {
@@ -274,7 +278,7 @@ export async function handleAgentReply(params: {
  * Resolve a handoff session (agent marks conversation as complete)
  */
 export async function resolveHandoff(conversationId: string): Promise<boolean> {
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
 
   const { error } = await supabase
     .from('telegram_handoff_sessions')
@@ -301,7 +305,7 @@ export async function lookupConversationFromTelegram(
   telegramChatId: number,
   replyToMessageId: number
 ): Promise<{ chatbotId: string; conversationId: string } | null> {
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
 
   const { data } = await supabase
     .from('telegram_message_mappings')
@@ -309,7 +313,8 @@ export async function lookupConversationFromTelegram(
     .eq('telegram_message_id', replyToMessageId)
     .single();
 
-  return data || null;
+  if (!data) return null;
+  return { chatbotId: data.chatbot_id, conversationId: data.conversation_id };
 }
 
 /**
@@ -318,7 +323,7 @@ export async function lookupConversationFromTelegram(
 export async function lookupConversationById(
   conversationId: string
 ): Promise<{ chatbotId: string; conversationId: string } | null> {
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
 
   const { data } = await supabase
     .from('conversations')

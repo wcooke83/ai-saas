@@ -30,27 +30,3 @@ export async function extractDOCX(buffer: Buffer): Promise<string> {
     );
   }
 }
-
-/**
- * Extract content with some formatting preserved (as HTML then convert to text)
- */
-export async function extractDOCXAsMarkdown(buffer: Buffer): Promise<string> {
-  try {
-    const result = await mammoth.convertToHtml({ buffer });
-
-    // Convert HTML to plain text with basic formatting
-    const text = result.value
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/p>/gi, '\n\n')
-      .replace(/<[^>]+>/g, '')
-      .replace(/\r\n/g, '\n')
-      .replace(/\n{3,}/g, '\n\n')
-      .trim();
-
-    return text;
-  } catch (error) {
-    console.error('DOCX markdown extraction error:', error);
-    // Fall back to raw text extraction
-    return extractDOCX(buffer);
-  }
-}

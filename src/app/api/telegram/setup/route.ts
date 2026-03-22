@@ -14,6 +14,13 @@ import {
   getTelegramWebhookInfo,
 } from '@/lib/telegram/client';
 import { DEFAULT_TELEGRAM_CONFIG } from '@/lib/telegram/types';
+import type { TelegramConfig } from '@/lib/telegram/types';
+import type { Json } from '@/types/database';
+
+function parseTelegramConfig(raw: Json | null): TelegramConfig {
+  const obj = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Record<string, unknown> : {};
+  return { ...DEFAULT_TELEGRAM_CONFIG, ...obj } as TelegramConfig;
+}
 
 async function getAuthenticatedChatbot(req: NextRequest) {
   const supabase = await createClient();
@@ -23,7 +30,7 @@ async function getAuthenticatedChatbot(req: NextRequest) {
   const chatbotId = req.nextUrl.searchParams.get('chatbot_id');
   if (!chatbotId) return null;
 
-  const admin = createAdminClient() as any;
+  const admin = createAdminClient();
   const { data: chatbot } = await admin
     .from('chatbots')
     .select('id, user_id, telegram_config')
@@ -44,7 +51,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const config = { ...DEFAULT_TELEGRAM_CONFIG, ...(chatbot.telegram_config || {}) };
+    const config = parseTelegramConfig(chatbot.telegram_config);
     if (!config.bot_token) {
       return NextResponse.json(
         { error: 'Bot token not configured. Save your Telegram settings first.' },
@@ -88,7 +95,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const config = { ...DEFAULT_TELEGRAM_CONFIG, ...(chatbot.telegram_config || {}) };
+    const config = parseTelegramConfig(chatbot.telegram_config);
     if (!config.bot_token) {
       return NextResponse.json({ error: 'Bot token not configured' }, { status: 400 });
     }
@@ -111,7 +118,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const config = { ...DEFAULT_TELEGRAM_CONFIG, ...(chatbot.telegram_config || {}) };
+    const config = parseTelegramConfig(chatbot.telegram_config);
     if (!config.bot_token) {
       return NextResponse.json({ error: 'Bot token not configured' }, { status: 400 });
     }

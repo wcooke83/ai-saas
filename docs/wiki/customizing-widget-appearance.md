@@ -1,611 +1,257 @@
 ---
 title: Customizing Widget Appearance
-description: Learn how to customize the chatbot widget to match your brand with colors, positioning, and styling options
+description: Learn how to customize the chatbot widget to match your brand with colors, fonts, positioning, and styling options
 category: chatbot-features
 order: 3
 ---
 
 # Customizing Widget Appearance
 
-Make the chatbot widget match your brand by customizing colors, position, size, and behavior.
+Make the chatbot widget match your brand by customizing colors, fonts, position, size, and behavior.
 
-## Overview
+## Accessing the Customize Page
 
-The chatbot widget can be customized in two ways:
+Navigate to **Dashboard > Chatbots > [Your Chatbot] > Customize**
 
-1. **Dashboard Settings** — Visual editor for common customizations
-2. **SDK Configuration** — Advanced options via JavaScript
+The Customize page has two panels:
+- **Left panel** — Configuration controls for colors, typography, sizing, and behavior
+- **Right panel** — Live preview that updates in real-time as you make changes
 
-## Dashboard Customization
+## Live Preview Tabs
 
-Navigate to **Dashboard → Chatbots → [Your Chatbot] → Settings → Appearance**
+The preview panel has tabs that let you preview different widget states:
 
-### Primary Color
+| Tab | What It Shows |
+|-----|---------------|
+| **Chat** | Main chat view with messages |
+| **Pre-Chat** | Pre-chat form before conversation starts |
+| **Verify** | Email OTP verification screen |
+| **Post-Chat** | Post-chat survey form |
+| **Feedback** | Thumbs-down feedback follow-up |
+| **Report** | Escalation report view |
+| **Handoff** | Live agent handoff state |
 
-Controls the main accent color used throughout the widget:
-- Header background
-- Send button
-- Links and highlights
-- Loading indicators
+The color controls on the left automatically update to show only the colors relevant to the selected preview tab. Toggle **"Show all colors"** to see every color option at once.
 
-**Example:**
-```
-Primary Color: #0ea5e9 (Sky Blue)
-```
+## Colors
+
+### General Colors
+
+| Setting | What It Controls | Default |
+|---------|-----------------|---------|
+| **Primary Color** | Header background, send button, selected states | `#0ea5e9` |
+| **Secondary Color** | Light backgrounds, hover states | `#f0f9ff` |
+| **Background Color** | Widget body background | `#ffffff` |
+| **Text Color** | Main body text | `#0f172a` |
+
+### Header Colors
+
+| Setting | What It Controls | Default |
+|---------|-----------------|---------|
+| **Header Text Color** | Title text in the header bar | `#ffffff` |
+
+### Message Bubble Colors
+
+| Setting | What It Controls | Default |
+|---------|-----------------|---------|
+| **User Bubble Color** | Background of visitor messages | `#0ea5e9` |
+| **User Bubble Text Color** | Text inside visitor messages | `#ffffff` |
+| **Bot Bubble Color** | Background of bot messages | `#f1f5f9` |
+| **Bot Bubble Text Color** | Text inside bot messages | `#0f172a` |
+
+### Input Area Colors
+
+| Setting | What It Controls | Default |
+|---------|-----------------|---------|
+| **Input Background Color** | Message input field background | `#ffffff` |
+| **Input Text Color** | Text typed in the input field | `#0f172a` |
+| **Input Placeholder Color** | Placeholder text in the input | `#94a3b8` |
+
+### Send Button Colors
+
+| Setting | What It Controls | Default |
+|---------|-----------------|---------|
+| **Send Button Color** | Background of the send button | `#0ea5e9` |
+| **Send Button Icon Color** | Arrow icon inside the send button | `#ffffff` |
+
+### Form Colors (Pre-Chat Form & Post-Chat Survey)
+
+| Setting | Default |
+|---------|---------|
+| **Form Background Color** | `#ffffff` |
+| **Form Title Color** | `#0f172a` |
+| **Form Description Color** | `#6b7280` |
+| **Form Border Color** | `#e5e7eb` |
+| **Form Label Color** | `#0f172a` |
+| **Form Submit Button Text Color** | `#ffffff` |
+| **Form Placeholder Color** | `#94a3b8` |
+| **Form Input Background Color** | `#ffffff` |
+| **Form Input Text Color** | `#0f172a` |
+
+### Secondary Button Colors
+
+Used for buttons like "No thanks, start fresh" on the verification screen.
+
+| Setting | Default |
+|---------|---------|
+| **Secondary Button Color** | `transparent` |
+| **Secondary Button Text Color** | `#374151` |
+| **Secondary Button Border Color** | `#d1d5db` |
+
+### Escalation Report Colors
+
+| Setting | Default |
+|---------|---------|
+| **Report Background Color** | `#ffffff` |
+| **Report Text Color** | `#0f172a` |
+| **Report Reason Button Color** | `#f1f5f9` |
+| **Report Reason Button Text Color** | `#0f172a` |
+| **Report Reason Selected Color** | `#0ea5e9` |
+| **Report Reason Selected Text Color** | `#ffffff` |
+| **Report Submit Button Color** | `#0ea5e9` |
+| **Report Submit Button Text Color** | `#ffffff` |
+| **Report Input Background Color** | `#f1f5f9` |
+| **Report Input Text Color** | `#0f172a` |
+| **Report Input Border Color** | `#e2e8f0` |
+
+### Feedback Colors
+
+| Setting | Default |
+|---------|---------|
+| **Feedback Background Color** | (inherits) |
+| **Feedback Text Color** | (inherits) |
+| **Feedback Button Color** | (inherits) |
+| **Feedback Button Text Color** | (inherits) |
+
+## Typography
+
+### Font Family
+
+Choose from 24 Google Fonts. The preview updates instantly when you select a new font.
+
+**Sans-Serif:**
+Inter, Roboto, Open Sans, Poppins, Lato, Montserrat, Nunito, Raleway, Source Sans Pro, Ubuntu, DM Sans, Manrope, Plus Jakarta Sans
+
+**Serif:**
+Playfair Display, Merriweather, Lora, Source Serif Pro
+
+**Monospace:**
+JetBrains Mono, Fira Code, Source Code Pro, IBM Plex Mono
+
+**Rounded:**
+Quicksand, Comfortaa, Varela Round
+
+Default: `Inter, system-ui, sans-serif`
+
+### Font Size
+
+Set the base font size in pixels. Default: `14px`.
+
+## Sizing & Position
+
+### Widget Dimensions
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Width** | 380px | Widget window width |
+| **Height** | 600px | Widget window height |
+| **Button Size** | 60px | Floating chat button diameter |
 
 ### Widget Position
 
-Choose where the widget appears on your page:
+Choose which corner of the screen the widget appears in:
 
-- **Bottom Right** (default) — Standard position for most websites
-- **Bottom Left** — Alternative for RTL languages or design preference
-- **Top Right** — For apps with bottom navigation
-- **Top Left** — Rare, but available
+- **Bottom Right** (default)
+- **Bottom Left**
+- **Top Right**
+- **Top Left**
 
-### Widget Size
+### Offset
 
-Control the chat window dimensions:
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Offset X** | 20px | Horizontal distance from the edge |
+| **Offset Y** | 20px | Vertical distance from the edge |
 
-- **Small** — 320px × 450px (mobile-friendly)
-- **Medium** — 380px × 550px (default, balanced)
-- **Large** — 450px × 650px (desktop-focused)
+## Border Radius
 
-### Chat Bubble
+Control the roundness of different widget elements:
 
-Customize the floating chat button:
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Container Border Radius** | 16px | Main widget window corners |
+| **Input Border Radius** | 24px | Message input field corners |
+| **Button Border Radius** | 50px | Send button and chat bubble button |
 
-**Icon Options:**
-- Message bubble (default)
-- Chat dots
-- Headset
-- Robot
-- Custom image URL
+## Behavior
 
-**Bubble Color:**
-- Inherits primary color by default
-- Can be set independently
-
-**Bubble Size:**
-- Small (48px)
-- Medium (56px, default)
-- Large (64px)
-
-### Welcome Message
-
-Set the initial message users see when opening the widget:
-
-```
-Default: "Hi! How can I help you today?"
-Custom: "Welcome to Acme Support! Ask me anything about our products."
-```
-
-### Placeholder Text
-
-Customize the input field placeholder:
-
-```
-Default: "Type your message..."
-Custom: "Ask a question..."
-```
-
-## SDK Configuration
-
-For advanced customization, use the SDK initialization options:
-
-### Basic Customization
-
-```html
-<script src="https://your-domain.com/widget/sdk.js"></script>
-<script>
-  ChatWidget.init({
-    chatbotId: 'your-chatbot-id',
-    
-    // Colors
-    primaryColor: '#0ea5e9',
-    backgroundColor: '#ffffff',
-    textColor: '#1e293b',
-    
-    // Position
-    position: 'bottom-right', // 'bottom-left', 'top-right', 'top-left'
-    
-    // Size
-    width: 380,
-    height: 550,
-    
-    // Bubble
-    bubbleIcon: 'message', // 'chat', 'headset', 'robot', or URL
-    bubbleSize: 56,
-    bubbleColor: '#0ea5e9',
-    
-    // Text
-    welcomeMessage: 'Hi! How can I help you today?',
-    placeholder: 'Type your message...',
-  });
-</script>
-```
-
-### Advanced Options
-
-```javascript
-ChatWidget.init({
-  chatbotId: 'your-chatbot-id',
-  
-  // Behavior
-  autoOpen: false,              // Auto-open on page load
-  autoOpenDelay: 3000,          // Delay before auto-open (ms)
-  showOnMobile: true,           // Show on mobile devices
-  showOnDesktop: true,          // Show on desktop
-  
-  // Animations
-  enableAnimations: true,       // Enable slide/fade animations
-  animationDuration: 300,       // Animation speed (ms)
-  
-  // Branding
-  showBranding: true,           // Show "Powered by AI SaaS"
-  brandingText: 'Custom Text',  // Custom branding text
-  
-  // Pre-chat form
-  skipPreChat: false,           // Skip pre-chat form
-  preChatFields: ['name', 'email'], // Required fields
-  
-  // Advanced styling
-  customCSS: `
-    .chat-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    .message-bubble {
-      border-radius: 20px;
-    }
-  `,
-});
-```
-
-## Color Customization
-
-### Using Brand Colors
-
-Match your website's color scheme:
-
-```javascript
-// Example: Purple brand
-ChatWidget.init({
-  chatbotId: 'your-chatbot-id',
-  primaryColor: '#7c3aed',      // Purple-600
-  backgroundColor: '#faf5ff',    // Purple-50
-  textColor: '#581c87',          // Purple-900
-  bubbleColor: '#7c3aed',
-});
-```
-
-```javascript
-// Example: Green brand
-ChatWidget.init({
-  chatbotId: 'your-chatbot-id',
-  primaryColor: '#10b981',      // Emerald-500
-  backgroundColor: '#ecfdf5',    // Emerald-50
-  textColor: '#064e3b',          // Emerald-900
-  bubbleColor: '#10b981',
-});
-```
-
-### Dark Mode Support
-
-The widget automatically adapts to dark mode, but you can customize:
-
-```javascript
-ChatWidget.init({
-  chatbotId: 'your-chatbot-id',
-  darkMode: 'auto', // 'auto', 'light', 'dark'
-  
-  // Dark mode colors
-  darkModeColors: {
-    primaryColor: '#38bdf8',
-    backgroundColor: '#0f172a',
-    textColor: '#f1f5f9',
-  },
-});
-```
-
-## Positioning Examples
-
-### Bottom Right (Default)
-
-```javascript
-ChatWidget.init({
-  chatbotId: 'your-chatbot-id',
-  position: 'bottom-right',
-  offset: {
-    bottom: 20,  // 20px from bottom
-    right: 20,   // 20px from right
-  },
-});
-```
-
-### Bottom Left
-
-```javascript
-ChatWidget.init({
-  chatbotId: 'your-chatbot-id',
-  position: 'bottom-left',
-  offset: {
-    bottom: 20,
-    left: 20,
-  },
-});
-```
-
-### Custom Positioning
-
-```javascript
-ChatWidget.init({
-  chatbotId: 'your-chatbot-id',
-  position: 'custom',
-  customPosition: {
-    bottom: '80px',   // Above a fixed footer
-    right: '20px',
-  },
-});
-```
-
-## Responsive Design
-
-### Mobile Optimization
-
-```javascript
-ChatWidget.init({
-  chatbotId: 'your-chatbot-id',
-  
-  // Desktop settings
-  width: 380,
-  height: 550,
-  
-  // Mobile overrides
-  mobileWidth: '100%',      // Full width on mobile
-  mobileHeight: '100%',     // Full height on mobile
-  mobilePosition: 'bottom', // Slide up from bottom
-});
-```
-
-### Breakpoint Customization
-
-```javascript
-ChatWidget.init({
-  chatbotId: 'your-chatbot-id',
-  
-  breakpoints: {
-    mobile: 768,   // Mobile below 768px
-    tablet: 1024,  // Tablet 768-1024px
-    desktop: 1024, // Desktop above 1024px
-  },
-  
-  // Different sizes per breakpoint
-  responsive: {
-    mobile: { width: '100%', height: '100%' },
-    tablet: { width: 360, height: 500 },
-    desktop: { width: 380, height: 550 },
-  },
-});
-```
-
-## Custom Branding
-
-### Logo in Header
-
-```javascript
-ChatWidget.init({
-  chatbotId: 'your-chatbot-id',
-  
-  headerLogo: 'https://your-domain.com/logo.png',
-  headerLogoSize: 32, // Height in pixels
-  headerLogoPosition: 'left', // 'left', 'center', 'right'
-});
-```
-
-### Custom Avatar
-
-```javascript
-ChatWidget.init({
-  chatbotId: 'your-chatbot-id',
-  
-  botAvatar: 'https://your-domain.com/bot-avatar.png',
-  userAvatar: 'https://your-domain.com/user-avatar.png',
-  
-  showAvatars: true,
-  avatarSize: 32,
-});
-```
-
-### Footer Branding
-
-```javascript
-ChatWidget.init({
-  chatbotId: 'your-chatbot-id',
-  
-  showBranding: true,
-  brandingText: 'Powered by Acme AI',
-  brandingLink: 'https://acme.com',
-  brandingPosition: 'center', // 'left', 'center', 'right'
-});
-```
-
-## Animation Options
-
-### Entrance Animations
-
-```javascript
-ChatWidget.init({
-  chatbotId: 'your-chatbot-id',
-  
-  entranceAnimation: 'slide-up', // 'slide-up', 'fade', 'scale', 'none'
-  exitAnimation: 'slide-down',
-  animationDuration: 300,
-  animationEasing: 'ease-in-out',
-});
-```
-
-### Message Animations
-
-```javascript
-ChatWidget.init({
-  chatbotId: 'your-chatbot-id',
-  
-  messageAnimation: 'fade-in', // 'fade-in', 'slide-in', 'none'
-  typingIndicator: true,
-  typingSpeed: 50, // Characters per second
-});
-```
-
-## Pre-Chat Form Customization
-
-### Custom Fields
-
-```javascript
-ChatWidget.init({
-  chatbotId: 'your-chatbot-id',
-  
-  preChatForm: {
-    enabled: true,
-    title: 'Welcome! Let us know who you are',
-    fields: [
-      {
-        name: 'name',
-        label: 'Your Name',
-        type: 'text',
-        required: true,
-        placeholder: 'John Doe',
-      },
-      {
-        name: 'email',
-        label: 'Email Address',
-        type: 'email',
-        required: true,
-        placeholder: 'john@example.com',
-      },
-      {
-        name: 'company',
-        label: 'Company',
-        type: 'text',
-        required: false,
-        placeholder: 'Acme Inc',
-      },
-      {
-        name: 'topic',
-        label: 'What can we help with?',
-        type: 'select',
-        required: true,
-        options: [
-          'Sales Question',
-          'Technical Support',
-          'Billing Issue',
-          'Other',
-        ],
-      },
-    ],
-    submitText: 'Start Chat',
-  },
-});
-```
-
-### Skip Pre-Chat for Authenticated Users
-
-```javascript
-// For logged-in users
-ChatWidget.init({
-  chatbotId: 'your-chatbot-id',
-  
-  user: {
-    id: 'user_123',
-    name: 'John Doe',
-    email: 'john@example.com',
-  },
-  
-  // Pre-chat form automatically skipped
-});
-```
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Auto Open** | Off | Automatically open the widget on page load |
+| **Auto Open Delay** | 3000ms | Delay before auto-opening (milliseconds) |
+| **Sound Enabled** | Off | Play a sound when new messages arrive |
+| **Show Branding** | On | Display "Powered by" branding in the widget footer |
+| **Header Text** | "Chat with us" | Title text shown in the widget header |
 
 ## Custom CSS
 
-### Inline Styles
+For advanced styling beyond the color pickers, use the **Custom CSS** field to inject your own styles. This CSS is applied inside the widget iframe.
 
-```javascript
-ChatWidget.init({
-  chatbotId: 'your-chatbot-id',
-  
-  customCSS: `
-    /* Header gradient */
-    .chat-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    
-    /* Rounded messages */
-    .message-bubble {
-      border-radius: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    /* Custom scrollbar */
-    .chat-messages::-webkit-scrollbar {
-      width: 8px;
-    }
-    .chat-messages::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 4px;
-    }
-    
-    /* Larger send button */
-    .send-button {
-      width: 48px;
-      height: 48px;
-      border-radius: 24px;
-    }
-  `,
-});
+```css
+/* Example: gradient header */
+.chat-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Example: rounder message bubbles */
+.message-bubble {
+  border-radius: 20px;
+}
+
+/* Example: custom scrollbar */
+.chat-messages::-webkit-scrollbar {
+  width: 8px;
+}
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
 ```
 
-### External Stylesheet
+## Saving & Resetting
 
-```html
-<link rel="stylesheet" href="/chatbot-custom.css">
-<script>
-  ChatWidget.init({
-    chatbotId: 'your-chatbot-id',
-    customStylesheet: '/chatbot-custom.css',
-  });
-</script>
-```
-
-## Complete Example
-
-Here's a fully customized widget:
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Acme Support</title>
-</head>
-<body>
-  <script src="https://your-domain.com/widget/sdk.js"></script>
-  <script>
-    ChatWidget.init({
-      chatbotId: 'your-chatbot-id',
-      
-      // Branding
-      primaryColor: '#7c3aed',
-      headerLogo: 'https://acme.com/logo.png',
-      botAvatar: 'https://acme.com/bot.png',
-      
-      // Layout
-      position: 'bottom-right',
-      width: 400,
-      height: 600,
-      
-      // Bubble
-      bubbleIcon: 'https://acme.com/chat-icon.svg',
-      bubbleSize: 64,
-      bubbleColor: '#7c3aed',
-      
-      // Messages
-      welcomeMessage: 'Welcome to Acme Support! How can we help you today?',
-      placeholder: 'Ask us anything...',
-      
-      // Behavior
-      autoOpen: false,
-      enableAnimations: true,
-      
-      // Pre-chat
-      preChatForm: {
-        enabled: true,
-        title: 'Let\'s get started',
-        fields: [
-          { name: 'name', label: 'Name', type: 'text', required: true },
-          { name: 'email', label: 'Email', type: 'email', required: true },
-        ],
-      },
-      
-      // Custom styling
-      customCSS: `
-        .chat-header {
-          background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
-        }
-        .message-bubble {
-          border-radius: 18px;
-        }
-      `,
-    });
-  </script>
-</body>
-</html>
-```
+- Click **Save Changes** to persist your customizations
+- Click **Reset to Default** to revert all settings to the factory defaults
+- Changes are saved per-chatbot — each chatbot can have its own styling
 
 ## Best Practices
 
 ### Colors
 
-✅ **Use sufficient contrast** — Ensure text is readable
-✅ **Match your brand** — Use your primary brand colors
-✅ **Test dark mode** — Verify colors work in both modes
-✅ **Limit color palette** — Stick to 2-3 main colors
-
-❌ **Don't use low contrast** — Avoid light text on light backgrounds
-❌ **Don't clash with site** — Widget should complement, not compete
-❌ **Don't overuse colors** — Too many colors looks unprofessional
+- Use sufficient contrast between text and background colors
+- Match your brand's primary color for the header and send button
+- Test all preview tabs to ensure colors work across every widget state
+- Keep the palette to 2–3 main colors for a cohesive look
 
 ### Positioning
 
-✅ **Consider mobile** — Ensure widget doesn't block content
-✅ **Avoid conflicts** — Check for overlapping elements
-✅ **Test on all pages** — Widget should work everywhere
-✅ **Respect user space** — Don't be too intrusive
+- **Bottom Right** is the most common and expected position for chat widgets
+- Use offsets to avoid overlapping with fixed footers or cookie banners
+- Test on both desktop and mobile devices
 
-❌ **Don't block CTAs** — Keep important buttons accessible
-❌ **Don't auto-open aggressively** — Respect user intent
-❌ **Don't cover content** — Especially on mobile
+### Typography
+
+- Sans-serif fonts (Inter, DM Sans, Poppins) work best for chat interfaces
+- Serif fonts can work for luxury or editorial brands
+- Keep the font size between 13–16px for readability
 
 ### Performance
 
-✅ **Optimize images** — Compress logos and avatars
-✅ **Lazy load** — Widget loads after page content
-✅ **Minimize CSS** — Keep custom styles lean
-✅ **Test load time** — Ensure fast initialization
-
-❌ **Don't use huge images** — Keep under 50KB
-❌ **Don't block rendering** — Widget should be async
-❌ **Don't add heavy fonts** — Use system fonts when possible
-
-## Troubleshooting
-
-### Widget Not Showing
-
-**Check:**
-1. SDK script is loaded
-2. `chatbotId` is correct
-3. No JavaScript errors in console
-4. Widget isn't hidden by CSS
-
-### Styling Not Applied
-
-**Check:**
-1. Custom CSS syntax is valid
-2. Selectors match widget elements
-3. No conflicting site styles
-4. CSS specificity is sufficient
-
-### Position Issues
-
-**Check:**
-1. No fixed elements blocking widget
-2. Z-index is high enough (default: 9999)
-3. Offset values are correct
-4. Viewport is large enough
+- Custom CSS is injected inline — keep it concise
+- The widget loads fonts on demand from Google Fonts CDN
 
 ## Next Steps
 
 - [Passing User Data to Chatbot](passing-user-data-to-chatbot) — Personalize conversations
-- [Chatbot Memory & Identity Verification](chatbot-memory-verification) — Remember users
-- [API Integration Guide](api-integration-guide) — Use the chat API programmatically
-
-## Need Help?
-
-Contact support if you need assistance with widget customization or have specific design requirements.
+- [Chatbot Memory & Identity Verification](chatbot-memory-verification) — Remember returning visitors
+- [Deploying Your Chatbot](deploying-your-chatbot) — Embed the widget on your website

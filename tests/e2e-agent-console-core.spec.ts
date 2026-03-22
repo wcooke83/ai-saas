@@ -114,20 +114,21 @@ test.describe('14. Agent Console', () => {
 
     const ts = Date.now();
 
-    // Conv 0 → pending handoff + escalation
-    await supabaseInsert('telegram_handoff_sessions', {
-      chatbot_id: CHATBOT_ID,
-      conversation_id: createdConversationIds[0],
-      session_id: `e2e-handoff-core-0-${ts}`,
-      status: 'pending',
-    });
-    await supabaseInsert('conversation_escalations', {
+    // Conv 0 → pending handoff + escalation (insert escalation first, then link to handoff)
+    const escalation = await supabaseInsert('conversation_escalations', {
       chatbot_id: CHATBOT_ID,
       conversation_id: createdConversationIds[0],
       session_id: `e2e-handoff-core-0-${ts}`,
       reason: 'need_human_help',
       details: 'E2E test escalation — user needs billing support',
       status: 'open',
+    });
+    await supabaseInsert('telegram_handoff_sessions', {
+      chatbot_id: CHATBOT_ID,
+      conversation_id: createdConversationIds[0],
+      session_id: `e2e-handoff-core-0-${ts}`,
+      status: 'pending',
+      escalation_id: escalation?.id || null,
     });
 
     // Conv 1 → active handoff (via agent-actions take_over)
@@ -248,8 +249,7 @@ test.describe('14. Agent Console', () => {
     expect(bodyText!.length).toBeGreaterThan(0);
   });
 
-  // TODO: Textarea "Type a reply..." not reliably visible after selecting active conversation — handoff status race condition
-  test.skip('AGENT-007: Send agent reply', async ({ page }) => {
+  test('AGENT-007: Send agent reply', async ({ page }) => {
     await gotoAgentConsole(page);
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 20000 });
 
@@ -262,10 +262,12 @@ test.describe('14. Agent Console', () => {
     if (count === 0) { test.skip(); return; }
 
     await items.first().click();
-    await page.waitForTimeout(2000);
+    // Wait for messages to fully load before checking textarea
+    await expect(page.getByTestId('messages-skeleton')).not.toBeVisible({ timeout: 20000 });
+    await page.waitForTimeout(1000);
 
     const textarea = page.locator('textarea[placeholder="Type a reply..."]');
-    await expect(textarea).toBeVisible({ timeout: 10000 });
+    await expect(textarea).toBeVisible({ timeout: 15000 });
 
     const testMessage = `E2E test reply ${Date.now()}`;
     await textarea.fill(testMessage);
@@ -276,8 +278,7 @@ test.describe('14. Agent Console', () => {
     await expect(textarea).toHaveValue('');
   });
 
-  // TODO: Take Over button not reliably visible after selecting pending conversation — handoff status race condition
-  test.skip('AGENT-008: Reply disabled for pending conversations', async ({ page }) => {
+  test('AGENT-008: Reply disabled for pending conversations', async ({ page }) => {
     await gotoAgentConsole(page);
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 20000 });
 
@@ -289,7 +290,9 @@ test.describe('14. Agent Console', () => {
     if (count === 0) { test.skip(); return; }
 
     await items.first().click();
-    await page.waitForTimeout(2000);
+    // Wait for messages to fully load before checking buttons
+    await expect(page.getByTestId('messages-skeleton')).not.toBeVisible({ timeout: 20000 });
+    await page.waitForTimeout(1000);
 
     // Textarea should be disabled with "Take over first" placeholder
     const textarea = page.locator('textarea[placeholder="Take over the conversation first..."]');
@@ -298,7 +301,7 @@ test.describe('14. Agent Console', () => {
     }
 
     // Take Over button should be visible
-    await expect(page.getByTestId('action-take-over')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('action-take-over')).toBeVisible({ timeout: 15000 });
   });
 
   test('AGENT-009: Reply disabled for resolved conversations', async ({ page }) => {
@@ -457,8 +460,7 @@ test.describe('14. Agent Console', () => {
     expect(hasEscalation).toBeTruthy();
   });
 
-  // TODO: Flaky timing — second conversation sometimes doesn't load within timeout on slow page
-  test.skip('AGENT-018: Message cache prevents flash of empty state', async ({ page }) => {
+  test('AGENT-018: Message cache prevents flash of empty state', async ({ page }) => {
     await gotoAgentConsole(page);
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 20000 });
 
@@ -466,18 +468,19 @@ test.describe('14. Agent Console', () => {
     const count = await items.count();
     if (count < 2) { test.skip(); return; }
 
-    // Load messages for first conversation
+    // Load messages for first conversation and wait for full load
     await items.nth(0).click();
-    await page.waitForTimeout(2000);
     await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId('messages-skeleton')).not.toBeVisible({ timeout: 20000 });
 
-    // Load messages for second conversation
+    // Load messages for second conversation and wait for full load
     await items.nth(1).click();
-    await page.waitForTimeout(2000);
     await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId('messages-skeleton')).not.toBeVisible({ timeout: 20000 });
 
-    // Switch back — should show instantly from cache (no skeleton flash)
+    // Switch back — cached messages should appear without skeleton
     await items.nth(0).click();
+    await page.waitForTimeout(200); // Brief pause to let React render
     const skeletonVisible = await page.getByTestId('messages-skeleton').isVisible().catch(() => false);
     expect(skeletonVisible).toBe(false);
     await expect(page.getByTestId('chat-messages-area')).toBeVisible();

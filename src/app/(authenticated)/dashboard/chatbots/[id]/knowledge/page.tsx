@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import {
-  ArrowLeft,
   FileText,
   Globe,
   MessageSquare,
@@ -21,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -48,6 +48,14 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
   const [textName, setTextName] = useState('');
   const [qaQuestion, setQaQuestion] = useState('');
   const [qaAnswer, setQaAnswer] = useState('');
+
+  // Confirm dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({ open: false, title: '', description: '', onConfirm: () => {} });
 
   const fetchSources = useCallback(async (signal?: AbortSignal) => {
     try {
@@ -164,8 +172,16 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
     }
   };
 
+  const confirmReprocessSource = (source: KnowledgeSource) => {
+    setConfirmDialog({
+      open: true,
+      title: `Re-process "${source.name}"?`,
+      description: 'This will delete existing chunks and re-embed with the current AI model.',
+      onConfirm: () => handleReprocessSource(source),
+    });
+  };
+
   const handleReprocessSource = async (source: KnowledgeSource) => {
-    if (!confirm(`Re-process "${source.name}"? This will delete existing chunks and re-embed with the current AI model.`)) return;
     // Optimistic update
     setSources((prev) =>
       prev.map((s) => (s.id === source.id ? { ...s, status: 'processing' as const } : s))
@@ -186,8 +202,16 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
     }
   };
 
+  const confirmDeleteSource = (sourceId: string) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Delete knowledge source?',
+      description: 'This will permanently remove this source and all its chunks. This cannot be undone.',
+      onConfirm: () => handleDeleteSource(sourceId),
+    });
+  };
+
   const handleDeleteSource = async (sourceId: string) => {
-    if (!confirm('Are you sure you want to delete this source?')) return;
 
     try {
       const response = await fetch(`/api/chatbots/${id}/knowledge/${sourceId}`, {
@@ -233,13 +257,6 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <Link
-            href={`/dashboard/chatbots/${id}`}
-            className="inline-flex items-center text-sm text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Chatbot
-          </Link>
           <H1 variant="dashboard">
             Knowledge Base
           </H1>
@@ -503,7 +520,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleReprocessSource(source)}
+                        onClick={() => confirmReprocessSource(source)}
                         className="text-secondary-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                         title="Re-process — delete chunks and re-embed with current AI model"
                       >
@@ -513,7 +530,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDeleteSource(source.id)}
+                      onClick={() => confirmDeleteSource(source.id)}
                       className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -541,6 +558,30 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
           </Card>
         )
       )}
+
+      {/* Confirm Dialog */}
+      <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{confirmDialog.title}</DialogTitle>
+            <DialogDescription>{confirmDialog.description}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setConfirmDialog((prev) => ({ ...prev, open: false }))}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setConfirmDialog((prev) => ({ ...prev, open: false }));
+                confirmDialog.onConfirm();
+              }}
+            >
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

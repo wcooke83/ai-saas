@@ -4,7 +4,6 @@ import { useState, useEffect, use, useCallback } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import {
-  ArrowLeft,
   Download,
   Loader2,
   Brain,
@@ -246,13 +245,6 @@ export default function SentimentPage({ params }: SentimentPageProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <Link
-            href={`/dashboard/chatbots/${id}`}
-            className="inline-flex items-center text-sm text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Chatbot
-          </Link>
           <H1 variant="dashboard">
             Sentiment & Loyalty
           </H1>

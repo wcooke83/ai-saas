@@ -5,35 +5,25 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
-  ArrowLeft,
   Bot,
   MessageSquare,
   Users,
   ThumbsUp,
-  Database,
   Palette,
-  BarChart3,
-  Code,
   Play,
   Pause,
   Loader2,
-  Settings,
-  Inbox,
-  ClipboardList,
-  Brain,
-  Flag,
-  Headphones,
-  Timer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ActionCard } from '@/components/ui/action-card';
 import { Tooltip } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
 import { H1 } from '@/components/ui/heading';
-import type { Chatbot } from '@/lib/chatbots/types';
+import { OnboardingChecklist } from '@/components/chatbots/OnboardingChecklist';
+import { DEFAULT_WIDGET_CONFIG } from '@/lib/chatbots/types';
+import type { Chatbot, WidgetConfig } from '@/lib/chatbots/types';
 
 interface ChatbotDetailProps {
   params: Promise<{ id: string }>;
@@ -51,6 +41,8 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasKnowledgeSources, setHasKnowledgeSources] = useState(false);
+  const [hasCustomWidget, setHasCustomWidget] = useState(false);
 
   useEffect(() => {
     async function fetchChatbot() {
@@ -64,7 +56,35 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
           throw new Error('Failed to fetch chatbot');
         }
         const data = await response.json();
-        setChatbot(data.data.chatbot);
+        const bot = data.data.chatbot as Chatbot;
+        setChatbot(bot);
+
+        // Check if widget has been customized from defaults
+        const wc = bot.widget_config as WidgetConfig | undefined;
+        if (wc) {
+          const colorKeys = [
+            'primaryColor', 'secondaryColor', 'backgroundColor', 'textColor',
+            'userBubbleColor', 'userBubbleTextColor', 'botBubbleColor', 'botBubbleTextColor',
+          ] as const;
+          const isCustomized = colorKeys.some(
+            (key) => wc[key] !== DEFAULT_WIDGET_CONFIG[key]
+          );
+          setHasCustomWidget(isCustomized);
+        }
+
+        // Fetch knowledge sources
+        try {
+          const ksResponse = await fetch(`/api/chatbots/${id}/knowledge`);
+          if (ksResponse.ok) {
+            const ksData = await ksResponse.json();
+            const sources = ksData.data?.sources || [];
+            setHasKnowledgeSources(
+              sources.some((s: { status: string }) => s.status === 'completed')
+            );
+          }
+        } catch {
+          // Non-critical, leave as false
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -130,87 +150,11 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
     archived: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
   };
 
-  const quickActions = [
-    {
-      href: `/dashboard/chatbots/${id}/settings`,
-      icon: Settings,
-      label: 'Settings',
-      description: 'Edit chatbot config',
-    },
-    {
-      href: `/dashboard/chatbots/${id}/knowledge`,
-      icon: Database,
-      label: 'Knowledge Base',
-      description: 'Train your chatbot',
-    },
-    {
-      href: `/dashboard/chatbots/${id}/customize`,
-      icon: Palette,
-      label: 'Customize Widget',
-      description: 'Style and branding',
-    },
-    {
-      href: `/dashboard/chatbots/${id}/analytics`,
-      icon: BarChart3,
-      label: 'Analytics',
-      description: 'View performance',
-    },
-    {
-      href: `/dashboard/chatbots/${id}/leads`,
-      icon: Inbox,
-      label: 'Leads & Chat',
-      description: 'View conversations',
-    },
-    {
-      href: `/dashboard/chatbots/${id}/surveys`,
-      icon: ClipboardList,
-      label: 'Surveys',
-      description: 'View survey results',
-    },
-    {
-      href: `/dashboard/chatbots/${id}/sentiment`,
-      icon: Brain,
-      label: 'Sentiment & Loyalty',
-      description: 'Analyze outcomes',
-    },
-    {
-      href: `/dashboard/chatbots/${id}/conversations`,
-      icon: Headphones,
-      label: 'Agent Console',
-      description: 'Live conversations',
-    },
-    {
-      href: `/dashboard/chatbots/${id}/performance`,
-      icon: Timer,
-      label: 'Performance',
-      description: 'Response time analytics',
-    },
-    {
-      href: `/dashboard/chatbots/${id}/escalations`,
-      icon: Flag,
-      label: 'Reports',
-      description: 'View reported issues',
-    },
-    {
-      href: `/dashboard/chatbots/${id}/deploy`,
-      icon: Code,
-      label: 'Deploy',
-      description: 'Get embed code',
-    },
-  ];
-
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <Link
-            href="/dashboard/chatbots"
-            className="inline-flex items-center text-sm text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Chatbots
-          </Link>
           <div className="flex items-center gap-4">
             {chatbot.logo_url ? (
               <img
@@ -348,18 +292,13 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
         </Card>
       </div>
 
-      {/* Quick actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {quickActions.map((action) => (
-          <ActionCard
-            key={action.href}
-            href={action.href}
-            icon={action.icon}
-            title={action.label}
-            description={action.description}
-          />
-        ))}
-      </div>
+      {/* Onboarding Checklist */}
+      <OnboardingChecklist
+        chatbotId={id}
+        hasKnowledgeSources={hasKnowledgeSources}
+        hasCustomWidget={hasCustomWidget}
+        isPublished={chatbot.is_published}
+      />
 
       {/* Description */}
       {chatbot.description && (

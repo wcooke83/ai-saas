@@ -82,7 +82,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     }
 
     // Verify conversation belongs to this chatbot
-    const adminDb = createAdminClient() as any;
+    const adminDb = createAdminClient();
     const { data: conversation } = await adminDb
       .from('conversations')
       .select('id')
@@ -94,6 +94,15 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json(
         { success: false, error: 'Conversation not found' },
         { status: 404, headers: CORS_HEADERS }
+      );
+    }
+
+    // Check for active handoff — reject replies to resolved conversations
+    const activeHandoff = await getActiveHandoff(conversation_id);
+    if (!activeHandoff) {
+      return NextResponse.json(
+        { success: false, error: 'No active handoff for this conversation' },
+        { status: 409, headers: CORS_HEADERS }
       );
     }
 

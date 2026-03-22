@@ -29,6 +29,16 @@ export async function middleware(request: NextRequest) {
       });
     }
 
+    // Public widget/chat endpoints don't use cookie-based auth — skip the
+    // Supabase session refresh to avoid a wasted 30-80ms round-trip.
+    if (pathname.startsWith('/api/widget/') || pathname.startsWith('/api/chat/')) {
+      const response = NextResponse.next();
+      response.headers.set('Access-Control-Allow-Origin', '*');
+      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
+      response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');
+      return response;
+    }
+
     // Refresh Supabase session so API route handlers see valid tokens
     const response = await updateSession(request);
     response.headers.set('Access-Control-Allow-Origin', '*');

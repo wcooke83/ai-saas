@@ -42,8 +42,8 @@ function isGreetingMessage(message: string): boolean {
  */
 export interface RAGPrework {
   resolvedEmbeddingConfig: EmbeddingConfig | null;
-  sourceEmbeddingInfo: Array<{ embedding_provider: string; embedding_model: string }> | null;
-  prioritySources: Array<{ id: string; url: string; name: string; is_priority: boolean }> | null;
+  sourceEmbeddingInfo: Array<{ embedding_provider: string | null; embedding_model: string | null }> | null;
+  prioritySources: Array<{ id: string; url: string | null; name: string; is_priority: boolean }> | null;
 }
 
 /**
@@ -52,7 +52,7 @@ export interface RAGPrework {
  * with conversation creation, saving ~200-400ms.
  */
 export async function startRAGPrework(chatbotId: string): Promise<RAGPrework> {
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
 
   const [resolvedEmbeddingConfig, sourceAndPriorityResult] = await Promise.all([
     resolveEmbeddingConfig(),
@@ -122,7 +122,7 @@ export async function getRAGContext(
     return emptyResult;
   }
 
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
 
   _rperf('start');
   _rs('embedding');
@@ -167,7 +167,7 @@ export async function getRAGContext(
     } else {
       queryEmbeddingConfig = {
         provider: recordedProvider,
-        model: recordedModel,
+        model: recordedModel || 'text-embedding-3-small',
         dimensions: 1536,
       };
       if (resolvedEmbeddingConfig.provider !== queryEmbeddingConfig.provider) {
@@ -195,7 +195,7 @@ export async function getRAGContext(
 
   // Fetch similarity chunks and priority chunks in parallel (both use similarity search)
   _rs('similarity');
-  const queries: [Promise<any>, Promise<any>] = [
+  const queries: [PromiseLike<any>, PromiseLike<any>] = [
     supabase.rpc('match_knowledge_chunks', {
       p_chatbot_id: chatbot.id,
       p_query_embedding: JSON.stringify(queryEmbedding),
@@ -320,11 +320,13 @@ export async function getRAGContext(
 }
 
 /**
- * Build a prompt with RAG context for the AI model
+ * Build a prompt with RAG context for the AI model.
+ * Conversation history is no longer embedded here — it's passed as proper
+ * multi-turn messages via conversationMessages in GenerateOptions.
  */
 export function buildRAGPrompt(
   context: RAGContext,
-  conversationHistory: Message[],
+  _conversationHistory: Message[],
   userMessage: string,
   documentText?: string
 ): string {
@@ -350,20 +352,8 @@ The user has attached the following file(s). Use their content to answer the use
 ${documentText}`);
   }
 
-  // Add conversation history
-  if (conversationHistory.length > 0) {
-    parts.push(`## Conversation History
-
-${conversationHistory
-  .slice(-10) // Keep last 10 messages to avoid token limits
-  .map((msg) => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
-  .join('\n\n')}`);
-  }
-
   // Add current user message
-  parts.push(`## Current Message
-
-User: ${userMessage}`);
+  parts.push(userMessage);
 
   return parts.join('\n\n');
 }
@@ -377,7 +367,6 @@ function sanitizeContextValue(value: string): string {
     .replace(/you\s+are\s+now\s+a?\s*/gi, '[filtered]')
     .replace(/forget\s+(your|all)\s+(rules|instructions|prompts)/gi, '[filtered]')
     .replace(/reveal\s+(your|the)\s+(system\s+)?prompt/gi, '[filtered]')
-    .replace(/##\s+/g, '')
     .replace(/\n{3,}/g, '\n\n');
 }
 
@@ -525,7 +514,7 @@ Your default language is English. If a user asks you to switch languages (e.g., 
 2. ALWAYS use Reference Information and Attached Documents to answer directly. Never claim you lack information that is present in these sections. For attached files, answer about their content directly.
 3. Be concise (1-3 sentences when possible). No long lists unless explicitly requested. Sound warm, friendly, and human.
 4. For factual questions without an answer in Reference Information: politely say you don't have that detail and offer to connect with the team. For conversational questions: respond naturally and warmly, using Visitor Information when relevant.
-5. NEVER repeat a greeting already in Conversation History. Stay consistent with prior answers — acknowledge corrections explicitly. Address ALL parts of multi-part questions.
+5. NEVER repeat a greeting already in Conversation History. When a user sends a simple greeting (hi, hello, hey, etc.) respond warmly and conversationally — ask how you can help. Do NOT proactively dump product information, account data, or knowledge base content in response to a greeting. Stay consistent with prior answers — acknowledge corrections explicitly. Address ALL parts of multi-part questions.
 6. NEVER fabricate URLs, links, phone numbers, emails, or specific figures not in Reference Information. For superlative/comparative questions, review ALL items before answering.
 7. Use visitor/user data naturally and contextually — never dump it unprompted.
 8. All responses must be in the current conversation language, never hardcoded English.`;
@@ -551,7 +540,7 @@ export function formatConversationHistory(
  * Check if a chatbot has any trained knowledge
  */
 export async function hasKnowledgeBase(chatbotId: string): Promise<boolean> {
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
 
   const { count, error } = await supabase
     .from('knowledge_chunks')
@@ -574,7 +563,7 @@ export async function getKnowledgeBaseSummary(chatbotId: string): Promise<{
   totalChunks: number;
   completedSources: number;
 }> {
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
 
   const [sourcesResult, chunksResult] = await Promise.all([
     supabase

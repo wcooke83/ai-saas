@@ -11,7 +11,7 @@ Track how your visitors feel about their chatbot interactions and monitor loyalt
 
 ## Overview
 
-The Sentiment & Loyalty page provides AI-powered analysis of your chatbot conversations. It answers two key questions:
+The **Sentiment** page (at **Dashboard > Chatbots > [Your Chatbot] > Sentiment**) provides AI-powered analysis of your chatbot conversations. It answers two key questions:
 
 1. **Sentiment** — How did each conversation go? Was the visitor satisfied?
 2. **Loyalty** — Are returning visitors becoming more or less engaged over time?

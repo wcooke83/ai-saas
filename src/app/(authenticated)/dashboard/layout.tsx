@@ -65,6 +65,7 @@ export default function DashboardLayout({
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
+  const [activeChatbotName, setActiveChatbotName] = useState<string | null>(null);
   const pathname = usePathname();
 
   // Load collapsed state from localStorage
@@ -94,6 +95,20 @@ export default function DashboardLayout({
       return next;
     });
   };
+
+  // Fetch active chatbot name when inside a chatbot page
+  useEffect(() => {
+    const match = pathname.match(/\/dashboard\/chatbots\/([0-9a-f-]{36})/);
+    if (!match) {
+      setActiveChatbotName(null);
+      return;
+    }
+    const chatbotId = match[1];
+    fetch(`/api/chatbots/${chatbotId}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => setActiveChatbotName(data?.data?.chatbot?.name || null))
+      .catch(() => setActiveChatbotName(null));
+  }, [pathname]);
 
   // Auto-expand menus based on current path
   useEffect(() => {
@@ -367,25 +382,36 @@ export default function DashboardLayout({
                       )}
                     </>
                   ) : (
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        'flex items-center rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500',
-                        sidebarCollapsed
-                          ? 'justify-center p-2.5'
-                          : 'gap-3 px-3 py-2.5 text-sm font-medium',
-                        isActive
-                          ? sidebarCollapsed
-                            ? 'bg-primary-50 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300'
-                            : 'bg-primary-50 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 border-l-2 border-primary-500 -ml-0.5 pl-[calc(0.75rem+2px)]'
-                          : 'text-secondary-600 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-700 hover:text-secondary-900 dark:hover:text-secondary-100'
+                    <>
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          'flex items-center rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500',
+                          sidebarCollapsed
+                            ? 'justify-center p-2.5'
+                            : 'gap-3 px-3 py-2.5 text-sm font-medium',
+                          isActive
+                            ? sidebarCollapsed
+                              ? 'bg-primary-50 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300'
+                              : 'bg-primary-50 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 border-l-2 border-primary-500 -ml-0.5 pl-[calc(0.75rem+2px)]'
+                            : 'text-secondary-600 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-700 hover:text-secondary-900 dark:hover:text-secondary-100'
+                        )}
+                        aria-current={isActive ? 'page' : undefined}
+                        title={sidebarCollapsed ? item.label : undefined}
+                      >
+                        <Icon className="w-5 h-5" aria-hidden="true" />
+                        {!sidebarCollapsed && item.label}
+                      </Link>
+                      {/* Active chatbot indicator */}
+                      {item.href === '/dashboard/chatbots' && activeChatbotName && !sidebarCollapsed && isActive && (
+                        <div className="ml-4 mt-0.5 pl-3 border-l-2 border-primary-300 dark:border-primary-700">
+                          <span className="flex items-center gap-1.5 text-xs text-primary-600 dark:text-primary-400 truncate">
+                            <Bot className="w-3 h-3 flex-shrink-0" />
+                            {activeChatbotName}
+                          </span>
+                        </div>
                       )}
-                      aria-current={isActive ? 'page' : undefined}
-                      title={sidebarCollapsed ? item.label : undefined}
-                    >
-                      <Icon className="w-5 h-5" aria-hidden="true" />
-                      {!sidebarCollapsed && item.label}
-                    </Link>
+                    </>
                   )}
                   {/* Tooltip for collapsed state */}
                   {sidebarCollapsed && (
@@ -444,7 +470,7 @@ export default function DashboardLayout({
       <main
         id="main-content"
         className={cn(
-          "pt-16 lg:pt-0 transition-all duration-200 overflow-x-hidden",
+          "pt-16 lg:pt-0 transition-all duration-200",
           sidebarCollapsed ? "lg:pl-16" : "lg:pl-64"
         )}
         tabIndex={-1}

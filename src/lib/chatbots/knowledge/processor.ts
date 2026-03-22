@@ -3,14 +3,20 @@
  * Processes uploaded documents, URLs, and text into vector embeddings
  */
 
+import { createHash } from 'crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
-import type { KnowledgeSource } from '../types';
+import type { Json } from '@/types/database';
+import type { KnowledgeSource, KnowledgeSourceInsert } from '../types';
 import { chunkText } from './chunker';
 import { generateEmbeddings, resolveEmbeddingConfig } from './embeddings';
 
+function contentHash(text: string): string {
+  return createHash('sha256').update(text.trim().toLowerCase()).digest('hex').slice(0, 16);
+}
+
 // Use admin client for all processor operations (runs as background task, no user session)
 function getAdminClient() {
-  return createAdminClient() as any;
+  return createAdminClient();
 }
 
 async function getSourceById(sourceId: string): Promise<KnowledgeSource | null> {
@@ -37,7 +43,7 @@ async function updateSourceStatus(
   await supabase.from('knowledge_sources').update(updates).eq('id', sourceId);
 }
 
-async function createChildSource(source: Record<string, unknown>): Promise<KnowledgeSource> {
+async function createChildSource(source: KnowledgeSourceInsert): Promise<KnowledgeSource> {
   const supabase = getAdminClient();
   const { data, error } = await supabase
     .from('knowledge_sources')
@@ -60,7 +66,7 @@ export interface ProcessingResult {
 export async function processKnowledgeSource(
   sourceId: string
 ): Promise<ProcessingResult> {
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
 
   try {
     // Get source from database
@@ -114,6 +120,26 @@ export async function processKnowledgeSource(
       throw new Error('Extracted content is empty');
     }
 
+    // Content quality validation for URL sources
+    if (source.type === 'url') {
+      const wordCount = content.trim().split(/\s+/).length;
+      if (wordCount < 20) {
+        throw new Error(`Extracted content too short (${wordCount} words). The page may require authentication or have no useful content.`);
+      }
+      // Detect common error/gate pages
+      const lowerContent = content.toLowerCase();
+      const errorPatterns = [
+        'access denied', '403 forbidden', '404 not found', 'page not found',
+        'enable javascript', 'enable cookies', 'cookie consent',
+        'please verify you are a human', 'captcha', 'cloudflare',
+        'just a moment', 'checking your browser',
+      ];
+      const matchedPattern = errorPatterns.find(p => lowerContent.includes(p));
+      if (matchedPattern && wordCount < 100) {
+        throw new Error(`Page appears to be an error or gate page (detected: "${matchedPattern}"). Content not suitable for knowledge base.`);
+      }
+    }
+
     // Chunk the content
     const chunks = chunkText(content, {
       maxTokens: 500,
@@ -131,26 +157,45 @@ export async function processKnowledgeSource(
       throw new Error('No embedding-capable AI provider available');
     }
 
+    // Dedup: compute hashes and check for existing chunks in this chatbot
+    const chunkHashes = chunks.map((c) => contentHash(c.content));
+    const { data: existingHashes } = await supabase
+      .from('knowledge_chunks')
+      .select('content_hash')
+      .eq('chatbot_id', source.chatbot_id)
+      .in('content_hash', chunkHashes);
+    const existingHashSet = new Set((existingHashes || []).map((r: { content_hash: string }) => r.content_hash));
+
+    // Filter out duplicate chunks
+    const dedupedChunks = chunks.filter((_, i) => !existingHashSet.has(chunkHashes[i]));
+    const dedupedHashes = chunkHashes.filter((h) => !existingHashSet.has(h));
+    const skipped = chunks.length - dedupedChunks.length;
+    if (skipped > 0) {
+      console.log(`[Processor] Skipped ${skipped} duplicate chunks for chatbot ${source.chatbot_id}`);
+    }
+
     // Generate embeddings in batches
     const BATCH_SIZE = 20;
     let totalChunksCreated = 0;
 
-    for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
-      const batch = chunks.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < dedupedChunks.length; i += BATCH_SIZE) {
+      const batch = dedupedChunks.slice(i, i + BATCH_SIZE);
+      const batchHashes = dedupedHashes.slice(i, i + BATCH_SIZE);
       const texts = batch.map((c) => c.content);
 
       // Generate embeddings for batch using the resolved config
       const embeddings = await generateEmbeddings(texts, embeddingConfig);
 
-      // Store chunks with embeddings
+      // Store chunks with embeddings and content hash
       const chunkInserts = batch.map((chunk, index) => ({
         source_id: sourceId,
         chatbot_id: source.chatbot_id,
         content: chunk.content,
+        content_hash: batchHashes[index],
         embedding: JSON.stringify(embeddings[index]),
         chunk_index: i + index,
         token_count: chunk.tokenCount,
-        metadata: chunk.metadata,
+        metadata: chunk.metadata as Json,
       }));
 
       const { error } = await supabase.from('knowledge_chunks').insert(chunkInserts);
@@ -324,7 +369,7 @@ export async function processUrlWithCrawl(
  * Reprocess a knowledge source (e.g., after editing)
  */
 export async function reprocessKnowledgeSource(sourceId: string): Promise<ProcessingResult> {
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
 
   // Delete existing chunks
   const { error } = await supabase

@@ -47,9 +47,11 @@ export interface HandoffSession {
   chatbot_id: string;
   conversation_id: string;
   session_id: string | null;
-  status: HandoffStatus;
+  status: string;
   agent_name: string | null;
+  agent_source: string;
   agent_telegram_id: number | null;
+  agent_user_id: string | null;
   escalation_id: string | null;
   created_at: string;
   updated_at: string;

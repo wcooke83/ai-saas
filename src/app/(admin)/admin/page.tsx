@@ -33,6 +33,7 @@ interface AppSettings {
   multiplier_claude: number;
   multiplier_openai: number;
   multiplier_local: number;
+  chat_debug_mode: boolean;
   updated_at: string;
 }
 
@@ -51,6 +52,7 @@ export default function AdminSettingsPage() {
   const [multiplierClaude, setMultiplierClaude] = useState(1);
   const [multiplierOpenai, setMultiplierOpenai] = useState(1);
   const [multiplierLocal, setMultiplierLocal] = useState(1);
+  const [chatDebugMode, setChatDebugMode] = useState(false);
 
   const router = useRouter();
 
@@ -82,6 +84,7 @@ export default function AdminSettingsPage() {
           setMultiplierClaude(settingsData.data.multiplier_claude || 1);
           setMultiplierOpenai(settingsData.data.multiplier_openai || 1);
           setMultiplierLocal(settingsData.data.multiplier_local || 1);
+          setChatDebugMode(settingsData.data.chat_debug_mode ?? false);
         }
       } catch (err) {
         console.error('Failed to load admin settings:', err);
@@ -111,6 +114,7 @@ export default function AdminSettingsPage() {
           multiplier_claude: multiplierClaude,
           multiplier_openai: multiplierOpenai,
           multiplier_local: multiplierLocal,
+          chat_debug_mode: chatDebugMode,
         }),
       });
 
@@ -447,6 +451,52 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Chat Debug Mode */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Terminal className="w-5 h-5 text-primary-500" aria-hidden="true" />
+                Chat Debug Mode
+              </CardTitle>
+              <CardDescription>Log full prompt sources for every chatbot message to diagnose unexpected responses</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <label className="flex items-center justify-between cursor-pointer">
+                <div>
+                  <p className="font-medium text-secondary-900 dark:text-secondary-100">Enable debug logging</p>
+                  <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-0.5">
+                    Logs memory, RAG chunks, user context, and system prompt details for each chat request
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={chatDebugMode}
+                  onClick={() => setChatDebugMode(!chatDebugMode)}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                    chatDebugMode ? 'bg-primary-600' : 'bg-secondary-200 dark:bg-secondary-700'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      chatDebugMode ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </label>
+              {chatDebugMode && (
+                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                    <p className="text-sm text-amber-700 dark:text-amber-400">
+                      Debug mode is verbose. Check server logs for <code className="px-1 py-0.5 bg-amber-100 dark:bg-amber-900/50 rounded text-xs font-mono">[Chat:Debug]</code> entries. Disable when not actively debugging.
+                    </p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

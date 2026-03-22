@@ -16,10 +16,13 @@ import type { AIModelWithProvider } from '@/types/ai-models';
 // DATABASE MODEL SELECTION
 // ===================
 
+// Provider API timeout (matches Vercel function timeout)
+const PROVIDER_TIMEOUT_MS = 30_000;
+
 // Cache for active model
 let activeModelCache: AIModelWithProvider | null = null;
 let activeModelCacheTime = 0;
-const MODEL_CACHE_TTL = 30 * 1000; // 30 seconds
+const MODEL_CACHE_TTL = 120 * 1000; // 2 minutes
 
 /**
  * Get the active AI model from database configuration
@@ -300,6 +303,11 @@ export interface ImageInput {
   media_type: string;
 }
 
+export interface ConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export interface GenerateOptions {
   provider?: Provider;
   model?: ModelTier;
@@ -311,6 +319,8 @@ export interface GenerateOptions {
   stopSequences?: string[];
   /** Optional images to include for vision-capable models */
   images?: ImageInput[];
+  /** Prior conversation turns for multi-turn format (prepended before the final user message) */
+  conversationMessages?: ConversationMessage[];
 }
 
 export interface GenerateResult {
@@ -440,18 +450,15 @@ export async function generate(
     activeModel = activeModelInfo?.model ?? null;
   }
 
-  // Debug logging
-  console.log('[AI Provider generate()] Model selection:', {
-    hasSpecificModel: !!specificModel,
-    specificModelName: specificModel?.name,
-    specificModelProviderSlug: specificModel?.provider?.slug,
-    specificModelProviderName: specificModel?.provider?.name,
-    mappedProvider: specificModel?.provider?.slug ? mapProviderSlugToType(specificModel.provider.slug) : null,
-    activeProvider,
-    activeModelName: activeModel?.name,
-    activeModelApiId: activeModel?.api_model_id,
-    activeModelProviderSlug: activeModel?.provider?.slug,
-  });
+  // Debug logging (development only)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[AI Provider generate()] Model selection:', {
+      hasSpecificModel: !!specificModel,
+      specificModelName: specificModel?.name,
+      activeProvider,
+      activeModelApiId: activeModel?.api_model_id,
+    });
+  }
 
   if (!activeProvider) {
     const providerSlug = specificModel?.provider?.slug || activeModel?.provider?.slug;
@@ -511,6 +518,9 @@ export async function generate(
     };
   }
 
+  // Build prior conversation turns for multi-turn format
+  const priorTurns = options.conversationMessages || [];
+
   // Claude/Anthropic provider
   if (activeProvider === 'claude' && anthropic && activeModel) {
     // Build user content: text + optional images
@@ -525,14 +535,19 @@ export async function generate(
     }
     userContent.push({ type: 'text', text: prompt });
 
+    const messages: any[] = [
+      ...priorTurns.map((m) => ({ role: m.role, content: m.content })),
+      { role: 'user', content: userContent },
+    ];
+
     const response = await anthropic.messages.create({
       model: activeModel.api_model_id,
       max_tokens: effectiveMaxTokens,
       temperature,
       system: systemPrompt,
       stop_sequences: stopSequences,
-      messages: [{ role: 'user', content: userContent }],
-    });
+      messages,
+    }, { timeout: PROVIDER_TIMEOUT_MS });
 
     const textContent = response.content.find((c) => c.type === 'text');
 
@@ -568,9 +583,10 @@ export async function generate(
         ...(systemPrompt
           ? [{ role: 'system' as const, content: systemPrompt }]
           : []),
+        ...priorTurns.map((m) => ({ role: m.role as const, content: m.content })),
         { role: 'user' as const, content: openaiUserContent },
       ],
-    });
+    }, { timeout: PROVIDER_TIMEOUT_MS });
 
     return {
       content: response.choices[0]?.message?.content || '',
@@ -593,9 +609,10 @@ export async function generate(
         ...(systemPrompt
           ? [{ role: 'system' as const, content: systemPrompt }]
           : []),
+        ...priorTurns.map((m) => ({ role: m.role as const, content: m.content })),
         { role: 'user' as const, content: prompt },
       ],
-    });
+    }, { timeout: PROVIDER_TIMEOUT_MS });
 
     return {
       content: response.choices[0]?.message?.content || '',
@@ -735,6 +752,9 @@ export async function* generateStream(
     };
   }
 
+  // Build prior conversation turns for multi-turn format
+  const priorTurns = options.conversationMessages || [];
+
   // Claude/Anthropic provider
   if (activeProvider === 'claude' && anthropic && activeModel) {
     // Build user content: text + optional images
@@ -749,13 +769,18 @@ export async function* generateStream(
     }
     streamUserContent.push({ type: 'text', text: prompt });
 
+    const streamMessages: any[] = [
+      ...priorTurns.map((m) => ({ role: m.role, content: m.content })),
+      { role: 'user', content: streamUserContent },
+    ];
+
     const stream = anthropic.messages.stream({
       model: activeModel.api_model_id,
       max_tokens: effectiveMaxTokens,
       temperature,
       system: systemPrompt,
-      messages: [{ role: 'user', content: streamUserContent }],
-    });
+      messages: streamMessages,
+    }, { timeout: PROVIDER_TIMEOUT_MS });
 
     for await (const event of stream) {
       if (
@@ -807,21 +832,22 @@ export async function* generateStream(
         ...(systemPrompt
           ? [{ role: 'system' as const, content: systemPrompt }]
           : []),
+        ...priorTurns.map((m) => ({ role: m.role as const, content: m.content })),
         { role: 'user' as const, content: streamOpenaiContent },
       ],
-    });
+    }, { timeout: PROVIDER_TIMEOUT_MS });
 
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content;
       if (content) {
         fullContent += content;
-        tokensOutput++;
         yield content;
       }
     }
 
-    // Estimate input tokens for OpenAI streaming (not provided in stream)
-    tokensInput = Math.ceil((systemPrompt?.length || 0 + prompt.length) / 4);
+    // Estimate tokens for OpenAI streaming (not provided in stream chunks)
+    tokensInput = Math.ceil(((systemPrompt?.length ?? 0) + prompt.length) / 4);
+    tokensOutput = Math.ceil(fullContent.length / 4);
 
     return {
       content: fullContent,
@@ -844,20 +870,21 @@ export async function* generateStream(
         ...(systemPrompt
           ? [{ role: 'system' as const, content: systemPrompt }]
           : []),
+        ...priorTurns.map((m) => ({ role: m.role as const, content: m.content })),
         { role: 'user' as const, content: prompt },
       ],
-    });
+    }, { timeout: PROVIDER_TIMEOUT_MS });
 
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content;
       if (content) {
         fullContent += content;
-        tokensOutput++;
         yield content;
       }
     }
 
-    tokensInput = Math.ceil((systemPrompt?.length || 0 + prompt.length) / 4);
+    tokensInput = Math.ceil(((systemPrompt?.length ?? 0) + prompt.length) / 4);
+    tokensOutput = Math.ceil(fullContent.length / 4);
 
     return {
       content: fullContent,

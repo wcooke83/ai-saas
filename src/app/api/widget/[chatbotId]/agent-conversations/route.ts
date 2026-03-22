@@ -56,7 +56,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const adminDb = createAdminClient() as any;
+    const adminDb = createAdminClient();
 
     // Get conversations that have handoff sessions (or all with recent messages)
     let query = adminDb
@@ -91,21 +91,71 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // Fire stats queries in parallel with enrichment -- they are independent
+    const statsPromise = Promise.all([
+      adminDb
+        .from('telegram_handoff_sessions')
+        .select('*', { count: 'exact', head: true })
+        .eq('chatbot_id', chatbotId)
+        .eq('status', 'pending'),
+      adminDb
+        .from('telegram_handoff_sessions')
+        .select('*', { count: 'exact', head: true })
+        .eq('chatbot_id', chatbotId)
+        .eq('status', 'active'),
+      adminDb
+        .from('telegram_handoff_sessions')
+        .select('*', { count: 'exact', head: true })
+        .eq('chatbot_id', chatbotId)
+        .eq('status', 'resolved'),
+    ]);
+
     if (!handoffs || handoffs.length === 0) {
+      const [pending, active, resolved] = await statsPromise;
       return NextResponse.json(
-        { success: true, data: { conversations: [], stats: { pending: 0, active: 0, resolved: 0 } } },
+        {
+          success: true,
+          data: {
+            conversations: [],
+            stats: {
+              pending: pending.count || 0,
+              active: active.count || 0,
+              resolved: resolved.count || 0,
+            },
+          },
+        },
         { headers: CORS_HEADERS }
       );
     }
 
-    // Get conversation details for each handoff
+    // Collect IDs for parallel sub-queries
     const conversationIds = handoffs.map((h: any) => h.conversation_id);
-    const { data: conversations } = await adminDb
-      .from('conversations')
-      .select('id, session_id, visitor_id, visitor_metadata, message_count, first_message_at, last_message_at, language')
-      .in('id', conversationIds);
+    const escalationIds = handoffs.map((h: any) => h.escalation_id).filter(Boolean);
 
-    // Get lead info for each conversation
+    // Run conversations, escalations, and last messages queries in parallel
+    const [
+      { data: conversations },
+      escalationsResult,
+      { data: lastMessages },
+    ] = await Promise.all([
+      adminDb
+        .from('conversations')
+        .select('id, session_id, visitor_id, visitor_metadata, message_count, first_message_at, last_message_at, language')
+        .in('id', conversationIds),
+      escalationIds.length > 0
+        ? adminDb
+            .from('conversation_escalations')
+            .select('id, reason, details')
+            .in('id', escalationIds)
+        : Promise.resolve({ data: [] as any[] }),
+      adminDb
+        .from('messages')
+        .select('conversation_id, content, role, metadata, created_at')
+        .in('conversation_id', conversationIds)
+        .order('created_at', { ascending: false }),
+    ]);
+
+    // Get lead info -- depends on conversations result for session_ids
     const sessionIds = (conversations || []).map((c: any) => c.session_id).filter(Boolean);
     const { data: leads } = sessionIds.length > 0
       ? await adminDb
@@ -115,26 +165,10 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
           .in('session_id', sessionIds)
       : { data: [] };
 
-    // Get escalation info (reason + details) for each handoff
-    const escalationIds = handoffs.map((h: any) => h.escalation_id).filter(Boolean);
-    const { data: escalations } = escalationIds.length > 0
-      ? await adminDb
-          .from('conversation_escalations')
-          .select('id, reason, details')
-          .in('id', escalationIds)
-      : { data: [] };
-    const escalationMap = new Map<string, any>((escalations || []).map((e: any) => [e.id, e]));
-
-    // Get last message for each conversation
-    const { data: lastMessages } = await adminDb
-      .from('messages')
-      .select('conversation_id, content, role, metadata, created_at')
-      .in('conversation_id', conversationIds)
-      .order('created_at', { ascending: false });
-
     // Build lookup maps
     const conversationMap = new Map<string, any>((conversations || []).map((c: any) => [c.id, c]));
     const leadMap = new Map<string, any>((leads || []).map((l: any) => [l.session_id, l.form_data]));
+    const escalationMap = new Map<string, any>((escalationsResult.data || []).map((e: any) => [e.id, e]));
     const lastMessageMap = new Map<string, any>();
     for (const msg of (lastMessages || [])) {
       if (!lastMessageMap.has(msg.conversation_id)) {
@@ -142,7 +176,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       }
     }
 
-    // Unread count: messages from visitor since handoff started
+    // Enrich conversations
     const enrichedConversations = handoffs.map((handoff: any) => {
       const conv = conversationMap.get(handoff.conversation_id);
       const lead = conv ? leadMap.get(conv.session_id) : null;
@@ -173,24 +207,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       };
     });
 
-    // Get stats
-    const { count: pendingCount } = await adminDb
-      .from('telegram_handoff_sessions')
-      .select('*', { count: 'exact', head: true })
-      .eq('chatbot_id', chatbotId)
-      .eq('status', 'pending');
-
-    const { count: activeCount } = await adminDb
-      .from('telegram_handoff_sessions')
-      .select('*', { count: 'exact', head: true })
-      .eq('chatbot_id', chatbotId)
-      .eq('status', 'active');
-
-    const { count: resolvedCount } = await adminDb
-      .from('telegram_handoff_sessions')
-      .select('*', { count: 'exact', head: true })
-      .eq('chatbot_id', chatbotId)
-      .eq('status', 'resolved');
+    // Await the stats that were started in parallel at the top
+    const [pending, active, resolved] = await statsPromise;
 
     return NextResponse.json(
       {
@@ -198,9 +216,9 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         data: {
           conversations: enrichedConversations,
           stats: {
-            pending: pendingCount || 0,
-            active: activeCount || 0,
-            resolved: resolvedCount || 0,
+            pending: pending.count || 0,
+            active: active.count || 0,
+            resolved: resolved.count || 0,
           },
         },
       },

@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Find the chatbot associated with this Slack team
-        const supabase = createAdminClient() as any;
+        const supabase = createAdminClient();
         const { data: integration } = await supabase
           .from('slack_integrations')
           .select('chatbot_id')

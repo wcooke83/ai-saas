@@ -1,9 +1,10 @@
 'use client';
 
+import { memo, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Clock, User, MessageSquare } from 'lucide-react';
+import { Clock, User, MessageSquare, Loader2 } from 'lucide-react';
 import type { AgentConversation, ConversationStats, HandoffStatus } from './useAgentConsole';
 
 interface AgentConversationListProps {
@@ -11,6 +12,7 @@ interface AgentConversationListProps {
   stats: ConversationStats;
   selectedId: string | null;
   loading: boolean;
+  filterLoading?: boolean;
   filter: HandoffStatus | 'all';
   onSelect: (conversationId: string) => void;
   onFilterChange: (filter: HandoffStatus | 'all') => void;
@@ -33,26 +35,91 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`;
 }
 
-export function AgentConversationList({
+// Memoized individual conversation row -- prevents re-rendering all rows when only selection changes
+const ConversationRow = memo(function ConversationRow({
+  conv,
+  isSelected,
+  onSelect,
+}: {
+  conv: AgentConversation;
+  isSelected: boolean;
+  onSelect: (conversationId: string) => void;
+}) {
+  return (
+    <button
+      onClick={() => onSelect(conv.conversation_id)}
+      data-testid={`conversation-item-${conv.conversation_id}`}
+      data-selected={isSelected ? 'true' : 'false'}
+      className={`w-full text-left p-3 hover:bg-secondary-50 dark:hover:bg-secondary-800 transition-colors ${
+        isSelected
+          ? 'bg-primary-50 dark:bg-primary-900/20 border-l-2 border-primary-500'
+          : ''
+      }`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <User className="w-3.5 h-3.5 text-secondary-400 flex-shrink-0" />
+            <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100 truncate">
+              {conv.visitor_name || conv.visitor_email || 'Anonymous Visitor'}
+            </span>
+          </div>
+          {conv.last_message && (
+            <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1 line-clamp-2">
+              {conv.last_message.is_agent ? `Agent: ` : ''}
+              {conv.last_message.content}
+            </p>
+          )}
+        </div>
+        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+          <Badge className={`text-[10px] px-1.5 py-0 ${STATUS_COLORS[conv.handoff_status]}`}>
+            {conv.handoff_status}
+          </Badge>
+          <span className="text-[10px] text-secondary-400 flex items-center gap-0.5">
+            <Clock className="w-2.5 h-2.5" />
+            {timeAgo(conv.last_message_at || conv.handoff_created_at)}
+          </span>
+        </div>
+      </div>
+      <div className="flex items-center gap-3 mt-1.5 text-[10px] text-secondary-400">
+        <span>{conv.message_count} msgs</span>
+        {conv.agent_name && conv.handoff_status === 'active' && (
+          <span>Agent: {conv.agent_name}</span>
+        )}
+        {conv.escalation_reason && conv.handoff_status === 'pending' && (
+          <span className="text-orange-500">
+            {conv.escalation_reason === 'need_human_help' ? 'Needs help' :
+             conv.escalation_reason === 'wrong_answer' ? 'Wrong answer' :
+             conv.escalation_reason === 'offensive_content' ? 'Offensive' : 'Other'}
+          </span>
+        )}
+      </div>
+    </button>
+  );
+});
+
+export const AgentConversationList = memo(function AgentConversationList({
   conversations,
   stats,
   selectedId,
   loading,
+  filterLoading = false,
   filter,
   onSelect,
   onFilterChange,
 }: AgentConversationListProps) {
-  const filters: Array<{ label: string; value: HandoffStatus | 'all'; count?: number }> = [
-    { label: 'All', value: 'all' },
-    { label: 'Pending', value: 'pending', count: stats.pending },
-    { label: 'Active', value: 'active', count: stats.active },
-    { label: 'Resolved', value: 'resolved', count: stats.resolved },
-  ];
+  // Stable filter config -- avoids recreating the array each render
+  const filters = useMemo(() => [
+    { label: 'All', value: 'all' as const },
+    { label: 'Pending', value: 'pending' as const, count: stats.pending },
+    { label: 'Active', value: 'active' as const, count: stats.active },
+    { label: 'Resolved', value: 'resolved' as const, count: stats.resolved },
+  ], [stats.pending, stats.active, stats.resolved]);
 
   return (
-    <div className="flex flex-col h-full border-r border-secondary-200 dark:border-secondary-700">
+    <div className="flex flex-col h-full border-r border-secondary-200 dark:border-secondary-700" data-testid="conversation-list">
       {/* Filter tabs */}
-      <div className="p-3 border-b border-secondary-200 dark:border-secondary-700">
+      <div className="p-3 border-b border-secondary-200 dark:border-secondary-700" data-testid="filter-tabs">
         <div className="flex gap-1 flex-wrap">
           {filters.map((f) => (
             <Button
@@ -61,8 +128,12 @@ export function AgentConversationList({
               size="sm"
               onClick={() => onFilterChange(f.value)}
               className="text-xs"
+              data-testid={`filter-${f.value}`}
             >
               {f.label}
+              {filter === f.value && filterLoading && (
+                <Loader2 className="w-3 h-3 ml-1 animate-spin" />
+              )}
               {f.count !== undefined && f.count > 0 && (
                 <span className="ml-1 bg-white/20 rounded-full px-1.5 text-[10px] relative">
                   {f.count}
@@ -77,9 +148,9 @@ export function AgentConversationList({
       </div>
 
       {/* Conversation list */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" data-testid="conversation-list-body">
         {loading ? (
-          <div className="p-3 space-y-3">
+          <div className="p-3 space-y-3" data-testid="conversation-list-skeleton">
             {[1, 2, 3, 4].map((i) => (
               <Skeleton key={i} className="h-20 w-full" />
             ))}
@@ -91,60 +162,18 @@ export function AgentConversationList({
             <p className="text-xs mt-1">Handoff requests will appear here</p>
           </div>
         ) : (
-          <div className="divide-y divide-secondary-100 dark:divide-secondary-800">
+          <div className={`divide-y divide-secondary-100 dark:divide-secondary-800 transition-opacity duration-150 ${filterLoading ? 'opacity-50 pointer-events-none' : ''}`}>
             {conversations.map((conv) => (
-              <button
+              <ConversationRow
                 key={conv.conversation_id}
-                onClick={() => onSelect(conv.conversation_id)}
-                className={`w-full text-left p-3 hover:bg-secondary-50 dark:hover:bg-secondary-800 transition-colors ${
-                  selectedId === conv.conversation_id
-                    ? 'bg-primary-50 dark:bg-primary-900/20 border-l-2 border-primary-500'
-                    : ''
-                }`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <User className="w-3.5 h-3.5 text-secondary-400 flex-shrink-0" />
-                      <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100 truncate">
-                        {conv.visitor_name || conv.visitor_email || 'Anonymous Visitor'}
-                      </span>
-                    </div>
-                    {conv.last_message && (
-                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1 line-clamp-2">
-                        {conv.last_message.is_agent ? `Agent: ` : ''}
-                        {conv.last_message.content}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                    <Badge className={`text-[10px] px-1.5 py-0 ${STATUS_COLORS[conv.handoff_status]}`}>
-                      {conv.handoff_status}
-                    </Badge>
-                    <span className="text-[10px] text-secondary-400 flex items-center gap-0.5">
-                      <Clock className="w-2.5 h-2.5" />
-                      {timeAgo(conv.last_message_at || conv.handoff_created_at)}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 mt-1.5 text-[10px] text-secondary-400">
-                  <span>{conv.message_count} msgs</span>
-                  {conv.agent_name && conv.handoff_status === 'active' && (
-                    <span>Agent: {conv.agent_name}</span>
-                  )}
-                  {conv.escalation_reason && conv.handoff_status === 'pending' && (
-                    <span className="text-orange-500">
-                      {conv.escalation_reason === 'need_human_help' ? 'Needs help' :
-                       conv.escalation_reason === 'wrong_answer' ? 'Wrong answer' :
-                       conv.escalation_reason === 'offensive_content' ? 'Offensive' : 'Other'}
-                    </span>
-                  )}
-                </div>
-              </button>
+                conv={conv}
+                isSelected={selectedId === conv.conversation_id}
+                onSelect={onSelect}
+              />
             ))}
           </div>
         )}
       </div>
     </div>
   );
-}
+});

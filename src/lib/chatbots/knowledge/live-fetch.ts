@@ -103,6 +103,33 @@ interface PageLink {
   text: string;
 }
 
+/**
+ * Fast keyword-based link matching to avoid AI round trip.
+ * Scores links by how many query keywords appear in link text or URL path.
+ * Returns links sorted by score (descending), only those with score > 0.
+ */
+function matchLinksByKeywords(links: PageLink[], query: string): PageLink[] {
+  const stopWords = new Set(['the', 'a', 'an', 'is', 'are', 'was', 'were', 'do', 'does', 'did', 'have', 'has', 'had', 'can', 'could', 'would', 'should', 'what', 'where', 'when', 'how', 'who', 'which', 'this', 'that', 'my', 'your', 'i', 'you', 'we', 'they', 'it', 'to', 'of', 'in', 'for', 'on', 'with', 'at', 'by', 'about', 'and', 'or', 'not', 'no', 'but', 'if', 'so', 'much', 'many', 'any', 'some', 'me', 'us']);
+  const keywords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));
+  if (keywords.length === 0) return [];
+
+  const scored = links.map(link => {
+    const linkText = link.text.toLowerCase();
+    const urlPath = link.url.toLowerCase();
+    let score = 0;
+    for (const kw of keywords) {
+      if (linkText.includes(kw)) score += 2; // text match is stronger
+      if (urlPath.includes(kw)) score += 1;
+    }
+    return { link, score };
+  });
+
+  return scored
+    .filter(s => s.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map(s => s.link);
+}
+
 // ============================================
 // MAIN ENTRY POINT
 // ============================================
@@ -152,7 +179,14 @@ export async function fetchPinnedUrlContent(
     console.log(`[Live Fetch] Only ${uniqueLinks.length} links (<= ${SKIP_AI_THRESHOLD}), skipping AI picker`);
     aiPickedUrls = uniqueLinks.map((l) => l.url);
   } else {
-    aiPickedUrls = await getCachedAiPick(uniqueLinks, query);
+    // Try keyword matching first to avoid the AI round trip (~1-3s)
+    const keywordMatches = matchLinksByKeywords(uniqueLinks, query);
+    if (keywordMatches.length > 0) {
+      console.log(`[Live Fetch] Keyword match found ${keywordMatches.length} link(s), skipping AI picker`);
+      aiPickedUrls = keywordMatches.slice(0, 2).map((l) => l.url);
+    } else {
+      aiPickedUrls = await getCachedAiPick(uniqueLinks, query);
+    }
   }
 
   if (aiPickedUrls.length === 0) {

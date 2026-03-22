@@ -119,6 +119,21 @@ export function corsMiddleware(options?: CORSOptions) {
 }
 
 /**
+ * Resolve CORS origin for a chatbot based on its allowed_origins config.
+ * - null/undefined/empty = allow all (wildcard, backwards compatible)
+ * - If request origin is in the list, reflect it back
+ * - Otherwise return the first allowed origin (browser will block the mismatch)
+ */
+export function getChatbotCorsOrigin(
+  allowedOrigins: string[] | null | undefined,
+  requestOrigin: string | null
+): string {
+  if (!allowedOrigins || allowedOrigins.length === 0) return '*';
+  if (requestOrigin && allowedOrigins.includes(requestOrigin)) return requestOrigin;
+  return allowedOrigins[0];
+}
+
+/**
  * Environment-based CORS configuration
  */
 export function getProductionCORSOptions(): CORSOptions {

@@ -9,8 +9,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import type { TelegramUpdate } from '@/lib/telegram/types';
+import type { TelegramUpdate, TelegramConfig } from '@/lib/telegram/types';
 import { DEFAULT_TELEGRAM_CONFIG } from '@/lib/telegram/types';
+import type { Json } from '@/types/database';
 import { extractConversationId } from '@/lib/telegram/client';
 import {
   handleAgentReply,
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     // If we still don't know the chatbot, try to find it by chat_id
     if (!chatbotId) {
-      const supabase = createAdminClient() as any;
+      const supabase = createAdminClient();
       const { data: chatbots } = await supabase
         .from('chatbots')
         .select('id, telegram_config')
@@ -70,7 +71,8 @@ export async function POST(request: NextRequest) {
 
       if (chatbots) {
         for (const cb of chatbots) {
-          const config = { ...DEFAULT_TELEGRAM_CONFIG, ...(cb.telegram_config || {}) };
+          const raw = cb.telegram_config && typeof cb.telegram_config === 'object' && !Array.isArray(cb.telegram_config) ? cb.telegram_config as Record<string, unknown> : {};
+          const config = { ...DEFAULT_TELEGRAM_CONFIG, ...raw } as TelegramConfig;
           if (config.chat_id === String(message.chat.id)) {
             chatbotId = cb.id;
             break;

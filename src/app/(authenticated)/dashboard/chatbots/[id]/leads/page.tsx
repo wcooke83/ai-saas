@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import {
-  ArrowLeft,
   Users,
   MessageSquare,
   Download,
@@ -409,13 +408,6 @@ export default function ChatbotLeadsPage({ params }: ChatbotLeadsPageProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <Link
-            href={`/dashboard/chatbots/${chatbotId}`}
-            className="inline-flex items-center text-sm text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Chatbot
-          </Link>
           <H1 variant="dashboard">
             Leads & Conversations
           </H1>

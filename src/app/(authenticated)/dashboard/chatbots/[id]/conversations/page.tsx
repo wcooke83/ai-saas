@@ -1,8 +1,7 @@
 'use client';
 
 import { use, useState, useEffect } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, Headphones, Loader2 } from 'lucide-react';
+import { Headphones, Loader2 } from 'lucide-react';
 import { AgentConsoleLayout } from '@/components/agent-console/AgentConsoleLayout';
 import { H1 } from '@/components/ui/heading';
 
@@ -41,13 +40,6 @@ export default function ConversationsPage({ params }: ConversationsPageProps) {
   return (
     <div className="space-y-4 h-[calc(100vh-8rem)]">
       <div>
-        <Link
-          href={`/dashboard/chatbots/${id}`}
-          className="inline-flex items-center text-sm text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100 mb-2"
-        >
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          Back to {chatbotName || 'Chatbot'}
-        </Link>
         <div className="flex items-center gap-2">
           <Headphones className="w-5 h-5 text-primary-600 dark:text-primary-400" />
           <H1 variant="dashboard" className="text-xl">

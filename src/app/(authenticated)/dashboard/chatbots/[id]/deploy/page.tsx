@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Code, Copy, Check, ExternalLink, Globe, Terminal, MessageSquare, HelpCircle, Info, BookOpen, FileCode, Zap, Headphones } from 'lucide-react';
+import { Code, Copy, Check, ExternalLink, Globe, Terminal, MessageSquare, HelpCircle, Info, BookOpen, FileCode, Zap, Headphones } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -38,7 +38,7 @@ function CodeBlock({
       <Button
         size="sm"
         variant="outline"
-        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-secondary-800 border-secondary-700 hover:bg-secondary-700 text-secondary-200"
+        className="absolute top-2 right-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-secondary-800 border-secondary-700 hover:bg-secondary-700 text-secondary-200"
         onClick={() => onCopy(code, copyId)}
       >
         {copiedCode === copyId ? (
@@ -228,13 +228,6 @@ const data = await res.json();`;
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <Link
-          href={`/dashboard/chatbots/${id}`}
-          className="inline-flex items-center text-sm text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100 mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          Back to Chatbot
-        </Link>
         <div className="flex items-start justify-between">
           <div>
             <H1 variant="dashboard">
@@ -262,7 +255,10 @@ const data = await res.json();`;
             <span className="font-medium">Chatbot not published</span>
           </div>
           <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-1">
-            Your chatbot needs to be published before it can be accessed. Go to the chatbot overview to publish it.
+            Your chatbot needs to be published before it can be accessed.{' '}
+            <Link href={`/dashboard/chatbots/${chatbot.id}`} className="underline font-medium hover:text-yellow-700 dark:hover:text-yellow-200">
+              Go to overview to publish
+            </Link>
           </p>
         </div>
       )}

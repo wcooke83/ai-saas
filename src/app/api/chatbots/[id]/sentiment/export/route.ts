@@ -31,7 +31,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       throw APIError.forbidden('Access denied');
     }
 
-    const supabase = createAdminClient() as any;
+    const supabase = createAdminClient();
 
     // Fetch all analyzed conversations
     const { data: conversations, error: convError } = await supabase

@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       throw APIError.badRequest('reason is required');
     }
 
-    const supabase = createAdminClient() as any;
+    const supabase = createAdminClient();
 
     // Verify target user exists
     const { data: targetUser } = await supabase
@@ -101,7 +101,7 @@ export async function GET(req: NextRequest) {
       throw APIError.forbidden('Admin access required');
     }
 
-    const supabase = createAdminClient() as any;
+    const supabase = createAdminClient();
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('user_id');
     const limit = parseInt(searchParams.get('limit') || '50');

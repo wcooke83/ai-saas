@@ -4,8 +4,9 @@
  */
 
 import { NextRequest } from 'next/server';
-import { DEFAULT_WIDGET_CONFIG, DEFAULT_PRE_CHAT_FORM_CONFIG, DEFAULT_POST_CHAT_SURVEY_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, DEFAULT_PROACTIVE_MESSAGES_CONFIG, DEFAULT_TRANSCRIPT_CONFIG, DEFAULT_ESCALATION_CONFIG, DEFAULT_LIVE_HANDOFF_CONFIG, DEFAULT_TELEGRAM_CONFIG } from '@/lib/chatbots/types';
+import { DEFAULT_WIDGET_CONFIG, DEFAULT_PRE_CHAT_FORM_CONFIG, DEFAULT_POST_CHAT_SURVEY_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, DEFAULT_PROACTIVE_MESSAGES_CONFIG, DEFAULT_TRANSCRIPT_CONFIG, DEFAULT_ESCALATION_CONFIG, DEFAULT_FEEDBACK_CONFIG, DEFAULT_LIVE_HANDOFF_CONFIG, DEFAULT_TELEGRAM_CONFIG } from '@/lib/chatbots/types';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getChatbotCorsOrigin } from '@/lib/api/cors';
 
 interface RouteParams {
   params: Promise<{ chatbotId: string }>;
@@ -24,6 +25,7 @@ interface ChatbotConfig {
   proactive_messages_config: Record<string, unknown> | null;
   transcript_config: Record<string, unknown> | null;
   escalation_config: Record<string, unknown> | null;
+  feedback_config: Record<string, unknown> | null;
   live_handoff_config: Record<string, unknown> | null;
   telegram_config: Record<string, unknown> | null;
   memory_enabled: boolean;
@@ -31,6 +33,7 @@ interface ChatbotConfig {
   is_published: boolean;
   status: string;
   language: string | null;
+  allowed_origins: string[] | null;
 }
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
@@ -44,7 +47,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     // Filter to only published+active chatbots manually
     const { data: chatbotData, error } = await (supabase as any)
       .from('chatbots')
-      .select('id, name, welcome_message, placeholder_text, logo_url, widget_config, pre_chat_form_config, post_chat_survey_config, file_upload_config, proactive_messages_config, transcript_config, escalation_config, live_handoff_config, telegram_config, memory_enabled, session_ttl_hours, is_published, status, language')
+      .select('id, name, welcome_message, placeholder_text, logo_url, widget_config, pre_chat_form_config, post_chat_survey_config, file_upload_config, proactive_messages_config, transcript_config, escalation_config, feedback_config, live_handoff_config, telegram_config, memory_enabled, session_ttl_hours, is_published, status, language, allowed_origins')
       .eq('id', chatbotId)
       .eq('is_published', true)
       .eq('status', 'active')
@@ -66,6 +69,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     console.log('[Widget:Config] Chatbot found:', chatbotData.id, chatbotData.name);
 
     const chatbot = chatbotData as ChatbotConfig;
+    const corsOrigin = getChatbotCorsOrigin(chatbot.allowed_origins, req.headers.get('origin'));
 
     // Merge widget config with defaults
     const widgetConfig = {
@@ -110,6 +114,10 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
             ...DEFAULT_ESCALATION_CONFIG,
             ...(chatbot.escalation_config || {}),
           },
+          feedbackConfig: {
+            ...DEFAULT_FEEDBACK_CONFIG,
+            ...(chatbot.feedback_config || {}),
+          },
           liveHandoffConfig: {
             ...DEFAULT_LIVE_HANDOFF_CONFIG,
             ...(chatbot.live_handoff_config || {}),
@@ -120,9 +128,9 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
             // Telegram is always-on if configured
             const tc = { ...DEFAULT_TELEGRAM_CONFIG, ...(chatbot.telegram_config || {}) };
             if (tc.enabled && !!tc.bot_token && !!tc.chat_id) return true;
-            // For agent console, let the widget poll /agent-heartbeat separately
-            // instead of blocking the config response with a DB query
-            return 'check';
+            // Agent console presence is detected via Supabase Realtime Presence
+            // on the `agent-presence:${chatbotId}` channel — no server query needed
+            return false;
           })(),
           memoryEnabled: chatbot.memory_enabled === true,
           sessionTtlHours: chatbot.session_ttl_hours ?? 24,
@@ -132,8 +140,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Cache-Control': 'public, max-age=60', // Cache for 1 minute
+          'Access-Control-Allow-Origin': corsOrigin,
+          'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
         },
       }
     );
@@ -153,11 +161,29 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 }
 
 // CORS preflight
-export async function OPTIONS() {
+export async function OPTIONS(req: NextRequest, { params }: RouteParams) {
+  const { chatbotId } = await params;
+  let corsOriginHeader = '*';
+  try {
+    const supabase = createAdminClient();
+    const { data } = await supabase
+      .from('chatbots')
+      .select('allowed_origins')
+      .eq('id', chatbotId)
+      .single();
+    if (data) {
+      corsOriginHeader = getChatbotCorsOrigin(
+        (data as any).allowed_origins,
+        req.headers.get('origin')
+      );
+    }
+  } catch {
+    // Fall through with wildcard
+  }
   return new Response(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': corsOriginHeader,
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },

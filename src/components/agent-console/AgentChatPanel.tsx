@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, memo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -24,6 +24,7 @@ interface AgentChatPanelProps {
   messages: AgentMessage[];
   messagesLoading: boolean;
   sending: boolean;
+  actionLoading?: 'take_over' | 'resolve' | 'return_to_ai' | null;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
   visitorTyping?: boolean;
   visitorPresence?: VisitorPresenceInfo;
@@ -36,11 +37,78 @@ function formatTime(dateStr: string): string {
   return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-export function AgentChatPanel({
+// Memoized message bubble -- prevents re-rendering all messages when input changes or new messages arrive
+const MessageBubble = memo(function MessageBubble({ msg }: { msg: AgentMessage }) {
+  const isAgent = msg.metadata?.is_human_agent === true;
+  const isSystem = msg.role === 'system';
+  const isBot = msg.role === 'assistant' && !isAgent;
+  const isUser = msg.role === 'user';
+
+  if (isSystem) {
+    return (
+      <div className="text-center">
+        <span className="text-xs text-secondary-400 dark:text-secondary-500 bg-secondary-100 dark:bg-secondary-800 rounded-full px-3 py-1">
+          {msg.content}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`flex gap-2 ${isUser ? 'justify-start' : 'justify-end'}`}>
+      {isUser && (
+        <div className="w-7 h-7 rounded-full bg-secondary-200 dark:bg-secondary-700 flex items-center justify-center flex-shrink-0">
+          <User className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" />
+        </div>
+      )}
+      <div
+        className={`max-w-[70%] rounded-lg px-3 py-2 ${
+          isUser
+            ? 'bg-secondary-100 dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100'
+            : isAgent
+            ? 'bg-primary-500 text-white'
+            : 'bg-blue-100 dark:bg-blue-900/50 text-blue-900 dark:text-blue-100'
+        }`}
+      >
+        {(isAgent || isBot) && (
+          <div className="flex items-center gap-1 mb-0.5">
+            {isAgent ? (
+              <Headphones className="w-3 h-3 opacity-70" />
+            ) : (
+              <Bot className="w-3 h-3 opacity-70" />
+            )}
+            <span className="text-[10px] opacity-70">
+              {isAgent
+                ? `${(msg.metadata as any)?.agent_name || 'Agent'} (${(msg.metadata as any)?.source || 'platform'})`
+                : 'AI'}
+            </span>
+          </div>
+        )}
+        <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+        <p className={`text-[10px] mt-1 ${isUser ? 'text-secondary-400' : 'opacity-60'}`}>
+          {formatTime(msg.created_at)}
+        </p>
+      </div>
+      {!isUser && isAgent && (
+        <div className="w-7 h-7 rounded-full bg-primary-500 flex items-center justify-center flex-shrink-0">
+          <Headphones className="w-3.5 h-3.5 text-white" />
+        </div>
+      )}
+      {!isUser && isBot && (
+        <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center flex-shrink-0">
+          <Bot className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+        </div>
+      )}
+    </div>
+  );
+});
+
+export const AgentChatPanel = memo(function AgentChatPanel({
   conversation,
   messages,
   messagesLoading,
   sending,
+  actionLoading = null,
   messagesEndRef,
   visitorTyping = false,
   visitorPresence,
@@ -51,7 +119,7 @@ export function AgentChatPanel({
   const [input, setInput] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleSend = async () => {
+  const handleSend = useCallback(async () => {
     if (!input.trim() || sending || !conversation) return;
     const content = input;
     setInput('');
@@ -62,16 +130,16 @@ export function AgentChatPanel({
       toast.error('Failed to send message');
       setInput(content);
     }
-  };
+  }, [input, sending, conversation, onSendReply, onTyping]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
-  };
+  }, [handleSend]);
 
-  const handleAction = async (action: 'take_over' | 'resolve' | 'return_to_ai') => {
+  const handleAction = useCallback(async (action: 'take_over' | 'resolve' | 'return_to_ai') => {
     if (!conversation) return;
     const success = await onAction(conversation.conversation_id, action);
     if (success) {
@@ -80,7 +148,12 @@ export function AgentChatPanel({
     } else {
       toast.error(`Failed to ${action.replace('_', ' ')}`);
     }
-  };
+  }, [conversation, onAction]);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    onTyping?.(e.target.value.length > 0);
+  }, [onTyping]);
 
   if (!conversation) {
     return (
@@ -131,7 +204,7 @@ export function AgentChatPanel({
               </span>
               {visitorPresence.online && visitorPresence.page_url && (
                 <span className="text-[11px] text-secondary-400 truncate max-w-[250px]" title={visitorPresence.page_url}>
-                  — {visitorPresence.page_title || visitorPresence.page_url}
+                  -- {visitorPresence.page_title || visitorPresence.page_url}
                 </span>
               )}
             </div>
@@ -147,7 +220,7 @@ export function AgentChatPanel({
               </span>
               {conversation.escalation_details && (
                 <span className="text-xs text-secondary-500 dark:text-secondary-400 truncate max-w-[200px]">
-                  — {conversation.escalation_details}
+                  -- {conversation.escalation_details}
                 </span>
               )}
             </div>
@@ -155,19 +228,31 @@ export function AgentChatPanel({
         </div>
         <div className="flex items-center gap-2">
           {conversation.handoff_status === 'pending' && (
-            <Button size="sm" onClick={() => handleAction('take_over')}>
-              <UserCheck className="w-3.5 h-3.5 mr-1" />
+            <Button size="sm" onClick={() => handleAction('take_over')} disabled={actionLoading !== null} data-testid="action-take-over">
+              {actionLoading === 'take_over' ? (
+                <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+              ) : (
+                <UserCheck className="w-3.5 h-3.5 mr-1" />
+              )}
               Take Over
             </Button>
           )}
           {conversation.handoff_status === 'active' && (
             <>
-              <Button size="sm" variant="outline" onClick={() => handleAction('return_to_ai')}>
-                <RotateCcw className="w-3.5 h-3.5 mr-1" />
+              <Button size="sm" variant="outline" onClick={() => handleAction('return_to_ai')} disabled={actionLoading !== null} data-testid="action-return-to-ai">
+                {actionLoading === 'return_to_ai' ? (
+                  <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                ) : (
+                  <RotateCcw className="w-3.5 h-3.5 mr-1" />
+                )}
                 Return to AI
               </Button>
-              <Button size="sm" variant="outline" onClick={() => handleAction('resolve')}>
-                <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+              <Button size="sm" variant="outline" onClick={() => handleAction('resolve')} disabled={actionLoading !== null} data-testid="action-resolve">
+                {actionLoading === 'resolve' ? (
+                  <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                )}
                 Resolve
               </Button>
             </>
@@ -176,9 +261,9 @@ export function AgentChatPanel({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3" data-testid="chat-messages-area">
         {messagesLoading ? (
-          <div className="space-y-3">
+          <div className="space-y-3" data-testid="messages-skeleton">
             {[1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-12 w-3/4" />
             ))}
@@ -188,73 +273,9 @@ export function AgentChatPanel({
             <p className="text-sm">No messages yet</p>
           </div>
         ) : (
-          messages.map((msg) => {
-            const isAgent = msg.metadata?.is_human_agent === true;
-            const isSystem = msg.role === 'system';
-            const isBot = msg.role === 'assistant' && !isAgent;
-            const isUser = msg.role === 'user';
-
-            if (isSystem) {
-              return (
-                <div key={msg.id} className="text-center">
-                  <span className="text-xs text-secondary-400 dark:text-secondary-500 bg-secondary-100 dark:bg-secondary-800 rounded-full px-3 py-1">
-                    {msg.content}
-                  </span>
-                </div>
-              );
-            }
-
-            return (
-              <div
-                key={msg.id}
-                className={`flex gap-2 ${isUser ? 'justify-start' : 'justify-end'}`}
-              >
-                {isUser && (
-                  <div className="w-7 h-7 rounded-full bg-secondary-200 dark:bg-secondary-700 flex items-center justify-center flex-shrink-0">
-                    <User className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" />
-                  </div>
-                )}
-                <div
-                  className={`max-w-[70%] rounded-lg px-3 py-2 ${
-                    isUser
-                      ? 'bg-secondary-100 dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100'
-                      : isAgent
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-blue-100 dark:bg-blue-900/50 text-blue-900 dark:text-blue-100'
-                  }`}
-                >
-                  {(isAgent || isBot) && (
-                    <div className="flex items-center gap-1 mb-0.5">
-                      {isAgent ? (
-                        <Headphones className="w-3 h-3 opacity-70" />
-                      ) : (
-                        <Bot className="w-3 h-3 opacity-70" />
-                      )}
-                      <span className="text-[10px] opacity-70">
-                        {isAgent
-                          ? `${(msg.metadata as any)?.agent_name || 'Agent'} (${(msg.metadata as any)?.source || 'platform'})`
-                          : 'AI'}
-                      </span>
-                    </div>
-                  )}
-                  <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
-                  <p className={`text-[10px] mt-1 ${isUser ? 'text-secondary-400' : 'opacity-60'}`}>
-                    {formatTime(msg.created_at)}
-                  </p>
-                </div>
-                {!isUser && isAgent && (
-                  <div className="w-7 h-7 rounded-full bg-primary-500 flex items-center justify-center flex-shrink-0">
-                    <Headphones className="w-3.5 h-3.5 text-white" />
-                  </div>
-                )}
-                {!isUser && isBot && (
-                  <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                )}
-              </div>
-            );
-          })
+          messages.map((msg) => (
+            <MessageBubble key={msg.id} msg={msg} />
+          ))
         )}
         {visitorTyping && (
           <div className="flex items-center gap-1.5 px-1 py-0.5">
@@ -278,10 +299,7 @@ export function AgentChatPanel({
             <textarea
               ref={inputRef}
               value={input}
-              onChange={(e) => {
-                setInput(e.target.value);
-                onTyping?.(e.target.value.length > 0);
-              }}
+              onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               placeholder={
                 conversation.handoff_status === 'pending'
@@ -309,4 +327,4 @@ export function AgentChatPanel({
       )}
     </div>
   );
-}
+});

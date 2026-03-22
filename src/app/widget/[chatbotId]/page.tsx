@@ -104,6 +104,7 @@ export default function WidgetPage({ params }: WidgetPageProps) {
       proactiveMessagesConfig={config.proactiveMessagesConfig}
       transcriptConfig={config.transcriptConfig}
       escalationConfig={config.escalationConfig}
+      feedbackConfig={config.feedbackConfig}
       liveHandoffConfig={config.liveHandoffConfig}
       agentsAvailable={config.agentsAvailable === true}
       memoryEnabled={config.memoryEnabled === true}

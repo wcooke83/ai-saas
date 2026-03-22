@@ -35,41 +35,41 @@ export default function ChatbotsPage() {
     fetchChatbots();
   }, []);
 
-  // Realtime: update agent online counts when agent_presence changes
-  const updateAgentCounts = useCallback((chatbotId: string, delta: number) => {
-    setChatbots(prev => prev.map(c =>
-      c.id === chatbotId
-        ? { ...c, agents_online: Math.max(0, (c.agents_online ?? 0) + delta) }
-        : c
-    ));
-  }, []);
-
+  // Subscribe to Supabase Realtime Presence for each chatbot's agent count.
+  // Agents track presence on `agent-presence:${chatbotId}` channels; when they
+  // disconnect (close tab, network loss), Supabase removes them automatically.
   useEffect(() => {
     if (chatbots.length === 0) return;
 
     const supabase = getClient() as any;
-    const channel = supabase
-      .channel('agent-presence-dashboard')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'agent_presence',
-      }, (payload: any) => {
-        updateAgentCounts(payload.new.chatbot_id, 1);
-      })
-      .on('postgres_changes', {
-        event: 'DELETE',
-        schema: 'public',
-        table: 'agent_presence',
-      }, (payload: any) => {
-        updateAgentCounts(payload.old.chatbot_id, -1);
-      })
-      .subscribe();
+    const channels: ReturnType<typeof supabase.channel>[] = [];
+
+    for (const chatbot of chatbots) {
+      const channel = supabase.channel(`agent-presence:${chatbot.id}`);
+
+      channel
+        .on('presence', { event: 'sync' }, () => {
+          const state = channel.presenceState();
+          let count = 0;
+          for (const key of Object.keys(state)) {
+            count += (state[key] as unknown[]).length;
+          }
+          setChatbots(prev => prev.map(c =>
+            c.id === chatbot.id ? { ...c, agents_online: count } : c
+          ));
+        })
+        .subscribe();
+
+      channels.push(channel);
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      for (const ch of channels) {
+        supabase.removeChannel(ch);
+      }
     };
-  }, [chatbots.length > 0]); // subscribe once chatbots are loaded
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatbots.length > 0]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this chatbot? This action cannot be undone.')) {

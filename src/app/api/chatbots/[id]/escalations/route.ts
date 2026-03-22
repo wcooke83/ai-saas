@@ -5,6 +5,7 @@
 
 import { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import type { TypedSupabaseClient } from '@/lib/supabase/admin';
 import { checkChatbotOwnership } from '@/lib/chatbots/api';
 import { APIError, successResponse, errorResponse } from '@/lib/api/utils';
 
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     }
 
     // Verify chatbot ownership
-    const isOwner = await checkChatbotOwnership(chatbotId, user.id, supabase);
+    const isOwner = await checkChatbotOwnership(chatbotId, user.id, supabase as unknown as TypedSupabaseClient);
     if (!isOwner) {
       throw APIError.forbidden('Access denied');
     }

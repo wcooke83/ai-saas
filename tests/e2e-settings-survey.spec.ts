@@ -22,12 +22,15 @@ test.describe('7. Settings -- Post-Chat Survey', () => {
   test('SET-SURVEY-002: Default survey questions present', async ({ page }) => {
     await gotoSurveySection(page);
 
-    // Look for existing questions or "No questions yet" state
-    const hasQuestions = await page.locator('text=/Question #/').isVisible({ timeout: 5000 }).catch(() => false);
-    const hasEmpty = await page.locator('text=/No questions yet/i').isVisible({ timeout: 3000 }).catch(() => false);
-
-    // Either questions exist or it's empty — both valid states
-    expect(hasQuestions || hasEmpty).toBe(true);
+    // Survey may be disabled — check if content is visible
+    const isEnabled = await page.locator('text=/^Enabled$/').isVisible({ timeout: 3000 }).catch(() => false);
+    if (isEnabled) {
+      const hasQuestions = await page.locator('text=/Question #/').isVisible({ timeout: 5000 }).catch(() => false);
+      const hasEmpty = await page.locator('text=/No questions yet/i').isVisible({ timeout: 3000 }).catch(() => false);
+      expect(hasQuestions || hasEmpty).toBe(true);
+    } else {
+      await expect(page.locator('text=/^Disabled$/').first()).toBeVisible({ timeout: 5000 });
+    }
   });
 
   test('SET-SURVEY-003: Survey submission in widget', async ({ page }) => {

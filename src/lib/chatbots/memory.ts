@@ -5,10 +5,10 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/admin';
+import type { TypedSupabaseClient } from '@/lib/supabase/admin';
 import { generate } from '@/lib/ai/provider';
 import type { Message, ConversationMemory } from './types';
 
-type SupabaseAny = any;
 
 // ============================================
 // RETRIEVE MEMORY
@@ -22,9 +22,9 @@ export async function getUserMemory(
   visitorId: string,
   chatbotId: string,
   memoryDays: number = 30,
-  supabaseClient?: SupabaseAny
+  supabaseClient?: TypedSupabaseClient
 ): Promise<ConversationMemory | null> {
-  const supabase = supabaseClient || createAdminClient() as SupabaseAny;
+  const supabase = supabaseClient || createAdminClient();
 
   const { data, error } = await supabase
     .from('conversation_memory')
@@ -55,8 +55,7 @@ export async function getUserMemory(
     .from('conversation_memory')
     .update({ last_accessed: new Date().toISOString() })
     .eq('id', data.id)
-    .then(() => {})
-    .catch(() => {});
+    .then(() => {}, () => {});
 
   return {
     ...data,
@@ -102,9 +101,9 @@ export async function extractAndStoreMemory(
   chatbotId: string,
   messages: Message[],
   existingMemory: ConversationMemory | null,
-  supabaseClient?: SupabaseAny
+  supabaseClient?: TypedSupabaseClient
 ): Promise<void> {
-  const supabase = supabaseClient || createAdminClient() as SupabaseAny;
+  const supabase = supabaseClient || createAdminClient();
 
   // Need at least 2 messages (1 user + 1 assistant) to extract meaningful memory
   const relevantMessages = messages.filter(
@@ -229,9 +228,9 @@ Rules for key_facts:
 export async function summarizeConversation(
   conversationId: string,
   messages: Message[],
-  supabaseClient?: SupabaseAny
+  supabaseClient?: TypedSupabaseClient
 ): Promise<string | null> {
-  const supabase = supabaseClient || createAdminClient() as SupabaseAny;
+  const supabase = supabaseClient || createAdminClient();
 
   const relevantMessages = messages.filter(
     (m) => m.role === 'user' || m.role === 'assistant'
@@ -279,11 +278,11 @@ export async function summarizeConversation(
 export async function cleanupExpiredMemory(
   chatbotId: string,
   memoryDays: number,
-  supabaseClient?: SupabaseAny
+  supabaseClient?: TypedSupabaseClient
 ): Promise<number> {
   if (memoryDays <= 0) return 0; // 0 = unlimited retention
 
-  const supabase = supabaseClient || createAdminClient() as SupabaseAny;
+  const supabase = supabaseClient || createAdminClient();
 
   const expiryDate = new Date();
   expiryDate.setDate(expiryDate.getDate() - memoryDays);

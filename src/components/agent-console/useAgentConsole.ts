@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { getClient } from '@/lib/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -65,6 +65,8 @@ export function useAgentConsole({ chatbotId, apiKey, authMode }: UseAgentConsole
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [filter, setFilter] = useState<HandoffStatus | 'all'>('all');
   const [sending, setSending] = useState(false);
+  const [filterLoading, setFilterLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState<'take_over' | 'resolve' | 'return_to_ai' | null>(null);
   const [visitorTyping, setVisitorTyping] = useState(false);
   const [visitorPresence, setVisitorPresence] = useState<VisitorPresenceInfo>({ online: false, page_url: null, page_title: null });
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -75,16 +77,23 @@ export function useAgentConsole({ chatbotId, apiKey, authMode }: UseAgentConsole
   const prevPendingCountRef = useRef<number>(0);
   const visitorTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastAgentTypingBroadcastRef = useRef<number>(0);
+  const filterDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const messagesCacheRef = useRef<Map<string, AgentMessage[]>>(new Map());
 
   // Keep ref in sync for use in Realtime callbacks
   selectedConversationIdRef.current = selectedConversationId;
 
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (authMode === 'apikey' && apiKey) {
-    headers['Authorization'] = `Bearer ${apiKey}`;
-  }
+  // Stable headers -- only recalculated when apiKey/authMode actually change
+  const headers = useMemo<Record<string, string>>(() => {
+    const h: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (authMode === 'apikey' && apiKey) {
+      h['Authorization'] = `Bearer ${apiKey}`;
+    }
+    return h;
+  }, [apiKey, authMode]);
 
-  const baseUrl = `/api/widget/${chatbotId}`;
+  // Stable baseUrl -- only recalculated when chatbotId changes
+  const baseUrl = useMemo(() => `/api/widget/${chatbotId}`, [chatbotId]);
 
   // Fetch conversations
   const fetchConversations = useCallback(async () => {
@@ -102,33 +111,48 @@ export function useAgentConsole({ chatbotId, apiKey, authMode }: UseAgentConsole
       console.error('[AgentConsole] Failed to fetch conversations:', err);
     } finally {
       setLoading(false);
+      setFilterLoading(false);
     }
-  }, [chatbotId, filter, apiKey, authMode]);
+  }, [baseUrl, filter, headers]);
 
-  // Fetch messages for selected conversation
-  const fetchMessages = useCallback(async (conversationId: string) => {
+  // Fetch messages for selected conversation (with cache support)
+  const fetchMessages = useCallback(async (conversationId: string, skipCache = false) => {
+    // Serve from cache instantly if available -- Realtime INSERT subscription keeps it fresh
+    if (!skipCache) {
+      const cached = messagesCacheRef.current.get(conversationId);
+      if (cached) {
+        setMessages(cached);
+        return;
+      }
+    }
     setMessagesLoading(true);
     try {
       const res = await fetch(`/api/chatbots/${chatbotId}/conversations?conversationId=${conversationId}`, { headers });
       if (!res.ok) throw new Error('Failed to fetch messages');
       const data = await res.json();
       if (data.success) {
-        setMessages(data.data.messages || []);
+        const msgs: AgentMessage[] = data.data.messages || [];
+        setMessages(msgs);
+        messagesCacheRef.current.set(conversationId, msgs);
       }
     } catch (err) {
       console.error('[AgentConsole] Failed to fetch messages:', err);
     } finally {
       setMessagesLoading(false);
     }
-  }, [chatbotId, apiKey, authMode]);
+  }, [chatbotId, headers]);
 
   // Select a conversation
   const selectConversation = useCallback((conversationId: string) => {
     setSelectedConversationId(conversationId);
+    // Only clear messages if we don't have cache -- prevents flash of empty state
+    if (!messagesCacheRef.current.has(conversationId)) {
+      setMessages([]);
+    }
     fetchMessages(conversationId);
   }, [fetchMessages]);
 
-  // Send a reply — Realtime subscription will add the message to the list
+  // Send a reply -- Realtime subscription will add the message to the list
   const sendReply = useCallback(async (content: string) => {
     if (!selectedConversationId || !content.trim() || sending) return;
     setSending(true);
@@ -148,10 +172,11 @@ export function useAgentConsole({ chatbotId, apiKey, authMode }: UseAgentConsole
     } finally {
       setSending(false);
     }
-  }, [selectedConversationId, sending, chatbotId, apiKey, authMode]);
+  }, [selectedConversationId, sending, baseUrl, headers]);
 
   // Perform an action (take_over, resolve, return_to_ai)
   const performAction = useCallback(async (conversationId: string, action: 'take_over' | 'resolve' | 'return_to_ai') => {
+    setActionLoading(action);
     try {
       const res = await fetch(`${baseUrl}/agent-actions`, {
         method: 'POST',
@@ -166,11 +191,29 @@ export function useAgentConsole({ chatbotId, apiKey, authMode }: UseAgentConsole
     } catch (err) {
       console.error(`[AgentConsole] Failed to ${action}:`, err);
       return false;
+    } finally {
+      setActionLoading(null);
     }
-  }, [chatbotId, apiKey, authMode, fetchConversations]);
+  }, [baseUrl, headers, fetchConversations]);
 
-  // Initial fetch
+  // Debounced filter change -- rapid filter clicks only trigger one fetch
+  const changeFilter = useCallback((newFilter: HandoffStatus | 'all') => {
+    setFilterLoading(true);
+    setFilter(newFilter);
+    if (filterDebounceRef.current) clearTimeout(filterDebounceRef.current);
+    filterDebounceRef.current = setTimeout(() => {
+      filterDebounceRef.current = null;
+    }, 150);
+  }, []);
+
+  // Fetch on filter change (debounced)
   useEffect(() => {
+    if (filterDebounceRef.current) {
+      const timeout = setTimeout(() => {
+        fetchConversations();
+      }, 150);
+      return () => clearTimeout(timeout);
+    }
     fetchConversations();
   }, [fetchConversations]);
 
@@ -256,7 +299,10 @@ export function useAgentConsole({ chatbotId, apiKey, authMode }: UseAgentConsole
         setMessages(prev => {
           // Deduplicate: skip if we already have this message
           if (prev.some(m => m.id === newMessage.id)) return prev;
-          return [...prev, newMessage];
+          const updated = [...prev, newMessage];
+          // Keep cache in sync with realtime updates
+          messagesCacheRef.current.set(newMessage.conversation_id, updated);
+          return updated;
         });
       })
       .subscribe();
@@ -372,38 +418,37 @@ export function useAgentConsole({ chatbotId, apiKey, authMode }: UseAgentConsole
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Agent presence heartbeat — lets the widget know agents are available
+  // Agent presence via Supabase Realtime Presence (replaces HTTP heartbeat)
+  // When the agent disconnects (close tab, network loss), Supabase automatically
+  // removes their presence -- no polling or cleanup needed.
   useEffect(() => {
-    const sendHeartbeat = () => {
-      fetch(`${baseUrl}/agent-heartbeat`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ agent_name: 'Agent' }),
-      }).catch(() => {});
-    };
+    const supabase = getClient();
+    const channel = supabase.channel(`agent-presence:${chatbotId}`, {
+      config: { presence: { key: `agent-${chatbotId}` } },
+    });
 
-    // Send immediately on mount
-    sendHeartbeat();
-
-    // Then every 30 seconds
-    const interval = setInterval(sendHeartbeat, 30_000);
-
-    // Clean up on unmount
-    const handleUnload = () => {
-      navigator.sendBeacon?.(
-        `${baseUrl}/agent-heartbeat`,
-        new Blob([JSON.stringify({ _method: 'DELETE' })], { type: 'application/json' })
-      );
-    };
-    window.addEventListener('beforeunload', handleUnload);
+    channel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await channel.track({
+          role: 'agent',
+          agent_name: 'Agent',
+          online_since: new Date().toISOString(),
+        });
+      }
+    });
 
     return () => {
-      clearInterval(interval);
-      window.removeEventListener('beforeunload', handleUnload);
-      // Best-effort cleanup
-      fetch(`${baseUrl}/agent-heartbeat`, { method: 'DELETE', headers }).catch(() => {});
+      channel.untrack();
+      supabase.removeChannel(channel);
     };
   }, [chatbotId]);
+
+  // Clean up debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (filterDebounceRef.current) clearTimeout(filterDebounceRef.current);
+    };
+  }, []);
 
   return {
     conversations,
@@ -413,11 +458,13 @@ export function useAgentConsole({ chatbotId, apiKey, authMode }: UseAgentConsole
     loading,
     messagesLoading,
     sending,
+    filterLoading,
+    actionLoading,
     filter,
     messagesEndRef,
     visitorTyping,
     visitorPresence,
-    setFilter,
+    setFilter: changeFilter,
     selectConversation,
     sendReply,
     performAction,

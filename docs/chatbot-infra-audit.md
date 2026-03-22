@@ -439,32 +439,39 @@ The chat schema limits message to 10,000 characters and attachments to a validat
 
 ## Summary Table
 
-| # | Finding | Severity | Est. Impact |
-|---|---------|----------|-------------|
-| 1.2 | Admin client re-instantiated per call | Medium | Minor GC reduction |
-| 1.3 | N+1 queries in getChatbotsWithStats | Medium | Saves ~200ms for users with many chatbots |
-| 2.2 | Missing ef_search tuning | Medium | ~5-10% better recall |
-| 2.3 | match_knowledge_chunks RPC not in migrations | Low | Deployment risk |
-| 3.2 | Middleware auth check on public endpoints | **High** | Saves 30-80ms per widget/chat request |
-| 3.3 | Config lacks stale-while-revalidate | Medium | Better CDN hit rate |
-| 4.3 | No batch rate limiting for embeddings | Medium | Prevents 429 on large ingestion |
-| 5.2 | Live fetch blocks response for 3-10s | **High** | Cap worst-case at 5s |
-| 5.3 | URL extractor race waits for both branches | Low | Saves 1-3s when Jina wins |
-| 6.1 | No edge runtime usage | Medium | ~20-40ms latency improvement on edge candidates |
-| 6.2 | Cheerio statically imported in live-fetch | Medium | ~50-100ms cold start reduction |
-| 6.3 | Timeout risk on live fetch pipeline | Medium | Prevents function timeouts |
-| 7.3 | Active model cache TTL could be longer | Info | Minor DB load reduction |
-| 7.4 | No explicit region pinning | Medium | Prevents potential 30-80ms cross-region penalty |
-| 9.1 | In-memory caches lost on cold start | Medium | 200-400ms per embedding on cold start |
-| 10.2 | Rate limiter doesn't work across instances | **High** | Prevents AI credit abuse |
+| # | Finding | Severity | Est. Impact | Status |
+|---|---------|----------|-------------|--------|
+| 1.2 | Admin client re-instantiated per call | Medium | Minor GC reduction | **FIXED** |
+| 1.3 | N+1 queries in getChatbotsWithStats | Medium | Saves ~200ms for users with many chatbots | N/A (already uses `get_chatbot_stats` RPC) |
+| 2.2 | Missing ef_search tuning | Medium | ~5-10% better recall | **FIXED** |
+| 2.3 | match_knowledge_chunks RPC not in migrations | Low | Deployment risk | **FIXED** |
+| 3.2 | Middleware auth check on public endpoints | **High** | Saves 30-80ms per widget/chat request | **FIXED** |
+| 3.3 | Config lacks stale-while-revalidate | Medium | Better CDN hit rate | **FIXED** |
+| 4.3 | No batch rate limiting for embeddings | Medium | Prevents 429 on large ingestion | **FIXED** |
+| 5.2 | Live fetch blocks response for 3-10s | **High** | Cap worst-case at 5s | **FIXED** |
+| 5.3 | URL extractor race waits for both branches | Low | Saves 1-3s when Jina wins | N/A (already using Promise.any) |
+| 6.1 | No edge runtime usage | Medium | ~20-40ms latency improvement on edge candidates | **Declined** (single-region, no benefit) |
+| 6.2 | Cheerio statically imported in live-fetch | Medium | ~50-100ms cold start reduction | **FIXED** |
+| 6.3 | Timeout risk on live fetch pipeline | Medium | Prevents function timeouts | **FIXED** (via 5.2 timeout cap + vercel.json maxDuration) |
+| 7.3 | Active model cache TTL could be longer | Info | Minor DB load reduction | **FIXED** |
+| 7.4 | No explicit region pinning | Medium | Prevents potential 30-80ms cross-region penalty | **N/A** (self-hosted in Canada, not Vercel) |
+| 9.1 | In-memory caches lost on cold start | Medium | 200-400ms per embedding on cold start | Open |
+| 10.2 | Rate limiter doesn't work across instances | **High** | Prevents AI credit abuse | **FIXED** |
 
-### Priority Actions (ordered by impact)
+### Fixes Applied (2026-03-22)
 
-1. **Skip middleware auth for public endpoints** (3.2) — easiest win, 30-80ms per request
-2. **Distribute rate limiting via Upstash Redis** (10.2) — critical for production security
-3. **Add live fetch pipeline timeout** (5.2) — prevents worst-case 10s+ response times
-4. **Add vercel.json with region pinning** (7.4) — ensures co-location, prevents latency surprises
-5. **Singleton admin client** (1.2) — simple change, reduces allocations
-6. **Add stale-while-revalidate to widget config** (3.3) — better CDN behavior
-7. **Fix URL extractor race** (5.3) — use Promise.any for proper first-result-wins
-8. **Add ef_search tuning to match_knowledge_chunks** (2.2) — better recall quality
+1. **Skip middleware auth for public endpoints** (3.2) — `src/middleware.ts`: public `/api/widget/*` and `/api/chat/*` routes skip `updateSession()` call
+2. **Distribute rate limiting via Upstash Redis** (10.2) — `src/app/api/chat/[chatbotId]/route.ts`: replaced in-memory rate limiter with shared `rateLimit()` from `src/lib/api/rate-limit.ts` (Upstash Redis in prod, in-memory fallback for dev)
+3. **Add live fetch pipeline timeout** (5.2) — `src/lib/chatbots/rag.ts`: wrapped `fetchPinnedUrlContent` in `Promise.race` with 5s hard cap
+4. ~~**Add vercel.json with region pinning**~~ (7.4) — **Removed.** Self-hosted on server in Canada, not Vercel. Supabase in US West is close enough (~20-30ms).
+5. **Singleton admin client** (1.2) — `src/lib/supabase/admin.ts`: cached singleton avoids ~4 redundant instantiations per chat request
+6. **Add stale-while-revalidate to widget config** (3.3) — `src/app/api/widget/[chatbotId]/config/route.ts`: `Cache-Control: public, max-age=60, stale-while-revalidate=300`
+7. **ef_search tuning + tracked RPC** (2.2, 2.3) — `supabase/migrations/20260322200000_add_ef_search_tuning_to_rpcs.sql`: both RPCs now use `SET LOCAL hnsw.ef_search = 100` and `match_knowledge_chunks` is now in a tracked migration
+8. **Lazy-import cheerio** (6.2) — `src/lib/chatbots/knowledge/live-fetch.ts`: changed static `import * as cheerio` to dynamic `await import('cheerio')` inside `extractLinksFromUrl`, reducing cold start bundle by ~50-100ms
+9. **Batch splitting for OpenAI embeddings** (4.3) — `src/lib/chatbots/knowledge/embeddings.ts`: large embedding requests are now split into batches of 100 with 200ms spacing between batches to prevent 429 rate limit errors during knowledge ingestion
+10. **Extend active model cache TTL** (7.3) — `src/lib/ai/provider.ts`: bumped `MODEL_CACHE_TTL` from 30s to 120s, reducing DB lookups for model config
+
+### Remaining Items
+
+1. **Shared embedding cache via Upstash Redis** (9.1) — survive cold starts, ~200-400ms savings per miss. Requires Upstash Redis to be configured.
+2. ~~**Edge runtime for lightweight endpoints** (6.1)~~ — **Declined.** Single-region deployment with Supabase in US West means edge provides no benefit; DB round-trips would negate any edge latency savings.

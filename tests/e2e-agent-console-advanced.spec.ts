@@ -104,20 +104,21 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
 
     const ts = Date.now();
 
-    // Conv 0 → pending with escalation
-    await supabaseInsert('telegram_handoff_sessions', {
-      chatbot_id: CHATBOT_ID,
-      conversation_id: createdConversationIds[0],
-      session_id: `e2e-adv-0-${ts}`,
-      status: 'pending',
-    });
-    await supabaseInsert('conversation_escalations', {
+    // Conv 0 → pending with escalation (insert escalation first, then link to handoff)
+    const escalation = await supabaseInsert('conversation_escalations', {
       chatbot_id: CHATBOT_ID,
       conversation_id: createdConversationIds[0],
       session_id: `e2e-adv-0-${ts}`,
       reason: 'wrong_answer',
       details: 'The AI gave incorrect pricing information',
       status: 'open',
+    });
+    await supabaseInsert('telegram_handoff_sessions', {
+      chatbot_id: CHATBOT_ID,
+      conversation_id: createdConversationIds[0],
+      session_id: `e2e-adv-0-${ts}`,
+      status: 'pending',
+      escalation_id: escalation?.id || null,
     });
 
     // Conv 1 → active
@@ -162,8 +163,7 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     expect(requests.length).toBeLessThanOrEqual(4);
   });
 
-  // TODO: Skeleton flash detected on re-select — cache may not be populated fast enough in CI
-  test.skip('AGENT-ADV-002: Message cache stays in sync with Realtime inserts', async ({ page }) => {
+  test('AGENT-ADV-002: Message cache stays in sync with Realtime inserts', async ({ page }) => {
     await gotoAgentConsole(page);
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 20000 });
 
@@ -171,33 +171,36 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     const count = await items.count();
     if (count < 2) { test.skip(); return; }
 
-    // Cache first conversation's messages
+    // Cache first conversation's messages — wait for full load
     await items.nth(0).click();
-    await page.waitForTimeout(2000);
     await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId('messages-skeleton')).not.toBeVisible({ timeout: 20000 });
 
-    // Switch to second
+    // Switch to second — wait for full load
     await items.nth(1).click();
-    await page.waitForTimeout(2000);
+    await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId('messages-skeleton')).not.toBeVisible({ timeout: 20000 });
 
-    // Switch back — cached messages should appear instantly
+    // Switch back — cached messages should appear without skeleton
     await items.nth(0).click();
+    await page.waitForTimeout(200); // Brief pause for React render
     const skeletonVisible = await page.getByTestId('messages-skeleton').isVisible().catch(() => false);
     expect(skeletonVisible).toBe(false);
     await expect(page.getByTestId('chat-messages-area')).toBeVisible();
   });
 
-  // TODO: Messages area occasionally empty after selecting conversation — timing issue with message load
-  test.skip('AGENT-ADV-003: Realtime message deduplication', async ({ page }) => {
+  test('AGENT-ADV-003: Realtime message deduplication', async ({ page }) => {
     await gotoAgentConsole(page);
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 20000 });
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     await items.first().click();
-    await page.waitForTimeout(2000);
 
+    // Wait for messages to fully load
     const messagesArea = page.getByTestId('chat-messages-area');
     await expect(messagesArea).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId('messages-skeleton')).not.toBeVisible({ timeout: 20000 });
+    await page.waitForTimeout(1000);
 
     const initialText = await messagesArea.textContent();
     expect(initialText!.length).toBeGreaterThan(0);
@@ -325,8 +328,7 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     await expect(textarea).toHaveValue('');
   });
 
-  // TODO: Escalation reason text not rendered in chat panel — may need escalation_id FK on handoff session
-  test.skip('AGENT-ADV-011: Escalation reason label mappings in chat panel', async ({ page }) => {
+  test('AGENT-ADV-011: Escalation reason label mappings in chat panel', async ({ page }) => {
     await gotoAgentConsole(page);
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 20000 });
 

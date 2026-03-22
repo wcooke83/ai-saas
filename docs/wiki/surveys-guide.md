@@ -38,7 +38,7 @@ Post-chat surveys appear automatically when a conversation ends. Visitors can ra
 
 ## Viewing Results
 
-Navigate to the **Surveys** page from your chatbot's dashboard.
+Navigate to **Dashboard > Chatbots > [Your Chatbot] > Surveys**.
 
 ### Stats Cards
 

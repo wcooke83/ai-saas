@@ -195,6 +195,16 @@ window.ChatWidget?.destroy();
 window.ChatWidget?.init({ chatbotId: 'your-chatbot-id' });
 ```
 
+## Allowed Origins (CORS)
+
+For security, you can restrict which domains are allowed to load your chatbot widget:
+
+1. Go to **Dashboard > Chatbots > [Your Chatbot] > Settings**
+2. Find the **Allowed Origins** field
+3. Add the domains where you'll embed the widget (e.g., `https://example.com`)
+
+If no origins are specified, the widget can be loaded from any domain. When origins are set, only matching domains can use the widget.
+
 ## Verifying Deployment
 
 After deploying:

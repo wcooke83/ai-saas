@@ -296,8 +296,18 @@ export async function generateQueryEmbedding(query: string, overrideConfig?: Emb
     return cached;
   }
 
-  const embeddings = await generateEmbeddings([query], config);
-  const embedding = embeddings[0];
-  setCachedEmbedding(cacheKey, embedding);
-  return embedding;
+  try {
+    const embeddings = await generateEmbeddings([query], config);
+    const embedding = embeddings[0];
+    setCachedEmbedding(cacheKey, embedding);
+    return embedding;
+  } catch (error) {
+    // Single retry with 500ms backoff for transient failures
+    console.warn(`[Embeddings] Query embedding failed, retrying in 500ms...`, error instanceof Error ? error.message : error);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const embeddings = await generateEmbeddings([query], config);
+    const embedding = embeddings[0];
+    setCachedEmbedding(cacheKey, embedding);
+    return embedding;
+  }
 }

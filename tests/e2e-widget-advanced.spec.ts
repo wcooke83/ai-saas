@@ -71,8 +71,7 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     await expect(page.locator('.chat-widget-messages')).toBeVisible();
   });
 
-  // TODO: Multiple rapid API requests cause timeout under load; skip in batch runs
-  test.skip('WIDGET-ADV-004: Retry-After header parsed from 429 response', async ({ page, request }) => {
+  test('WIDGET-ADV-004: Retry-After header parsed from 429 response', async ({ page, request }) => {
     const responses: number[] = [];
     for (let i = 0; i < 5; i++) {
       const resp = await request.post(`/api/chat/${CHATBOT_ID}`, {
@@ -466,8 +465,7 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     await expect(container.first()).toBeVisible();
   });
 
-  // TODO: Trace artifact ENOENT errors during retry; requires iframe context
-  test.skip('WIDGET-ADV-027: SDK widget-id postMessage and close-chat-widget response', async ({ page }) => {
+  test('WIDGET-ADV-027: SDK widget-id postMessage and close-chat-widget response', async ({ page }) => {
     await openWidget(page);
 
     // Send widget-id postMessage
@@ -566,8 +564,7 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     await expect(messages).toBeVisible();
   });
 
-  // TODO: Trace artifact ENOENT errors on retry; widget load race condition
-  test.skip('WIDGET-ADV-032: Session restoration resubscribes to handoff', async ({ page }) => {
+  test('WIDGET-ADV-032: Session restoration resubscribes to handoff', async ({ page }) => {
     await openWidget(page);
     await page.waitForSelector('.chat-widget-messages', { timeout: 15000 });
 

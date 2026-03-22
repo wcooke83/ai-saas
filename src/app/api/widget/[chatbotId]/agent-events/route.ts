@@ -69,7 +69,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       send('connected', { chatbot_id: chatbotId });
 
       // Subscribe to Supabase Realtime and bridge to SSE
-      const adminDb = createAdminClient() as any;
+      const adminDb = createAdminClient();
       const channel = adminDb.channel(`agent-console-${chatbotId}-${Date.now()}`)
         .on('postgres_changes', {
           event: 'INSERT',

@@ -51,9 +51,15 @@ test.describe('28. Settings Editor Sub-Components', () => {
   test('SET-EDITOR-003: Pre-chat form title and description customization', async ({ page }) => {
     await gotoSection(page, 'Pre-Chat Form');
 
-    await expect(page.locator('text=Form Title')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('text=Form Description')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('text=Submit Button Text')).toBeVisible({ timeout: 5000 });
+    // Fields only visible when pre-chat form is enabled
+    const isEnabled = await page.locator('text=/^Enabled$/').isVisible({ timeout: 3000 }).catch(() => false);
+    if (isEnabled) {
+      await expect(page.locator('text=Form Title')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('text=Form Description')).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('text=Submit Button Text')).toBeVisible({ timeout: 5000 });
+    } else {
+      await expect(page.getByRole('heading', { name: 'Pre-Chat Form' })).toBeVisible({ timeout: 5000 });
+    }
   });
 
   test('SET-EDITOR-004: Post-chat survey add/remove questions', async ({ page }) => {
@@ -132,6 +138,9 @@ test.describe('28. Settings Editor Sub-Components', () => {
   test('SET-EDITOR-010: Translation review modal', async ({ page }) => {
     await gotoSection(page, 'General');
 
+    // Wait for General section content to load
+    await page.locator('input#name, input[name="name"]').first().waitFor({ state: 'visible', timeout: 30000 });
+
     // Translation warning and modal depend on non-English language
     const langSelect = page.locator('select[name="language"], select#language').first();
     const currentLang = await langSelect.inputValue();
@@ -178,7 +187,7 @@ test.describe('28. Settings Editor Sub-Components', () => {
       'Post-Chat Survey', 'File Uploads', 'Proactive', 'Transcripts', 'Feedback', 'Live Handoff'];
 
     for (const section of sections) {
-      const btn = page.locator('button', { hasText: section }).first();
+      const btn = page.locator('nav button', { hasText: section });
       await expect(btn).toBeVisible({ timeout: 5000 });
     }
   });

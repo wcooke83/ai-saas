@@ -7,7 +7,11 @@ order: 7
 
 # Leads & Conversations
 
-The Leads & Conversations page is your central hub for viewing visitor data and chat history.
+The **Leads** page is your hub for viewing visitor data collected through pre-chat forms. For real-time conversation management, see the [Agent Console](agent-console-guide).
+
+## How to Access
+
+Navigate to **Dashboard > Chatbots > [Your Chatbot] > Leads**
 
 ## Leads
 
@@ -22,12 +26,12 @@ A lead is a visitor who submitted the **pre-chat form** before starting a conver
 3. Toggle it **on**
 4. Configure your form fields:
    - **Name** and **Email** are available by default
-   - Add custom fields (text, select, textarea) for additional data
+   - Add custom fields with types: `name`, `email`, `phone`, `company`, or `custom`
    - Mark fields as required or optional
 
 ### Viewing Leads
 
-The Leads tab shows a sortable table with:
+The Leads page shows a sortable table with:
 
 - **Lead info** — Name, email, and avatar initials
 - **Details** — Additional form field values shown as badges
@@ -42,20 +46,14 @@ Click **Export CSV** to download all leads matching your current date filter. Th
 
 ## Conversations
 
+Conversation history is accessible in two places:
+
+1. **Agent Console** (at **Dashboard > Chatbots > [Your Chatbot] > Agent Console**) — For real-time conversation management, replying to visitors, and handling handoffs
+2. **Lead Detail dialog** — Click any lead to see their associated conversation
+
 ### What Is a Conversation?
 
 A conversation is a complete chat session between a visitor and your chatbot. Every interaction creates a conversation, regardless of whether the visitor filled out the pre-chat form.
-
-### Viewing Conversations
-
-The Conversations tab shows:
-
-- **Session ID** — Unique identifier for the chat session
-- **Message count** — Total messages exchanged
-- **Channel** — Where the conversation happened (widget, API, etc.)
-- **Last Activity** — When the last message was sent
-
-Click any row to open the **Conversation Detail** dialog, which shows the full message history with timestamps.
 
 ### Filtering
 
@@ -63,12 +61,10 @@ Use the **date filter** dropdown to narrow results:
 
 | Filter | Shows |
 |--------|-------|
-| All Time | Every lead/conversation ever recorded |
+| All Time | Every lead ever recorded |
 | Today | Last 24 hours only |
 | Last 7 Days | Previous week |
 | Last 30 Days | Previous month |
-
-You can also filter conversations by **session ID** using the URL parameter (e.g., from the Sentiment page).
 
 ## Stats Cards
 
@@ -84,4 +80,10 @@ The stats cards at the top provide a quick overview:
 - **Low conversion rate?** Simplify your pre-chat form — fewer required fields means more submissions
 - **No leads?** Make sure the pre-chat form is enabled in Settings
 - **Missing conversations?** Conversations only appear after at least one message is sent
-- Use the **search bar** in either tab to find specific leads by name, email, or session ID
+- Use the **search bar** to find specific leads by name, email, or session ID
+
+## Related
+
+- [Agent Console](agent-console-guide) — Real-time conversation management and live handoff
+- [Sentiment & Loyalty Analysis](sentiment-loyalty-guide) — Analyze conversation quality trends
+- [Post-Chat Surveys](surveys-guide) — Collect feedback after conversations

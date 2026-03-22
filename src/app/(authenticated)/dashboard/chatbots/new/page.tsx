@@ -74,7 +74,8 @@ export default function NewChatbotPage() {
       }
 
       const data = await response.json();
-      router.push(`/dashboard/chatbots/${data.data.chatbot.id}`);
+      toast.success('Chatbot created! Add knowledge sources to make it smart.');
+      router.push(`/dashboard/chatbots/${data.data.chatbot.id}/knowledge`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {

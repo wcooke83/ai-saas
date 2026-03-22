@@ -3,7 +3,9 @@
  * Server-side functions for chatbot CRUD operations
  */
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient as createServerClient } from '@/lib/supabase/server';
+import type { TypedSupabaseClient } from '@/lib/supabase/admin';
+import type { Database } from '@/types/database';
 import type {
   Chatbot,
   ChatbotInsert,
@@ -24,15 +26,26 @@ import type {
 import { CHATBOT_PLAN_LIMITS } from './types';
 import crypto from 'crypto';
 
-// Type helper for Supabase queries on chatbot tables (not in auto-generated types yet)
-type SupabaseAny = any;
+// The SSR createServerClient generic signature differs from @supabase/supabase-js createClient,
+// so we cast to the canonical TypedSupabaseClient to keep table/RPC inference working.
+async function createClient(): Promise<TypedSupabaseClient> {
+  return await createServerClient() as unknown as TypedSupabaseClient;
+}
+
+// DB-level insert/update types for tables where custom types have typed Json fields
+type DbChatbotInsert = Database['public']['Tables']['chatbots']['Insert'];
+type DbChatbotUpdate = Database['public']['Tables']['chatbots']['Update'];
+type DbKnowledgeSourceInsert = Database['public']['Tables']['knowledge_sources']['Insert'];
+type DbKnowledgeSourceUpdate = Database['public']['Tables']['knowledge_sources']['Update'];
+type DbMessageInsert = Database['public']['Tables']['messages']['Insert'];
+type DbApiKeyInsert = Database['public']['Tables']['chatbot_api_keys']['Insert'];
 
 // ============================================
 // CHATBOT CRUD
 // ============================================
 
 export async function getChatbots(userId: string): Promise<Chatbot[]> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('chatbots')
@@ -41,11 +54,11 @@ export async function getChatbots(userId: string): Promise<Chatbot[]> {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return (data || []) as Chatbot[];
+  return (data || []) as unknown as Chatbot[];
 }
 
 export async function getChatbotsWithStats(userId: string): Promise<ChatbotWithStats[]> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { data: chatbots, error } = await supabase
     .from('chatbots')
@@ -56,27 +69,17 @@ export async function getChatbotsWithStats(userId: string): Promise<ChatbotWithS
   if (error) throw error;
   if (!chatbots) return [];
 
-  // Get agent presence counts for handoff-enabled chatbots
-  const chatbotIds = (chatbots as Chatbot[]).map((c: Chatbot) => c.id);
-  const cutoff = new Date(Date.now() - 60_000).toISOString();
-  const { data: presenceRows } = await supabase
-    .from('agent_presence')
-    .select('chatbot_id')
-    .in('chatbot_id', chatbotIds)
-    .gte('last_heartbeat', cutoff);
+  const chatbotIds = (chatbots as unknown as Chatbot[]).map((c: Chatbot) => c.id);
 
-  const agentCounts: Record<string, number> = {};
-  if (presenceRows) {
-    for (const row of presenceRows) {
-      agentCounts[row.chatbot_id] = (agentCounts[row.chatbot_id] || 0) + 1;
-    }
-  }
+  // Agent presence is now handled client-side via Supabase Realtime Presence
+  // on `agent-presence:${chatbotId}` channels — no DB query needed here.
 
   // Get conversation + message counts in a single RPC (2 scans instead of 2N queries)
   const statsMap: Record<string, { conversations: number; messages: number }> = {};
-  const { data: statsRows } = await supabase.rpc('get_chatbot_stats', {
+  // RPC defined in pending migration; cast to bypass type check until db:gen-types is re-run
+  const { data: statsRows } = await (supabase.rpc as Function)('get_chatbot_stats', {
     p_chatbot_ids: chatbotIds,
-  });
+  }) as { data: Array<{ chatbot_id: string; conversation_count: number; message_count: number }> | null };
   if (statsRows) {
     for (const row of statsRows) {
       statsMap[row.chatbot_id] = {
@@ -86,16 +89,16 @@ export async function getChatbotsWithStats(userId: string): Promise<ChatbotWithS
     }
   }
 
-  return (chatbots as Chatbot[]).map((chatbot: Chatbot) => ({
+  return (chatbots as unknown as Chatbot[]).map((chatbot: Chatbot) => ({
     ...chatbot,
     total_conversations: statsMap[chatbot.id]?.conversations || 0,
     total_messages: statsMap[chatbot.id]?.messages || 0,
-    agents_online: agentCounts[chatbot.id] || 0,
-  })) as ChatbotWithStats[];
+    agents_online: 0, // Updated client-side via Realtime Presence
+  })) as unknown as ChatbotWithStats[];
 }
 
 export async function getChatbot(chatbotId: string): Promise<Chatbot | null> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('chatbots')
@@ -107,11 +110,11 @@ export async function getChatbot(chatbotId: string): Promise<Chatbot | null> {
     if (error.code === 'PGRST116') return null;
     throw error;
   }
-  return data as Chatbot;
+  return data as unknown as Chatbot;
 }
 
 export async function getChatbotBySlug(userId: string, slug: string): Promise<Chatbot | null> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('chatbots')
@@ -124,38 +127,38 @@ export async function getChatbotBySlug(userId: string, slug: string): Promise<Ch
     if (error.code === 'PGRST116') return null;
     throw error;
   }
-  return data as Chatbot;
+  return data as unknown as Chatbot;
 }
 
 export async function createChatbot(chatbot: ChatbotInsert): Promise<Chatbot> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('chatbots')
-    .insert(chatbot)
+    .insert(chatbot as unknown as DbChatbotInsert)
     .select()
     .single();
 
   if (error) throw error;
-  return data as Chatbot;
+  return data as unknown as Chatbot;
 }
 
 export async function updateChatbot(chatbotId: string, updates: ChatbotUpdate): Promise<Chatbot> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('chatbots')
-    .update(updates)
+    .update(updates as unknown as DbChatbotUpdate)
     .eq('id', chatbotId)
     .select()
     .single();
 
   if (error) throw error;
-  return data as Chatbot;
+  return data as unknown as Chatbot;
 }
 
 export async function deleteChatbot(chatbotId: string): Promise<void> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { error } = await supabase
     .from('chatbots')
@@ -209,7 +212,7 @@ export async function generateUniqueSlug(userId: string, name: string): Promise<
 // ============================================
 
 export async function getKnowledgeSources(chatbotId: string): Promise<KnowledgeSource[]> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('knowledge_sources')
@@ -218,11 +221,11 @@ export async function getKnowledgeSources(chatbotId: string): Promise<KnowledgeS
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return (data || []) as KnowledgeSource[];
+  return (data || []) as unknown as KnowledgeSource[];
 }
 
 export async function getKnowledgeSource(sourceId: string): Promise<KnowledgeSource | null> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('knowledge_sources')
@@ -238,16 +241,16 @@ export async function getKnowledgeSource(sourceId: string): Promise<KnowledgeSou
 }
 
 export async function createKnowledgeSource(source: KnowledgeSourceInsert): Promise<KnowledgeSource> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('knowledge_sources')
-    .insert(source)
+    .insert(source as unknown as DbKnowledgeSourceInsert)
     .select()
     .single();
 
   if (error) throw error;
-  return data as KnowledgeSource;
+  return data as unknown as KnowledgeSource;
 }
 
 export async function updateKnowledgeSourceStatus(
@@ -256,7 +259,7 @@ export async function updateKnowledgeSourceStatus(
   errorMessage?: string,
   chunksCount?: number
 ): Promise<void> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const updates: Record<string, unknown> = { status };
   if (errorMessage !== undefined) updates.error_message = errorMessage;
@@ -264,7 +267,7 @@ export async function updateKnowledgeSourceStatus(
 
   const { error } = await supabase
     .from('knowledge_sources')
-    .update(updates)
+    .update(updates as unknown as DbKnowledgeSourceUpdate)
     .eq('id', sourceId);
 
   if (error) throw error;
@@ -274,21 +277,21 @@ export async function updateKnowledgeSource(
   sourceId: string,
   updates: Record<string, unknown>
 ): Promise<KnowledgeSource> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('knowledge_sources')
-    .update(updates)
+    .update(updates as unknown as DbKnowledgeSourceUpdate)
     .eq('id', sourceId)
     .select()
     .single();
 
   if (error) throw error;
-  return data as KnowledgeSource;
+  return data as unknown as KnowledgeSource;
 }
 
 export async function deleteKnowledgeSource(sourceId: string): Promise<void> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { error } = await supabase
     .from('knowledge_sources')
@@ -311,7 +314,7 @@ export async function getConversations(
     channel?: Conversation['channel'];
   } = {}
 ): Promise<{ conversations: Conversation[]; total: number }> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
   const { limit = 20, offset = 0, status, channel } = options;
 
   let query = supabase
@@ -328,13 +331,13 @@ export async function getConversations(
 
   if (error) throw error;
   return {
-    conversations: (data || []) as Conversation[],
+    conversations: (data || []) as unknown as Conversation[],
     total: count || 0,
   };
 }
 
 export async function getConversation(conversationId: string): Promise<Conversation | null> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('conversations')
@@ -350,7 +353,7 @@ export async function getConversation(conversationId: string): Promise<Conversat
 }
 
 export async function getConversationWithMessages(conversationId: string): Promise<ConversationWithMessages | null> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { data: conversation, error: convError } = await supabase
     .from('conversations')
@@ -373,7 +376,7 @@ export async function getConversationWithMessages(conversationId: string): Promi
 
   return {
     ...(conversation as Conversation),
-    messages: (messages || []) as Message[],
+    messages: (messages || []) as unknown as Message[],
   };
 }
 
@@ -382,28 +385,28 @@ export async function getOrCreateConversation(
   sessionId: string,
   channel: Conversation['channel'] = 'widget',
   visitorId?: string,
-  supabaseClient?: SupabaseAny
+  supabaseClient?: TypedSupabaseClient
 ): Promise<Conversation> {
-  const supabase = supabaseClient || await createClient() as SupabaseAny;
+  const supabase = supabaseClient || await createClient();
 
   // Single DB round trip via RPC
   const { data, error } = await supabase.rpc('get_or_create_conversation', {
     p_chatbot_id: chatbotId,
     p_session_id: sessionId,
-    p_channel: channel,
-    p_visitor_id: visitorId || null,
+    p_channel: channel as string,
+    p_visitor_id: visitorId,
   });
 
   if (error) throw error;
-  return data as Conversation;
+  return data as unknown as Conversation;
 }
 
 // ============================================
 // MESSAGES
 // ============================================
 
-export async function getMessages(conversationId: string, supabaseClient?: SupabaseAny, columns: string = 'id, role, content, created_at'): Promise<Message[]> {
-  const supabase = supabaseClient || await createClient() as SupabaseAny;
+export async function getMessages(conversationId: string, supabaseClient?: TypedSupabaseClient, columns: string = 'id, role, content, created_at'): Promise<Message[]> {
+  const supabase = supabaseClient || await createClient();
 
   const { data, error } = await supabase
     .from('messages')
@@ -414,15 +417,15 @@ export async function getMessages(conversationId: string, supabaseClient?: Supab
 
   if (error) throw error;
   // Reverse to chronological order (fetched newest-first so LIMIT keeps the latest 50)
-  return ((data || []) as Message[]).reverse();
+  return ((data || []) as unknown as Message[]).reverse();
 }
 
-export async function createMessage(message: MessageInsert, supabaseClient?: SupabaseAny): Promise<Message> {
-  const supabase = supabaseClient || await createClient() as SupabaseAny;
+export async function createMessage(message: MessageInsert, supabaseClient?: TypedSupabaseClient): Promise<Message> {
+  const supabase = supabaseClient || await createClient();
 
   const { data, error } = await supabase
     .from('messages')
-    .insert(message)
+    .insert(message as unknown as DbMessageInsert)
     .select()
     .single();
 
@@ -432,17 +435,17 @@ export async function createMessage(message: MessageInsert, supabaseClient?: Sup
   void Promise.all([
     supabase.rpc('increment_conversation_messages', {
       p_conversation_id: message.conversation_id,
-    }).then(({ error }: any) => { if (error) console.warn('Failed to increment conversation messages:', error); }),
+    }).then(({ error }: { error: any }) => { if (error) console.warn('Failed to increment conversation messages:', error); }),
     supabase.rpc('increment_chatbot_messages', {
       p_chatbot_id: message.chatbot_id,
-    }).then(({ error }: any) => { if (error) console.warn('Failed to increment chatbot messages:', error); }),
+    }).then(({ error }: { error: any }) => { if (error) console.warn('Failed to increment chatbot messages:', error); }),
   ]).catch(() => { /* fire-and-forget: counter increments are non-critical */ });
 
-  return data as Message;
+  return data as unknown as Message;
 }
 
 export async function updateMessageFeedback(messageId: string, thumbsUp: boolean): Promise<void> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { error } = await supabase
     .from('messages')
@@ -457,7 +460,7 @@ export async function updateMessageFeedback(messageId: string, thumbsUp: boolean
 // ============================================
 
 export async function getChatbotAPIKeys(chatbotId: string): Promise<ChatbotAPIKey[]> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('chatbot_api_keys')
@@ -466,7 +469,7 @@ export async function getChatbotAPIKeys(chatbotId: string): Promise<ChatbotAPIKe
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return (data || []) as ChatbotAPIKey[];
+  return (data || []) as unknown as ChatbotAPIKey[];
 }
 
 export async function createChatbotAPIKey(
@@ -474,7 +477,7 @@ export async function createChatbotAPIKey(
   userId: string,
   name: string
 ): Promise<ChatbotAPIKeyWithSecret> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   // Generate a secure API key
   const key = `cb_${crypto.randomBytes(24).toString('base64url')}`;
@@ -491,20 +494,20 @@ export async function createChatbotAPIKey(
 
   const { data, error } = await supabase
     .from('chatbot_api_keys')
-    .insert(insert)
+    .insert(insert as unknown as DbApiKeyInsert)
     .select()
     .single();
 
   if (error) throw error;
 
   return {
-    ...(data as ChatbotAPIKey),
+    ...(data as unknown as ChatbotAPIKey),
     key,
   };
 }
 
 export async function deleteChatbotAPIKey(keyId: string): Promise<void> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { error } = await supabase
     .from('chatbot_api_keys')
@@ -522,7 +525,7 @@ interface APIKeyValidation {
 }
 
 export async function validateChatbotAPIKey(key: string): Promise<{ chatbotId: string; userId: string } | null> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const keyHash = crypto.createHash('sha256').update(key).digest('hex');
 
@@ -558,7 +561,7 @@ export async function getChatbotAnalytics(
   chatbotId: string,
   days: number = 30
 ): Promise<ChatbotAnalytics[]> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
@@ -571,7 +574,7 @@ export async function getChatbotAnalytics(
     .order('date', { ascending: true });
 
   if (error) throw error;
-  return (data || []) as ChatbotAnalytics[];
+  return (data || []) as unknown as ChatbotAnalytics[];
 }
 
 export async function getChatbotAnalyticsSummary(
@@ -616,7 +619,7 @@ export async function getChatbotAnalyticsSummary(
 // ============================================
 
 export async function getChatbotCount(userId: string): Promise<number> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { count, error } = await supabase
     .from('chatbots')
@@ -636,7 +639,7 @@ export async function checkChatbotLimit(userId: string, plan: string): Promise<b
 }
 
 export async function getKnowledgeSourceCount(chatbotId: string): Promise<number> {
-  const supabase = await createClient() as SupabaseAny;
+  const supabase = await createClient();
 
   const { count, error } = await supabase
     .from('knowledge_sources')
@@ -662,9 +665,9 @@ export async function checkKnowledgeSourceLimit(chatbotId: string, plan: string)
 export async function checkChatbotOwnership(
   chatbotId: string,
   userId: string,
-  supabaseClient?: SupabaseAny
+  supabaseClient?: TypedSupabaseClient
 ): Promise<boolean> {
-  const supabase = supabaseClient || await createClient() as SupabaseAny;
+  const supabase = supabaseClient || await createClient();
 
   const { data, error } = await supabase
     .from('chatbots')
@@ -686,9 +689,9 @@ export async function checkChatbotOwnership(
 export async function getLeadBySession(
   chatbotId: string,
   sessionId: string,
-  supabaseClient?: SupabaseAny
+  supabaseClient?: TypedSupabaseClient
 ): Promise<{ id: string; form_data: Record<string, string> } | null> {
-  const supabase = supabaseClient || await createClient() as SupabaseAny;
+  const supabase = supabaseClient || await createClient();
 
   const { data, error } = await supabase
     .from('chatbot_leads')

@@ -3,7 +3,6 @@
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft,
   TrendingUp,
   MessageSquare,
   Users,
@@ -172,13 +171,6 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <Link
-            href={`/dashboard/chatbots/${id}`}
-            className="inline-flex items-center text-sm text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Chatbot
-          </Link>
           <H1 variant="dashboard">
             Analytics
           </H1>

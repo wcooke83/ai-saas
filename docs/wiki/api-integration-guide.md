@@ -7,7 +7,7 @@ order: 1
 
 # API Integration Guide
 
-Use the AI SaaS API to build custom integrations, server-side chatbots, and programmatic workflows.
+Use the API to build custom integrations, server-side chatbots, and programmatic workflows.
 
 ## Overview
 
@@ -15,35 +15,39 @@ The API provides endpoints for:
 
 - **Chat Completions** — Send messages and receive AI responses
 - **Chatbot Management** — Create, update, and configure chatbots
-- **Knowledge Base** — Upload and manage documents
-- **Conversation History** — Retrieve past conversations
-- **Usage Tracking** — Monitor API usage and costs
+- **Knowledge Base** — Add and manage knowledge sources
+- **Conversations** — Retrieve conversation history and messages
+- **Analytics** — Access chatbot performance data
+- **Leads** — Retrieve collected lead data
+- **Sentiment** — Access sentiment analysis results
+- **Escalations** — Manage escalation reports
 
 ## Authentication
 
-All API requests require an API key in the `Authorization` header.
+All API requests require authentication via a session cookie (browser) or an API key.
 
-### Getting Your API Key
+### API Keys
 
-1. Go to **Dashboard → API Keys**
-2. Click **Create API Key**
-3. Give it a name (e.g., "Production Server")
-4. Copy the key (shown only once)
-5. Store it securely
+API keys are scoped per-chatbot and created from the **Deploy** page:
+
+1. Go to **Dashboard > Chatbots > [Your Chatbot] > Deploy**
+2. Scroll to the **API Keys** section
+3. Click **Create API Key**
+4. Give it a name and copy the key (shown only once)
 
 ### Using Your API Key
 
 ```bash
-curl https://your-domain.com/api/chat/chatbot_123 \
-  -H "Authorization: Bearer sk_live_abc123..." \
-  -H "Content-Type: application/json"
+curl https://your-domain.com/api/chat/CHATBOT_ID \
+  -H "X-API-Key: your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hello"}'
 ```
 
 **Security:**
-- ⚠️ Never expose API keys in client-side code
-- ✅ Use environment variables
-- ✅ Rotate keys periodically
-- ✅ Use different keys for dev/staging/production
+- Never expose API keys in client-side code
+- Use environment variables on your server
+- Each key is tied to a specific chatbot
 
 ## Chat API
 
@@ -51,7 +55,33 @@ curl https://your-domain.com/api/chat/chatbot_123 \
 
 **Endpoint:** `POST /api/chat/{chatbotId}`
 
-**Request:**
+**Request Body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `message` | string | Yes | The visitor's message (1–10,000 chars) |
+| `stream` | boolean | No | Enable streaming response (default: `false`) |
+| `session_id` | string | No | Session identifier (max 100 chars) |
+| `visitor_id` | string | No | Visitor identifier for memory (max 100 chars) |
+| `welcome_message` | string | No | Override the welcome message for this session |
+| `proactive_message` | string | No | Proactive message that triggered this conversation |
+| `user_data` | Record\<string, string\> | No | Authenticated user profile data (string values only) |
+| `user_context` | Record\<string, unknown\> | No | Account-specific context data (orders, billing, etc.) |
+| `attachments` | array | No | File attachments (see below) |
+
+**Attachment Schema:**
+
+```json
+{
+  "url": "https://...",
+  "file_name": "document.pdf",
+  "file_type": "application/pdf",
+  "file_size": 12345
+}
+```
+
+**Example Request:**
+
 ```json
 {
   "message": "What are your business hours?",
@@ -62,6 +92,7 @@ curl https://your-domain.com/api/chat/chatbot_123 \
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -73,13 +104,13 @@ curl https://your-domain.com/api/chat/chatbot_123 \
 
 ### Streaming Responses
 
-For real-time streaming responses:
+Set `stream: true` to receive a streaming SSE response:
 
 ```javascript
-const response = await fetch('/api/chat/chatbot_123', {
+const response = await fetch('/api/chat/CHATBOT_ID', {
   method: 'POST',
   headers: {
-    'Authorization': 'Bearer sk_live_abc123...',
+    'X-API-Key': 'your-api-key',
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
@@ -95,14 +126,14 @@ const decoder = new TextDecoder();
 while (true) {
   const { done, value } = await reader.read();
   if (done) break;
-  
+
   const chunk = decoder.decode(value);
   const lines = chunk.split('\n');
-  
+
   for (const line of lines) {
     if (line.startsWith('data: ')) {
       const data = JSON.parse(line.slice(6));
-      console.log(data.content); // Stream content
+      process.stdout.write(data.content);
     }
   }
 }
@@ -135,26 +166,40 @@ Pass authenticated user data for personalized responses:
 }
 ```
 
+> **Note:** `user_data` values must be strings. Use `user_context` for complex/nested data structures.
+
+See [Passing User Data to Chatbot](passing-user-data-to-chatbot) for detailed examples.
+
+### Rate Limiting
+
+The Chat API is rate limited to **30 requests per minute** per IP address per chatbot. Requests exceeding this limit receive a `429 Too Many Requests` response.
+
 ## Chatbot Management API
+
+All management endpoints require session authentication (browser cookie).
 
 ### List Chatbots
 
 **Endpoint:** `GET /api/chatbots`
 
 **Response:**
+
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "id": "chatbot_123",
-      "name": "Support Bot",
-      "system_prompt": "You are a helpful support assistant...",
-      "language": "en",
-      "memory_enabled": true,
-      "created_at": "2026-03-01T10:00:00Z"
-    }
-  ]
+  "data": {
+    "chatbots": [
+      {
+        "id": "chatbot_123",
+        "name": "Support Bot",
+        "status": "active",
+        "is_published": true,
+        "total_conversations": 150,
+        "total_messages": 1200,
+        "created_at": "2026-03-01T10:00:00Z"
+      }
+    ]
+  }
 }
 ```
 
@@ -163,292 +208,257 @@ Pass authenticated user data for personalized responses:
 **Endpoint:** `POST /api/chatbots`
 
 **Request:**
+
 ```json
 {
   "name": "Sales Bot",
+  "description": "Helps customers find products",
   "system_prompt": "You are a sales assistant helping customers find the right product.",
-  "language": "en",
-  "model": "gpt-4",
+  "model": "balanced",
   "temperature": 0.7,
+  "language": "en",
   "memory_enabled": true,
-  "memory_days": 30
+  "memory_days": 30,
+  "welcome_message": "Hi! How can I help you today?"
 }
 ```
 
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "chatbot_456",
-    "name": "Sales Bot",
-    "created_at": "2026-03-15T14:30:00Z"
-  }
-}
-```
+**Notes:**
+- `model` is a tier string: `fast`, `balanced`, or `powerful` — not a raw model name
+- `temperature` ranges from 0 to 2
+- `max_tokens` ranges from 100 to 4096
+
+### Get Chatbot
+
+**Endpoint:** `GET /api/chatbots/{id}`
 
 ### Update Chatbot
 
-**Endpoint:** `PATCH /api/chatbots/{chatbotId}`
+**Endpoint:** `PATCH /api/chatbots/{id}`
 
-**Request:**
+All fields are optional. Only include the fields you want to change:
+
 ```json
 {
   "system_prompt": "Updated prompt...",
   "temperature": 0.8,
-  "memory_enabled": false
+  "memory_enabled": false,
+  "widget_config": {
+    "primaryColor": "#7c3aed",
+    "fontFamily": "Poppins, system-ui, sans-serif"
+  }
 }
 ```
+
+Widget config is merged with existing values — you only need to send the fields you want to change.
 
 ### Delete Chatbot
 
-**Endpoint:** `DELETE /api/chatbots/{chatbotId}`
+**Endpoint:** `DELETE /api/chatbots/{id}`
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Chatbot deleted successfully"
-}
-```
+Permanently deletes the chatbot and all related data (knowledge sources, conversations, messages, etc.).
+
+### Publish / Unpublish
+
+**Endpoint:** `POST /api/chatbots/{id}/publish`
+
+Toggles the chatbot's published state. Only published chatbots respond to widget and API chat requests.
 
 ## Knowledge Base API
 
-### Upload Document
+### List Knowledge Sources
 
-**Endpoint:** `POST /api/chatbots/{chatbotId}/documents`
-
-**Request (multipart/form-data):**
-```bash
-curl -X POST https://your-domain.com/api/chatbots/chatbot_123/documents \
-  -H "Authorization: Bearer sk_live_abc123..." \
-  -F "file=@product-guide.pdf" \
-  -F "title=Product Guide" \
-  -F "description=Complete product documentation"
-```
+**Endpoint:** `GET /api/chatbots/{id}/knowledge`
 
 **Response:**
+
 ```json
 {
   "success": true,
   "data": {
-    "id": "doc_789",
-    "title": "Product Guide",
-    "status": "processing",
-    "chunks": 0
-  }
-}
-```
-
-### List Documents
-
-**Endpoint:** `GET /api/chatbots/{chatbotId}/documents`
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "doc_789",
-      "title": "Product Guide",
-      "status": "ready",
-      "chunks": 42,
-      "created_at": "2026-03-15T10:00:00Z"
-    }
-  ]
-}
-```
-
-### Delete Document
-
-**Endpoint:** `DELETE /api/chatbots/{chatbotId}/documents/{documentId}`
-
-## Conversation History API
-
-### List Conversations
-
-**Endpoint:** `GET /api/chatbots/{chatbotId}/conversations`
-
-**Query Parameters:**
-- `limit` — Number of conversations (default: 50, max: 100)
-- `offset` — Pagination offset
-- `status` — Filter by status: `active`, `archived`
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "conv_123",
-      "visitor_id": "visitor_xyz789",
-      "message_count": 8,
-      "status": "active",
-      "created_at": "2026-03-15T09:00:00Z",
-      "last_message_at": "2026-03-15T09:15:00Z"
-    }
-  ],
-  "pagination": {
-    "total": 150,
-    "limit": 50,
-    "offset": 0
-  }
-}
-```
-
-### Get Conversation Messages
-
-**Endpoint:** `GET /api/conversations/{conversationId}/messages`
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "msg_001",
-      "role": "user",
-      "content": "What are your business hours?",
-      "created_at": "2026-03-15T09:00:00Z"
-    },
-    {
-      "id": "msg_002",
-      "role": "assistant",
-      "content": "We're open Monday-Friday, 9am-5pm EST.",
-      "created_at": "2026-03-15T09:00:05Z"
-    }
-  ]
-}
-```
-
-## Usage Tracking API
-
-### Get Usage Stats
-
-**Endpoint:** `GET /api/usage`
-
-**Query Parameters:**
-- `start_date` — Start date (ISO 8601)
-- `end_date` — End date (ISO 8601)
-- `group_by` — Group by: `day`, `week`, `month`
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "total_messages": 1250,
-    "total_tokens": 45000,
-    "total_cost": 2.35,
-    "breakdown": [
+    "sources": [
       {
-        "date": "2026-03-15",
-        "messages": 150,
-        "tokens": 5400,
-        "cost": 0.28
+        "id": "src_789",
+        "type": "url",
+        "name": "FAQ Page",
+        "status": "completed",
+        "chunks_count": 42,
+        "url": "https://example.com/faq",
+        "created_at": "2026-03-15T10:00:00Z"
       }
     ]
   }
 }
 ```
 
-## Webhooks
+### Add Knowledge Source
 
-Subscribe to events via webhooks.
+**Endpoint:** `POST /api/chatbots/{id}/knowledge`
 
-### Available Events
+**Source Types:**
 
-- `conversation.created` — New conversation started
-- `conversation.message` — New message in conversation
-- `conversation.ended` — Conversation marked as ended
-- `document.processed` — Document finished processing
-- `document.failed` — Document processing failed
-
-### Setting Up Webhooks
-
-1. Go to **Dashboard → Settings → Webhooks**
-2. Click **Add Webhook**
-3. Enter your endpoint URL
-4. Select events to subscribe to
-5. Save and copy the signing secret
-
-### Webhook Payload
+#### URL Source
 
 ```json
 {
-  "event": "conversation.message",
-  "timestamp": "2026-03-15T10:00:00Z",
+  "type": "url",
+  "name": "FAQ Page",
+  "url": "https://example.com/faq",
+  "crawl": false,
+  "maxPages": 25
+}
+```
+
+Set `crawl: true` to follow links and import multiple pages. `maxPages` limits crawl depth (1–100, default 25).
+
+#### Text Source
+
+```json
+{
+  "type": "text",
+  "name": "Company Policies",
+  "content": "Our return policy allows returns within 30 days..."
+}
+```
+
+Content max: 50,000 characters.
+
+#### Q&A Pair
+
+```json
+{
+  "type": "qa_pair",
+  "name": "Business Hours",
+  "question": "What are your business hours?",
+  "answer": "We're open Monday-Friday, 9am-5pm EST."
+}
+```
+
+### Get Knowledge Source
+
+**Endpoint:** `GET /api/chatbots/{id}/knowledge/{sourceId}`
+
+### Delete Knowledge Source
+
+**Endpoint:** `DELETE /api/chatbots/{id}/knowledge/{sourceId}`
+
+Permanently removes the source and all its embedded chunks.
+
+## Conversations API
+
+### List Conversations
+
+**Endpoint:** `GET /api/chatbots/{id}/conversations`
+
+**Query Parameters:**
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `limit` | 50 | Number of conversations to return |
+| `offset` | 0 | Pagination offset |
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "conv_123",
+      "session_id": "session_abc",
+      "visitor_id": "visitor_xyz",
+      "channel": "widget",
+      "message_count": 8,
+      "status": "active",
+      "created_at": "2026-03-15T09:00:00Z",
+      "last_message_at": "2026-03-15T09:15:00Z"
+    }
+  ]
+}
+```
+
+### Get Conversation with Messages
+
+**Endpoint:** `GET /api/chatbots/{id}/conversations?conversationId={conversationId}`
+
+Pass `conversationId` as a query parameter to get a specific conversation and all its messages:
+
+```json
+{
+  "success": true,
   "data": {
-    "conversation_id": "conv_123",
-    "message_id": "msg_456",
-    "role": "user",
-    "content": "Hello!",
-    "visitor_id": "visitor_xyz789"
+    "conversation": { ... },
+    "messages": [
+      {
+        "id": "msg_001",
+        "role": "user",
+        "content": "What are your business hours?",
+        "created_at": "2026-03-15T09:00:00Z"
+      },
+      {
+        "id": "msg_002",
+        "role": "assistant",
+        "content": "We're open Monday-Friday, 9am-5pm EST.",
+        "created_at": "2026-03-15T09:00:05Z"
+      }
+    ]
   }
 }
 ```
 
-### Verifying Webhooks
+## Other API Endpoints
 
-```javascript
-const crypto = require('crypto');
+### Leads
 
-function verifyWebhook(payload, signature, secret) {
-  const hmac = crypto.createHmac('sha256', secret);
-  const digest = hmac.update(payload).digest('hex');
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(digest)
-  );
-}
+**Endpoint:** `GET /api/chatbots/{id}/leads`
 
-// Express.js example
-app.post('/webhooks/chatbot', (req, res) => {
-  const signature = req.headers['x-webhook-signature'];
-  const isValid = verifyWebhook(
-    JSON.stringify(req.body),
-    signature,
-    process.env.WEBHOOK_SECRET
-  );
-  
-  if (!isValid) {
-    return res.status(401).json({ error: 'Invalid signature' });
-  }
-  
-  // Process webhook
-  const { event, data } = req.body;
-  console.log(`Received ${event}:`, data);
-  
-  res.json({ received: true });
-});
-```
+Returns pre-chat form submissions with visitor name, email, and custom fields.
 
-## Rate Limits
+### Escalations
 
-API requests are rate-limited based on your plan:
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `GET /api/chatbots/{id}/escalations` | GET | List all escalation reports |
+| `PATCH /api/chatbots/{id}/escalations/{escalationId}` | PATCH | Update escalation status |
 
-| Plan | Requests/min | Requests/day |
-|------|--------------|--------------|
-| Free | 10 | 1,000 |
-| Starter | 60 | 10,000 |
-| Pro | 300 | 100,000 |
-| Enterprise | Custom | Custom |
+### Sentiment
 
-**Rate Limit Headers:**
-```
-X-RateLimit-Limit: 60
-X-RateLimit-Remaining: 45
-X-RateLimit-Reset: 1710504000
-```
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `GET /api/chatbots/{id}/sentiment` | GET | Get sentiment analysis results |
+| `POST /api/chatbots/{id}/sentiment/analyze` | POST | Run sentiment analysis on unanalyzed conversations |
+| `GET /api/chatbots/{id}/sentiment/export` | GET | Export sentiment data as CSV |
 
-**429 Response:**
-```json
-{
-  "error": "Rate limit exceeded",
-  "retry_after": 30
-}
-```
+### Surveys
+
+**Endpoint:** `GET /api/chatbots/{id}/surveys`
+
+Returns post-chat survey responses with ratings and answers.
+
+### Analytics
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `GET /api/chatbots/{id}/analytics` | GET | Get analytics summary |
+| `GET /api/chatbots/{id}/analytics/export` | GET | Export analytics as CSV |
+
+### Performance
+
+**Endpoint:** `GET /api/chatbots/{id}/performance`
+
+Returns response latency data with pipeline stage breakdowns.
+
+## Widget Endpoints (Public)
+
+These endpoints are called by the chat widget and don't require session auth (they use the chatbot ID for identification):
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/widget/{chatbotId}/config` | GET | Get widget configuration |
+| `/api/widget/{chatbotId}/history` | GET | Get chat history for a session |
+| `/api/widget/{chatbotId}/upload` | POST | Upload a file attachment |
+| `/api/widget/{chatbotId}/handoff` | GET/POST | Check/initiate live handoff |
+| `/api/widget/{chatbotId}/feedback` | POST | Submit thumbs up/down feedback |
 
 ## Error Handling
 
@@ -458,10 +468,7 @@ X-RateLimit-Reset: 1710504000
 {
   "success": false,
   "error": "Invalid chatbot ID",
-  "code": "CHATBOT_NOT_FOUND",
-  "details": {
-    "chatbot_id": "invalid_id"
-  }
+  "code": "CHATBOT_NOT_FOUND"
 }
 ```
 
@@ -469,12 +476,12 @@ X-RateLimit-Reset: 1710504000
 
 | Code | Status | Description |
 |------|--------|-------------|
-| `UNAUTHORIZED` | 401 | Invalid or missing API key |
-| `FORBIDDEN` | 403 | Insufficient permissions |
+| `UNAUTHORIZED` | 401 | Invalid or missing authentication |
+| `FORBIDDEN` | 403 | Insufficient permissions or plan limit reached |
 | `NOT_FOUND` | 404 | Resource not found |
 | `VALIDATION_ERROR` | 400 | Invalid request data |
-| `RATE_LIMIT_EXCEEDED` | 429 | Too many requests |
-| `SERVER_ERROR` | 500 | Internal server error |
+| `RATE_LIMIT_EXCEEDED` | 429 | Too many requests (30/min for chat) |
+| `INTERNAL_ERROR` | 500 | Internal server error |
 
 ### Retry Logic
 
@@ -483,17 +490,17 @@ async function apiRequestWithRetry(url, options, maxRetries = 3) {
   for (let i = 0; i < maxRetries; i++) {
     try {
       const response = await fetch(url, options);
-      
+
       if (response.status === 429) {
-        const retryAfter = response.headers.get('Retry-After') || 30;
-        await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+        const waitMs = Math.min(1000 * Math.pow(2, i), 30000);
+        await new Promise(resolve => setTimeout(resolve, waitMs));
         continue;
       }
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      
+
       return await response.json();
     } catch (error) {
       if (i === maxRetries - 1) throw error;
@@ -503,214 +510,101 @@ async function apiRequestWithRetry(url, options, maxRetries = 3) {
 }
 ```
 
-## SDK Libraries
-
-### Node.js
-
-```bash
-npm install @ai-saas/sdk
-```
+## Example: Custom Chat Integration
 
 ```javascript
-const { AISaasClient } = require('@ai-saas/sdk');
+// Server-side Node.js example
+const CHATBOT_ID = 'your-chatbot-id';
+const API_KEY = 'your-api-key';
+const BASE_URL = 'https://your-domain.com';
 
-const client = new AISaasClient({
-  apiKey: process.env.AI_SAAS_API_KEY,
-});
+async function sendMessage(message, sessionId, visitorId) {
+  const response = await fetch(`${BASE_URL}/api/chat/${CHATBOT_ID}`, {
+    method: 'POST',
+    headers: {
+      'X-API-Key': API_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message,
+      session_id: sessionId,
+      visitor_id: visitorId,
+      stream: false,
+    }),
+  });
 
-// Send a message
-const response = await client.chat.send({
-  chatbotId: 'chatbot_123',
-  message: 'Hello!',
-  sessionId: 'session_abc',
-});
-
-console.log(response.message);
-
-// Stream a response
-const stream = await client.chat.stream({
-  chatbotId: 'chatbot_123',
-  message: 'Tell me a story',
-  sessionId: 'session_abc',
-});
-
-for await (const chunk of stream) {
-  process.stdout.write(chunk.content);
+  const data = await response.json();
+  return data.message;
 }
+
+// Usage
+const reply = await sendMessage('What are your hours?', 'session_1', 'user_123');
+console.log(reply);
 ```
 
-### Python
-
-```bash
-pip install ai-saas-sdk
-```
-
-```python
-from ai_saas import Client
-
-client = Client(api_key=os.environ['AI_SAAS_API_KEY'])
-
-# Send a message
-response = client.chat.send(
-    chatbot_id='chatbot_123',
-    message='Hello!',
-    session_id='session_abc'
-)
-
-print(response.message)
-
-# Stream a response
-stream = client.chat.stream(
-    chatbot_id='chatbot_123',
-    message='Tell me a story',
-    session_id='session_abc'
-)
-
-for chunk in stream:
-    print(chunk.content, end='', flush=True)
-```
-
-## Example Integrations
-
-### Slack Bot
+## Example: Streaming Chat
 
 ```javascript
-const { App } = require('@slack/bolt');
-const { AISaasClient } = require('@ai-saas/sdk');
-
-const slack = new App({
-  token: process.env.SLACK_BOT_TOKEN,
-  signingSecret: process.env.SLACK_SIGNING_SECRET,
-});
-
-const aiClient = new AISaasClient({
-  apiKey: process.env.AI_SAAS_API_KEY,
-});
-
-slack.message(async ({ message, say }) => {
-  const response = await aiClient.chat.send({
-    chatbotId: 'chatbot_123',
-    message: message.text,
-    sessionId: message.user,
-    visitorId: message.user,
+async function streamMessage(message, sessionId) {
+  const response = await fetch(`${BASE_URL}/api/chat/${CHATBOT_ID}`, {
+    method: 'POST',
+    headers: {
+      'X-API-Key': API_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message,
+      session_id: sessionId,
+      stream: true,
+    }),
   });
-  
-  await say(response.message);
-});
 
-slack.start(3000);
-```
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let fullResponse = '';
 
-### Discord Bot
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
 
-```javascript
-const { Client, GatewayIntentBits } = require('discord.js');
-const { AISaasClient } = require('@ai-saas/sdk');
+    const chunk = decoder.decode(value);
+    for (const line of chunk.split('\n')) {
+      if (line.startsWith('data: ')) {
+        try {
+          const data = JSON.parse(line.slice(6));
+          fullResponse += data.content || '';
+          process.stdout.write(data.content || '');
+        } catch {}
+      }
+    }
+  }
 
-const discord = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
-});
-
-const aiClient = new AISaasClient({
-  apiKey: process.env.AI_SAAS_API_KEY,
-});
-
-discord.on('messageCreate', async (message) => {
-  if (message.author.bot) return;
-  
-  const response = await aiClient.chat.send({
-    chatbotId: 'chatbot_123',
-    message: message.content,
-    sessionId: message.author.id,
-    visitorId: message.author.id,
-  });
-  
-  message.reply(response.message);
-});
-
-discord.login(process.env.DISCORD_TOKEN);
-```
-
-### WhatsApp Integration
-
-```javascript
-const { AISaasClient } = require('@ai-saas/sdk');
-const twilio = require('twilio');
-
-const aiClient = new AISaasClient({
-  apiKey: process.env.AI_SAAS_API_KEY,
-});
-
-app.post('/whatsapp/webhook', async (req, res) => {
-  const { From, Body } = req.body;
-  
-  const response = await aiClient.chat.send({
-    chatbotId: 'chatbot_123',
-    message: Body,
-    sessionId: From,
-    visitorId: From,
-  });
-  
-  const twiml = new twilio.twiml.MessagingResponse();
-  twiml.message(response.message);
-  
-  res.type('text/xml').send(twiml.toString());
-});
+  return fullResponse;
+}
 ```
 
 ## Best Practices
 
 ### Session Management
 
-✅ **Use consistent session IDs** — Same session for related messages
-✅ **Include visitor IDs** — Enable memory and personalization
-✅ **Set reasonable timeouts** — End sessions after inactivity
-✅ **Clean up old sessions** — Archive or delete inactive conversations
-
-### Performance
-
-✅ **Use streaming for long responses** — Better UX
-✅ **Implement caching** — Cache frequent queries
-✅ **Batch requests** — Combine when possible
-✅ **Monitor usage** — Track costs and optimize
+- Use consistent session IDs for related messages within a conversation
+- Include visitor IDs to enable conversation memory and personalization
+- Sessions expire based on the chatbot's `session_ttl_hours` setting
 
 ### Security
 
-✅ **Validate input** — Sanitize user messages
-✅ **Use HTTPS** — Always encrypt API calls
-✅ **Rotate API keys** — Regular key rotation
-✅ **Implement rate limiting** — Prevent abuse
+- Never expose API keys in client-side code
+- Use the Chat API from your server for custom integrations
+- The widget endpoints are designed for browser use and have CORS restrictions
 
-### Error Handling
+### Performance
 
-✅ **Implement retries** — Handle transient failures
-✅ **Log errors** — Monitor for patterns
-✅ **Graceful degradation** — Fallback responses
-✅ **User feedback** — Inform users of issues
+- Use streaming (`stream: true`) for better perceived latency
+- Reuse session IDs to maintain conversation context
+- Monitor your chatbot's Performance dashboard for latency insights
 
 ## Next Steps
 
 - [Passing User Data to Chatbot](passing-user-data-to-chatbot) — Personalize API responses
 - [Chatbot Memory & Identity Verification](chatbot-memory-verification) — Enable memory in API calls
-- [Customizing Widget Appearance](customizing-widget-appearance) — Widget integration
-
-## Need Help?
-
-- **API Reference:** Full endpoint documentation at `/docs/api`
-- **Support:** Contact support for integration assistance
-- **Community:** Join our Discord for developer discussions
-
-## Changelog
-
-### v1.2.0 (2026-03-15)
-- Added user context support
-- Streaming improvements
-- New webhook events
-
-### v1.1.0 (2026-02-01)
-- Memory API endpoints
-- Conversation export
-- Usage analytics
-
-### v1.0.0 (2026-01-01)
-- Initial API release
+- [Deploying Your Chatbot](deploying-your-chatbot) — Widget and iframe deployment options

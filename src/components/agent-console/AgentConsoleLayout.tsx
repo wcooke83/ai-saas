@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useAgentConsole } from './useAgentConsole';
 import { AgentConversationList } from './AgentConversationList';
 import { AgentChatPanel } from './AgentChatPanel';
@@ -19,6 +20,8 @@ export function AgentConsoleLayout({ chatbotId, apiKey, authMode }: AgentConsole
     loading,
     messagesLoading,
     sending,
+    filterLoading,
+    actionLoading,
     filter,
     messagesEndRef,
     visitorTyping,
@@ -30,9 +33,11 @@ export function AgentConsoleLayout({ chatbotId, apiKey, authMode }: AgentConsole
     broadcastAgentTyping,
   } = useAgentConsole({ chatbotId, apiKey, authMode });
 
-  const selectedConversation = conversations.find(
-    (c) => c.conversation_id === selectedConversationId
-  ) || null;
+  // Memoize the .find() lookup -- only recomputes when conversations or selection changes
+  const selectedConversation = useMemo(
+    () => conversations.find((c) => c.conversation_id === selectedConversationId) || null,
+    [conversations, selectedConversationId]
+  );
 
   return (
     <div className="flex h-full bg-white dark:bg-secondary-900 rounded-lg border border-secondary-200 dark:border-secondary-700 overflow-hidden">
@@ -43,6 +48,7 @@ export function AgentConsoleLayout({ chatbotId, apiKey, authMode }: AgentConsole
           stats={stats}
           selectedId={selectedConversationId}
           loading={loading}
+          filterLoading={filterLoading}
           filter={filter}
           onSelect={selectConversation}
           onFilterChange={setFilter}
@@ -55,6 +61,7 @@ export function AgentConsoleLayout({ chatbotId, apiKey, authMode }: AgentConsole
         messages={messages}
         messagesLoading={messagesLoading}
         sending={sending}
+        actionLoading={actionLoading}
         messagesEndRef={messagesEndRef}
         visitorTyping={visitorTyping}
         visitorPresence={visitorPresence}

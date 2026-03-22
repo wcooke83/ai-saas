@@ -60,7 +60,7 @@ Live Handoff works alongside the Escalation Reporting feature. Make sure it's al
 The escalation report UI has its own set of colors that can be customized:
 
 1. Go to **Dashboard > Chatbots > [Your Chatbot] > Customize**
-2. Under **Colors > Escalation Report**, configure:
+2. Select the **Report** preview tab, then configure the **Escalation Report** colors:
    - Background, text, and input colors
    - Reason button colors (default and selected states)
    - Submit button colors

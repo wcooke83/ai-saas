@@ -295,8 +295,7 @@ test.describe('25. Cross-Feature Integration Tests', () => {
     await expect(assistantMessages.first()).toBeVisible({ timeout: 15000 });
   });
 
-  // TODO: Flaky due to dashboard→widget navigation causing trace artifact ENOENT errors
-  test.skip('INTEG-009: Language change reflects across all components', async ({ page }) => {
+  test('INTEG-009: Language change reflects across all components', async ({ page }) => {
     test.setTimeout(120000);
     await page.goto(`${DASH_BASE}/settings`);
     await page.waitForLoadState('domcontentloaded');
@@ -401,8 +400,7 @@ test.describe('25. Cross-Feature Integration Tests', () => {
     await expect(page.locator('#main-content, main')).toBeVisible({ timeout: 15000 });
   });
 
-  // TODO: Dashboard session expires during long serial test runs causing page load timeout
-  test.skip('INTEG-014: Multiple simultaneous conversations in Agent Console', async ({ page }) => {
+  test('INTEG-014: Multiple simultaneous conversations in Agent Console', async ({ page }) => {
     test.setTimeout(120000);
     // Navigate to agent console / leads conversations
     await page.goto(`${DASH_BASE}/leads`);

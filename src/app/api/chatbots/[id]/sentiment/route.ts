@@ -32,7 +32,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       throw APIError.forbidden('Access denied');
     }
 
-    const supabase = createAdminClient() as any;
+    const supabase = createAdminClient();
 
     // Parse pagination params
     const url = new URL(req.url);

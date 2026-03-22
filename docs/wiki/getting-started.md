@@ -28,7 +28,7 @@ If you don't know the answer, politely direct the user to email support@acme.com
 
 Your chatbot can only answer questions about content it has been trained on.
 
-1. Go to **Knowledge Base** from your chatbot's dashboard.
+1. Go to the **Knowledge** page from your chatbot's dashboard.
 2. Click **Add Source** and choose a method:
    - **URL** — Paste a webpage URL. Enable **Crawl** to follow links and import multiple pages.
    - **Text** — Paste raw text content directly.
@@ -50,10 +50,17 @@ Go to **Settings** to fine-tune your chatbot:
 | **Memory** | Remember returning visitors across sessions |
 | **Model Tier** | Choose between Fast, Balanced, or Powerful AI models |
 | **Prompt Protection** | Block attempts to override the system prompt |
+| **File Uploads** | Let visitors upload images, documents, and other files |
+| **Proactive Messages** | Trigger automated messages based on visitor behavior |
+| **Transcript Email** | Let visitors receive a copy of the conversation via email |
+| **Escalation Reporting** | Enable the report button for visitors to flag issues |
+| **Live Handoff** | Connect to Telegram for real-time human agent support |
+
+> **Tip:** The Settings page has many more options including temperature, max tokens, session TTL, allowed origins, and more. Explore each section to fine-tune your chatbot.
 
 ## 4. Customize the Widget
 
-Go to **Customize Widget** to match your brand:
+Go to the **Customize** page to match your brand:
 
 - Set your **brand colors** for the header, buttons, and message bubbles
 - Choose a **font family** from 25+ options
@@ -87,7 +94,9 @@ Paste this snippet before the closing `</body>` tag on any page where you want t
 
 ## Next Steps
 
-- [Pass user data to your chatbot](./passing-user-data) for personalized conversations
-- [Set up conversation memory](./chatbot-memory-verification) to remember returning visitors
-- [Customize the widget appearance](./customizing-widget-appearance) in detail
-- [Connect Telegram for live handoff](./telegram-live-handoff) to human agents
+- [Pass user data to your chatbot](passing-user-data-to-chatbot) for personalized conversations
+- [Set up conversation memory](chatbot-memory-verification) to remember returning visitors
+- [Customize the widget appearance](customizing-widget-appearance) in detail
+- [Connect Telegram for live handoff](telegram-live-handoff) to human agents
+- [Set up proactive messages](proactive-messages-guide) to engage visitors automatically
+- [Enable file uploads](file-upload-guide) so visitors can share files in chat

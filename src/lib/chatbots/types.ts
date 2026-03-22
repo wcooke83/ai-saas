@@ -83,6 +83,12 @@ export interface WidgetConfig {
   reportInputTextColor?: string;
   reportInputBorderColor?: string;
 
+  // Feedback Follow-Up Colors
+  feedbackBackgroundColor?: string;
+  feedbackTextColor?: string;
+  feedbackButtonColor?: string;
+  feedbackButtonTextColor?: string;
+
   // Custom CSS
   customCss: string;
 }
@@ -432,6 +438,21 @@ export const DEFAULT_ESCALATION_CONFIG: EscalationConfig = {
 };
 
 // ============================================
+// FEEDBACK CONFIGURATION
+// ============================================
+
+export type FeedbackReason = 'incorrect' | 'not_relevant' | 'too_vague' | 'other';
+
+export interface FeedbackConfig {
+  /** Enable the thumbs-down follow-up prompt asking why */
+  follow_up_enabled: boolean;
+}
+
+export const DEFAULT_FEEDBACK_CONFIG: FeedbackConfig = {
+  follow_up_enabled: false,
+};
+
+// ============================================
 // LIVE HANDOFF CONFIGURATION
 // ============================================
 
@@ -547,11 +568,20 @@ export interface Chatbot {
   // Escalation Reporting
   escalation_config?: EscalationConfig;
 
+  // Feedback
+  feedback_config?: FeedbackConfig;
+
   // Live Handoff
   live_handoff_config?: LiveHandoffConfig;
 
   // Telegram Handoff
   telegram_config?: TelegramConfig;
+
+  // CORS / Security
+  allowed_origins: string[] | null;
+
+  // RAG Live Fetch
+  live_fetch_threshold: number;
 
   // Timestamps for tracking text/language updates
   custom_text_updated_at: string | null;
@@ -589,8 +619,10 @@ export interface ChatbotInsert {
   proactive_messages_config?: ProactiveMessagesConfig;
   transcript_config?: TranscriptConfig;
   escalation_config?: EscalationConfig;
+  feedback_config?: FeedbackConfig;
   live_handoff_config?: LiveHandoffConfig;
   telegram_config?: TelegramConfig;
+  allowed_origins?: string[] | null;
   custom_text_updated_at?: string | null;
   language_updated_at?: string | null;
 }
@@ -622,8 +654,11 @@ export interface ChatbotUpdate {
   proactive_messages_config?: ProactiveMessagesConfig;
   transcript_config?: TranscriptConfig;
   escalation_config?: EscalationConfig;
+  feedback_config?: FeedbackConfig;
   live_handoff_config?: LiveHandoffConfig;
   telegram_config?: TelegramConfig;
+  allowed_origins?: string[] | null;
+  live_fetch_threshold?: number;
   custom_text_updated_at?: string | null;
   language_updated_at?: string | null;
 }

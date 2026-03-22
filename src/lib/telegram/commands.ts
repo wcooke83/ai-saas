@@ -63,7 +63,7 @@ export async function handleBotCommand(
   }
 
   // Log command
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
   await supabase.from('telegram_command_log').insert({
     chatbot_id: chatbotId,
     telegram_user_id: telegramUserId,
@@ -134,7 +134,7 @@ async function handleResolve(
 }
 
 async function handleActive(chatbotId: string): Promise<CommandResult> {
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
   const { data: sessions } = await supabase
     .from('telegram_handoff_sessions')
     .select('conversation_id, status, agent_name, created_at')

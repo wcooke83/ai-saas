@@ -61,7 +61,16 @@ Each subscription plan includes a monthly credit allocation:
 - Upgrade your plan at any time to get more credits
 - Enterprise plans offer custom credit allocations
 
-Check **Dashboard > Settings** to view your current plan and upgrade options.
+Check the **Dashboard** overview or **Billing** page to view your current plan and upgrade options.
+
+## Auto Top-Up
+
+If you frequently run out of credits before your billing period resets, you can enable **Auto Top-Up**:
+
+1. Go to **Dashboard > Billing**
+2. Find the **Auto Top-Up** section
+3. Configure the threshold and top-up amount
+4. Credits are automatically added when your balance drops below the threshold
 
 ## Tips for Managing Credits
 

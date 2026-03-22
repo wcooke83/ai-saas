@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef, use } from 'react';
+import { useState, useEffect, useRef, useCallback, use } from 'react';
+import { useForm } from 'react-hook-form';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
-  ArrowLeft,
   Save,
   Loader2,
   Bot,
@@ -34,6 +34,9 @@ import {
   Upload,
   X,
   Image,
+  Undo2,
+  AlertTriangle,
+  ThumbsDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -51,6 +54,7 @@ import {
   DEFAULT_PROACTIVE_MESSAGES_CONFIG,
   DEFAULT_TRANSCRIPT_CONFIG,
   DEFAULT_ESCALATION_CONFIG,
+  DEFAULT_FEEDBACK_CONFIG,
   DEFAULT_TELEGRAM_CONFIG,
   DEFAULT_LIVE_HANDOFF_CONFIG,
 } from '@/lib/chatbots/types';
@@ -66,7 +70,7 @@ import type {
   SurveyQuestion,
   SurveyQuestionType,
 } from '@/lib/chatbots/types';
-import type { FileUploadConfig, ProactiveMessagesConfig, ProactiveMessageRule, ProactiveTriggerType, ProactiveDisplayMode, ProactiveBubblePosition, ProactiveBubbleStyle, TranscriptConfig, EscalationConfig, LiveHandoffConfig, TelegramConfig } from '@/lib/chatbots/types';
+import type { FileUploadConfig, ProactiveMessagesConfig, ProactiveMessageRule, ProactiveTriggerType, ProactiveDisplayMode, ProactiveBubblePosition, ProactiveBubbleStyle, TranscriptConfig, EscalationConfig, FeedbackConfig, LiveHandoffConfig, TelegramConfig } from '@/lib/chatbots/types';
 import { DEFAULT_BUBBLE_STYLE } from '@/lib/chatbots/types';
 import { H1 } from '@/components/ui/heading';
 
@@ -77,6 +81,101 @@ function computeWarningsFromBot(bot: Chatbot): boolean {
   if (!bot.language_updated_at) return false;
   if (!bot.custom_text_updated_at) return true;
   return new Date(bot.custom_text_updated_at) < new Date(bot.language_updated_at);
+}
+
+// Form data type for react-hook-form
+interface SettingsFormData {
+  name: string;
+  description: string;
+  welcomeMessage: string;
+  systemPrompt: string;
+  enablePromptProtection: boolean;
+  placeholderText: string;
+  language: string;
+  modelTier: 'fast' | 'balanced' | 'powerful';
+  temperature: number;
+  maxTokens: number;
+  liveFetchThreshold: number;
+  memoryEnabled: boolean;
+  memoryDays: number;
+  sessionTtlHours: number;
+  logoUrl: string | null;
+  preChatConfig: PreChatFormConfig;
+  postChatConfig: PostChatSurveyConfig;
+  fileUploadConfig: FileUploadConfig;
+  proactiveConfig: ProactiveMessagesConfig;
+  transcriptConfig: TranscriptConfig;
+  escalationConfig: EscalationConfig;
+  feedbackConfig: FeedbackConfig;
+  liveHandoffConfig: LiveHandoffConfig;
+  telegramConfig: TelegramConfig;
+  allowedOrigins: string;
+}
+
+function getDefaultFormValues(): SettingsFormData {
+  return {
+    name: '',
+    description: '',
+    welcomeMessage: '',
+    systemPrompt: '',
+    enablePromptProtection: true,
+    placeholderText: '',
+    language: 'en',
+    modelTier: 'fast',
+    temperature: 0.7,
+    maxTokens: 1024,
+    liveFetchThreshold: 0.80,
+    memoryEnabled: false,
+    memoryDays: 30,
+    sessionTtlHours: 24,
+    logoUrl: null,
+    preChatConfig: DEFAULT_PRE_CHAT_FORM_CONFIG,
+    postChatConfig: DEFAULT_POST_CHAT_SURVEY_CONFIG,
+    fileUploadConfig: DEFAULT_FILE_UPLOAD_CONFIG,
+    proactiveConfig: DEFAULT_PROACTIVE_MESSAGES_CONFIG,
+    transcriptConfig: DEFAULT_TRANSCRIPT_CONFIG,
+    escalationConfig: DEFAULT_ESCALATION_CONFIG,
+    feedbackConfig: DEFAULT_FEEDBACK_CONFIG,
+    liveHandoffConfig: DEFAULT_LIVE_HANDOFF_CONFIG,
+    telegramConfig: DEFAULT_TELEGRAM_CONFIG,
+    allowedOrigins: '',
+  };
+}
+
+function chatbotToFormValues(bot: Chatbot): SettingsFormData {
+  const model = (bot as any).model || '';
+  let modelTier: 'fast' | 'balanced' | 'powerful' = 'fast';
+  if (model.includes('opus') || model === 'powerful') modelTier = 'powerful';
+  else if (model.includes('sonnet') || model === 'balanced') modelTier = 'balanced';
+  else if (model.includes('haiku') || model === 'fast') modelTier = 'fast';
+
+  return {
+    name: bot.name,
+    description: bot.description || '',
+    welcomeMessage: bot.welcome_message || '',
+    systemPrompt: bot.system_prompt || '',
+    enablePromptProtection: bot.enable_prompt_protection ?? true,
+    placeholderText: bot.placeholder_text || '',
+    language: bot.language || 'en',
+    modelTier,
+    temperature: (bot as any).temperature ?? 0.7,
+    maxTokens: (bot as any).max_tokens ?? 1024,
+    liveFetchThreshold: bot.live_fetch_threshold ?? 0.80,
+    memoryEnabled: bot.memory_enabled ?? false,
+    memoryDays: bot.memory_days ?? 30,
+    sessionTtlHours: (bot as any).session_ttl_hours ?? 24,
+    logoUrl: bot.logo_url || null,
+    preChatConfig: bot.pre_chat_form_config || DEFAULT_PRE_CHAT_FORM_CONFIG,
+    postChatConfig: bot.post_chat_survey_config || DEFAULT_POST_CHAT_SURVEY_CONFIG,
+    fileUploadConfig: bot.file_upload_config ? { ...DEFAULT_FILE_UPLOAD_CONFIG, ...bot.file_upload_config } as FileUploadConfig : DEFAULT_FILE_UPLOAD_CONFIG,
+    proactiveConfig: bot.proactive_messages_config ? { ...DEFAULT_PROACTIVE_MESSAGES_CONFIG, ...bot.proactive_messages_config } as ProactiveMessagesConfig : DEFAULT_PROACTIVE_MESSAGES_CONFIG,
+    transcriptConfig: bot.transcript_config ? { ...DEFAULT_TRANSCRIPT_CONFIG, ...bot.transcript_config } as TranscriptConfig : DEFAULT_TRANSCRIPT_CONFIG,
+    escalationConfig: bot.escalation_config ? { ...DEFAULT_ESCALATION_CONFIG, ...bot.escalation_config } as EscalationConfig : DEFAULT_ESCALATION_CONFIG,
+    feedbackConfig: bot.feedback_config ? { ...DEFAULT_FEEDBACK_CONFIG, ...bot.feedback_config } as FeedbackConfig : DEFAULT_FEEDBACK_CONFIG,
+    liveHandoffConfig: bot.live_handoff_config ? { ...DEFAULT_LIVE_HANDOFF_CONFIG, ...bot.live_handoff_config } as LiveHandoffConfig : DEFAULT_LIVE_HANDOFF_CONFIG,
+    telegramConfig: bot.telegram_config ? { ...DEFAULT_TELEGRAM_CONFIG, ...bot.telegram_config } as TelegramConfig : DEFAULT_TELEGRAM_CONFIG,
+    allowedOrigins: bot.allowed_origins ? bot.allowed_origins.join(', ') : '',
+  };
 }
 
 interface SettingsPageProps {
@@ -95,7 +194,6 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
   const [translateModalSection, setTranslateModalSection] = useState<'pre-chat' | 'post-chat' | 'general' | 'both'>('both');
 
   // Per-section translation warning state
-  // Warnings appear when language changes, disappear when that section's text is updated
   const [showGeneralWarning, setShowGeneralWarning] = useState(false);
   const [showPreChatWarning, setShowPreChatWarning] = useState(false);
   const [showPostChatWarning, setShowPostChatWarning] = useState(false);
@@ -107,33 +205,60 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
   // Ref to carry translated values from onApply to handleSave (avoids stale closure)
   const saveOverridesRef = useRef<Record<string, unknown> | null>(null);
 
-  // Form state
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [welcomeMessage, setWelcomeMessage] = useState('');
-  const [systemPrompt, setSystemPrompt] = useState('');
-  const [enablePromptProtection, setEnablePromptProtection] = useState(true);
-  const [placeholderText, setPlaceholderText] = useState('');
-  const [language, setLanguage] = useState('en');
-  const [preChatConfig, setPreChatConfig] = useState<PreChatFormConfig>(DEFAULT_PRE_CHAT_FORM_CONFIG);
-  const [postChatConfig, setPostChatConfig] = useState<PostChatSurveyConfig>(DEFAULT_POST_CHAT_SURVEY_CONFIG);
-  const [memoryEnabled, setMemoryEnabled] = useState(false);
-  const [memoryDays, setMemoryDays] = useState(30);
-  const [sessionTtlHours, setSessionTtlHours] = useState(24);
-  const [fileUploadConfig, setFileUploadConfig] = useState<FileUploadConfig>(DEFAULT_FILE_UPLOAD_CONFIG);
-  const [proactiveConfig, setProactiveConfig] = useState<ProactiveMessagesConfig>(DEFAULT_PROACTIVE_MESSAGES_CONFIG);
-  const [transcriptConfig, setTranscriptConfig] = useState<TranscriptConfig>(DEFAULT_TRANSCRIPT_CONFIG);
-  const [escalationConfig, setEscalationConfig] = useState<EscalationConfig>(DEFAULT_ESCALATION_CONFIG);
-  const [liveHandoffConfig, setLiveHandoffConfig] = useState<LiveHandoffConfig>(DEFAULT_LIVE_HANDOFF_CONFIG);
-  const [telegramConfig, setTelegramConfig] = useState<TelegramConfig>(DEFAULT_TELEGRAM_CONFIG);
+  // Non-form UI state
   const [telegramWebhookStatus, setTelegramWebhookStatus] = useState<string | null>(null);
   const [settingUpWebhook, setSettingUpWebhook] = useState(false);
-  const [modelTier, setModelTier] = useState<'fast' | 'balanced' | 'powerful'>('fast');
-  const [temperature, setTemperature] = useState(0.7);
-  const [maxTokens, setMaxTokens] = useState(1024);
-  const [liveFetchThreshold, setLiveFetchThreshold] = useState(0.80);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+
+  // react-hook-form
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    getValues,
+    formState: { isDirty },
+  } = useForm<SettingsFormData>({
+    defaultValues: getDefaultFormValues(),
+  });
+
+  // Watch all fields for rendering
+  const name = watch('name');
+  const description = watch('description');
+  const welcomeMessage = watch('welcomeMessage');
+  const systemPrompt = watch('systemPrompt');
+  const enablePromptProtection = watch('enablePromptProtection');
+  const placeholderText = watch('placeholderText');
+  const language = watch('language');
+  const preChatConfig = watch('preChatConfig');
+  const postChatConfig = watch('postChatConfig');
+  const memoryEnabled = watch('memoryEnabled');
+  const memoryDays = watch('memoryDays');
+  const sessionTtlHours = watch('sessionTtlHours');
+  const fileUploadConfig = watch('fileUploadConfig');
+  const proactiveConfig = watch('proactiveConfig');
+  const transcriptConfig = watch('transcriptConfig');
+  const escalationConfig = watch('escalationConfig');
+  const feedbackConfig = watch('feedbackConfig');
+  const liveHandoffConfig = watch('liveHandoffConfig');
+  const telegramConfig = watch('telegramConfig');
+  const temperature = watch('temperature');
+  const maxTokens = watch('maxTokens');
+  const liveFetchThreshold = watch('liveFetchThreshold');
+  const logoUrl = watch('logoUrl');
+  const allowedOrigins = watch('allowedOrigins');
+
+  // Warn before navigating away with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
 
   useEffect(() => {
     async function fetchChatbot() {
@@ -149,34 +274,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
         const data = await response.json();
         const bot = data.data.chatbot as Chatbot;
         setChatbot(bot);
-        setName(bot.name);
-        setDescription(bot.description || '');
-        setWelcomeMessage(bot.welcome_message || '');
-        setSystemPrompt(bot.system_prompt || '');
-        setEnablePromptProtection(bot.enable_prompt_protection ?? true);
-        setPlaceholderText(bot.placeholder_text || '');
-        setLanguage(bot.language || 'en');
-        setPreChatConfig(bot.pre_chat_form_config || DEFAULT_PRE_CHAT_FORM_CONFIG);
-        setPostChatConfig(bot.post_chat_survey_config || DEFAULT_POST_CHAT_SURVEY_CONFIG);
-        setMemoryEnabled(bot.memory_enabled ?? false);
-        setMemoryDays(bot.memory_days ?? 30);
-        setSessionTtlHours((bot as any).session_ttl_hours ?? 24);
-        setFileUploadConfig(bot.file_upload_config ? { ...DEFAULT_FILE_UPLOAD_CONFIG, ...bot.file_upload_config } as FileUploadConfig : DEFAULT_FILE_UPLOAD_CONFIG);
-        setProactiveConfig(bot.proactive_messages_config ? { ...DEFAULT_PROACTIVE_MESSAGES_CONFIG, ...bot.proactive_messages_config } as ProactiveMessagesConfig : DEFAULT_PROACTIVE_MESSAGES_CONFIG);
-        setTranscriptConfig(bot.transcript_config ? { ...DEFAULT_TRANSCRIPT_CONFIG, ...bot.transcript_config } as TranscriptConfig : DEFAULT_TRANSCRIPT_CONFIG);
-        setEscalationConfig(bot.escalation_config ? { ...DEFAULT_ESCALATION_CONFIG, ...bot.escalation_config } as EscalationConfig : DEFAULT_ESCALATION_CONFIG);
-        setLiveHandoffConfig(bot.live_handoff_config ? { ...DEFAULT_LIVE_HANDOFF_CONFIG, ...bot.live_handoff_config } as LiveHandoffConfig : DEFAULT_LIVE_HANDOFF_CONFIG);
-        setTelegramConfig(bot.telegram_config ? { ...DEFAULT_TELEGRAM_CONFIG, ...bot.telegram_config } as TelegramConfig : DEFAULT_TELEGRAM_CONFIG);
-        // Initialize AI model settings
-        const model = (bot as any).model || '';
-        if (model.includes('opus') || model === 'powerful') setModelTier('powerful');
-        else if (model.includes('sonnet') || model === 'balanced') setModelTier('balanced');
-        else if (model.includes('haiku') || model === 'fast') setModelTier('fast');
-        else setModelTier('fast');
-        setTemperature((bot as any).temperature ?? 0.7);
-        setMaxTokens((bot as any).max_tokens ?? 1024);
-        setLiveFetchThreshold((bot as any).live_fetch_threshold ?? 0.80);
-        setLogoUrl(bot.logo_url || null);
+        reset(chatbotToFormValues(bot));
         // Initialize translation warnings from DB timestamps
         const needsWarning = computeWarningsFromBot(bot);
         setShowGeneralWarning(needsWarning);
@@ -190,14 +288,15 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
     }
 
     fetchChatbot();
-  }, [id, router]);
+  }, [id, router, reset]);
 
-  const handleSave = async () => {
-    if (!name.trim()) {
+  const handleSave = useCallback(async (formData?: SettingsFormData) => {
+    const values = formData ?? getValues();
+    if (!values.name.trim()) {
       toast.error('Chatbot name is required');
       return;
     }
-    if (systemPrompt.trim().length < 10) {
+    if (values.systemPrompt.trim().length < 10) {
       toast.error('System prompt must be at least 10 characters');
       return;
     }
@@ -212,29 +311,33 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: name.trim(),
-          description: description.trim() || null,
-          welcome_message: ((overrides?.welcome_message as string) ?? welcomeMessage).trim(),
-          system_prompt: systemPrompt.trim(),
-          enable_prompt_protection: enablePromptProtection,
-          placeholder_text: ((overrides?.placeholder_text as string) ?? placeholderText).trim(),
-          language,
-          memory_enabled: memoryEnabled,
-          memory_days: memoryDays,
-          session_ttl_hours: sessionTtlHours,
-          pre_chat_form_config: (overrides?.pre_chat_form_config as PreChatFormConfig) ?? preChatConfig,
-          post_chat_survey_config: (overrides?.post_chat_survey_config as PostChatSurveyConfig) ?? postChatConfig,
-          file_upload_config: fileUploadConfig,
-          proactive_messages_config: proactiveConfig,
-          transcript_config: transcriptConfig,
-          escalation_config: escalationConfig,
-          live_handoff_config: liveHandoffConfig,
-          telegram_config: telegramConfig,
-          model: modelTier,
-          temperature,
-          max_tokens: maxTokens,
-          live_fetch_threshold: liveFetchThreshold,
-          logo_url: logoUrl,
+          name: values.name.trim(),
+          description: values.description.trim() || null,
+          welcome_message: ((overrides?.welcome_message as string) ?? values.welcomeMessage).trim(),
+          system_prompt: values.systemPrompt.trim(),
+          enable_prompt_protection: values.enablePromptProtection,
+          placeholder_text: ((overrides?.placeholder_text as string) ?? values.placeholderText).trim(),
+          language: values.language,
+          memory_enabled: values.memoryEnabled,
+          memory_days: values.memoryDays,
+          session_ttl_hours: values.sessionTtlHours,
+          pre_chat_form_config: (overrides?.pre_chat_form_config as PreChatFormConfig) ?? values.preChatConfig,
+          post_chat_survey_config: (overrides?.post_chat_survey_config as PostChatSurveyConfig) ?? values.postChatConfig,
+          file_upload_config: values.fileUploadConfig,
+          proactive_messages_config: values.proactiveConfig,
+          transcript_config: values.transcriptConfig,
+          escalation_config: values.escalationConfig,
+          feedback_config: values.feedbackConfig,
+          live_handoff_config: values.liveHandoffConfig,
+          telegram_config: values.telegramConfig,
+          model: values.modelTier,
+          temperature: values.temperature,
+          max_tokens: values.maxTokens,
+          live_fetch_threshold: values.liveFetchThreshold,
+          logo_url: values.logoUrl,
+          allowed_origins: values.allowedOrigins.trim()
+            ? values.allowedOrigins.split(",").map((o: string) => o.trim()).filter(Boolean)
+            : null,
         }),
       });
 
@@ -244,14 +347,18 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
       }
 
       const data = await response.json();
-      setChatbot(data.data.chatbot);
+      const updatedBot = data.data.chatbot as Chatbot;
+      setChatbot(updatedBot);
+      reset(chatbotToFormValues(updatedBot));
       toast.success('Settings saved successfully');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save');
     } finally {
       setSaving(false);
     }
-  };
+  }, [id, getValues, reset]);
+
+  const onSubmit = handleSubmit((data) => handleSave(data));
 
   if (loading) {
     return (
@@ -294,7 +401,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
     { id: 'file-uploads', label: 'File Uploads', icon: Paperclip },
     { id: 'proactive', label: 'Proactive', icon: Zap },
     { id: 'transcripts', label: 'Transcripts', icon: Mail },
-    { id: 'escalations', label: 'Reporting', icon: Flag },
+    { id: 'feedback', label: 'Feedback & Reports', icon: ThumbsDown },
     { id: 'handoff', label: 'Live Handoff', icon: Headphones },
   ];
 
@@ -310,13 +417,6 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <Link
-            href={`/dashboard/chatbots/${id}`}
-            className="inline-flex items-center text-sm text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to {chatbot.name}
-          </Link>
           <div className="flex items-center gap-4">
             {chatbot.logo_url ? (
               <img
@@ -346,14 +446,28 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
             </div>
           </div>
         </div>
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
-            <Save className="w-4 h-4 mr-2" />
+        <div className="flex items-center gap-3">
+          {isDirty && (
+            <>
+              <span className="hidden sm:flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400">
+                <AlertTriangle className="w-4 h-4" />
+                Unsaved changes
+              </span>
+              <Button variant="outline" size="sm" onClick={() => reset()}>
+                <Undo2 className="w-4 h-4 mr-1" />
+                Reset
+              </Button>
+            </>
           )}
-          {saving ? 'Saving...' : 'Save Changes'}
-        </Button>
+          <Button onClick={onSubmit} disabled={saving}>
+            {saving ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-2" />
+            )}
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
       </div>
 
       {/* Mobile section nav */}
@@ -448,8 +562,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 <Label htmlFor="name">Chatbot Name *</Label>
                 <Input
                   id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  {...register('name')}
                   placeholder="My Support Bot"
                   maxLength={100}
                 />
@@ -491,8 +604,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               </div>
               <textarea
                 id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                {...register('description')}
                 placeholder="A helpful chatbot for answering customer questions..."
                 className="w-full min-h-[100px] px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 placeholder-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
                 style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
@@ -511,7 +623,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                     <img src={logoUrl} alt="Logo" className="w-16 h-16 rounded-lg object-cover border border-secondary-200 dark:border-secondary-700" />
                     <button
                       type="button"
-                      onClick={() => setLogoUrl(null)}
+                      onClick={() => setValue('logoUrl', null, { shouldDirty: true })}
                       className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X className="w-3 h-3" />
@@ -548,7 +660,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                           const { data: urlData } = supabase.storage
                             .from('chat-attachments')
                             .getPublicUrl(path);
-                          setLogoUrl(urlData.publicUrl);
+                          setValue('logoUrl', urlData.publicUrl, { shouldDirty: true });
                           toast.success('Logo uploaded — click Save to apply');
                         } catch (err) {
                           toast.error(err instanceof Error ? err.message : 'Upload failed');
@@ -579,7 +691,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 <Input
                   id="welcome_message"
                   value={welcomeMessage}
-                  onChange={(e) => { setWelcomeMessage(e.target.value); setShowGeneralWarning(false); }}
+                  onChange={(e) => { setValue('welcomeMessage', e.target.value, { shouldDirty: true }); setShowGeneralWarning(false); }}
                   placeholder="Hi! How can I help you today?"
                   maxLength={500}
                 />
@@ -614,7 +726,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 <Input
                   id="placeholder_text"
                   value={placeholderText}
-                  onChange={(e) => { setPlaceholderText(e.target.value); setShowGeneralWarning(false); }}
+                  onChange={(e) => { setValue('placeholderText', e.target.value, { shouldDirty: true }); setShowGeneralWarning(false); }}
                   placeholder="Type your message..."
                   maxLength={200}
                 />
@@ -622,6 +734,25 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   Placeholder text shown in the message input field
                 </p>
               </div>
+            </div>
+
+            {/* Allowed Origins (CORS) */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="allowed_origins">Allowed Origins</Label>
+                <Tooltip content="Restrict which websites can embed your chatbot widget. Leave empty to allow all origins (default). Enter comma-separated origins like https://example.com, https://app.example.com">
+                  <Info className="w-4 h-4 text-secondary-400 cursor-help" />
+                </Tooltip>
+              </div>
+              <Input
+                id="allowed_origins"
+                value={allowedOrigins}
+                onChange={(e) => setValue('allowedOrigins', e.target.value, { shouldDirty: true })}
+                placeholder="https://example.com, https://app.example.com"
+              />
+              <p className="text-xs text-secondary-500">
+                Comma-separated list of origins allowed to use the chat widget. Leave empty to allow all origins.
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -647,7 +778,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   {SYSTEM_PROMPT_TEMPLATES.map((template) => (
                     <button
                       key={template.id}
-                      onClick={() => setSystemPrompt(template.prompt)}
+                      onClick={() => setValue('systemPrompt', template.prompt, { shouldDirty: true })}
                       className={cn(
                         'p-3 text-left rounded-lg border transition-colors',
                         systemPrompt === template.prompt
@@ -670,8 +801,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 <Label htmlFor="system_prompt">System Prompt *</Label>
                 <textarea
                   id="system_prompt"
-                  value={systemPrompt}
-                  onChange={(e) => setSystemPrompt(e.target.value)}
+                  {...register('systemPrompt')}
                   className="w-full min-h-[250px] px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 placeholder-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono text-sm resize-y"
                   style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
                   placeholder="You are a helpful AI assistant..."
@@ -686,7 +816,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   type="checkbox"
                   id="enable_prompt_protection"
                   checked={enablePromptProtection}
-                  onChange={(e) => setEnablePromptProtection(e.target.checked)}
+                  onChange={(e) => setValue('enablePromptProtection', e.target.checked, { shouldDirty: true })}
                   className="mt-1 w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
                 />
                 <div className="flex-1">
@@ -718,26 +848,25 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="model_tier">Model Tier</Label>
-              <select
-                id="model_tier"
-                value={modelTier}
-                onChange={(e) => setModelTier(e.target.value as 'fast' | 'balanced' | 'powerful')}
-                className="w-full px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
-              >
-                <option value="fast">Fast (Claude Haiku) — Quick responses, lower cost</option>
-                <option value="balanced">Balanced (Claude Sonnet) — Good mix of speed and quality</option>
-                <option value="powerful">Powerful (Claude Opus) — Best quality, slower</option>
-              </select>
-              <p className="text-xs text-secondary-500">
-                Choose the AI model tier based on your needs for speed, quality, and cost
-              </p>
+              <Label>AI Model</Label>
+              <div className="rounded-md border border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-800/50 p-4 space-y-2">
+                <p className="text-sm text-secondary-700 dark:text-secondary-300">
+                  The AI model is configured globally and shared across all chatbots. Contact your account admin to change the model.
+                </p>
+                <p className="text-xs text-secondary-500">
+                  The settings below (temperature, max tokens, live fetch threshold) are per-chatbot and let you fine-tune how the selected model responds.
+                </p>
+              </div>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="temperature">Temperature</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="temperature">Temperature</Label>
+                  <Tooltip content="Controls randomness in AI responses. Use low values (0-0.3) for factual Q&A, medium (0.5-0.7) for general chat, and high (1.0+) for creative or brainstorming use cases." side="right">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </div>
                 <span className="text-sm font-mono text-secondary-700 dark:text-secondary-300 bg-secondary-100 dark:bg-secondary-800 px-2 py-0.5 rounded">
                   {temperature.toFixed(1)}
                 </span>
@@ -749,21 +878,23 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 max={2}
                 step={0.1}
                 value={temperature}
-                onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                onChange={(e) => setValue('temperature', parseFloat(e.target.value), { shouldDirty: true })}
                 className="w-full accent-primary-500"
               />
               <div className="flex justify-between text-xs text-secondary-400">
                 <span>Focused (0)</span>
                 <span>Creative (2)</span>
               </div>
-              <p className="text-xs text-secondary-500">
-                Controls response randomness. Lower values are more focused, higher values more creative.
-              </p>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="max_tokens">Max Tokens</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="max_tokens">Max Response Length</Label>
+                  <Tooltip content="Caps how long each AI reply can be. 1 token is roughly 1 word. Short limits (100-500) keep replies concise; longer limits (2000+) allow detailed explanations. Does not affect quality, only length." side="right">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </div>
                 <span className="text-sm font-mono text-secondary-700 dark:text-secondary-300 bg-secondary-100 dark:bg-secondary-800 px-2 py-0.5 rounded">
                   {maxTokens}
                 </span>
@@ -775,21 +906,23 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 max={4096}
                 step={100}
                 value={maxTokens}
-                onChange={(e) => setMaxTokens(parseInt(e.target.value))}
+                onChange={(e) => setValue('maxTokens', parseInt(e.target.value), { shouldDirty: true })}
                 className="w-full accent-primary-500"
               />
               <div className="flex justify-between text-xs text-secondary-400">
                 <span>Short (100)</span>
                 <span>Long (4096)</span>
               </div>
-              <p className="text-xs text-secondary-500">
-                Maximum length of each response.
-              </p>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="live_fetch_threshold">Live Fetch Threshold</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="live_fetch_threshold">Live Fetch Threshold</Label>
+                  <Tooltip content="When a visitor's question doesn't closely match your knowledge base, the chatbot can fetch fresh content from your pinned URLs. This slider sets how confident the match must be before skipping the live fetch. Lower = fewer fetches (faster). Higher = more fetches (more accurate)." side="right">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </div>
                 <span className="text-sm font-mono text-secondary-700 dark:text-secondary-300 bg-secondary-100 dark:bg-secondary-800 px-2 py-0.5 rounded">
                   {liveFetchThreshold.toFixed(2)}
                 </span>
@@ -801,16 +934,13 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 max={0.95}
                 step={0.05}
                 value={liveFetchThreshold}
-                onChange={(e) => setLiveFetchThreshold(parseFloat(e.target.value))}
+                onChange={(e) => setValue('liveFetchThreshold', parseFloat(e.target.value), { shouldDirty: true })}
                 className="w-full accent-primary-500"
               />
               <div className="flex justify-between text-xs text-secondary-400">
                 <span>Lenient (0.50)</span>
                 <span>Strict (0.95)</span>
               </div>
-              <p className="text-xs text-secondary-500">
-                When knowledge base confidence is below this threshold, the chatbot will fetch live content from pinned URLs. Lower values reduce live fetches (faster responses). Higher values trigger live fetch more often (more thorough answers).
-              </p>
             </div>
           </CardContent>
         </Card>
@@ -834,7 +964,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 <input
                   type="checkbox"
                   checked={memoryEnabled}
-                  onChange={(e) => setMemoryEnabled(e.target.checked)}
+                  onChange={(e) => setValue('memoryEnabled', e.target.checked, { shouldDirty: true })}
                   className="sr-only peer"
                 />
                 <div className="w-11 h-6 bg-secondary-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 rounded-full peer dark:bg-secondary-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-secondary-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
@@ -867,7 +997,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   <select
                     id="memory_days"
                     value={memoryDays}
-                    onChange={(e) => setMemoryDays(Number(e.target.value))}
+                    onChange={(e) => setValue('memoryDays', Number(e.target.value), { shouldDirty: true })}
                     className="w-full px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
                     style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
                   >
@@ -912,7 +1042,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 <select
                   id="session_ttl_hours"
                   value={sessionTtlHours}
-                  onChange={(e) => setSessionTtlHours(Number(e.target.value))}
+                  onChange={(e) => setValue('sessionTtlHours', Number(e.target.value), { shouldDirty: true })}
                   className="w-full px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
                 >
@@ -945,7 +1075,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
       {activeSection === 'pre-chat' && (
         <PreChatFormEditor
           config={preChatConfig}
-          onChange={(config) => { setPreChatConfig(config); setShowPreChatWarning(false); }}
+          onChange={(config) => { setValue('preChatConfig', config, { shouldDirty: true }); setShowPreChatWarning(false); }}
           language={language}
           shouldShowWarning={showPreChatWarning}
           onOpenTranslate={() => {
@@ -959,7 +1089,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
       {activeSection === 'post-chat' && (
         <PostChatSurveyEditor
           config={postChatConfig}
-          onChange={(config) => { setPostChatConfig(config); setShowPostChatWarning(false); }}
+          onChange={(config) => { setValue('postChatConfig', config, { shouldDirty: true }); setShowPostChatWarning(false); }}
           language={language}
           shouldShowWarning={showPostChatWarning}
           onOpenTranslate={() => {
@@ -987,7 +1117,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 <input
                   type="checkbox"
                   checked={fileUploadConfig.enabled}
-                  onChange={(e) => setFileUploadConfig({ ...fileUploadConfig, enabled: e.target.checked })}
+                  onChange={(e) => setValue('fileUploadConfig', { ...fileUploadConfig, enabled: e.target.checked }, { shouldDirty: true })}
                   className="sr-only peer"
                 />
                 <div className="w-11 h-6 bg-secondary-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 rounded-full peer dark:bg-secondary-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-secondary-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
@@ -1031,13 +1161,13 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                         type="checkbox"
                         checked={fileUploadConfig.allowed_types[type.key]}
                         onChange={(e) =>
-                          setFileUploadConfig({
+                          setValue('fileUploadConfig', {
                             ...fileUploadConfig,
                             allowed_types: {
                               ...fileUploadConfig.allowed_types,
                               [type.key]: e.target.checked,
                             },
-                          })
+                          }, { shouldDirty: true })
                         }
                         className="mt-0.5 rounded border-secondary-300 text-primary-500 focus:ring-primary-500"
                       />
@@ -1063,10 +1193,10 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   id="max_file_size"
                   value={fileUploadConfig.max_file_size_mb}
                   onChange={(e) =>
-                    setFileUploadConfig({
+                    setValue('fileUploadConfig', {
                       ...fileUploadConfig,
                       max_file_size_mb: Number(e.target.value),
-                    })
+                    }, { shouldDirty: true })
                   }
                   className="w-full px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
@@ -1093,10 +1223,10 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   id="max_files_per_message"
                   value={fileUploadConfig.max_files_per_message ?? 3}
                   onChange={(e) =>
-                    setFileUploadConfig({
+                    setValue('fileUploadConfig', {
                       ...fileUploadConfig,
                       max_files_per_message: Number(e.target.value),
-                    })
+                    }, { shouldDirty: true })
                   }
                   className="w-full px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
@@ -1120,7 +1250,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
       {activeSection === 'proactive' && (
         <ProactiveMessagesEditor
           config={proactiveConfig}
-          onChange={setProactiveConfig}
+          onChange={(c) => setValue('proactiveConfig', c, { shouldDirty: true })}
         />
       )}
 
@@ -1142,7 +1272,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 type="button"
                 role="switch"
                 aria-checked={transcriptConfig.enabled}
-                onClick={() => setTranscriptConfig(prev => ({ ...prev, enabled: !prev.enabled }))}
+                onClick={() => setValue('transcriptConfig', { ...transcriptConfig, enabled: !transcriptConfig.enabled }, { shouldDirty: true })}
                 className={cn(
                   'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
                   transcriptConfig.enabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
@@ -1174,7 +1304,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                       type="button"
                       role="switch"
                       aria-checked={transcriptConfig.show_header_icon !== false}
-                      onClick={() => setTranscriptConfig(prev => ({ ...prev, show_header_icon: !prev.show_header_icon }))}
+                      onClick={() => setValue('transcriptConfig', { ...transcriptConfig, show_header_icon: !transcriptConfig.show_header_icon }, { shouldDirty: true })}
                       className={cn(
                         'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-3',
                         transcriptConfig.show_header_icon !== false ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
@@ -1194,7 +1324,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                       type="button"
                       role="switch"
                       aria-checked={transcriptConfig.show_chat_prompt !== false}
-                      onClick={() => setTranscriptConfig(prev => ({ ...prev, show_chat_prompt: !prev.show_chat_prompt }))}
+                      onClick={() => setValue('transcriptConfig', { ...transcriptConfig, show_chat_prompt: !transcriptConfig.show_chat_prompt }, { shouldDirty: true })}
                       className={cn(
                         'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-3',
                         transcriptConfig.show_chat_prompt !== false ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
@@ -1216,7 +1346,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                       name="email_mode"
                       value="ask"
                       checked={transcriptConfig.email_mode === 'ask'}
-                      onChange={() => setTranscriptConfig(prev => ({ ...prev, email_mode: 'ask' }))}
+                      onChange={() => setValue('transcriptConfig', { ...transcriptConfig, email_mode: 'ask' }, { shouldDirty: true })}
                       className="mt-1"
                     />
                     <div>
@@ -1232,7 +1362,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                       name="email_mode"
                       value="pre_chat"
                       checked={transcriptConfig.email_mode === 'pre_chat'}
-                      onChange={() => setTranscriptConfig(prev => ({ ...prev, email_mode: 'pre_chat' }))}
+                      onChange={() => setValue('transcriptConfig', { ...transcriptConfig, email_mode: 'pre_chat' }, { shouldDirty: true })}
                       className="mt-1"
                     />
                     <div>
@@ -1263,56 +1393,100 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
         </Card>
       )}
 
-      {activeSection === 'escalations' && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Flag className="w-5 h-5" />
-                  Issue Reporting
-                </CardTitle>
-                <CardDescription>
-                  Allow visitors to report issues such as wrong answers or offensive content.
-                </CardDescription>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={escalationConfig.enabled}
-                onClick={() => setEscalationConfig(prev => ({ ...prev, enabled: !prev.enabled }))}
-                className={cn(
-                  'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                  escalationConfig.enabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
-                )}
-              >
-                <span
+      {activeSection === 'feedback' && (
+        <div className="space-y-6">
+          {/* Feedback Follow-Up */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <ThumbsDown className="w-5 h-5" />
+                    Feedback Follow-Up
+                  </CardTitle>
+                  <CardDescription>
+                    When a visitor gives a thumbs-down, ask them why with a quick follow-up prompt.
+                  </CardDescription>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={feedbackConfig.follow_up_enabled}
+                  onClick={() => setValue('feedbackConfig', { ...feedbackConfig, follow_up_enabled: !feedbackConfig.follow_up_enabled }, { shouldDirty: true })}
                   className={cn(
-                    'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                    escalationConfig.enabled ? 'translate-x-6' : 'translate-x-1'
+                    'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                    feedbackConfig.follow_up_enabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
                   )}
-                />
-              </button>
-            </div>
-          </CardHeader>
-          {escalationConfig.enabled && (
-            <CardContent className="space-y-4">
-              <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
-                <div className="flex items-start gap-2">
-                  <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
-                    <p>
-                      A flag button will appear in the chat widget header, allowing visitors to report wrong answers, offensive content, or other issues.
-                    </p>
-                    <p>
-                      Reports are tracked in the <strong>Reports</strong> tab. To let visitors transfer to a live agent, enable <strong>Live Handoff</strong> separately.
+                >
+                  <span
+                    className={cn(
+                      'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                      feedbackConfig.follow_up_enabled ? 'translate-x-6' : 'translate-x-1'
+                    )}
+                  />
+                </button>
+              </div>
+            </CardHeader>
+            {feedbackConfig.follow_up_enabled && (
+              <CardContent>
+                <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
+                  <div className="flex items-start gap-2">
+                    <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-blue-800 dark:text-blue-300">
+                      After a thumbs-down, visitors can select a reason: <strong>Incorrect info</strong>, <strong>Not relevant</strong>, <strong>Too vague</strong>, or <strong>Other</strong>. Reasons are stored with the feedback rating.
                     </p>
                   </div>
                 </div>
+              </CardContent>
+            )}
+          </Card>
+
+          {/* Issue Reporting */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Flag className="w-5 h-5" />
+                    Issue Reporting
+                  </CardTitle>
+                  <CardDescription>
+                    Allow visitors to report wrong answers, offensive content, or other issues via a flag button.
+                  </CardDescription>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={escalationConfig.enabled}
+                  onClick={() => setValue('escalationConfig', { ...escalationConfig, enabled: !escalationConfig.enabled }, { shouldDirty: true })}
+                  className={cn(
+                    'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                    escalationConfig.enabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                      escalationConfig.enabled ? 'translate-x-6' : 'translate-x-1'
+                    )}
+                  />
+                </button>
               </div>
-            </CardContent>
-          )}
-        </Card>
+            </CardHeader>
+            {escalationConfig.enabled && (
+              <CardContent>
+                <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
+                  <div className="flex items-start gap-2">
+                    <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-blue-800 dark:text-blue-300">
+                      A flag button appears in the widget header and on each message. Reports are tracked in the <strong>Reports</strong> tab. For live agent transfers, enable <strong>Live Handoff</strong> separately.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+        </div>
       )}
 
       {activeSection === 'handoff' && (
@@ -1323,6 +1497,9 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 <CardTitle className="flex items-center gap-2">
                   <Headphones className="w-5 h-5" />
                   Live Handoff
+                  <Tooltip content="When enabled, visitors see a headset icon in the chat widget. Clicking it sends a handoff request that agents can pick up from the Agent Console or via Telegram." side="right">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
                 </CardTitle>
                 <CardDescription>
                   Let visitors request a transfer to a human agent. A headset icon will appear in the chat widget.
@@ -1332,7 +1509,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 type="button"
                 role="switch"
                 aria-checked={liveHandoffConfig.enabled}
-                onClick={() => setLiveHandoffConfig(prev => ({ ...prev, enabled: !prev.enabled }))}
+                onClick={() => setValue('liveHandoffConfig', { ...liveHandoffConfig, enabled: !liveHandoffConfig.enabled }, { shouldDirty: true })}
                 className={cn(
                   'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0',
                   liveHandoffConfig.enabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
@@ -1351,9 +1528,14 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
           <CardContent className="space-y-4">
             {/* Handoff timeout */}
             <div>
-              <Label htmlFor="handoff-timeout-live" className="text-sm font-medium">
-                Handoff Inactivity Timeout
-              </Label>
+              <div className="flex items-center gap-1.5">
+                <Label htmlFor="handoff-timeout-live" className="text-sm font-medium">
+                  Handoff Inactivity Timeout
+                </Label>
+                <Tooltip content="Once a visitor requests a handoff, if they don't send another message within this many minutes the handoff is automatically closed and the AI resumes. Set to 0 to keep handoffs open indefinitely until an agent resolves them." side="right">
+                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                </Tooltip>
+              </div>
               <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5 mb-2">
                 Auto-close conversations after visitor inactivity. Set to 0 to disable.
               </p>
@@ -1364,10 +1546,10 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   min={0}
                   max={30}
                   value={liveHandoffConfig.handoff_timeout_minutes ?? 5}
-                  onChange={(e) => setLiveHandoffConfig(prev => ({
-                    ...prev,
+                  onChange={(e) => setValue('liveHandoffConfig', {
+                    ...liveHandoffConfig,
                     handoff_timeout_minutes: Math.max(0, Math.min(30, parseInt(e.target.value) || 0)),
-                  }))}
+                  }, { shouldDirty: true })}
                   className="w-20"
                 />
                 <span className="text-sm text-secondary-500">minutes</span>
@@ -1377,7 +1559,12 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
             {/* Require agent online */}
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-sm font-medium">Require Agent Online</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label className="text-sm font-medium">Require Agent Online</Label>
+                  <Tooltip content="When on, the handoff button only appears if at least one agent is online in the Agent Console or if Telegram is configured. When off, visitors can always request a handoff — but they may wait if no one is available." side="right">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </div>
                 <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">
                   Only show the handoff button when an agent is online in the Agent Console or Telegram is configured. Turn off to always show it.
                 </p>
@@ -1386,7 +1573,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 type="button"
                 role="switch"
                 aria-checked={liveHandoffConfig.require_agent_online !== false}
-                onClick={() => setLiveHandoffConfig(prev => ({ ...prev, require_agent_online: prev.require_agent_online === false ? true : false }))}
+                onClick={() => setValue('liveHandoffConfig', { ...liveHandoffConfig, require_agent_online: liveHandoffConfig.require_agent_online === false ? true : false }, { shouldDirty: true })}
                 className={cn(
                   'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0',
                   liveHandoffConfig.require_agent_online !== false ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
@@ -1449,7 +1636,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   role="switch"
                   aria-label="Enable Telegram notifications for handoff requests"
                   aria-checked={telegramConfig.enabled}
-                  onClick={() => setTelegramConfig(prev => ({ ...prev, enabled: !prev.enabled }))}
+                  onClick={() => setValue('telegramConfig', { ...telegramConfig, enabled: !telegramConfig.enabled }, { shouldDirty: true })}
                   className={cn(
                     'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0',
                     telegramConfig.enabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
@@ -1484,42 +1671,51 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
 
                   {/* Bot Token */}
                   <div className="space-y-2">
-                    <Label htmlFor="telegram-bot-token">Bot Token</Label>
+                    <div className="flex items-center gap-1.5">
+                      <Label htmlFor="telegram-bot-token">Bot Token</Label>
+                      <Tooltip content="The API token for your Telegram bot. Create one by messaging @BotFather on Telegram and using the /newbot command. It looks like 123456:ABC-DEF..." side="right">
+                        <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                      </Tooltip>
+                    </div>
                     <Input
                       id="telegram-bot-token"
                       type="password"
                       placeholder="Paste your Telegram bot token"
                       value={telegramConfig.bot_token || ''}
-                      onChange={(e) => setTelegramConfig(prev => ({ ...prev, bot_token: e.target.value }))}
+                      onChange={(e) => setValue('telegramConfig', { ...telegramConfig, bot_token: e.target.value }, { shouldDirty: true })}
                     />
-                    <p className="text-xs text-secondary-500 dark:text-secondary-400">
-                      Get this from @BotFather on Telegram
-                    </p>
                   </div>
 
                   {/* Chat ID */}
                   <div className="space-y-2">
-                    <Label htmlFor="telegram-chat-id">Support Group Chat ID</Label>
+                    <div className="flex items-center gap-1.5">
+                      <Label htmlFor="telegram-chat-id">Support Group Chat ID</Label>
+                      <Tooltip content="The numeric ID of the Telegram group where handoff notifications are sent. To find it: add @userinfobot to your group and it will reply with the chat ID. Group IDs usually start with -100." side="right">
+                        <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                      </Tooltip>
+                    </div>
                     <Input
                       id="telegram-chat-id"
                       placeholder="-1001234567890"
                       value={telegramConfig.chat_id || ''}
-                      onChange={(e) => setTelegramConfig(prev => ({ ...prev, chat_id: e.target.value }))}
+                      onChange={(e) => setValue('telegramConfig', { ...telegramConfig, chat_id: e.target.value }, { shouldDirty: true })}
                     />
-                    <p className="text-xs text-secondary-500 dark:text-secondary-400">
-                      The Telegram group where handoff messages will be sent
-                    </p>
                   </div>
 
                   {/* Webhook Secret (optional) */}
                   <div className="space-y-2">
-                    <Label htmlFor="telegram-webhook-secret">Webhook Secret (optional)</Label>
+                    <div className="flex items-center gap-1.5">
+                      <Label htmlFor="telegram-webhook-secret">Webhook Secret (optional)</Label>
+                      <Tooltip content="An optional secret token used to verify that incoming webhook requests genuinely come from Telegram. If set, Telegram includes it in a header that the server validates. Recommended for production." side="right">
+                        <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                      </Tooltip>
+                    </div>
                     <Input
                       id="telegram-webhook-secret"
                       type="password"
                       placeholder="Optional secret for webhook verification"
                       value={telegramConfig.webhook_secret || ''}
-                      onChange={(e) => setTelegramConfig(prev => ({ ...prev, webhook_secret: e.target.value }))}
+                      onChange={(e) => setValue('telegramConfig', { ...telegramConfig, webhook_secret: e.target.value }, { shouldDirty: true })}
                     />
                   </div>
 
@@ -1577,8 +1773,14 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
       )}
 
         {/* Sticky bottom save bar */}
-        <div className="sticky bottom-0 pt-4 pb-6 mt-6 flex justify-end">
-          <Button onClick={handleSave} disabled={saving}>
+        <div className="sticky bottom-0 pt-4 pb-6 mt-6 flex items-center justify-end gap-3">
+          {isDirty && (
+            <span className="flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400">
+              <AlertTriangle className="w-4 h-4" />
+              Unsaved changes
+            </span>
+          )}
+          <Button onClick={onSubmit} disabled={saving}>
             {saving ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             ) : (
@@ -1612,7 +1814,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               variant="outline"
               onClick={() => {
                 if (pendingLanguage) {
-                  setLanguage(pendingLanguage);
+                  setValue('language', pendingLanguage, { shouldDirty: true });
                   if (pendingLanguage !== 'en') {
                     setShowGeneralWarning(true);
                     setShowPreChatWarning(true);
@@ -1669,11 +1871,11 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   };
                   
                   // Update state
-                  setLanguage(newLanguage);
-                  setWelcomeMessage(newWelcomeMessage);
-                  setPlaceholderText(newPlaceholderText);
-                  setPreChatConfig(newPreChatConfig);
-                  setPostChatConfig(newPostChatConfig);
+                  setValue('language', newLanguage, { shouldDirty: true });
+                  setValue('welcomeMessage', newWelcomeMessage, { shouldDirty: true });
+                  setValue('placeholderText', newPlaceholderText, { shouldDirty: true });
+                  setValue('preChatConfig', newPreChatConfig, { shouldDirty: true });
+                  setValue('postChatConfig', newPostChatConfig, { shouldDirty: true });
                   setShowGeneralWarning(false);
                   setShowPreChatWarning(false);
                   setShowPostChatWarning(false);
@@ -1681,35 +1883,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   setPendingLanguage(null);
                   
                   // Auto-save to immediately apply language change
-                  setSaving(true);
-                  try {
-                    const response = await fetch(`/api/chatbots/${id}`, {
-                      method: 'PATCH',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        name: name.trim(),
-                        description: description.trim() || null,
-                        welcome_message: newWelcomeMessage.trim(),
-                        system_prompt: systemPrompt.trim(),
-                        enable_prompt_protection: enablePromptProtection,
-                        placeholder_text: newPlaceholderText.trim(),
-                        language: newLanguage,
-                        memory_enabled: memoryEnabled,
-                        memory_days: memoryDays,
-                        session_ttl_hours: sessionTtlHours,
-                        pre_chat_form_config: newPreChatConfig,
-                        post_chat_survey_config: newPostChatConfig,
-                      }),
-                    });
-                    if (!response.ok) throw new Error('Failed to save language change');
-                    const data = await response.json();
-                    setChatbot(data.data.chatbot);
-                    toast.success('Language updated successfully');
-                  } catch (err) {
-                    toast.error(err instanceof Error ? err.message : 'Failed to save language change');
-                  } finally {
-                    setSaving(false);
-                  }
+                  await handleSave();
                 }
               }}
             >
@@ -1733,19 +1907,19 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
         }}
         onApply={(updates) => {
           if (updates.welcomeMessage !== undefined) {
-            setWelcomeMessage(updates.welcomeMessage);
+            setValue('welcomeMessage', updates.welcomeMessage, { shouldDirty: true });
             setShowGeneralWarning(false);
           }
           if (updates.placeholderText !== undefined) {
-            setPlaceholderText(updates.placeholderText);
+            setValue('placeholderText', updates.placeholderText, { shouldDirty: true });
             setShowGeneralWarning(false);
           }
           if (updates.preChatConfig !== undefined) {
-            setPreChatConfig(updates.preChatConfig);
+            setValue('preChatConfig', updates.preChatConfig, { shouldDirty: true });
             setShowPreChatWarning(false);
           }
           if (updates.postChatConfig !== undefined) {
-            setPostChatConfig(updates.postChatConfig);
+            setValue('postChatConfig', updates.postChatConfig, { shouldDirty: true });
             setShowPostChatWarning(false);
           }
         }}
@@ -1755,6 +1929,24 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
           await handleSave();
         }}
       />
+
+      {/* Sticky save bar at bottom */}
+      <div className="sticky bottom-0 z-10 -mx-6 px-6 py-3 bg-white/95 dark:bg-secondary-900/95 backdrop-blur border-t border-secondary-200 dark:border-secondary-700 flex items-center justify-end gap-3 lg:hidden">
+        {isDirty && (
+          <span className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+            <AlertTriangle className="w-3.5 h-3.5" />
+            Unsaved
+          </span>
+        )}
+        <Button onClick={onSubmit} disabled={saving} size="sm">
+          {saving ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Save className="w-4 h-4 mr-2" />
+          )}
+          {saving ? 'Saving...' : 'Save Changes'}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -1874,7 +2066,12 @@ function PreChatFormEditor({ config, onChange, language, shouldShowWarning, onOp
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="form_title">Form Title</Label>
+            <div className="flex items-center gap-1.5">
+              <Label htmlFor="form_title">Form Title</Label>
+              <Tooltip content="Heading shown at the top of the pre-chat form. Keep it short and welcoming." side="right">
+                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+              </Tooltip>
+            </div>
             <Input
               id="form_title"
               value={config.title}
@@ -1884,7 +2081,12 @@ function PreChatFormEditor({ config, onChange, language, shouldShowWarning, onOp
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="form_description">Form Description</Label>
+            <div className="flex items-center gap-1.5">
+              <Label htmlFor="form_description">Form Description</Label>
+              <Tooltip content="Subtext displayed below the title. Explain why you're collecting this information to improve completion rates." side="right">
+                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+              </Tooltip>
+            </div>
             <Input
               id="form_description"
               value={config.description}
@@ -1895,7 +2097,12 @@ function PreChatFormEditor({ config, onChange, language, shouldShowWarning, onOp
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label>Form Fields</Label>
+              <div className="flex items-center gap-1.5">
+                <Label>Form Fields</Label>
+                <Tooltip content="Fields the visitor must fill out before chatting. Collected data is passed to the AI as context and saved to Leads. Use {{field_label}} in your system prompt to reference field values." side="right">
+                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                </Tooltip>
+              </div>
               <Button variant="outline" size="sm" onClick={addField}>
                 <Plus className="w-4 h-4 mr-1" />
                 Add Field
@@ -1946,7 +2153,12 @@ function PreChatFormEditor({ config, onChange, language, shouldShowWarning, onOp
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1">
-                    <Label className="text-xs">Field Type</Label>
+                    <div className="flex items-center gap-1">
+                      <Label className="text-xs">Field Type</Label>
+                      <Tooltip content="Text: single line input. Email: validated email field. Phone: phone number. Select: dropdown with predefined options. Textarea: multi-line free text." side="top">
+                        <Info className="w-3 h-3 text-secondary-400 cursor-help" />
+                      </Tooltip>
+                    </div>
                     <select
                       value={field.type}
                       onChange={(e) => updateField(field.id, { type: e.target.value as PreChatFieldType })}
@@ -1986,6 +2198,9 @@ function PreChatFormEditor({ config, onChange, language, shouldShowWarning, onOp
                         className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
                       />
                       <span className="text-sm text-secondary-700 dark:text-secondary-300">Required</span>
+                      <Tooltip content="When checked, the visitor cannot start chatting without filling in this field." side="top">
+                        <Info className="w-3 h-3 text-secondary-400 cursor-help" />
+                      </Tooltip>
                     </label>
                   </div>
                 </div>
@@ -1994,7 +2209,12 @@ function PreChatFormEditor({ config, onChange, language, shouldShowWarning, onOp
           </div>
 
           <div className="space-y-2 max-w-xs">
-            <Label htmlFor="submit_button">Submit Button Text</Label>
+            <div className="flex items-center gap-1.5">
+              <Label htmlFor="submit_button">Submit Button Text</Label>
+              <Tooltip content="The label on the button visitors click to submit the form and enter the chat." side="right">
+                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+              </Tooltip>
+            </div>
             <Input
               id="submit_button"
               value={config.submitButtonText}

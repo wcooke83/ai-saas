@@ -41,7 +41,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     let newMessages: Array<{ id: string; content: string; agent_name: string | null; created_at: string }> = [];
     const since = req.nextUrl.searchParams.get('since');
     if (since && handoff) {
-      const supabase = createAdminClient() as any;
+      const supabase = createAdminClient();
       const { data: msgs } = await supabase
         .from('messages')
         .select('id, content, metadata, created_at')

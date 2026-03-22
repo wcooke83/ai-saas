@@ -19,9 +19,9 @@ interface RouteParams {
 
 interface HistoryMessage {
   id: string;
-  role: 'user' | 'assistant' | 'system';
+  role: string;
   content: string;
-  created_at: string;
+  created_at: string | null;
   conversation_id: string;
 }
 
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const supabase = createAdminClient() as any;
+    const supabase = createAdminClient();
 
     // Find conversations for this visitor + chatbot
     let convoQuery = supabase

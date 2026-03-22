@@ -41,6 +41,7 @@ const updateChatbotSchema = z.object({
   proactive_messages_config: z.record(z.unknown()).optional(),
   transcript_config: z.record(z.unknown()).optional(),
   escalation_config: z.record(z.unknown()).optional(),
+  feedback_config: z.record(z.unknown()).optional(),
   live_handoff_config: z.record(z.unknown()).optional(),
   telegram_config: z.record(z.unknown()).optional(),
   live_fetch_threshold: z.number().min(0.5).max(0.95).optional(),

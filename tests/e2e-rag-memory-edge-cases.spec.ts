@@ -92,8 +92,7 @@ test.describe('33. RAG, Memory & AI Edge Cases', () => {
       await expect(page.locator('.chat-widget-messages')).toBeVisible();
     });
 
-    // TODO: Widget loading intermittently times out in CI-like sequential runs
-    test.skip('RAG-005: Prompt injection sanitization in user context', async ({ page }) => {
+    test('RAG-005: Prompt injection sanitization in user context', async ({ page }) => {
       test.setTimeout(90000);
       await openWidget(page);
       await page.waitForSelector('.chat-widget-messages', { timeout: 15000 });

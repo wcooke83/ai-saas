@@ -13,13 +13,15 @@ export interface SlackIntegration {
   id: string;
   chatbot_id: string;
   team_id: string;
-  team_name: string;
+  team_name: string | null;
   bot_token: string;
-  app_id: string;
-  channel_ids: string[];
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  bot_user_id: string | null;
+  channel_ids: string[] | null;
+  is_active: boolean | null;
+  mention_only: boolean | null;
+  user_id: string;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 const SLACK_CLIENT_ID = process.env.SLACK_CLIENT_ID || '';
@@ -99,9 +101,9 @@ export async function saveSlackIntegration(
   teamId: string,
   teamName: string,
   botToken: string,
-  appId: string
+  userId: string
 ): Promise<SlackIntegration> {
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
 
   // Check if integration already exists
   const { data: existing } = await supabase
@@ -137,7 +139,7 @@ export async function saveSlackIntegration(
       team_id: teamId,
       team_name: teamName,
       bot_token: botToken,
-      app_id: appId,
+      user_id: userId,
       channel_ids: [],
     })
     .select()
@@ -151,7 +153,7 @@ export async function saveSlackIntegration(
  * Get Slack integration for a chatbot
  */
 export async function getSlackIntegration(chatbotId: string): Promise<SlackIntegration | null> {
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
 
   const { data, error } = await supabase
     .from('slack_integrations')
@@ -168,7 +170,7 @@ export async function getSlackIntegration(chatbotId: string): Promise<SlackInteg
  * Delete Slack integration
  */
 export async function deleteSlackIntegration(chatbotId: string): Promise<void> {
-  const supabase = createAdminClient() as any;
+  const supabase = createAdminClient();
 
   const { error } = await supabase
     .from('slack_integrations')

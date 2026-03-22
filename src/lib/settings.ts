@@ -19,6 +19,7 @@ export interface AppSettings {
   multiplier_openai: number;
   multiplier_local: number;
   embedding_model_id: string | null; // Preferred model for embeddings
+  chat_debug_mode: boolean; // When true, logs full prompt sources for every chat message
   updated_at: string;
   updated_by: string | null;
 }
@@ -134,6 +135,14 @@ export async function updateAppSettings(
     console.error('Failed to update app settings:', error);
     return null;
   }
+}
+
+/**
+ * Check if chat debug mode is enabled (uses cached settings)
+ */
+export async function isChatDebugMode(): Promise<boolean> {
+  const settings = await getAppSettings();
+  return settings?.chat_debug_mode ?? false;
 }
 
 /**
