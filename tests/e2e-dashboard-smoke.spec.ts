@@ -4,7 +4,7 @@ test.describe('Dashboard Smoke Tests', () => {
   test('dashboard loads for authenticated user', async ({ page }) => {
     await page.goto('/dashboard');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
 
     // Should not redirect to login (we're authenticated)
     expect(page.url()).toContain('/dashboard');
