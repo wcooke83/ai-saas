@@ -169,10 +169,20 @@ export async function parseBody<T>(
 ): Promise<T> {
   let body: unknown;
   try {
-    body = await req.json();
-  } catch (jsonError) {
-    console.error('[parseBody] Failed to parse JSON:', jsonError instanceof Error ? jsonError.message : jsonError);
-    console.error('[parseBody] Content-Type:', req.headers.get('content-type'));
+    // Clone the request so we can read the raw text on failure
+    const cloned = req.clone();
+    try {
+      body = await req.json();
+    } catch (jsonError) {
+      const rawText = await cloned.text().catch(() => '<unreadable>');
+      console.error('[parseBody] Failed to parse JSON:', jsonError instanceof Error ? jsonError.message : jsonError);
+      console.error('[parseBody] Content-Type:', req.headers.get('content-type'));
+      console.error('[parseBody] Method:', req.method, 'URL:', req.nextUrl.pathname);
+      console.error('[parseBody] Body length:', rawText.length, 'Body preview:', rawText.slice(0, 200));
+      throw new APIError('Invalid JSON body', 400, 'INVALID_JSON');
+    }
+  } catch (e) {
+    if (e instanceof APIError) throw e;
     throw new APIError('Invalid JSON body', 400, 'INVALID_JSON');
   }
   try {

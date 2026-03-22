@@ -11,7 +11,8 @@ import { z } from 'zod';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generate, generateStream, createStreamingResponse } from '@/lib/ai/provider';
 import type { ImageInput } from '@/lib/ai/provider';
-import { successResponse, errorResponse, APIError, parseBody } from '@/lib/api/utils';
+import { successResponse, errorResponse, APIError, parseBody, getClientIP } from '@/lib/api/utils';
+import { getChatbotCorsOrigin } from '@/lib/api/cors';
 import {
   getChatbot,
   getOrCreateConversation,
@@ -27,6 +28,8 @@ import {
   buildRAGPrompt,
   buildSystemPrompt,
   formatConversationHistory,
+  DEFAULT_LIVE_FETCH_THRESHOLD,
+  type StageSpan,
 } from '@/lib/chatbots/rag';
 import { detectLanguageSwitch, getLanguageName } from '@/lib/chatbots/translations';
 import {
@@ -35,7 +38,7 @@ import {
   extractAndStoreMemory,
   summarizeConversation,
 } from '@/lib/chatbots/memory';
-import { getUserPreferredModel } from '@/lib/settings';
+import { getUserPreferredModel, isChatDebugMode } from '@/lib/settings';
 import { logAPICall } from '@/lib/api/logging';
 import type { Chatbot, Message, Attachment, FileUploadConfig } from '@/lib/chatbots/types';
 import { DEFAULT_FILE_UPLOAD_CONFIG, FILE_TYPE_MAP } from '@/lib/chatbots/types';
@@ -44,8 +47,6 @@ import { analyzeConversationSentiment, updateVisitorLoyalty } from '@/lib/chatbo
 import type { AIModelWithProvider } from '@/types/ai-models';
 
 // ── Per-stage timing helper ──────────────────────────────────────────
-interface StageSpan { start: number; end: number }
-
 function createStageTracker(t0: number) {
   const stages: Record<string, StageSpan> = {};
   const pending: Record<string, number> = {};
@@ -129,41 +130,27 @@ function savePerfLog(supabase: any, data: PerfLogData): void {
     });
 }
 
-// ── In-memory sliding-window rate limiter ──────────────────────────
-const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
-const RATE_LIMIT_MAX = 30; // requests per window per IP
+// Rate limiting constants
+const CHAT_RATE_LIMIT = 30;       // requests per window per IP+chatbot
+const CHAT_RATE_WINDOW_SEC = 60;  // 1 minute
 
-interface RateLimitEntry {
-  timestamps: number[];
+/**
+ * Distributed rate limiting via Supabase RPC.
+ * Falls open (allows request) if the check fails.
+ */
+async function isRateLimited(key: string, maxRequests: number = 30, windowSeconds: number = 60): Promise<boolean> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc('check_rate_limit', {
+    p_key: key,
+    p_max_requests: maxRequests,
+    p_window_seconds: windowSeconds,
+  });
+  if (error) {
+    console.warn('Rate limit check failed:', error);
+    return false; // Fail open if rate limiting is unavailable
+  }
+  return !data; // RPC returns true if allowed, we return true if limited
 }
-
-const rateLimitMap = new Map<string, RateLimitEntry>();
-
-// Cleanup stale entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitMap) {
-    entry.timestamps = entry.timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
-    if (entry.timestamps.length === 0) rateLimitMap.delete(key);
-  }
-}, 5 * 60_000);
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  let entry = rateLimitMap.get(ip);
-  if (!entry) {
-    entry = { timestamps: [] };
-    rateLimitMap.set(ip, entry);
-  }
-  // Drop timestamps outside the window
-  entry.timestamps = entry.timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
-  if (entry.timestamps.length >= RATE_LIMIT_MAX) {
-    return false; // rate limited
-  }
-  entry.timestamps.push(now);
-  return true;
-}
-// ────────────────────────────────────────────────────────────────────
 
 /**
  * Create or update the email→visitor_id mapping in conversation_memory_emails.
@@ -231,9 +218,13 @@ interface RouteParams {
 }
 
 export async function POST(req: NextRequest, { params }: RouteParams) {
-  // Rate limit by IP
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-  if (!checkRateLimit(ip)) {
+  const { chatbotId } = await params;
+  let chatbotUserId: string | null = null;
+
+  // Rate limit by IP + chatbotId (distributed via Supabase RPC)
+  const ip = getClientIP(req);
+  const rateLimitKey = `chat:${ip}:${chatbotId}`;
+  if (await isRateLimited(rateLimitKey, CHAT_RATE_LIMIT, CHAT_RATE_WINDOW_SEC)) {
     return new Response(
       JSON.stringify({ success: false, error: 'Too many requests. Please try again later.' }),
       {
@@ -241,14 +232,11 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
-          'Retry-After': '60',
+          'Retry-After': String(CHAT_RATE_WINDOW_SEC),
         },
       }
     );
   }
-
-  const { chatbotId } = await params;
-  let chatbotUserId: string | null = null;
 
   try {
     const _t0 = Date.now();
@@ -261,11 +249,11 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const _stages = createStageTracker(_t0);
 
     // Get chatbot (using admin client to bypass RLS for public access)
-    const supabase = createAdminClient() as any;
+    const supabase = createAdminClient();
     _stages.start('chatbot_loaded');
     const { data: chatbotData, error: chatbotError } = await supabase
       .from('chatbots')
-      .select('id, user_id, is_published, status, monthly_message_limit, messages_this_month, language, file_upload_config, memory_enabled, memory_days, model, temperature, max_tokens, system_prompt, enable_prompt_protection, live_fetch_threshold')
+      .select('id, name, user_id, is_published, status, monthly_message_limit, messages_this_month, language, file_upload_config, memory_enabled, memory_days, model, temperature, max_tokens, system_prompt, enable_prompt_protection, live_fetch_threshold, allowed_origins')
       .eq('id', chatbotId)
       .single();
 
@@ -273,8 +261,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       throw APIError.notFound('Chatbot not found');
     }
 
-    const chatbot = chatbotData as Chatbot;
+    const chatbot = chatbotData as unknown as Chatbot;
     chatbotUserId = chatbot.user_id;
+    const corsOrigin = getChatbotCorsOrigin(chatbot.allowed_origins, req.headers.get('origin'));
     _perf('chatbot_loaded');
     _stages.end('chatbot_loaded');
     _stages.start('validate_and_parse');
@@ -292,7 +281,8 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       chatbot.monthly_message_limit > 0 &&
       chatbot.messages_this_month >= chatbot.monthly_message_limit
     ) {
-      throw APIError.forbidden('Chatbot has reached its monthly message limit');
+      console.warn(`[Chat:Limit] Chatbot "${chatbot.name || chatbotId}" hit monthly message limit — model: ${chatbot.model || 'default'}, used: ${chatbot.messages_this_month}/${chatbot.monthly_message_limit}`);
+      throw APIError.usageLimitReached('Chatbot has reached its monthly message limit');
     }
 
     // Optional API key authentication (for API access)
@@ -379,7 +369,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
           status: 200,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': corsOrigin,
           },
         }
       );
@@ -410,7 +400,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
           status: 200,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': corsOrigin,
           },
         }
       );
@@ -627,7 +617,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
           status: 200,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': corsOrigin,
           },
         }
       );
@@ -653,6 +643,27 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       documentText || undefined
     );
 
+    // Debug: log all prompt sources so operators can diagnose unexpected responses
+    // Controlled by chat_debug_mode in admin settings (cached, no extra DB call)
+    const debugMode = await isChatDebugMode();
+    if (debugMode) console.log(`[Chat:Debug] Prompt sources for "${input.message.slice(0, 50)}":`, JSON.stringify({
+      hasMemory: !!memoryContext,
+      memoryFacts: existingMemory?.key_facts?.length ?? 0,
+      memoryPreview: memoryContext?.slice(0, 200) ?? null,
+      hasPreChatInfo: !!preChatInfo,
+      preChatKeys: preChatInfo ? Object.keys(preChatInfo) : [],
+      hasUserData: !!(input.user_data && Object.keys(input.user_data).length > 0),
+      userDataKeys: input.user_data ? Object.keys(input.user_data) : [],
+      hasUserContext: !!(input.user_context && Object.keys(input.user_context).length > 0),
+      userContextKeys: input.user_context ? Object.keys(input.user_context) : [],
+      userContextPreview: input.user_context ? JSON.stringify(input.user_context).slice(0, 300) : null,
+      ragChunks: ragContext.chunks.length,
+      ragConfidence: ragContext.confidence,
+      ragContextPreview: ragContext.contextText?.slice(0, 200) ?? null,
+      historyLength: messages.length,
+      systemPromptLength: systemPrompt.length,
+    }));
+
     // Model mapping (used as fallback when no user preference)
     const modelMap: Record<string, 'balanced' | 'powerful' | 'fast'> = {
       'claude-3-haiku-20240307': 'fast',
@@ -660,6 +671,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       'claude-sonnet-4-20250514': 'powerful',
     };
     const modelLevel = modelMap[chatbot.model] || 'balanced';
+
+    // Build multi-turn conversation messages (last 10 turns)
+    const conversationMessages = formatConversationHistory(messages.slice(-10));
 
     _perf('prompts_built');
     _stages.end('prompts_built');
@@ -676,6 +690,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         maxTokens: chatbot.max_tokens,
         specificModel: userPreferredModel || undefined,
         images: aiImages.length > 0 ? aiImages : undefined,
+        conversationMessages,
       });
 
       const encoder = new TextEncoder();
@@ -724,9 +739,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
                 .catch(() => {});
             }
 
-            // Fire-and-forget: auto-sentiment analysis (after 4+ messages in conversation)
+            // Fire-and-forget: auto-sentiment analysis (every 5th message after 4+)
             const totalMessages = messages.length + 2; // existing + user + assistant
-            if (totalMessages >= 4) {
+            if (totalMessages >= 4 && totalMessages % 5 === 0) {
               const allMsgs = [...messages, { role: 'user', content: input.message } as Message, { role: 'assistant', content: fullResponse } as Message];
               analyzeConversationSentiment(allMsgs)
                 .then(async (result) => {
@@ -769,7 +784,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
               rag_chunks_count: ragContext.chunks.length,
               rag_confidence: ragContext.confidence,
               rag_timings: ragContext.perfTimings,
-              live_fetch_triggered: ragContext.pinnedUrls.length > 0 && ragContext.confidence < ((chatbot as any).live_fetch_threshold ?? 0.80),
+              live_fetch_triggered: ragContext.pinnedUrls.length > 0 && ragContext.confidence < (chatbot.live_fetch_threshold ?? DEFAULT_LIVE_FETCH_THRESHOLD),
               message_length: input.message.length,
               response_length: fullResponse.length,
               is_streaming: true,
@@ -781,10 +796,11 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
               controller.enqueue(encoder.encode(
                 JSON.stringify({ type: 'error', message: 'Failed to generate response' }) + '\n'
               ));
-            } catch { /* controller may already be closed */ }
-            controller.error(error);
-          } finally {
-            controller.close();
+              controller.close();
+            } catch {
+              // Enqueue failed — stream already closed/errored, signal error state
+              try { controller.error(error); } catch { /* already closed */ }
+            }
           }
         },
       });
@@ -792,9 +808,10 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       return new Response(stream, {
         headers: {
           'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
+          'Cache-Control': 'no-cache, no-transform',
           Connection: 'keep-alive',
-          'Access-Control-Allow-Origin': '*',
+          'X-Accel-Buffering': 'no',
+          'Access-Control-Allow-Origin': corsOrigin,
         },
       });
     }
@@ -812,6 +829,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       // Use user's preferred model if authenticated
       specificModel: userPreferredModel || undefined,
       images: aiImages.length > 0 ? aiImages : undefined,
+      conversationMessages,
     });
     const latencyMs = Date.now() - startTime;
     _stages.end('generate');
@@ -837,9 +855,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         .catch(() => {});
     }
 
-    // Fire-and-forget: auto-sentiment analysis (after 4+ messages in conversation)
+    // Fire-and-forget: auto-sentiment analysis (every 5th message after 4+)
     const totalMsgCount = messages.length + 2;
-    if (totalMsgCount >= 4) {
+    if (totalMsgCount >= 4 && totalMsgCount % 5 === 0) {
       const allMsgs = [...messages, { role: 'user', content: input.message } as Message, { role: 'assistant', content: result.content } as Message];
       analyzeConversationSentiment(allMsgs)
         .then(async (sentResult) => {
@@ -880,7 +898,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       rag_chunks_count: ragContext.chunks.length,
       rag_confidence: ragContext.confidence,
       rag_timings: ragContext.perfTimings,
-      live_fetch_triggered: ragContext.pinnedUrls.length > 0 && ragContext.confidence < ((chatbot as any).live_fetch_threshold ?? 0.80),
+      live_fetch_triggered: ragContext.pinnedUrls.length > 0 && ragContext.confidence < (chatbot.live_fetch_threshold ?? DEFAULT_LIVE_FETCH_THRESHOLD),
       message_length: input.message.length,
       response_length: result.content.length,
       is_streaming: false,
@@ -926,7 +944,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Origin': corsOrigin,
         },
       }
     );
@@ -951,11 +969,29 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 }
 
 // CORS preflight
-export async function OPTIONS() {
+export async function OPTIONS(req: NextRequest, { params }: RouteParams) {
+  const { chatbotId } = await params;
+  let corsOriginHeader = '*';
+  try {
+    const supabase = createAdminClient();
+    const { data } = await supabase
+      .from('chatbots')
+      .select('allowed_origins')
+      .eq('id', chatbotId)
+      .single();
+    if (data) {
+      corsOriginHeader = getChatbotCorsOrigin(
+        (data as any).allowed_origins,
+        req.headers.get('origin')
+      );
+    }
+  } catch {
+    // Fall through with wildcard
+  }
   return new Response(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': corsOriginHeader,
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Session-ID, X-Visitor-ID',
     },
