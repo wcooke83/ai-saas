@@ -28,6 +28,12 @@ export default defineConfig({
       },
     },
     {
+      name: 'e2e-public',
+      testMatch: /e2e-public-pages\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+      // No auth needed for public pages
+    },
+    {
       name: 'chromium',
       testIgnore: /e2e-.*\.(spec|setup)\.ts/,
       use: { ...devices['Desktop Chrome'] },

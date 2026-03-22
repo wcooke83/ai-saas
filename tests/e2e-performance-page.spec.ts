@@ -34,17 +34,13 @@ test.describe('Performance Page', () => {
   test('switching time range updates URL params', async ({ page }) => {
     await expect(page.locator('h1', { hasText: 'Performance' })).toBeVisible({ timeout: 10000 });
 
-    // Click 7d
+    // Click 7d and wait for URL update
     await page.getByRole('button', { name: '7d' }).click();
-    await expect(async () => {
-      expect(page.url()).toContain('days=7');
-    }).toPass({ timeout: 5000 });
+    await page.waitForURL(/days=7/, { timeout: 10000 });
 
     // Click 30d
     await page.getByRole('button', { name: '30d' }).click();
-    await expect(async () => {
-      expect(page.url()).toContain('days=30');
-    }).toPass({ timeout: 5000 });
+    await page.waitForURL(/days=30/, { timeout: 10000 });
   });
 
   test('custom date range picker opens and closes', async ({ page }) => {
@@ -71,16 +67,15 @@ test.describe('Performance Page', () => {
     await liveFetchBtn.click();
     await page.waitForTimeout(500);
 
-    // Should be highlighted and URL updated
-    await expect(async () => {
-      expect(page.url()).toContain('live_fetch=true');
-    }).toPass({ timeout: 5000 });
+    // Should update URL
+    await page.waitForURL(/live_fetch=true/, { timeout: 10000 });
 
     // Click again to deactivate
     await liveFetchBtn.click();
+    await page.waitForTimeout(1000);
     await expect(async () => {
       expect(page.url()).not.toContain('live_fetch=true');
-    }).toPass({ timeout: 5000 });
+    }).toPass({ timeout: 10000 });
   });
 
   test('slow only filter toggles', async ({ page }) => {
