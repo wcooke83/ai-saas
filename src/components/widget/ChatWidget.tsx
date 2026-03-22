@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, Fragment } from 'react';
-import { MessageSquare, X, Send, ThumbsUp, ThumbsDown, Loader2, MessageCircle, Paperclip, FileIcon, Download, XCircle, Mail, Check, Expand, Shrink } from 'lucide-react';
+import { MessageSquare, X, Send, ThumbsUp, ThumbsDown, Loader2, MessageCircle, Paperclip, FileIcon, Download, XCircle, Mail, Check, Expand, Shrink, RotateCcw, AlertCircle, Clock, ShieldOff } from 'lucide-react';
 import { createClient, type RealtimeChannel } from '@supabase/supabase-js';
-import type { WidgetConfig, Chatbot, PreChatFormConfig, PostChatSurveyConfig, PreChatFormField, ProactiveMessagesConfig, FileUploadConfig, Attachment, TranscriptConfig, EscalationConfig, LiveHandoffConfig } from '@/lib/chatbots/types';
+import type { WidgetConfig, Chatbot, PreChatFormConfig, PostChatSurveyConfig, PreChatFormField, ProactiveMessagesConfig, FileUploadConfig, Attachment, TranscriptConfig, EscalationConfig, FeedbackConfig, LiveHandoffConfig } from '@/lib/chatbots/types';
 import { getTranslations, translateDefault } from '@/lib/chatbots/translations';
 import { DEFAULT_PRE_CHAT_FORM_CONFIG, DEFAULT_POST_CHAT_SURVEY_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, FILE_TYPE_MAP } from '@/lib/chatbots/types';
 import type { FileUploadAllowedTypes } from '@/lib/chatbots/types';
@@ -141,7 +141,9 @@ interface CheckInAction {
   primary?: boolean;
 }
 
-interface Message {
+type ChatErrorType = 'rate_limit' | 'message_limit' | 'unavailable' | 'server_error';
+
+interface WidgetMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
@@ -150,6 +152,10 @@ interface Message {
   clickedAction?: string;
   attachments?: Attachment[];
   metadata?: Record<string, unknown>;
+  failed?: boolean;
+  errorType?: ChatErrorType;
+  errorMessage?: string;
+  retryAfter?: number;
 }
 
 type WidgetView = 'pre-chat-form' | 'verify-email' | 'chat' | 'survey' | 'survey-thanks' | 'report';
@@ -157,8 +163,15 @@ type WidgetView = 'pre-chat-form' | 'verify-email' | 'chat' | 'survey' | 'survey
 /**
  * Lightweight markdown-to-HTML renderer for chat bubbles.
  * Handles: **bold**, *italic*, line breaks, - bullet lists, numbered lists.
+ * Results are memoized by content string to avoid redundant work during streaming.
  */
+const markdownCache = new Map<string, string>();
+const MARKDOWN_CACHE_MAX = 500;
+
 function renderMarkdown(text: string): string {
+  const cached = markdownCache.get(text);
+  if (cached) return cached;
+
   // Escape HTML to prevent XSS
   let html = text
     .replace(/&/g, '&amp;')
@@ -226,6 +239,13 @@ function renderMarkdown(text: string): string {
   let output = result.join('');
   output = output.replace(/(<br\/>)+$/, '');
 
+  // Evict oldest entries when cache is full
+  if (markdownCache.size >= MARKDOWN_CACHE_MAX) {
+    const firstKey = markdownCache.keys().next().value;
+    if (firstKey !== undefined) markdownCache.delete(firstKey);
+  }
+  markdownCache.set(text, output);
+
   return output;
 }
 
@@ -240,15 +260,16 @@ interface ChatWidgetProps {
   proactiveMessagesConfig?: ProactiveMessagesConfig;
   transcriptConfig?: TranscriptConfig;
   escalationConfig?: EscalationConfig;
+  feedbackConfig?: FeedbackConfig;
   liveHandoffConfig?: LiveHandoffConfig;
-  agentsAvailable?: boolean | 'check';
+  agentsAvailable?: boolean;
   memoryEnabled?: boolean;
   sessionTtlHours?: number;
   userData?: Record<string, string> | null;
   userContext?: Record<string, unknown> | null;
 }
 
-export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, postChatSurveyConfig, language = 'en', fileUploadConfig, proactiveMessagesConfig, transcriptConfig, escalationConfig, liveHandoffConfig, agentsAvailable = false, memoryEnabled = false, sessionTtlHours, userData, userContext }: ChatWidgetProps) {
+export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, postChatSurveyConfig, language = 'en', fileUploadConfig, proactiveMessagesConfig, transcriptConfig, escalationConfig, feedbackConfig, liveHandoffConfig, agentsAvailable = false, memoryEnabled = false, sessionTtlHours, userData, userContext }: ChatWidgetProps) {
   const [activeLanguage, setActiveLanguage] = useState(language);
   const t = getTranslations(activeLanguage);
   const tRef = useRef(t);
@@ -268,7 +289,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileMode, setIsMobileMode] = useState(false);
   const [showButton, setShowButton] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<WidgetMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isInIframe, setIsInIframe] = useState(false);
@@ -291,7 +312,13 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
   const uploadConfig = fileUploadConfig || DEFAULT_FILE_UPLOAD_CONFIG;
   const [pendingAttachments, setPendingAttachments] = useState<Attachment[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [messageFeedback, setMessageFeedback] = useState<Record<string, boolean | null>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Chat disabled state (message limit reached or chatbot unavailable)
+  const [chatDisabled, setChatDisabled] = useState<'message_limit' | 'unavailable' | null>(null);
 
   // Transcript state
   const transcriptEnabled = transcriptConfig?.enabled === true;
@@ -301,6 +328,11 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
   const [transcriptError, setTranscriptError] = useState('');
   const [showTranscriptInput, setShowTranscriptInput] = useState(false);
   const pendingSurveyAfterTranscript = useRef(false);
+
+  // Feedback follow-up state
+  const feedbackFollowUpEnabled = feedbackConfig?.follow_up_enabled === true;
+  const [feedbackFollowUpId, setFeedbackFollowUpId] = useState<string | null>(null);
+  const [feedbackReasonSubmitting, setFeedbackReasonSubmitting] = useState(false);
 
   // Escalation / Report state
   const escalationEnabled = escalationConfig?.enabled === true;
@@ -317,27 +349,39 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
 
   // Handoff state
   const [handoffActive, setHandoffActive] = useState(persistedSession?.handoffActive || false);
-  // Poll agent presence when config says 'check' (agent console mode)
-  // Agent presence: initial value comes from config (no extra round trip),
-  // then poll for updates every 30s if live handoff is enabled
-  const [polledAgentsAvailable, setPolledAgentsAvailable] = useState(agentsAvailable === true);
+  // Agent presence via Supabase Realtime Presence — no polling needed.
+  // Agents track on `agent-presence:${chatbotId}`; when they disconnect,
+  // Supabase removes their presence automatically.
+  const [agentsOnline, setAgentsOnline] = useState(agentsAvailable === true);
   useEffect(() => {
-    setPolledAgentsAvailable(agentsAvailable === true);
+    // Telegram-based handoff is always available (no presence channel needed)
+    if (agentsAvailable === true) {
+      setAgentsOnline(true);
+      return;
+    }
     if (!liveHandoffEnabled) return;
-    let active = true;
-    const poll = () => {
-      fetch(`/api/widget/${chatbotId}/agent-heartbeat`)
-        .then(r => r.json())
-        .then(d => { if (active) setPolledAgentsAvailable(!!d.available); })
-        .catch(() => { if (active) setPolledAgentsAvailable(false); });
+
+    const supabase = getWidgetSupabase();
+    if (!supabase) return;
+
+    const channel = supabase.channel(`agent-presence:${chatbotId}`);
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        let count = 0;
+        for (const key of Object.keys(state)) {
+          count += (state[key] as unknown[]).length;
+        }
+        setAgentsOnline(count > 0);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
     };
-    // If config returned 'check', poll immediately to get real status;
-    // otherwise first poll after 30s (initial value already set from config)
-    if (agentsAvailable === 'check') poll();
-    const interval = setInterval(poll, 30_000);
-    return () => { active = false; clearInterval(interval); };
   }, [agentsAvailable, chatbotId, liveHandoffEnabled]);
-  const showHandoffIcon = liveHandoffEnabled && polledAgentsAvailable && !handoffActive;
+  const showHandoffIcon = liveHandoffEnabled && agentsOnline && !handoffActive;
   const [handoffStatus, setHandoffStatus] = useState<string | null>(null);
   const [handoffAgentName, setHandoffAgentName] = useState<string | null>(null);
   const handoffAgentNameRef = useRef<string | null>(null);
@@ -406,6 +450,15 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
       if (!allowedMimes.includes(file.type)) return false;
       return true;
     });
+
+    const rejectedCount = selectedFiles.length - validFiles.length;
+    if (rejectedCount > 0) {
+      const msg = rejectedCount === selectedFiles.length
+        ? `File${rejectedCount > 1 ? 's' : ''} rejected: check size (max ${uploadConfig.max_file_size_mb}MB) and type`
+        : `${rejectedCount} file${rejectedCount > 1 ? 's' : ''} rejected (size/type), ${validFiles.length} accepted`;
+      setUploadError(msg);
+      setTimeout(() => setUploadError(null), 4000);
+    }
 
     if (validFiles.length === 0) return;
 
@@ -507,7 +560,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
   const [otpSent, setOtpSent] = useState(false);
   const [verifyEmail, setVerifyEmail] = useState<string | null>(null);
   // Chat history state
-  const [historyMessages, setHistoryMessages] = useState<Message[]>([]);
+  const [historyMessages, setHistoryMessages] = useState<WidgetMessage[]>([]);
   const [historySessionBreaks, setHistorySessionBreaks] = useState<Map<string, string>>(new Map());
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyHasMore, setHistoryHasMore] = useState(false);
@@ -616,7 +669,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
       if (data.success && data.data) {
         const { groups, has_more, next_cursor } = data.data;
         // Build messages and session break markers from groups
-        const newMessages: Message[] = [];
+        const newMessages: WidgetMessage[] = [];
         const newBreaks = new Map<string, string>(cursor ? historySessionBreaks : undefined);
         for (const group of groups) {
           // Mark the first message of each conversation group as a session break
@@ -633,8 +686,12 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
           }
         }
         if (cursor) {
-          // Prepend older messages
-          setHistoryMessages((prev) => [...newMessages, ...prev]);
+          // Prepend older messages, deduplicating by ID
+          setHistoryMessages((prev) => {
+            const existingIds = new Set(prev.map((m) => m.id));
+            const unique = newMessages.filter((m) => !existingIds.has(m.id));
+            return [...unique, ...prev];
+          });
         } else {
           setHistoryMessages(newMessages);
         }
@@ -770,7 +827,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
         );
         if (!group?.messages?.length) return;
 
-        const restored: Message[] = group.messages.map((m: { id: string; role: string; content: string; created_at: string }) => ({
+        const restored: WidgetMessage[] = group.messages.map((m: { id: string; role: string; content: string; created_at: string }) => ({
           id: m.id,
           role: m.role as 'user' | 'assistant',
           content: m.content,
@@ -821,7 +878,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     
     if (shouldShowWelcome) {
       const processedMessage = processWelcomeMessage(chatbot.welcome_message);
-      const welcomeMessage: Message = {
+      const welcomeMessage: WidgetMessage = {
         id: 'welcome',
         role: 'assistant',
         content: processedMessage,
@@ -904,11 +961,12 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     }, 120_000); // 2 minutes of inactivity
   }, [transcriptEnabled, transcriptConfig, transcriptSent, showPostChat, surveyCompleted, endOfChatState, messages, triggerEndOfChat]);
 
-  const sendMessage = useCallback(async () => {
-    if ((!input.trim() && pendingAttachments.length === 0) || isLoading) return;
+  const sendMessage = useCallback(async (overrideContent?: string) => {
+    const contentToSend = overrideContent ?? input.trim();
+    if ((!contentToSend && pendingAttachments.length === 0) || isLoading) return;
 
     // Capture input value before clearing
-    const messageContent = input.trim();
+    const messageContent = contentToSend;
     
     // Clear input immediately
     setInput('');
@@ -938,7 +996,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     const messageAttachments = [...pendingAttachments];
     setPendingAttachments([]);
 
-    const userMessage: Message = {
+    const userMessage: WidgetMessage = {
       id: `user_${Date.now()}`,
       role: 'user',
       content: messageContent || (messageAttachments.length > 0 ? `[${messageAttachments.map(a => a.file_name).join(', ')}]` : ''),
@@ -953,9 +1011,17 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
     }
 
     try {
+      // Abort any in-flight request before starting a new one
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
       const response = await fetch(`/api/chat/${chatbotId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: abortController.signal,
         body: JSON.stringify({
           message: userMessage.content,
           session_id: sessionId,
@@ -968,7 +1034,32 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        const errorData = await response.json().catch(() => ({}));
+        const code = errorData?.error?.code;
+        const message = errorData?.error?.message;
+        const retryAfter = parseInt(response.headers.get('Retry-After') || '0', 10);
+
+        let errorType: ChatErrorType = 'server_error';
+        if (response.status === 429) {
+          errorType = 'rate_limit';
+        } else if (response.status === 403) {
+          errorType = code === 'USAGE_LIMIT_REACHED' || message?.includes('monthly message limit')
+            ? 'message_limit'
+            : 'unavailable';
+        }
+
+        // Disable input for permanent errors
+        if (errorType === 'message_limit' || errorType === 'unavailable') {
+          setChatDisabled(errorType);
+        }
+
+        setMessages((prev) => prev.map((m) =>
+          m.id === userMessage.id
+            ? { ...m, failed: true, errorType, errorMessage: message, retryAfter: retryAfter || undefined }
+            : m
+        ));
+        setIsLoading(false);
+        return;
       }
 
       const contentType = response.headers.get('Content-Type') || '';
@@ -993,7 +1084,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
           return;
         }
 
-        const assistantMessage: Message = {
+        const assistantMessage: WidgetMessage = {
           id: data.data.message_id || `assistant_${Date.now()}`,
           role: 'assistant',
           content: data.data.message,
@@ -1009,6 +1100,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
         const assistantId = `assistant_${Date.now()}`;
         let streamedContent = '';
         let buffer = '';
+        let rafScheduled = false;
 
         // Add empty assistant message that we'll update progressively
         setMessages((prev) => [...prev, { id: assistantId, role: 'assistant', content: '', timestamp: new Date() }]);
@@ -1031,7 +1123,14 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                 if (event.data.language && event.data.language !== activeLanguage) setActiveLanguage(event.data.language);
               } else if (event.type === 'token') {
                 streamedContent += event.content;
-                setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: streamedContent } : m));
+                // Batch renders using requestAnimationFrame to avoid per-token re-renders
+                if (!rafScheduled) {
+                  rafScheduled = true;
+                  requestAnimationFrame(() => {
+                    setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: streamedContent } : m));
+                    rafScheduled = false;
+                  });
+                }
               } else if (event.type === 'done') {
                 // Update message with final ID from server
                 if (event.data?.message_id) {
@@ -1050,10 +1149,12 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
             const event = JSON.parse(buffer);
             if (event.type === 'token') {
               streamedContent += event.content;
-              setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: streamedContent } : m));
             }
           } catch { /* ignore */ }
         }
+
+        // Final render to ensure all content is displayed
+        setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: streamedContent } : m));
       }
 
       // Start inactivity timer after assistant responds
@@ -1061,20 +1162,72 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
         resetInactivityTimer();
       }
     } catch (error) {
+      // Don't treat abort as an error
+      if (error instanceof DOMException && error.name === 'AbortError') return;
       console.error('Chat error:', error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `error_${Date.now()}`,
-          role: 'assistant',
-          content: t.errorMessage,
-          timestamp: new Date(),
-        },
-      ]);
+      // Mark the user message as failed so user can retry
+      setMessages((prev) => prev.map((m) =>
+        m.id === userMessage.id ? { ...m, failed: true } : m
+      ));
     } finally {
+      abortControllerRef.current = null;
       setIsLoading(false);
     }
-  }, [input, isLoading, chatbotId, sessionId, visitorId, userData, userContext, t, activeLanguage, endOfChatState, messages, pendingAttachments, handoffActive, resetInactivityTimer]);
+  }, [input, isLoading, chatbotId, sessionId, visitorId, userData, userContext, t, activeLanguage, endOfChatState, pendingAttachments, handoffActive, resetInactivityTimer]);
+
+  const retryMessage = useCallback((failedMsg: WidgetMessage) => {
+    // Remove the failed message, set input to its content, and re-send
+    setMessages((prev) => prev.filter((m) => m.id !== failedMsg.id));
+    setInput(failedMsg.content);
+    // Use setTimeout to let state update, then trigger send
+    setTimeout(() => {
+      sendMessage(failedMsg.content);
+    }, 0);
+  }, [sendMessage]);
+
+  const handleFeedback = useCallback(async (messageId: string, thumbsUp: boolean) => {
+    const current = messageFeedback[messageId];
+    // Toggle off if same value clicked again
+    const newValue = current === thumbsUp ? null : thumbsUp;
+    setMessageFeedback((prev) => ({ ...prev, [messageId]: newValue }));
+    // Show follow-up prompt on thumbs-down
+    if (newValue === false && feedbackFollowUpEnabled) {
+      setFeedbackFollowUpId(messageId);
+    } else {
+      setFeedbackFollowUpId((prev) => prev === messageId ? null : prev);
+    }
+    try {
+      if (newValue !== null) {
+        // Strip history_ prefix to get the actual DB message ID
+        const dbMessageId = messageId.replace(/^history_/, '');
+        await fetch(`/api/widget/${chatbotId}/feedback`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message_id: dbMessageId, thumbs_up: newValue }),
+        });
+      }
+    } catch {
+      // Revert on failure
+      setMessageFeedback((prev) => ({ ...prev, [messageId]: current ?? null }));
+    }
+  }, [chatbotId, messageFeedback, feedbackFollowUpEnabled]);
+
+  const handleFeedbackReason = useCallback(async (messageId: string, reason: string) => {
+    setFeedbackReasonSubmitting(true);
+    try {
+      const dbMessageId = messageId.replace(/^history_/, '');
+      await fetch(`/api/widget/${chatbotId}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message_id: dbMessageId, thumbs_up: false, feedback_reason: reason }),
+      });
+      setFeedbackFollowUpId(null);
+    } catch {
+      // Silent fail — the thumbs-down was already saved
+    } finally {
+      setFeedbackReasonSubmitting(false);
+    }
+  }, [chatbotId]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -2036,7 +2189,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
             }
             
             // Add to UI immediately
-            const proactiveMsg: Message = {
+            const proactiveMsg: WidgetMessage = {
               id: `proactive_${ruleId}_${Date.now()}`,
               role: 'assistant',
               content: message,
@@ -2227,9 +2380,12 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                         placeholder={field.placeholder}
                         className="chat-widget-form-input"
                         disabled={isPreChatSubmitting}
+                        aria-required={field.required}
+                        aria-invalid={!!fieldErrors[field.id]}
+                        aria-describedby={fieldErrors[field.id] ? `error-${field.id}` : undefined}
                       />
                     {fieldErrors[field.id] && (
-                      <span className="chat-widget-form-error-message">{fieldErrors[field.id]}</span>
+                      <span id={`error-${field.id}`} className="chat-widget-form-error-message" role="alert">{fieldErrors[field.id]}</span>
                     )}
                   </div>
                 ))}
@@ -2354,7 +2510,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
           {currentView === 'chat' && (
             <>
               {/* Messages */}
-              <div className="chat-widget-messages" ref={messagesContainerRef}>
+              <div className="chat-widget-messages" ref={messagesContainerRef} role="log" aria-live="polite">
                 {/* Loading spinner for lazy-loaded history */}
                 {historyLoading && (
                   <div className="chat-widget-history-loading">
@@ -2397,14 +2553,18 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                   </div>
                 )}
                 {/* Conversation-level report moved to full-view 'report' currentView */}
-                {/* Current session messages */}
-                {messages.map((message) => (
+                {/* Current session messages (skip any already shown in history) */}
+                {messages.filter((message) => !historyMessages.some((h) => h.id === `history_${message.id}`)).map((message) => (
                   <div
                     key={message.id}
                     className={`chat-widget-message chat-widget-message-${message.role}`}
                   >
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4, width: '100%', justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start' }} className={message.role === 'assistant' ? 'chat-widget-msg-row' : ''}>
-                      <div className={`chat-widget-bubble chat-widget-bubble-${message.role}`}>
+                      <div style={{ maxWidth: '80%' }}>
+                      <div className={`chat-widget-bubble chat-widget-bubble-${message.role}`} style={{
+                        maxWidth: '100%',
+                        ...(message.failed ? { opacity: 0.6 } : {}),
+                      }}>
                         {message.role === 'assistant' && (message as any).metadata?.is_human_agent && (
                           <div style={{ fontSize: '11px', fontWeight: 600, color: config.primaryColor, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
                             <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#22c55e', display: 'inline-block' }} />
@@ -2421,6 +2581,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                         ) : (
                           message.content
                         )}
+                        {/* Failed messages — retry UI is rendered below the bubble in the timestamp row */}
                         {/* "I'm here" button on inactivity warning */}
                         {(message as any).metadata?.has_im_here && handoffCountdownSeconds !== null && (
                           <button
@@ -2454,6 +2615,144 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                           </div>
                         )}
                       </div>
+                      {/* Timestamp + feedback row — inside bubble wrapper so it matches bubble width */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
+                        {message.failed ? (
+                          message.errorType === 'message_limit' ? (
+                            <div role="alert" style={{
+                              display: 'flex', alignItems: 'center', gap: '5px',
+                              padding: '3px 8px', marginTop: '2px', marginLeft: 'auto',
+                            }}>
+                              <ShieldOff size={12} style={{ color: '#dc2626', flexShrink: 0 }} />
+                              <span style={{ fontSize: '11px', color: '#dc2626', fontWeight: 500 }}>
+                                Message limit reached
+                              </span>
+                            </div>
+                          ) : message.errorType === 'unavailable' ? (
+                            <div role="alert" style={{
+                              display: 'flex', alignItems: 'center', gap: '5px',
+                              padding: '3px 8px', marginTop: '2px', marginLeft: 'auto',
+                            }}>
+                              <AlertCircle size={12} style={{ color: '#dc2626', flexShrink: 0 }} />
+                              <span style={{ fontSize: '11px', color: '#dc2626', fontWeight: 500 }}>
+                                Chatbot unavailable
+                              </span>
+                            </div>
+                          ) : message.errorType === 'rate_limit' ? (
+                            <button
+                              onClick={() => retryMessage(message)}
+                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(245, 158, 11, 0.08)'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: '5px',
+                                padding: '3px 8px', marginTop: '2px', marginLeft: 'auto',
+                                backgroundColor: 'transparent', border: 'none', borderRadius: '8px',
+                                cursor: 'pointer', transition: 'background-color 0.15s ease',
+                              }}
+                            >
+                              <Clock size={12} style={{ color: '#f59e0b', flexShrink: 0 }} />
+                              <span style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500 }}>
+                                Too many messages
+                              </span>
+                              <span style={{ fontSize: '11px', color: '#9ca3af', margin: '0 1px' }}>·</span>
+                              <span style={{ fontSize: '11px', color: config.primaryColor, fontWeight: 500, textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+                                Retry
+                              </span>
+                            </button>
+                          ) : (
+                          <button
+                            onClick={() => retryMessage(message)}
+                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.08)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '5px',
+                              padding: '3px 8px', marginTop: '2px', marginLeft: 'auto',
+                              backgroundColor: 'transparent', border: 'none', borderRadius: '8px',
+                              cursor: 'pointer', transition: 'background-color 0.15s ease',
+                            }}
+                          >
+                            <AlertCircle size={12} style={{ color: '#dc2626', flexShrink: 0 }} />
+                            <span style={{ fontSize: '11px', color: '#dc2626', fontWeight: 500 }}>
+                              Not delivered
+                            </span>
+                            <span style={{ fontSize: '11px', color: '#9ca3af', margin: '0 1px' }}>·</span>
+                            <span style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+                              Retry
+                            </span>
+                            <RotateCcw size={10} style={{ color: '#6b7280' }} />
+                          </button>
+                          )
+                        ) : (
+                        <div className="chat-widget-timestamp">
+                          {message.timestamp.toLocaleTimeString(language, { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                        )}
+                        {message.role === 'assistant' && !message.id.startsWith('loading_') && !message.id.startsWith('error_') && !message.id.startsWith('welcome_') && (
+                          <>
+                            <div
+                              className={`chat-widget-feedback-btns${messageFeedback[message.id] != null ? ' chat-widget-feedback-voted' : ''}`}
+                              style={{ display: 'flex', gap: 2 }}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => handleFeedback(message.id, true)}
+                                className="chat-widget-feedback-btn"
+                                style={{
+                                  color: messageFeedback[message.id] === true ? '#22c55e' : '#9ca3af',
+                                  opacity: messageFeedback[message.id] === false ? 0.3 : undefined,
+                                }}
+                                aria-label={t.feedbackHelpful}
+                              >
+                                <ThumbsUp size={14} fill={messageFeedback[message.id] === true ? 'currentColor' : 'none'} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleFeedback(message.id, false)}
+                                className="chat-widget-feedback-btn"
+                                style={{
+                                  color: messageFeedback[message.id] === false ? '#ef4444' : '#9ca3af',
+                                  opacity: messageFeedback[message.id] === true ? 0.3 : undefined,
+                                }}
+                                aria-label={t.feedbackNotHelpful}
+                              >
+                                <ThumbsDown size={14} fill={messageFeedback[message.id] === false ? 'currentColor' : 'none'} />
+                              </button>
+                            </div>
+                            {feedbackFollowUpId === message.id && (
+                              <div className="chat-widget-feedback-followup" style={{ position: 'absolute', bottom: -4, left: 0, transform: 'translateY(100%)', zIndex: 3 }}>
+                                <button
+                                  type="button"
+                                  onClick={() => setFeedbackFollowUpId(null)}
+                                  className="chat-widget-feedback-dismiss"
+                                  aria-label={t.closeAriaLabel}
+                                >
+                                  <X size={12} />
+                                </button>
+                                <div style={{ fontSize: 12, fontWeight: 600, color: config.botBubbleTextColor || '#374151', opacity: 0.7, marginBottom: 8 }}>{t.feedbackWhatWentWrong}</div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                  {([
+                                    ['incorrect', t.feedbackIncorrect],
+                                    ['not_relevant', t.feedbackNotRelevant],
+                                    ['too_vague', t.feedbackTooVague],
+                                    ['other', t.feedbackOther],
+                                  ] as const).map(([key, label]) => (
+                                    <button
+                                      key={key}
+                                      type="button"
+                                      disabled={feedbackReasonSubmitting}
+                                      onClick={() => handleFeedbackReason(message.id, key)}
+                                      className="chat-widget-feedback-reason-btn"
+                                    >
+                                      {label}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      </div>{/* end bubble wrapper */}
                       {/* Per-message report flag — larger touch target (44px min) */}
                       {escalationEnabled && message.role === 'assistant' && (
                         <button
@@ -2517,9 +2816,6 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                         ))}
                       </div>
                     )}
-                    <div className="chat-widget-timestamp">
-                      {message.timestamp.toLocaleTimeString(language, { hour: '2-digit', minute: '2-digit' })}
-                    </div>
                   </div>
                 ))}
                 {isLoading && (
@@ -2534,9 +2830,9 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                   </div>
                 )}
                 {agentIsTyping && !isLoading && (
-                  <div className="chat-widget-agent-typing-indicator">
+                  <div className="chat-widget-agent-typing-indicator" aria-label="Agent is typing">
                     Agent is typing
-                    <span className="chat-widget-agent-typing-dots">
+                    <span className="chat-widget-agent-typing-dots" aria-hidden="true">
                       <span>.</span><span>.</span><span>.</span>
                     </span>
                   </div>
@@ -2604,6 +2900,13 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                   {transcriptError && (
                     <div style={{ color: '#ef4444', fontSize: '12px' }}>{transcriptError}</div>
                   )}
+                </div>
+              )}
+
+              {/* Upload Error */}
+              {uploadError && (
+                <div style={{ padding: '4px 12px', fontSize: '12px', color: '#ef4444', background: '#fef2f2', borderTop: '1px solid #fecaca' }}>
+                  {uploadError}
                 </div>
               )}
 
@@ -2757,7 +3060,32 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                 </div>
               )}
 
-              {/* Input */}
+              {/* Input — disabled banner when chat is disabled */}
+              {chatDisabled ? (
+                <div
+                  role="status"
+                  aria-disabled="true"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    padding: '14px 16px',
+                    backgroundColor: config.botBubbleColor || '#f1f5f9',
+                    borderTop: `1px solid ${config.formBorderColor || '#e5e7eb'}`,
+                  }}
+                >
+                  {chatDisabled === 'message_limit' ? (
+                    <ShieldOff size={18} style={{ color: '#dc2626', flexShrink: 0 }} />
+                  ) : (
+                    <AlertCircle size={18} style={{ color: '#dc2626', flexShrink: 0 }} />
+                  )}
+                  <span style={{
+                    fontSize: '13px', color: config.botBubbleTextColor || '#0f172a', opacity: 0.8,
+                  }}>
+                    {chatDisabled === 'message_limit'
+                      ? 'This chatbot has reached its monthly message limit. Please try again next month.'
+                      : 'This chatbot is currently unavailable. Please check back later.'}
+                  </span>
+                </div>
+              ) : (
               <div className="chat-widget-input-container">
                 {/* Hidden file input */}
                 {uploadConfig.enabled && (
@@ -2812,12 +3140,12 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                       inactivityTimerRef.current = null;
                     }
                   }}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyPress}
                   placeholder={activeLanguage !== language ? t.typePlaceholder : (chatbot.placeholder_text || t.typePlaceholder)}
                   className="chat-widget-input"
                 />
                 <button
-                  onClick={sendMessage}
+                  onClick={() => sendMessage()}
                   disabled={(!input.trim() && pendingAttachments.length === 0) || isLoading}
                   className="chat-widget-send"
                   aria-label={t.sendAriaLabel}
@@ -2825,6 +3153,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                   {isLoading ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
                 </button>
               </div>
+              )}
             </>
           )}
 
@@ -3178,10 +3507,15 @@ function generateStyles(config: WidgetConfig, isInIframe: boolean, isExpanded: b
       border: none;
       color: ${config.headerTextColor};
       cursor: pointer;
-      padding: 4px;
+      padding: 10px;
       border-radius: 4px;
       transition: background 0.2s;
       flex-shrink: 0;
+      min-width: 44px;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .chat-widget-close:hover {
@@ -3924,14 +4258,144 @@ function generateStyles(config: WidgetConfig, isInIframe: boolean, isExpanded: b
       color: ${config.primaryColor};
     }
 
-    /* Report / Escalation */
-    .chat-widget-msg-row .chat-widget-report-btn {
-      opacity: 0;
-      transition: opacity 0.15s;
+    /* Feedback buttons — shared base */
+    .chat-widget-feedback-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      line-height: 0;
+      border-radius: 6px;
+      transition: transform 0.15s ease, color 0.15s, opacity 0.15s;
+      min-width: 28px;
+      min-height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .chat-widget-feedback-btn:active {
+      animation: chat-widget-feedback-pop 0.2s ease;
+    }
+    @keyframes chat-widget-feedback-pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.35); }
+      100% { transform: scale(1); }
     }
 
-    .chat-widget-msg-row:hover .chat-widget-report-btn {
-      opacity: 0.5;
+    /* Desktop: hide until hover over message, unless voted */
+    @media (hover: hover) and (pointer: fine) {
+      .chat-widget-message .chat-widget-feedback-btns:not(.chat-widget-feedback-voted) {
+        opacity: 0;
+        transition: opacity 0.15s 0.3s;
+      }
+      .chat-widget-message:hover .chat-widget-feedback-btns {
+        opacity: 1;
+        transition: opacity 0.15s;
+      }
+    }
+
+    /* Touch devices: always visible at reduced opacity, full when voted */
+    @media (hover: none), (pointer: coarse) {
+      .chat-widget-feedback-btns {
+        opacity: 0.5;
+      }
+      .chat-widget-feedback-btns.chat-widget-feedback-voted {
+        opacity: 1;
+      }
+      .chat-widget-feedback-btn {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 10px;
+      }
+    }
+
+    /* Always show voted feedback at full opacity */
+    .chat-widget-feedback-btns.chat-widget-feedback-voted {
+      opacity: 1 !important;
+    }
+
+    /* Feedback follow-up prompt */
+    .chat-widget-feedback-followup {
+      position: relative;
+      background: ${config.feedbackBackgroundColor || config.botBubbleColor};
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.04), 0 8px 16px rgba(0,0,0,0.08);
+      animation: chat-widget-followup-in 0.2s ease-out;
+      min-width: 200px;
+    }
+    @keyframes chat-widget-followup-in {
+      from { opacity: 0; transform: translateY(calc(100% - 6px)) scale(0.97); }
+      to { opacity: 1; transform: translateY(100%) scale(1); }
+    }
+    .chat-widget-feedback-dismiss {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      color: ${config.feedbackTextColor || config.botBubbleTextColor || '#374151'};
+      opacity: 0.4;
+      transition: opacity 0.15s, background 0.15s;
+      padding: 0;
+    }
+    .chat-widget-feedback-dismiss:hover {
+      opacity: 0.7;
+      background: rgba(0, 0, 0, 0.06);
+    }
+    .chat-widget-feedback-reason-btn {
+      background: ${config.feedbackButtonColor || config.backgroundColor};
+      color: ${config.feedbackButtonTextColor || config.textColor};
+      border: 1px solid transparent;
+      border-radius: 16px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .chat-widget-feedback-reason-btn:hover:not(:disabled) {
+      border-color: ${config.primaryColor};
+      background: ${config.primaryColor}12;
+      color: ${config.primaryColor};
+    }
+    .chat-widget-feedback-reason-btn:active:not(:disabled) {
+      background: ${config.primaryColor}25;
+      border-color: ${config.primaryColor};
+      color: ${config.primaryColor};
+      transform: scale(0.96);
+    }
+    .chat-widget-feedback-reason-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* Report / Escalation */
+    @media (hover: hover) and (pointer: fine) {
+      .chat-widget-msg-row .chat-widget-report-btn {
+        opacity: 0;
+        transition: opacity 0.15s 0.3s;
+      }
+      .chat-widget-msg-row:hover .chat-widget-report-btn {
+        opacity: 0.5;
+        transition: opacity 0.15s;
+      }
+    }
+    @media (hover: none), (pointer: coarse) {
+      .chat-widget-msg-row .chat-widget-report-btn {
+        opacity: 0.4;
+      }
     }
 
     .chat-widget-report-btn {
