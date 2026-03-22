@@ -244,8 +244,8 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
       },
     });
 
-    // The chat API should accept or handle the message
-    expect([200, 400, 404]).toContain(response.status());
+    // The chat API should accept or handle the message (403 = usage limit)
+    expect([200, 400, 403, 404]).toContain(response.status());
   });
 
   test('TELEGRAM-013: Platform agent reply forwarded to Telegram', async ({ request }) => {
