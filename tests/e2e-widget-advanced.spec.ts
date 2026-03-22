@@ -468,33 +468,20 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
   test('WIDGET-ADV-027: SDK widget-id postMessage and close-chat-widget response', async ({ page }) => {
     await openWidget(page);
 
-    // Send widget-id postMessage
+    // Send widget-id postMessage — widget should accept it without errors
     await page.evaluate(() => {
       window.postMessage({ type: 'widget-id', widgetId: 'test-w1' }, '*');
     });
     await page.waitForTimeout(500);
 
-    // Listen for close-chat-widget message
-    const messagePromise = page.evaluate(() => {
-      return new Promise<boolean>((resolve) => {
-        const handler = (e: MessageEvent) => {
-          if (e.data?.type === 'close-chat-widget') {
-            window.removeEventListener('message', handler);
-            resolve(true);
-          }
-        };
-        window.addEventListener('message', handler);
-        setTimeout(() => resolve(false), 3000);
-      });
-    });
-
-    // Close widget
+    // Close widget and verify it doesn't crash
     const closeBtn = page.locator('.chat-widget-close').first();
     if (await closeBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
       await closeBtn.click();
+      await page.waitForTimeout(500);
     }
 
-    // May or may not receive the message (depends on iframe context)
+    // Widget should still be functional (button or container visible)
     await expect(page.locator('.chat-widget-container, .chat-widget-button').first()).toBeVisible({ timeout: 5000 });
   });
 
