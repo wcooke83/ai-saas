@@ -18,20 +18,18 @@ test.describe('Sidebar Navigation', () => {
   });
 
   test('clicking Chatbots navigates to chatbots list', async ({ page }) => {
-    // TODO: Chatbots link click doesn't trigger SPA navigation — URL stays on /dashboard after 3 retries
-    test.skip();
     await page.goto('/dashboard');
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(3000);
 
-    const chatbotsLink = page.locator('nav >> text=Chatbots').first();
-    if (await chatbotsLink.isVisible()) {
-      await chatbotsLink.click();
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
+    // Use link role with exact name to find the sidebar nav link
+    const chatbotsLink = page.getByRole('link', { name: 'Chatbots', exact: true }).first();
+    await expect(chatbotsLink).toBeVisible({ timeout: 10000 });
+    await chatbotsLink.click();
 
-      expect(page.url()).toContain('/chatbots');
-    }
+    // Wait for SPA navigation to complete
+    await page.waitForURL('**/dashboard/chatbots', { timeout: 15000 });
+    expect(page.url()).toContain('/chatbots');
   });
 
   test('back to chatbot link works from sub-pages', async ({ page }) => {

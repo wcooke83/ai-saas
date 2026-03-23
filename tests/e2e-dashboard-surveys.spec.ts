@@ -66,31 +66,30 @@ test.describe('Section 18: Surveys Dashboard', () => {
   });
 
   test('SURVEYS-004: Date range filter', async ({ page }) => {
-    // TODO: 90d button element not found after clicking — date filter buttons may not render or have different class names
-    test.skip();
     await page.goto(`${BASE_URL}/surveys`);
     await waitForSurveys(page);
 
-    // Date range buttons: 7d, 30d, 90d, All
-    const btn30 = page.locator('button', { hasText: '30d' });
+    // Wait for date filter buttons to render
+    const btn30 = page.getByRole('button', { name: '30d', exact: true });
+    await expect(btn30).toBeVisible({ timeout: 10000 });
     await expect(btn30).toHaveClass(/bg-primary-500/); // Default active
 
     // Click 7d
-    const btn7 = page.locator('button', { hasText: '7d' });
+    const btn7 = page.getByRole('button', { name: '7d', exact: true });
     await btn7.click();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(1500);
     await expect(btn7).toHaveClass(/bg-primary-500/);
 
     // Click 90d
-    const btn90 = page.locator('button', { hasText: '90d' });
+    const btn90 = page.getByRole('button', { name: '90d', exact: true });
     await btn90.click();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(1500);
     await expect(btn90).toHaveClass(/bg-primary-500/);
 
-    // Click All
-    const btnAll = page.locator('button', { hasText: 'All' });
+    // Click All — use exact locator to avoid matching other buttons
+    const btnAll = page.locator('button').filter({ hasText: /^All$/ });
     await btnAll.click();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(1500);
     await expect(btnAll).toHaveClass(/bg-primary-500/);
   });
 

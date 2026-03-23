@@ -31,28 +31,29 @@ test.describe('23. Deployment', () => {
   });
 
   test('DEPLOY-003: Copy embed code', async ({ page }) => {
-    // TODO: Clipboard "Copied" feedback text never appears after click — clipboard API may not work in headless Chrome
-    test.skip();
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await gotoDeploy(page);
 
     const copyButton = page.getByRole('button', { name: /Copy/i }).first();
     await expect(copyButton).toBeVisible({ timeout: 10000 });
     await copyButton.click();
 
-    await expect(page.getByText('Copied')).toBeVisible({ timeout: 5000 });
+    // Check for "Copied" text in button or toast
+    await expect(
+      page.getByText('Copied').first()
+        .or(page.getByRole('button', { name: /Copied/i }).first())
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test('DEPLOY-004: All code variants shown', async ({ page }) => {
-    // TODO: getByText('Manual Init') resolves to 2 elements (strict mode violation) — needs more specific locator
-    test.skip();
     await gotoDeploy(page);
 
-    await expect(page.getByText('Add to Your Website')).toBeVisible();
-    await expect(page.getByText('Next.js / React')).toBeVisible();
-    await expect(page.getByText('Manual Init')).toBeVisible();
-    await expect(page.getByText('iFrame Embed')).toBeVisible();
-    await expect(page.getByText('Authenticated Users')).toBeVisible();
-    await expect(page.getByText('Agent Console')).toBeVisible();
+    await expect(page.getByText('Add to Your Website').first()).toBeVisible();
+    await expect(page.getByText('Next.js / React').first()).toBeVisible();
+    await expect(page.getByText('Manual Init').first()).toBeVisible();
+    await expect(page.getByText('iFrame Embed').first()).toBeVisible();
+    await expect(page.getByText('Authenticated Users').first()).toBeVisible();
+    await expect(page.getByText('Agent Console').first()).toBeVisible();
   });
 
   test('DEPLOY-005: Live preview iframe', async ({ page }) => {

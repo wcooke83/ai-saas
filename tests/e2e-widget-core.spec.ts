@@ -446,10 +446,9 @@ test.describe('1. Widget Core Functionality', () => {
     expect(true).toBe(true);
   });
 
-  // TODO: WIDGET-029 skipped — page.reload() after sending a chat message consistently times out (widget page hangs on load event)
-  test.skip('WIDGET-029: Chat history loading for returning visitors', async ({ page }) => {
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+  test('WIDGET-029: Chat history loading for returning visitors', async ({ page }) => {
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(3000);
     await expect(page.locator('.chat-widget-input')).toBeVisible({ timeout: 20000 });
 
     // Send a message to create history
@@ -460,8 +459,13 @@ test.describe('1. Widget Core Functionality', () => {
     await page.locator('.chat-widget-typing').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
     await expect(page.locator('.chat-widget-typing')).not.toBeVisible({ timeout: 30000 });
 
-    // Reload with domcontentloaded to avoid load timeout
-    await page.reload({ waitUntil: 'domcontentloaded' });
+    // Wait for session to persist to localStorage
+    await page.waitForTimeout(2000);
+
+    // Navigate away and back instead of reload (avoids load event hang from SSE)
+    await page.goto('about:blank');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(3000);
     await expect(page.locator('.chat-widget-input')).toBeVisible({ timeout: 20000 });
 
     // Wait for history loading to finish

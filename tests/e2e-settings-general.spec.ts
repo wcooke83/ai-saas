@@ -196,8 +196,6 @@ test.describe('2. Settings -- General', () => {
   });
 
   test('SET-GEN-009: Welcome message update reflects in widget', async ({ page }) => {
-    // TODO: "Settings saved successfully" toast not visible within 10s after clicking Save — save action too slow
-    test.skip();
     await gotoSettings(page);
 
     const welcomeInput = page.locator('input[name="welcome_message"], input#welcome_message').first();
@@ -209,20 +207,22 @@ test.describe('2. Settings -- General', () => {
     // Update welcome message
     const testMsg = `E2E test welcome ${Date.now()}`;
     await welcomeInput.fill(testMsg);
-    await page.getByRole('button', { name: /Save Changes/i }).first().click();
-    await expect(page.locator('text=Settings saved successfully')).toBeVisible({ timeout: 10000 });
+    const saveBtn = page.getByRole('button', { name: /Save Changes/i }).first();
+    await saveBtn.scrollIntoViewIfNeeded();
+    await saveBtn.click();
+    await expect(page.locator('text=Settings saved successfully')).toBeVisible({ timeout: 30000 });
 
     // Open widget in new page to verify
     const widgetPage = await page.context().newPage();
-    await widgetPage.goto(`/widget/${CHATBOT_ID}`);
-    await widgetPage.waitForLoadState('networkidle');
+    await widgetPage.goto(`/widget/${CHATBOT_ID}`, { waitUntil: 'domcontentloaded' });
+    await widgetPage.waitForTimeout(3000);
 
     // Clear any cached session
     await widgetPage.evaluate((id) => {
       localStorage.removeItem(`chatbot_session_${id}`);
     }, CHATBOT_ID);
     await widgetPage.reload({ waitUntil: 'domcontentloaded' });
-    await widgetPage.waitForLoadState('networkidle');
+    await widgetPage.waitForTimeout(3000);
 
     // Welcome message should appear
     await expect(widgetPage.locator('.chat-widget-message-assistant').first()).toBeVisible({ timeout: 15000 });
@@ -235,7 +235,7 @@ test.describe('2. Settings -- General', () => {
     await page.waitForTimeout(500);
     await page.locator('input[name="welcome_message"], input#welcome_message').first().fill(original);
     await page.getByRole('button', { name: /Save Changes/i }).first().click();
-    await expect(page.locator('text=Settings saved successfully')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=Settings saved successfully')).toBeVisible({ timeout: 30000 });
   });
 
   test('SET-GEN-010: Welcome message placeholder warning', async ({ page }) => {
