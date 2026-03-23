@@ -61,11 +61,13 @@ test.describe('24. Navigation & Onboarding', () => {
   });
 
   test('NAV-004: Onboarding checklist displays', async ({ page }) => {
+    await gotoOverview(page);
     await page.evaluate((id) => {
       localStorage.removeItem(`chatbot-onboarding-dismissed-${id}`);
     }, CHATBOT_ID);
-
-    await gotoOverview(page);
+    await page.reload({ waitUntil: 'commit' });
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(3000);
     await page.waitForTimeout(3000);
 
     const checklist = page.getByText('Getting Started');
@@ -82,11 +84,13 @@ test.describe('24. Navigation & Onboarding', () => {
   });
 
   test('NAV-005: Onboarding step completion tracking', async ({ page }) => {
+    await gotoOverview(page);
     await page.evaluate((id) => {
       localStorage.removeItem(`chatbot-onboarding-dismissed-${id}`);
     }, CHATBOT_ID);
-
-    await gotoOverview(page);
+    await page.reload({ waitUntil: 'commit' });
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(3000);
     await page.waitForTimeout(3000);
 
     const checklist = page.getByText('Getting Started');
@@ -98,11 +102,13 @@ test.describe('24. Navigation & Onboarding', () => {
   });
 
   test('NAV-006: Onboarding checklist dismiss', async ({ page }) => {
+    await gotoOverview(page);
     await page.evaluate((id) => {
       localStorage.removeItem(`chatbot-onboarding-dismissed-${id}`);
     }, CHATBOT_ID);
-
-    await gotoOverview(page);
+    await page.reload({ waitUntil: 'commit' });
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(3000);
     await page.waitForTimeout(3000);
 
     const checklist = page.getByText('Getting Started');
@@ -123,11 +129,13 @@ test.describe('24. Navigation & Onboarding', () => {
   });
 
   test('NAV-007: Onboarding auto-hides when all complete', async ({ page }) => {
+    await gotoOverview(page);
     await page.evaluate((id) => {
       localStorage.removeItem(`chatbot-onboarding-dismissed-${id}`);
     }, CHATBOT_ID);
-
-    await gotoOverview(page);
+    await page.reload({ waitUntil: 'commit' });
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(3000);
     await page.waitForTimeout(3000);
 
     // If all complete text appears, checklist should auto-hide
@@ -211,11 +219,13 @@ test.describe('37. Layout & Breadcrumb', () => {
   });
 
   test('LAYOUT-005: Onboarding "Test Your Chatbot" step always incomplete', async ({ page }) => {
+    await gotoOverview(page);
     await page.evaluate((id) => {
       localStorage.removeItem(`chatbot-onboarding-dismissed-${id}`);
     }, CHATBOT_ID);
-
-    await gotoOverview(page);
+    await page.reload({ waitUntil: 'commit' });
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(3000);
     await page.waitForTimeout(3000);
 
     const checklist = page.getByText('Getting Started');
