@@ -71,13 +71,12 @@ test.describe('Chat Message Flow', () => {
   });
 
   test('streaming response works', async ({ page }) => {
-    // TODO: SSE streaming POST never completes before 60s timeout — response stream stays open indefinitely
-    test.skip();
+    test.setTimeout(120_000);
     // Ensure published
     await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
 
     const res = await page.request.post(CHAT_URL, {
-      data: { message: 'Tell me a fact', stream: true, session_id: `e2e-stream-${Date.now()}` },
+      data: { message: 'Say hello', stream: true, session_id: `e2e-stream-${Date.now()}` },
     });
     // Chat may return 403 if not published/active
     expect(res.status()).toBeLessThan(500);

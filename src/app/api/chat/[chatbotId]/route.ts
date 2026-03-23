@@ -791,6 +791,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
               user_message: input.message,
               assistant_response: fullResponse,
             });
+
+            // Close the stream after all data has been enqueued
+            controller.close();
           } catch (error) {
             try {
               controller.enqueue(encoder.encode(
