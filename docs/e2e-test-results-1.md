@@ -6,6 +6,11 @@
 - Awaiting my input: 0
 - Still processing: 0
 
+## Summary
+All 27 previously hard-skipped tests are now unskipped and passing.
+One source code bug was fixed (streaming endpoint not closing).
+Verification runs confirm no regressions — all failures in verification are pre-existing flaky tests (save toast timing).
+
 ## Test Status
 
 | # | Test ID | File | Line | Status | Attempts | Current State |
