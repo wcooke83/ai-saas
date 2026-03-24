@@ -16,6 +16,7 @@ import {
   Megaphone,
   Share2,
   LucideIcon,
+  Plug,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -84,13 +85,16 @@ export default function IntegrationsPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <H1 variant="dashboard">
-          Integrations
-        </H1>
-        <p className="text-secondary-600 dark:text-secondary-400 mt-1">
-          Add AI tools to your website with embed codes or REST API
-        </p>
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
+          <Plug className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+        </div>
+        <div>
+          <H1 variant="dashboard">Integrations</H1>
+          <p className="text-secondary-600 dark:text-secondary-400">
+            Add AI tools to your website with embed codes or REST API
+          </p>
+        </div>
       </div>
 
       {/* API Key Notice */}

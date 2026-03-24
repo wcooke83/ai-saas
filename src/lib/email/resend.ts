@@ -184,6 +184,168 @@ export async function sendTranscriptEmail(
   return data;
 }
 
+// ============================================
+// TICKET & CONTACT FORM EMAILS
+// ============================================
+
+export async function sendTicketConfirmation(
+  to: string,
+  { name, ticketId, subject, autoReplyText }: { name: string; ticketId: string; subject?: string; autoReplyText?: string }
+) {
+  const body = autoReplyText
+    ? autoReplyText
+        .replace(/\{\{name\}\}/g, name)
+        .replace(/\{\{ticketId\}\}/g, ticketId)
+        .replace(/\{\{subject\}\}/g, subject || 'No subject')
+    : `Hi ${name},\n\nWe've received your ticket (${ticketId}). Our team will get back to you soon.`;
+
+  const { data, error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `Ticket received: ${ticketId}${subject ? ` - ${subject}` : ''}`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #6366f1;">Ticket Confirmation</h2>
+        <p><strong>Reference:</strong> ${ticketId}</p>
+        ${subject ? `<p><strong>Subject:</strong> ${subject}</p>` : ''}
+        <div style="background: #f3f4f6; border-radius: 8px; padding: 16px; margin: 16px 0; white-space: pre-line;">${body}</div>
+        <p style="color: #666; font-size: 14px;">You will receive a response to this email address.</p>
+      </div>
+    `,
+  });
+
+  if (error) {
+    console.error('Failed to send ticket confirmation:', error);
+    throw error;
+  }
+  return data;
+}
+
+export async function sendTicketAdminNotification(
+  to: string,
+  { ticketId, visitorName, visitorEmail, subject, message, priority, chatbotName }: {
+    ticketId: string; visitorName: string; visitorEmail: string; subject?: string;
+    message: string; priority: string; chatbotName: string;
+  }
+) {
+  const priorityColors: Record<string, string> = {
+    low: '#22c55e', medium: '#eab308', high: '#f97316', urgent: '#ef4444',
+  };
+
+  const { data, error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `[${priority.toUpperCase()}] New ticket ${ticketId} - ${chatbotName}`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2>New Ticket: ${ticketId}</h2>
+        <p><strong>Chatbot:</strong> ${chatbotName}</p>
+        <p><strong>From:</strong> ${visitorName} (${visitorEmail})</p>
+        ${subject ? `<p><strong>Subject:</strong> ${subject}</p>` : ''}
+        <p><strong>Priority:</strong> <span style="color: ${priorityColors[priority] || '#666'}; font-weight: bold;">${priority.toUpperCase()}</span></p>
+        <div style="background: #f3f4f6; border-radius: 8px; padding: 16px; margin: 16px 0; white-space: pre-line;">${message}</div>
+        <p>
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/chatbots" style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+            View Tickets
+          </a>
+        </p>
+      </div>
+    `,
+  });
+
+  if (error) {
+    console.error('Failed to send ticket admin notification:', error);
+    throw error;
+  }
+  return data;
+}
+
+export async function sendContactConfirmation(
+  to: string,
+  { name, message }: { name: string; message: string }
+) {
+  const { data, error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: 'We received your message',
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #6366f1;">Message Received</h2>
+        <p>Hi ${name},</p>
+        <p>Thank you for reaching out. We've received your message and will get back to you shortly.</p>
+        <div style="background: #f3f4f6; border-radius: 8px; padding: 16px; margin: 16px 0; white-space: pre-line;">${message}</div>
+      </div>
+    `,
+  });
+
+  if (error) {
+    console.error('Failed to send contact confirmation:', error);
+    throw error;
+  }
+  return data;
+}
+
+export async function sendContactAdminNotification(
+  to: string,
+  { visitorName, visitorEmail, message, chatbotName }: {
+    visitorName: string; visitorEmail: string; message: string; chatbotName: string;
+  }
+) {
+  const { data, error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `New contact form submission - ${chatbotName}`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2>New Contact Submission</h2>
+        <p><strong>Chatbot:</strong> ${chatbotName}</p>
+        <p><strong>From:</strong> ${visitorName} (${visitorEmail})</p>
+        <div style="background: #f3f4f6; border-radius: 8px; padding: 16px; margin: 16px 0; white-space: pre-line;">${message}</div>
+        <p>
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/chatbots" style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+            View Submissions
+          </a>
+        </p>
+      </div>
+    `,
+  });
+
+  if (error) {
+    console.error('Failed to send contact admin notification:', error);
+    throw error;
+  }
+  return data;
+}
+
+export async function sendCreditPurchaseConfirmation(
+  to: string,
+  { name, creditAmount, amountPaid }: { name: string; creditAmount: number; amountPaid: string }
+) {
+  const { data, error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: 'Credit Purchase Confirmation',
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #6366f1;">Purchase Confirmed</h2>
+        <p>Hi ${name},</p>
+        <p>Your credit purchase has been processed successfully.</p>
+        <div style="background: #f3f4f6; border-radius: 8px; padding: 16px; margin: 16px 0;">
+          <p><strong>Credits added:</strong> ${creditAmount}</p>
+          <p><strong>Amount paid:</strong> ${amountPaid}</p>
+        </div>
+        <p>Your credits are now available. You can continue using the chatbot.</p>
+      </div>
+    `,
+  });
+
+  if (error) {
+    console.error('Failed to send credit purchase confirmation:', error);
+    throw error;
+  }
+  return data;
+}
+
 export async function sendApiKeyCreatedEmail(to: string, keyName: string, keyPrefix: string) {
   const { data, error } = await resend.emails.send({
     from: FROM_EMAIL,

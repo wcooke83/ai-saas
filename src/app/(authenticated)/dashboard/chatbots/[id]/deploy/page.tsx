@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip } from '@/components/ui/tooltip';
-import { H1 } from '@/components/ui/heading';
+import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
 import type { Chatbot } from '@/lib/chatbots/types';
 
 // Code block component with syntax highlighting feel and copy button
@@ -227,16 +227,10 @@ const data = await res.json();`;
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <div className="flex items-start justify-between">
-          <div>
-            <H1 variant="dashboard">
-              Deploy Chatbot
-            </H1>
-            <p className="text-secondary-600 dark:text-secondary-400 mt-1">
-              Add your chatbot to any website with just a few lines of code
-            </p>
-          </div>
+      <ChatbotPageHeader
+        chatbotId={id}
+        title="Deploy Chatbot"
+        actions={
           <Link
             href="/sdk#chatbots"
             className="inline-flex items-center gap-1.5 text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
@@ -244,8 +238,8 @@ const data = await res.json();`;
             <BookOpen className="w-4 h-4" />
             Full SDK Documentation
           </Link>
-        </div>
-      </div>
+        }
+      />
 
       {/* Status */}
       {!chatbot.is_published && (

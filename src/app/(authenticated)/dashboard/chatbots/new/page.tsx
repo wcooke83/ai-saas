@@ -107,12 +107,17 @@ export default function NewChatbotPage() {
           <ArrowLeft className="w-4 h-4 mr-1" />
           Back to Chatbots
         </Link>
-        <H1 variant="dashboard">
-          Create New Chatbot
-        </H1>
-        <p className="text-secondary-600 dark:text-secondary-400 mt-1">
-          Set up your AI chatbot in just a few steps
-        </p>
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
+            <Bot className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+          </div>
+          <div>
+            <H1 variant="dashboard">Create New Chatbot</H1>
+            <p className="text-secondary-600 dark:text-secondary-400">
+              Set up your AI chatbot in just a few steps
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Progress steps */}

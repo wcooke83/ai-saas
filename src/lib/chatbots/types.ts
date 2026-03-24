@@ -502,6 +502,88 @@ export interface Escalation {
 }
 
 // ============================================
+// CREDIT EXHAUSTION FALLBACK
+// ============================================
+
+export type CreditExhaustionMode = 'tickets' | 'contact_form' | 'purchase_credits' | 'help_articles';
+
+export interface TicketFallbackConfig {
+  title: string;
+  description: string;
+  showPhone: boolean;
+  showSubject: boolean;
+  showPriority: boolean;
+  customFields: PreChatFormField[];
+  autoReplyTemplate: string;
+  adminNotificationEmail: string;
+  ticketReferencePrefix: string;
+}
+
+export interface ContactFormFallbackConfig {
+  title: string;
+  description: string;
+  adminNotificationEmail: string;
+  autoReplyEnabled: boolean;
+  autoReplyText: string;
+}
+
+export interface CreditPackageConfig {
+  id: string;
+  name: string;
+  creditAmount: number;
+  priceCents: number;
+  stripePriceId: string;
+}
+
+export interface PurchaseCreditsFallbackConfig {
+  upsellMessage: string;
+  purchaseSuccessMessage: string;
+  packages: CreditPackageConfig[];
+}
+
+export interface HelpArticlesFallbackConfig {
+  searchPlaceholder: string;
+  emptyStateMessage: string;
+}
+
+export interface CreditExhaustionConfig {
+  tickets: TicketFallbackConfig;
+  contact_form: ContactFormFallbackConfig;
+  purchase_credits: PurchaseCreditsFallbackConfig;
+  help_articles: HelpArticlesFallbackConfig;
+}
+
+export const DEFAULT_CREDIT_EXHAUSTION_CONFIG: CreditExhaustionConfig = {
+  tickets: {
+    title: "We'll get back to you",
+    description: 'Our AI assistant is currently unavailable. Submit a ticket and we\'ll respond via email.',
+    showPhone: false,
+    showSubject: false,
+    showPriority: false,
+    customFields: [],
+    autoReplyTemplate: 'Hi {{name}},\n\nWe\'ve received your ticket ({{ticketId}}). Our team will review it and respond as soon as possible.\n\nSubject: {{subject}}',
+    adminNotificationEmail: '',
+    ticketReferencePrefix: 'TKT-',
+  },
+  contact_form: {
+    title: 'Contact Us',
+    description: 'Our AI assistant is currently unavailable. Leave us a message and we\'ll get back to you.',
+    adminNotificationEmail: '',
+    autoReplyEnabled: true,
+    autoReplyText: 'Thank you for reaching out. We\'ll get back to you soon.',
+  },
+  purchase_credits: {
+    upsellMessage: 'You\'ve used all your credits this month. Purchase more to continue chatting.',
+    purchaseSuccessMessage: 'Thank you for your purchase! Your credits have been added. You can now continue chatting.',
+    packages: [],
+  },
+  help_articles: {
+    searchPlaceholder: 'Search help articles...',
+    emptyStateMessage: 'No help articles are available yet. Please check back later.',
+  },
+};
+
+// ============================================
 // CHATBOT
 // ============================================
 
@@ -577,6 +659,10 @@ export interface Chatbot {
   // Telegram Handoff
   telegram_config?: TelegramConfig;
 
+  // Credit Exhaustion Fallback
+  credit_exhaustion_mode: CreditExhaustionMode;
+  credit_exhaustion_config: CreditExhaustionConfig;
+
   // CORS / Security
   allowed_origins: string[] | null;
 
@@ -622,6 +708,8 @@ export interface ChatbotInsert {
   feedback_config?: FeedbackConfig;
   live_handoff_config?: LiveHandoffConfig;
   telegram_config?: TelegramConfig;
+  credit_exhaustion_mode?: CreditExhaustionMode;
+  credit_exhaustion_config?: CreditExhaustionConfig;
   allowed_origins?: string[] | null;
   custom_text_updated_at?: string | null;
   language_updated_at?: string | null;
@@ -657,6 +745,8 @@ export interface ChatbotUpdate {
   feedback_config?: FeedbackConfig;
   live_handoff_config?: LiveHandoffConfig;
   telegram_config?: TelegramConfig;
+  credit_exhaustion_mode?: CreditExhaustionMode;
+  credit_exhaustion_config?: CreditExhaustionConfig;
   allowed_origins?: string[] | null;
   live_fetch_threshold?: number;
   custom_text_updated_at?: string | null;

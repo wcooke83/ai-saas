@@ -33,6 +33,7 @@ import {
   ClipboardList,
   Send,
   Bot,
+  Settings,
 } from 'lucide-react';
 import {
   Dialog,
@@ -385,9 +386,14 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <H1 variant="dashboard">Settings</H1>
-        <p className="text-secondary-600 dark:text-secondary-400">Manage your account settings and preferences</p>
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
+          <Settings className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+        </div>
+        <div>
+          <H1 variant="dashboard">Settings</H1>
+          <p className="text-secondary-600 dark:text-secondary-400">Manage your account settings and preferences</p>
+        </div>
       </div>
 
       <div className="grid gap-6">

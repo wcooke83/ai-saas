@@ -1,6 +1,6 @@
 /**
- * Chatbot Escalations API
- * GET /api/chatbots/:id/escalations - List escalations with stats and pagination
+ * Chatbot Issues API
+ * GET /api/chatbots/:id/issues - List reported issues with stats and pagination
  */
 
 import { NextRequest } from 'next/server';
@@ -12,6 +12,9 @@ import { APIError, successResponse, errorResponse } from '@/lib/api/utils';
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
+
+// Only issue reports — handoff reasons are managed via Agent Console
+const REPORT_REASONS = ['wrong_answer', 'offensive_content'];
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
@@ -40,11 +43,12 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
     const db = supabase as any;
 
-    // Build escalations query
+    // Build query
     let query = db
       .from('conversation_escalations')
       .select('*', { count: 'exact' })
       .eq('chatbot_id', chatbotId)
+      .in('reason', REPORT_REASONS)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -52,35 +56,38 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       query = query.eq('status', status);
     }
 
-    // Fetch escalations and stats in parallel
-    const [escalationsResult, openResult, acknowledgedResult, resolvedResult] = await Promise.all([
+    // Fetch issues and stats in parallel
+    const [issuesResult, openResult, acknowledgedResult, resolvedResult] = await Promise.all([
       query,
       db
         .from('conversation_escalations')
         .select('*', { count: 'exact', head: true })
         .eq('chatbot_id', chatbotId)
+        .in('reason', REPORT_REASONS)
         .eq('status', 'open'),
       db
         .from('conversation_escalations')
         .select('*', { count: 'exact', head: true })
         .eq('chatbot_id', chatbotId)
+        .in('reason', REPORT_REASONS)
         .eq('status', 'acknowledged'),
       db
         .from('conversation_escalations')
         .select('*', { count: 'exact', head: true })
         .eq('chatbot_id', chatbotId)
+        .in('reason', REPORT_REASONS)
         .eq('status', 'resolved'),
     ]);
 
-    if (escalationsResult.error) {
-      console.error('Failed to fetch escalations:', escalationsResult.error);
-      throw APIError.internal('Failed to fetch escalations');
+    if (issuesResult.error) {
+      console.error('Failed to fetch issues:', issuesResult.error);
+      throw APIError.internal('Failed to fetch issues');
     }
 
     const total = (openResult.count || 0) + (acknowledgedResult.count || 0) + (resolvedResult.count || 0);
 
     return successResponse({
-      data: escalationsResult.data || [],
+      data: issuesResult.data || [],
       stats: {
         total,
         open: openResult.count || 0,
@@ -90,7 +97,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       pagination: {
         page,
         limit,
-        total: escalationsResult.count || 0,
+        total: issuesResult.count || 0,
       },
     });
   } catch (error) {

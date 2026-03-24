@@ -19,6 +19,10 @@ import {
   Headphones,
   ChevronDown,
   LayoutDashboard,
+  CalendarDays,
+  Ticket,
+  FileText,
+  BookOpen,
 } from 'lucide-react';
 
 const primaryNav = [
@@ -26,6 +30,7 @@ const primaryNav = [
   { href: '/settings', label: 'Settings', icon: Settings },
   { href: '/knowledge', label: 'Knowledge', icon: Database },
   { href: '/customize', label: 'Customize', icon: Palette },
+  { href: '/calendar', label: 'Calendar', icon: CalendarDays },
   { href: '/deploy', label: 'Deploy', icon: Code },
 ];
 
@@ -36,7 +41,10 @@ const secondaryNav = [
   { href: '/leads', label: 'Leads', icon: Inbox },
   { href: '/surveys', label: 'Surveys', icon: ClipboardList },
   { href: '/sentiment', label: 'Sentiment', icon: Brain },
-  { href: '/escalations', label: 'Reports', icon: Flag },
+  { href: '/issues', label: 'Issues', icon: Flag },
+  { href: '/tickets', label: 'Tickets', icon: Ticket },
+  { href: '/contact', label: 'Contact', icon: FileText },
+  { href: '/articles', label: 'Articles', icon: BookOpen },
 ];
 
 export function ChatbotSubNav({ chatbotId }: { chatbotId: string }) {

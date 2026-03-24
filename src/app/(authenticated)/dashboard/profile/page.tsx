@@ -144,9 +144,14 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <H1 variant="dashboard">Profile</H1>
-        <p className="text-secondary-600 dark:text-secondary-400">Manage your public profile information</p>
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
+          <User className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+        </div>
+        <div>
+          <H1 variant="dashboard">Profile</H1>
+          <p className="text-secondary-600 dark:text-secondary-400">Manage your public profile information</p>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

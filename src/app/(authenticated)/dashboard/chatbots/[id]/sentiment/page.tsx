@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip } from '@/components/ui/tooltip';
-import { H1 } from '@/components/ui/heading';
+import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
 import type { Chatbot } from '@/lib/chatbots/types';
 
 interface SentimentPageProps {
@@ -243,42 +243,38 @@ export default function SentimentPage({ params }: SentimentPageProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <H1 variant="dashboard">
-            Sentiment & Loyalty
-          </H1>
-          <p className="text-secondary-600 dark:text-secondary-400 mt-1">
-            Analyze conversation outcomes and track visitor loyalty for {chatbot.name}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="default"
-            onClick={handleAnalyze}
-            disabled={analyzing || unanalyzedCount === 0}
-          >
-            {analyzing ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Brain className="w-4 h-4 mr-2" />
-            )}
-            {analyzing
-              ? 'Analyzing...'
-              : unanalyzedCount > 0
-                ? `Analyze ${unanalyzedCount} Session${unanalyzedCount !== 1 ? 's' : ''}`
-                : 'All Analyzed'}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleExport}
-            disabled={!stats || stats.total_analyzed === 0}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export CSV
-          </Button>
-        </div>
-      </div>
+      <ChatbotPageHeader
+        chatbotId={id}
+        title="Sentiment & Loyalty"
+        actions={
+          <div className="flex items-center gap-3">
+            <Button
+              variant="default"
+              onClick={handleAnalyze}
+              disabled={analyzing || unanalyzedCount === 0}
+            >
+              {analyzing ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Brain className="w-4 h-4 mr-2" />
+              )}
+              {analyzing
+                ? 'Analyzing...'
+                : unanalyzedCount > 0
+                  ? `Analyze ${unanalyzedCount} Session${unanalyzedCount !== 1 ? 's' : ''}`
+                  : 'All Analyzed'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              disabled={!stats || stats.total_analyzed === 0}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export CSV
+            </Button>
+          </div>
+        }
+      />
 
       {/* Stats Grid */}
       {stats && stats.total_analyzed > 0 && (

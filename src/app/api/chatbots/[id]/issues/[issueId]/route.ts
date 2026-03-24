@@ -1,6 +1,6 @@
 /**
- * Single Escalation API
- * PATCH /api/chatbots/:id/escalations/:escalationId - Update escalation status
+ * Single Issue API
+ * PATCH /api/chatbots/:id/issues/:issueId - Update issue status
  */
 
 import { NextRequest } from 'next/server';
@@ -11,7 +11,7 @@ import { checkChatbotOwnership } from '@/lib/chatbots/api';
 import { APIError, successResponse, errorResponse, parseBody } from '@/lib/api/utils';
 
 interface RouteParams {
-  params: Promise<{ id: string; escalationId: string }>;
+  params: Promise<{ id: string; issueId: string }>;
 }
 
 const updateSchema = z.object({
@@ -20,7 +20,7 @@ const updateSchema = z.object({
 
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
   try {
-    const { id: chatbotId, escalationId } = await params;
+    const { id: chatbotId, issueId } = await params;
 
     const supabase = await createClient();
 
@@ -41,27 +41,27 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
     const db = supabase as any;
 
-    // Update escalation — WHERE includes both id and chatbot_id
-    const { data: escalation, error } = await db
+    // Update issue — WHERE includes both id and chatbot_id
+    const { data: issue, error } = await db
       .from('conversation_escalations')
       .update({
         status: body.status,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', escalationId)
+      .eq('id', issueId)
       .eq('chatbot_id', chatbotId)
       .select()
       .single();
 
     if (error) {
       if (error.code === 'PGRST116') {
-        throw APIError.notFound('Escalation not found');
+        throw APIError.notFound('Issue not found');
       }
-      console.error('Failed to update escalation:', error);
-      throw APIError.internal('Failed to update escalation');
+      console.error('Failed to update issue:', error);
+      throw APIError.internal('Failed to update issue');
     }
 
-    return successResponse(escalation);
+    return successResponse(issue);
   } catch (error) {
     return errorResponse(error);
   }

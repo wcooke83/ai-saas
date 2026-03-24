@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip } from '@/components/ui/tooltip';
-import { H1 } from '@/components/ui/heading';
+import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
 import type { Chatbot, WidgetConfig } from '@/lib/chatbots/types';
 import { DEFAULT_WIDGET_CONFIG } from '@/lib/chatbots/types';
 import { getTranslations } from '@/lib/chatbots/translations';
@@ -254,26 +254,22 @@ export default function CustomizePage({ params }: CustomizePageProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <H1 variant="dashboard">
-            Customize Widget
-          </H1>
-          <p className="text-secondary-600 dark:text-secondary-400 mt-1">
-            Personalize the look and feel of your chatbot widget
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={handleReset}>
-            <RotateCcw className="w-4 h-4 mr-2" />
-            Reset to Default
-          </Button>
-          <Button onClick={handleSave} disabled={saving}>
-            <Save className="w-4 h-4 mr-2" />
-            {saving ? 'Saving...' : 'Save Changes'}
-          </Button>
-        </div>
-      </div>
+      <ChatbotPageHeader
+        chatbotId={id}
+        title="Customize Widget"
+        actions={
+          <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={handleReset}>
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Reset to Default
+            </Button>
+            <Button onClick={handleSave} disabled={saving}>
+              <Save className="w-4 h-4 mr-2" />
+              {saving ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </div>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Configuration Panel */}

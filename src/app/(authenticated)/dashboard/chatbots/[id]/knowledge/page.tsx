@@ -26,7 +26,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getClient } from '@/lib/supabase/client';
-import { H1 } from '@/components/ui/heading';
+import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
+import { ArticleGeneration } from '@/components/chatbots/ArticleGeneration';
 import type { KnowledgeSource } from '@/lib/chatbots/types';
 
 interface KnowledgePageProps {
@@ -255,22 +256,16 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <H1 variant="dashboard">
-            Knowledge Base
-          </H1>
-          <p className="text-secondary-600 dark:text-secondary-400 mt-1">
-            Train your chatbot with custom knowledge
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
+      <ChatbotPageHeader
+        chatbotId={id}
+        title="Knowledge Base"
+        actions={
           <Button variant="outline" onClick={() => fetchSources()}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Add Source Cards */}
       {!addMode && (
@@ -558,6 +553,21 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
           </Card>
         )
       )}
+
+      {/* Article Generation — generates articles from URLs/knowledge and adds them as knowledge chunks */}
+      <div className="pt-2">
+        <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4">
+          Article Generation
+        </h2>
+        <p className="text-sm text-secondary-500 mb-4">
+          Generate help articles from website URLs or existing knowledge sources.
+          Articles are automatically embedded into the knowledge base so your chatbot can answer questions without live-fetching.
+        </p>
+        <ArticleGeneration
+          chatbotId={id}
+          onGenerated={() => fetchSources()}
+        />
+      </div>
 
       {/* Confirm Dialog */}
       <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}>

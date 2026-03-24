@@ -3,6 +3,7 @@
 import { useState, useEffect, use, useMemo, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Timer, Info, X, AlertTriangle } from 'lucide-react';
+import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
 import { MessagePreview } from '@/components/performance/MessagePreview';
 import { PerformanceFilterBar, type PerformanceFilters, DEFAULT_FILTERS } from '@/components/performance/PerformanceFilterBar';
 import { PerformancePagination } from '@/components/performance/PerformancePagination';
@@ -913,11 +914,8 @@ function PerformancePageInner({ params }: PerformancePageProps) {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
-          <Timer className="w-6 h-6" />
-          Performance
-        </h1>
-        <p className="text-secondary-600 dark:text-secondary-400 mt-1 mb-4">
+        <ChatbotPageHeader chatbotId={id} title="Performance" />
+        <p className="text-secondary-600 dark:text-secondary-400 mt-3 mb-4">
           Response time analytics for each pipeline stage
         </p>
         <PerformanceFilterBar

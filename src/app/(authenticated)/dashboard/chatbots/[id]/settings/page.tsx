@@ -57,6 +57,7 @@ import {
   DEFAULT_FEEDBACK_CONFIG,
   DEFAULT_TELEGRAM_CONFIG,
   DEFAULT_LIVE_HANDOFF_CONFIG,
+  DEFAULT_CREDIT_EXHAUSTION_CONFIG,
 } from '@/lib/chatbots/types';
 import { SUPPORTED_LANGUAGES, getLanguageName, getDefaultTextsForLanguage } from '@/lib/chatbots/translations';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -70,7 +71,7 @@ import type {
   SurveyQuestion,
   SurveyQuestionType,
 } from '@/lib/chatbots/types';
-import type { FileUploadConfig, ProactiveMessagesConfig, ProactiveMessageRule, ProactiveTriggerType, ProactiveDisplayMode, ProactiveBubblePosition, ProactiveBubbleStyle, TranscriptConfig, EscalationConfig, FeedbackConfig, LiveHandoffConfig, TelegramConfig } from '@/lib/chatbots/types';
+import type { FileUploadConfig, ProactiveMessagesConfig, ProactiveMessageRule, ProactiveTriggerType, ProactiveDisplayMode, ProactiveBubblePosition, ProactiveBubbleStyle, TranscriptConfig, EscalationConfig, FeedbackConfig, LiveHandoffConfig, TelegramConfig, CreditExhaustionMode, CreditExhaustionConfig } from '@/lib/chatbots/types';
 import { DEFAULT_BUBBLE_STYLE } from '@/lib/chatbots/types';
 import { H1 } from '@/components/ui/heading';
 
@@ -109,6 +110,8 @@ interface SettingsFormData {
   feedbackConfig: FeedbackConfig;
   liveHandoffConfig: LiveHandoffConfig;
   telegramConfig: TelegramConfig;
+  creditExhaustionMode: CreditExhaustionMode;
+  creditExhaustionConfig: CreditExhaustionConfig;
   allowedOrigins: string;
 }
 
@@ -138,6 +141,8 @@ function getDefaultFormValues(): SettingsFormData {
     feedbackConfig: DEFAULT_FEEDBACK_CONFIG,
     liveHandoffConfig: DEFAULT_LIVE_HANDOFF_CONFIG,
     telegramConfig: DEFAULT_TELEGRAM_CONFIG,
+    creditExhaustionMode: 'tickets' as CreditExhaustionMode,
+    creditExhaustionConfig: DEFAULT_CREDIT_EXHAUSTION_CONFIG,
     allowedOrigins: '',
   };
 }
@@ -174,6 +179,8 @@ function chatbotToFormValues(bot: Chatbot): SettingsFormData {
     feedbackConfig: bot.feedback_config ? { ...DEFAULT_FEEDBACK_CONFIG, ...bot.feedback_config } as FeedbackConfig : DEFAULT_FEEDBACK_CONFIG,
     liveHandoffConfig: bot.live_handoff_config ? { ...DEFAULT_LIVE_HANDOFF_CONFIG, ...bot.live_handoff_config } as LiveHandoffConfig : DEFAULT_LIVE_HANDOFF_CONFIG,
     telegramConfig: bot.telegram_config ? { ...DEFAULT_TELEGRAM_CONFIG, ...bot.telegram_config } as TelegramConfig : DEFAULT_TELEGRAM_CONFIG,
+    creditExhaustionMode: bot.credit_exhaustion_mode || 'tickets',
+    creditExhaustionConfig: bot.credit_exhaustion_config ? { ...DEFAULT_CREDIT_EXHAUSTION_CONFIG, ...bot.credit_exhaustion_config } as CreditExhaustionConfig : DEFAULT_CREDIT_EXHAUSTION_CONFIG,
     allowedOrigins: bot.allowed_origins ? bot.allowed_origins.join(', ') : '',
   };
 }
@@ -191,7 +198,6 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<string>('general');
   const [isTranslateModalOpen, setIsTranslateModalOpen] = useState(false);
-  const [translateModalSection, setTranslateModalSection] = useState<'pre-chat' | 'post-chat' | 'general' | 'both'>('both');
 
   // Per-section translation warning state
   const [showGeneralWarning, setShowGeneralWarning] = useState(false);
@@ -330,6 +336,8 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
           feedback_config: values.feedbackConfig,
           live_handoff_config: values.liveHandoffConfig,
           telegram_config: values.telegramConfig,
+          credit_exhaustion_mode: values.creditExhaustionMode,
+          credit_exhaustion_config: values.creditExhaustionConfig,
           model: values.modelTier,
           temperature: values.temperature,
           max_tokens: values.maxTokens,
@@ -403,6 +411,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
     { id: 'transcripts', label: 'Transcripts', icon: Mail },
     { id: 'feedback', label: 'Feedback & Reports', icon: ThumbsDown },
     { id: 'handoff', label: 'Live Handoff', icon: Headphones },
+    { id: 'fallback', label: 'Credit Exhaustion', icon: AlertCircle },
   ];
 
   const statusColors: Record<string, string> = {
@@ -545,7 +554,6 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   </p>
                   <button
                     onClick={() => {
-                      setTranslateModalSection('general');
                       setIsTranslateModalOpen(true);
                     }}
                     className="mt-2 text-primary-600 dark:text-primary-400 hover:underline font-medium"
@@ -1079,7 +1087,6 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
           language={language}
           shouldShowWarning={showPreChatWarning}
           onOpenTranslate={() => {
-            setTranslateModalSection('pre-chat');
             setIsTranslateModalOpen(true);
           }}
         />
@@ -1093,7 +1100,6 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
           language={language}
           shouldShowWarning={showPostChatWarning}
           onOpenTranslate={() => {
-            setTranslateModalSection('post-chat');
             setIsTranslateModalOpen(true);
           }}
         />
@@ -1772,6 +1778,303 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
         </Card>
       )}
 
+      {/* Credit Exhaustion Fallback */}
+      {activeSection === 'fallback' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-primary-500" />
+              Credit Exhaustion Fallback
+            </CardTitle>
+            <CardDescription>
+              Configure what happens when your chatbot runs out of credits
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Mode Selection */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Fallback Mode</Label>
+              {([
+                { value: 'tickets' as const, label: 'Open Tickets', desc: 'Show a ticket form for visitors to submit support requests' },
+                { value: 'contact_form' as const, label: 'Simple Contact Form', desc: 'Show a basic contact form with name, email, and message' },
+                { value: 'purchase_credits' as const, label: 'Purchase Additional Quota', desc: 'Allow visitors to purchase more credits via Stripe' },
+                { value: 'help_articles' as const, label: 'Help Articles', desc: 'Display searchable help articles from your knowledge sources' },
+              ]).map((mode) => (
+                <label key={mode.value} className={cn(
+                  'flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
+                  watch('creditExhaustionMode') === mode.value
+                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                    : 'border-secondary-200 dark:border-secondary-700 hover:bg-secondary-50 dark:hover:bg-secondary-800'
+                )}>
+                  <input
+                    type="radio"
+                    name="creditExhaustionMode"
+                    value={mode.value}
+                    checked={watch('creditExhaustionMode') === mode.value}
+                    onChange={() => setValue('creditExhaustionMode', mode.value, { shouldDirty: true })}
+                    className="mt-1"
+                  />
+                  <div>
+                    <p className="text-sm font-medium">{mode.label}</p>
+                    <p className="text-xs text-secondary-500 dark:text-secondary-400">{mode.desc}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+
+            {/* Tickets Config */}
+            {watch('creditExhaustionMode') === 'tickets' && (
+              <div className="space-y-4 pt-4 border-t border-secondary-200 dark:border-secondary-700">
+                <h4 className="text-sm font-medium">Ticket Form Settings</h4>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs">Form Title</Label>
+                    <Input
+                      value={watch('creditExhaustionConfig')?.tickets?.title || ''}
+                      onChange={(e) => {
+                        const cfg = { ...watch('creditExhaustionConfig') };
+                        cfg.tickets = { ...cfg.tickets, title: e.target.value };
+                        setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Form Description</Label>
+                    <Input
+                      value={watch('creditExhaustionConfig')?.tickets?.description || ''}
+                      onChange={(e) => {
+                        const cfg = { ...watch('creditExhaustionConfig') };
+                        cfg.tickets = { ...cfg.tickets, description: e.target.value };
+                        setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={watch('creditExhaustionConfig')?.tickets?.showPhone || false}
+                        onChange={(e) => {
+                          const cfg = { ...watch('creditExhaustionConfig') };
+                          cfg.tickets = { ...cfg.tickets, showPhone: e.target.checked };
+                          setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                        }}
+                      />
+                      Phone field
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={watch('creditExhaustionConfig')?.tickets?.showSubject || false}
+                        onChange={(e) => {
+                          const cfg = { ...watch('creditExhaustionConfig') };
+                          cfg.tickets = { ...cfg.tickets, showSubject: e.target.checked };
+                          setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                        }}
+                      />
+                      Subject field
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={watch('creditExhaustionConfig')?.tickets?.showPriority || false}
+                        onChange={(e) => {
+                          const cfg = { ...watch('creditExhaustionConfig') };
+                          cfg.tickets = { ...cfg.tickets, showPriority: e.target.checked };
+                          setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                        }}
+                      />
+                      Priority dropdown
+                    </label>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Admin Notification Email</Label>
+                    <Input
+                      type="email"
+                      placeholder="admin@yourcompany.com"
+                      value={watch('creditExhaustionConfig')?.tickets?.adminNotificationEmail || ''}
+                      onChange={(e) => {
+                        const cfg = { ...watch('creditExhaustionConfig') };
+                        cfg.tickets = { ...cfg.tickets, adminNotificationEmail: e.target.value };
+                        setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Ticket Reference Prefix</Label>
+                    <Input
+                      placeholder="TKT-"
+                      value={watch('creditExhaustionConfig')?.tickets?.ticketReferencePrefix || 'TKT-'}
+                      onChange={(e) => {
+                        const cfg = { ...watch('creditExhaustionConfig') };
+                        cfg.tickets = { ...cfg.tickets, ticketReferencePrefix: e.target.value };
+                        setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Auto-Reply Email Template</Label>
+                    <p className="text-xs text-secondary-500 mb-1">Available placeholders: {'{{name}}'}, {'{{ticketId}}'}, {'{{subject}}'}</p>
+                    <textarea
+                      className="w-full min-h-[80px] rounded-md border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-900 px-3 py-2 text-sm"
+                      value={watch('creditExhaustionConfig')?.tickets?.autoReplyTemplate || ''}
+                      onChange={(e) => {
+                        const cfg = { ...watch('creditExhaustionConfig') };
+                        cfg.tickets = { ...cfg.tickets, autoReplyTemplate: e.target.value };
+                        setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Contact Form Config */}
+            {watch('creditExhaustionMode') === 'contact_form' && (
+              <div className="space-y-4 pt-4 border-t border-secondary-200 dark:border-secondary-700">
+                <h4 className="text-sm font-medium">Contact Form Settings</h4>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs">Form Title</Label>
+                    <Input
+                      value={watch('creditExhaustionConfig')?.contact_form?.title || ''}
+                      onChange={(e) => {
+                        const cfg = { ...watch('creditExhaustionConfig') };
+                        cfg.contact_form = { ...cfg.contact_form, title: e.target.value };
+                        setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Form Description</Label>
+                    <Input
+                      value={watch('creditExhaustionConfig')?.contact_form?.description || ''}
+                      onChange={(e) => {
+                        const cfg = { ...watch('creditExhaustionConfig') };
+                        cfg.contact_form = { ...cfg.contact_form, description: e.target.value };
+                        setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Admin Notification Email</Label>
+                    <Input
+                      type="email"
+                      placeholder="admin@yourcompany.com"
+                      value={watch('creditExhaustionConfig')?.contact_form?.adminNotificationEmail || ''}
+                      onChange={(e) => {
+                        const cfg = { ...watch('creditExhaustionConfig') };
+                        cfg.contact_form = { ...cfg.contact_form, adminNotificationEmail: e.target.value };
+                        setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                      }}
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={watch('creditExhaustionConfig')?.contact_form?.autoReplyEnabled !== false}
+                      onChange={(e) => {
+                        const cfg = { ...watch('creditExhaustionConfig') };
+                        cfg.contact_form = { ...cfg.contact_form, autoReplyEnabled: e.target.checked };
+                        setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                      }}
+                    />
+                    Send auto-reply to visitor
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {/* Purchase Credits Config */}
+            {watch('creditExhaustionMode') === 'purchase_credits' && (
+              <div className="space-y-4 pt-4 border-t border-secondary-200 dark:border-secondary-700">
+                <h4 className="text-sm font-medium">Credit Packages</h4>
+                <div>
+                  <Label className="text-xs">Upsell Message</Label>
+                  <Input
+                    value={watch('creditExhaustionConfig')?.purchase_credits?.upsellMessage || ''}
+                    onChange={(e) => {
+                      const cfg = { ...watch('creditExhaustionConfig') };
+                      cfg.purchase_credits = { ...cfg.purchase_credits, upsellMessage: e.target.value };
+                      setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Purchase Success Message</Label>
+                  <Input
+                    value={watch('creditExhaustionConfig')?.purchase_credits?.purchaseSuccessMessage || ''}
+                    onChange={(e) => {
+                      const cfg = { ...watch('creditExhaustionConfig') };
+                      cfg.purchase_credits = { ...cfg.purchase_credits, purchaseSuccessMessage: e.target.value };
+                      setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                    }}
+                  />
+                </div>
+                <div className="p-3 bg-secondary-50 dark:bg-secondary-800 rounded-lg">
+                  <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                    Credit packages are configured in the database directly. Each package needs a Stripe Price ID, credit amount, and price.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Help Articles Config */}
+            {watch('creditExhaustionMode') === 'help_articles' && (
+              <div className="space-y-4 pt-4 border-t border-secondary-200 dark:border-secondary-700">
+                <h4 className="text-sm font-medium">Help Articles</h4>
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    When credits are exhausted, the widget will display searchable help articles generated from your knowledge sources.
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-xs">Search Placeholder</Label>
+                  <Input
+                    value={watch('creditExhaustionConfig')?.help_articles?.searchPlaceholder || ''}
+                    onChange={(e) => {
+                      const cfg = { ...watch('creditExhaustionConfig') };
+                      cfg.help_articles = { ...cfg.help_articles, searchPlaceholder: e.target.value };
+                      setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Empty State Message</Label>
+                  <Input
+                    value={watch('creditExhaustionConfig')?.help_articles?.emptyStateMessage || ''}
+                    onChange={(e) => {
+                      const cfg = { ...watch('creditExhaustionConfig') };
+                      cfg.help_articles = { ...cfg.help_articles, emptyStateMessage: e.target.value };
+                      setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                    }}
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      toast.info('Generating articles from knowledge sources...');
+                      const res = await fetch(`/api/chatbots/${id}/articles/generate`, {
+                        method: 'POST',
+                      });
+                      const data = await res.json();
+                      if (!res.ok) throw new Error(data.error?.message || 'Failed');
+                      toast.success(data.data?.message || 'Articles generated');
+                    } catch (err) {
+                      toast.error(err instanceof Error ? err.message : 'Failed to generate articles');
+                    }
+                  }}
+                >
+                  Generate Articles from Knowledge Sources
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
         {/* Sticky bottom save bar */}
         <div className="sticky bottom-0 pt-4 pb-6 mt-6 flex items-center justify-end gap-3">
           {isDirty && (
@@ -1897,35 +2200,30 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
       <TranslationReviewModal
         isOpen={isTranslateModalOpen}
         onClose={() => setIsTranslateModalOpen(false)}
-        section={translateModalSection}
-        language={language}
-        currentValues={{
-          welcomeMessage,
-          placeholderText,
-          preChatConfig,
-          postChatConfig,
-        }}
-        onApply={(updates) => {
-          if (updates.welcomeMessage !== undefined) {
-            setValue('welcomeMessage', updates.welcomeMessage, { shouldDirty: true });
+        targetLanguage={language}
+        chatbotId={id}
+        preChatConfig={preChatConfig}
+        postChatConfig={postChatConfig}
+        generalText={{ welcomeMessage, placeholderText }}
+        onApply={(translatedPreChat, translatedPostChat, translatedGeneral) => {
+          if (translatedGeneral?.welcomeMessage !== undefined) {
+            setValue('welcomeMessage', translatedGeneral.welcomeMessage, { shouldDirty: true });
             setShowGeneralWarning(false);
           }
-          if (updates.placeholderText !== undefined) {
-            setValue('placeholderText', updates.placeholderText, { shouldDirty: true });
+          if (translatedGeneral?.placeholderText !== undefined) {
+            setValue('placeholderText', translatedGeneral.placeholderText, { shouldDirty: true });
             setShowGeneralWarning(false);
           }
-          if (updates.preChatConfig !== undefined) {
-            setValue('preChatConfig', updates.preChatConfig, { shouldDirty: true });
+          if (translatedPreChat !== undefined) {
+            setValue('preChatConfig', translatedPreChat, { shouldDirty: true });
             setShowPreChatWarning(false);
           }
-          if (updates.postChatConfig !== undefined) {
-            setValue('postChatConfig', updates.postChatConfig, { shouldDirty: true });
+          if (translatedPostChat !== undefined) {
+            setValue('postChatConfig', translatedPostChat, { shouldDirty: true });
             setShowPostChatWarning(false);
           }
         }}
-        onApplyAndSave={async (updates) => {
-          // Store overrides in ref so handleSave can access them
-          saveOverridesRef.current = updates;
+        onSave={async () => {
           await handleSave();
         }}
       />

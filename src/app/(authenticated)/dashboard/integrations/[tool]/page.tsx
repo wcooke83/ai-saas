@@ -181,14 +181,12 @@ console.log(data);`;
           <ArrowLeft className="w-4 h-4 mr-1" aria-hidden="true" />
           Back to Integrations
         </Link>
-        <div className="flex items-center gap-4">
-          <div className={`p-3 rounded-lg ${config.iconBg}`}>
-            <Icon className={`w-6 h-6 ${config.iconColor}`} aria-hidden="true" />
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
+            <Icon className="w-6 h-6 text-primary-600 dark:text-primary-400" aria-hidden="true" />
           </div>
           <div>
-            <H1 variant="dashboard">
-              {config.name} Integration
-            </H1>
+            <H1 variant="dashboard">{config.name} Integration</H1>
             <p className="text-secondary-600 dark:text-secondary-400">
               {config.description}
             </p>

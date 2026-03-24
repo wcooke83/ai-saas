@@ -1,9 +1,9 @@
 'use client';
 
 import { use, useState, useEffect } from 'react';
-import { Headphones, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { AgentConsoleLayout } from '@/components/agent-console/AgentConsoleLayout';
-import { H1 } from '@/components/ui/heading';
+import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
 
 interface ConversationsPageProps {
   params: Promise<{ id: string }>;
@@ -39,17 +39,7 @@ export default function ConversationsPage({ params }: ConversationsPageProps) {
 
   return (
     <div className="space-y-4 h-[calc(100vh-8rem)]">
-      <div>
-        <div className="flex items-center gap-2">
-          <Headphones className="w-5 h-5 text-primary-600 dark:text-primary-400" />
-          <H1 variant="dashboard" className="text-xl">
-            Agent Console
-          </H1>
-        </div>
-        <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-1">
-          Manage live conversations and respond to handoff requests
-        </p>
-      </div>
+      <ChatbotPageHeader chatbotId={id} title="Agent Console" />
 
       <div className="flex-1" style={{ height: 'calc(100% - 5rem)' }}>
         <AgentConsoleLayout

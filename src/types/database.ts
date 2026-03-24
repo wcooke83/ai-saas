@@ -286,6 +286,7 @@ export type Database = {
       app_settings: {
         Row: {
           ai_provider: string
+          chat_debug_mode: boolean
           embedding_model_id: string | null
           id: string
           local_api_key: string | null
@@ -301,6 +302,7 @@ export type Database = {
         }
         Insert: {
           ai_provider?: string
+          chat_debug_mode?: boolean
           embedding_model_id?: string | null
           id?: string
           local_api_key?: string | null
@@ -316,6 +318,7 @@ export type Database = {
         }
         Update: {
           ai_provider?: string
+          chat_debug_mode?: boolean
           embedding_model_id?: string | null
           id?: string
           local_api_key?: string | null
@@ -383,6 +386,271 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "audit_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_availability_cache: {
+        Row: {
+          date: string
+          expires_at: string
+          fetched_at: string | null
+          id: string
+          integration_id: string
+          slots: Json
+        }
+        Insert: {
+          date: string
+          expires_at: string
+          fetched_at?: string | null
+          id?: string
+          integration_id: string
+          slots: Json
+        }
+        Update: {
+          date?: string
+          expires_at?: string
+          fetched_at?: string | null
+          id?: string
+          integration_id?: string
+          slots?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_availability_cache_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_bookings: {
+        Row: {
+          attendee_email: string
+          attendee_name: string
+          attendee_timezone: string
+          chat_session_id: string | null
+          chatbot_id: string
+          created_at: string | null
+          end_time: string
+          id: string
+          integration_id: string | null
+          meeting_url: string | null
+          metadata: Json | null
+          notes: string | null
+          provider: string
+          provider_booking_id: string | null
+          start_time: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          attendee_email: string
+          attendee_name: string
+          attendee_timezone?: string
+          chat_session_id?: string | null
+          chatbot_id: string
+          created_at?: string | null
+          end_time: string
+          id?: string
+          integration_id?: string | null
+          meeting_url?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          provider: string
+          provider_booking_id?: string | null
+          start_time: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          attendee_email?: string
+          attendee_name?: string
+          attendee_timezone?: string
+          chat_session_id?: string | null
+          chatbot_id?: string
+          created_at?: string | null
+          end_time?: string
+          id?: string
+          integration_id?: string | null
+          meeting_url?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          provider?: string
+          provider_booking_id?: string | null
+          start_time?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_bookings_chat_session_id_fkey"
+            columns: ["chat_session_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_bookings_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_bookings_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_business_hours: {
+        Row: {
+          day_of_week: number
+          end_time: string
+          id: string
+          integration_id: string
+          is_enabled: boolean | null
+          start_time: string
+        }
+        Insert: {
+          day_of_week: number
+          end_time?: string
+          id?: string
+          integration_id: string
+          is_enabled?: boolean | null
+          start_time?: string
+        }
+        Update: {
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          integration_id?: string
+          is_enabled?: boolean | null
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_business_hours_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_event_types: {
+        Row: {
+          buffer_after_minutes: number | null
+          buffer_before_minutes: number | null
+          created_at: string | null
+          description: string | null
+          duration_minutes: number
+          id: string
+          integration_id: string
+          is_active: boolean | null
+          max_days_ahead: number | null
+          min_notice_hours: number | null
+          provider_event_type_id: string | null
+          provider_schedule_id: string | null
+          slug: string
+          timezone: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          buffer_after_minutes?: number | null
+          buffer_before_minutes?: number | null
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          integration_id: string
+          is_active?: boolean | null
+          max_days_ahead?: number | null
+          min_notice_hours?: number | null
+          provider_event_type_id?: string | null
+          provider_schedule_id?: string | null
+          slug?: string
+          timezone?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Update: {
+          buffer_after_minutes?: number | null
+          buffer_before_minutes?: number | null
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          integration_id?: string
+          is_active?: boolean | null
+          max_days_ahead?: number | null
+          min_notice_hours?: number | null
+          provider_event_type_id?: string | null
+          provider_schedule_id?: string | null
+          slug?: string
+          timezone?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_event_types_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_integrations: {
+        Row: {
+          chatbot_id: string
+          config: Json
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          provider: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          chatbot_id: string
+          config?: Json
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          provider: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          chatbot_id?: string
+          config?: Json
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          provider?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_integrations_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_integrations_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -494,6 +762,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      chat_rate_limits: {
+        Row: {
+          count: number
+          key: string
+          window_start: string
+        }
+        Insert: {
+          count?: number
+          key: string
+          window_start?: string
+        }
+        Update: {
+          count?: number
+          key?: string
+          window_start?: string
+        }
+        Relationships: []
       }
       chatbot_analytics: {
         Row: {
@@ -694,11 +980,15 @@ export type Database = {
       }
       chatbots: {
         Row: {
+          allowed_origins: string[] | null
           created_at: string | null
+          credit_exhaustion_config: Json
+          credit_exhaustion_mode: string
           custom_text_updated_at: string | null
           description: string | null
           enable_prompt_protection: boolean
           escalation_config: Json
+          feedback_config: Json | null
           file_upload_config: Json
           id: string
           is_published: boolean | null
@@ -733,11 +1023,15 @@ export type Database = {
           widget_config: Json | null
         }
         Insert: {
+          allowed_origins?: string[] | null
           created_at?: string | null
+          credit_exhaustion_config?: Json
+          credit_exhaustion_mode?: string
           custom_text_updated_at?: string | null
           description?: string | null
           enable_prompt_protection?: boolean
           escalation_config?: Json
+          feedback_config?: Json | null
           file_upload_config?: Json
           id?: string
           is_published?: boolean | null
@@ -772,11 +1066,15 @@ export type Database = {
           widget_config?: Json | null
         }
         Update: {
+          allowed_origins?: string[] | null
           created_at?: string | null
+          credit_exhaustion_config?: Json
+          credit_exhaustion_mode?: string
           custom_text_updated_at?: string | null
           description?: string | null
           enable_prompt_protection?: boolean
           escalation_config?: Json
+          feedback_config?: Json | null
           file_upload_config?: Json
           id?: string
           is_published?: boolean | null
@@ -816,6 +1114,85 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_submissions: {
+        Row: {
+          chatbot_id: string
+          created_at: string
+          id: string
+          message: string
+          status: string
+          visitor_email: string
+          visitor_name: string
+        }
+        Insert: {
+          chatbot_id: string
+          created_at?: string
+          id?: string
+          message: string
+          status?: string
+          visitor_email: string
+          visitor_name: string
+        }
+        Update: {
+          chatbot_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          status?: string
+          visitor_email?: string
+          visitor_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_submissions_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_replies: {
+        Row: {
+          id: string
+          submission_id: string
+          sender_type: string
+          sender_name: string
+          sender_email: string
+          message: string
+          email_message_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          submission_id: string
+          sender_type: string
+          sender_name: string
+          sender_email: string
+          message: string
+          email_message_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          submission_id?: string
+          sender_type?: string
+          sender_name?: string
+          sender_email?: string
+          message?: string
+          email_message_id?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_replies_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "contact_submissions"
             referencedColumns: ["id"]
           },
         ]
@@ -1060,6 +1437,104 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_packages: {
+        Row: {
+          active: boolean
+          chatbot_id: string
+          created_at: string
+          credit_amount: number
+          id: string
+          name: string
+          price_cents: number
+          sort_order: number
+          stripe_price_id: string
+        }
+        Insert: {
+          active?: boolean
+          chatbot_id: string
+          created_at?: string
+          credit_amount: number
+          id?: string
+          name: string
+          price_cents: number
+          sort_order?: number
+          stripe_price_id: string
+        }
+        Update: {
+          active?: boolean
+          chatbot_id?: string
+          created_at?: string
+          credit_amount?: number
+          id?: string
+          name?: string
+          price_cents?: number
+          sort_order?: number
+          stripe_price_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_packages_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_purchases: {
+        Row: {
+          amount_paid_cents: number
+          chatbot_id: string
+          created_at: string
+          credit_amount: number
+          id: string
+          package_id: string
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount_paid_cents: number
+          chatbot_id: string
+          created_at?: string
+          credit_amount: number
+          id?: string
+          package_id: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount_paid_cents?: number
+          chatbot_id?: string
+          created_at?: string
+          credit_amount?: number
+          id?: string
+          package_id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_purchases_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_purchases_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "credit_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       credit_transactions: {
         Row: {
           amount: number
@@ -1188,11 +1663,62 @@ export type Database = {
           },
         ]
       }
+      help_articles: {
+        Row: {
+          body: string
+          chatbot_id: string
+          created_at: string
+          id: string
+          published: boolean
+          search_vector: unknown
+          sort_order: number
+          source_chunk_ids: string[] | null
+          summary: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          chatbot_id: string
+          created_at?: string
+          id?: string
+          published?: boolean
+          search_vector?: unknown
+          sort_order?: number
+          source_chunk_ids?: string[] | null
+          summary: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          chatbot_id?: string
+          created_at?: string
+          id?: string
+          published?: boolean
+          search_vector?: unknown
+          sort_order?: number
+          source_chunk_ids?: string[] | null
+          summary?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "help_articles_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       knowledge_chunks: {
         Row: {
           chatbot_id: string
           chunk_index: number
           content: string
+          content_hash: string | null
           created_at: string | null
           embedding: string | null
           id: string
@@ -1204,6 +1730,7 @@ export type Database = {
           chatbot_id: string
           chunk_index: number
           content: string
+          content_hash?: string | null
           created_at?: string | null
           embedding?: string | null
           id?: string
@@ -1215,6 +1742,7 @@ export type Database = {
           chatbot_id?: string
           chunk_index?: number
           content?: string
+          content_hash?: string | null
           created_at?: string | null
           embedding?: string | null
           id?: string
@@ -1449,6 +1977,7 @@ export type Database = {
           context_chunks: Json | null
           conversation_id: string
           created_at: string | null
+          feedback_reason: string | null
           id: string
           latency_ms: number | null
           metadata: Json | null
@@ -1465,6 +1994,7 @@ export type Database = {
           context_chunks?: Json | null
           conversation_id: string
           created_at?: string | null
+          feedback_reason?: string | null
           id?: string
           latency_ms?: number | null
           metadata?: Json | null
@@ -1481,6 +2011,7 @@ export type Database = {
           context_chunks?: Json | null
           conversation_id?: string
           created_at?: string | null
+          feedback_reason?: string | null
           id?: string
           latency_ms?: number | null
           metadata?: Json | null
@@ -2043,6 +2574,106 @@ export type Database = {
           },
         ]
       }
+      tickets: {
+        Row: {
+          admin_notes: string | null
+          chatbot_id: string
+          created_at: string
+          custom_fields: Json | null
+          id: string
+          message: string
+          priority: string
+          reference: string
+          resolved_at: string | null
+          status: string
+          subject: string | null
+          updated_at: string
+          visitor_email: string
+          visitor_name: string
+          visitor_phone: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          chatbot_id: string
+          created_at?: string
+          custom_fields?: Json | null
+          id?: string
+          message: string
+          priority?: string
+          reference: string
+          resolved_at?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+          visitor_email: string
+          visitor_name: string
+          visitor_phone?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          chatbot_id?: string
+          created_at?: string
+          custom_fields?: Json | null
+          id?: string
+          message?: string
+          priority?: string
+          reference?: string
+          resolved_at?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+          visitor_email?: string
+          visitor_name?: string
+          visitor_phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_replies: {
+        Row: {
+          id: string
+          ticket_id: string
+          sender_type: string
+          sender_email: string
+          sender_name: string
+          message: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          ticket_id: string
+          sender_type: string
+          sender_email: string
+          sender_name: string
+          message: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          ticket_id?: string
+          sender_type?: string
+          sender_email?: string
+          sender_name?: string
+          message?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_replies_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tools: {
         Row: {
           category: string
@@ -2421,21 +3052,30 @@ export type Database = {
         }
         Returns: boolean
       }
-      check_rate_limit: {
-        Args: {
-          p_token_limit: number
-          p_tokens_requested: number
-          p_user_id: string
-          p_window_seconds: number
-        }
-        Returns: {
-          allowed: boolean
-          is_soft_cap: boolean
-          reset_at: string
-          tokens_remaining: number
-          tokens_used: number
-        }[]
-      }
+      check_rate_limit:
+        | {
+            Args: {
+              p_key: string
+              p_max_requests: number
+              p_window_seconds: number
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_token_limit: number
+              p_tokens_requested: number
+              p_user_id: string
+              p_window_seconds: number
+            }
+            Returns: {
+              allowed: boolean
+              is_soft_cap: boolean
+              reset_at: string
+              tokens_remaining: number
+              tokens_used: number
+            }[]
+          }
       check_subscription_status: {
         Args: { p_user_id: string }
         Returns: {
@@ -2449,6 +3089,7 @@ export type Database = {
         }[]
       }
       cleanup_rate_limit_usage: { Args: never; Returns: number }
+      cleanup_rate_limits: { Args: never; Returns: undefined }
       clear_payment_failure: {
         Args: { p_stripe_subscription_id: string }
         Returns: undefined
@@ -2495,6 +3136,14 @@ export type Database = {
           p_to?: string
         }
         Returns: Json
+      }
+      get_chatbot_stats: {
+        Args: { p_chatbot_ids: string[] }
+        Returns: {
+          chatbot_id: string
+          conversation_count: number
+          message_count: number
+        }[]
       }
       get_credit_balance: {
         Args: { p_user_id: string }
@@ -2612,6 +3261,10 @@ export type Database = {
           metadata: Json
           similarity: number
         }[]
+      }
+      next_ticket_reference: {
+        Args: { p_chatbot_id: string; p_prefix?: string }
+        Returns: string
       }
       redeem_license_key: {
         Args: { p_key: string; p_user_id: string }

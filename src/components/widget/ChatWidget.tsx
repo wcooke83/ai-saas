@@ -6,6 +6,7 @@ import { createClient, type RealtimeChannel } from '@supabase/supabase-js';
 import type { WidgetConfig, Chatbot, PreChatFormConfig, PostChatSurveyConfig, PreChatFormField, ProactiveMessagesConfig, FileUploadConfig, Attachment, TranscriptConfig, EscalationConfig, FeedbackConfig, LiveHandoffConfig } from '@/lib/chatbots/types';
 import { getTranslations, translateDefault } from '@/lib/chatbots/translations';
 import { DEFAULT_PRE_CHAT_FORM_CONFIG, DEFAULT_POST_CHAT_SURVEY_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, FILE_TYPE_MAP } from '@/lib/chatbots/types';
+import { FallbackTicketForm, FallbackContactForm, FallbackPurchaseCredits, FallbackHelpArticles } from './fallback-views';
 import type { FileUploadAllowedTypes } from '@/lib/chatbots/types';
 
 // Singleton Supabase client for widget Realtime subscriptions (anon key)
@@ -158,7 +159,7 @@ interface WidgetMessage {
   retryAfter?: number;
 }
 
-type WidgetView = 'pre-chat-form' | 'verify-email' | 'chat' | 'survey' | 'survey-thanks' | 'report';
+type WidgetView = 'pre-chat-form' | 'verify-email' | 'chat' | 'survey' | 'survey-thanks' | 'report' | 'ticket-form' | 'contact-form' | 'purchase-credits' | 'help-articles';
 
 /**
  * Lightweight markdown-to-HTML renderer for chat bubbles.
@@ -267,9 +268,12 @@ interface ChatWidgetProps {
   sessionTtlHours?: number;
   userData?: Record<string, string> | null;
   userContext?: Record<string, unknown> | null;
+  creditExhausted?: boolean;
+  creditExhaustionMode?: string;
+  creditExhaustionConfig?: Record<string, unknown>;
 }
 
-export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, postChatSurveyConfig, language = 'en', fileUploadConfig, proactiveMessagesConfig, transcriptConfig, escalationConfig, feedbackConfig, liveHandoffConfig, agentsAvailable = false, memoryEnabled = false, sessionTtlHours, userData, userContext }: ChatWidgetProps) {
+export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, postChatSurveyConfig, language = 'en', fileUploadConfig, proactiveMessagesConfig, transcriptConfig, escalationConfig, feedbackConfig, liveHandoffConfig, agentsAvailable = false, memoryEnabled = false, sessionTtlHours, userData, userContext, creditExhausted = false, creditExhaustionMode = 'tickets', creditExhaustionConfig = {} }: ChatWidgetProps) {
   const [activeLanguage, setActiveLanguage] = useState(language);
   const t = getTranslations(activeLanguage);
   const tRef = useRef(t);
@@ -1051,6 +1055,19 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
         // Disable input for permanent errors
         if (errorType === 'message_limit' || errorType === 'unavailable') {
           setChatDisabled(errorType);
+          // Transition to fallback view if credits exhausted
+          if (errorType === 'message_limit') {
+            const viewMap: Record<string, WidgetView> = {
+              tickets: 'ticket-form',
+              contact_form: 'contact-form',
+              purchase_credits: 'purchase-credits',
+              help_articles: 'help-articles',
+            };
+            const fallbackView = viewMap[creditExhaustionMode];
+            if (fallbackView) {
+              setTimeout(() => setCurrentView(fallbackView), 1500);
+            }
+          }
         }
 
         setMessages((prev) => prev.map((m) =>
@@ -1623,7 +1640,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
 
         // Handoff resolved - show transition card
         if (status === 'resolved') {
-          const agentName = (session.agent_name as string) || handoffAgentNameRef.current || 'your agent';
+          const agentName = (session.agent_name as string) || handoffAgentNameRef.current || t.defaultAgentName;
           setHandoffActive(false);
           setHandoffStatus(null);
           setHandoffAgentName(null);
@@ -2261,7 +2278,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                 </span>
                 <span className="chat-widget-status">
                   {handoffActive
-                    ? (handoffAgentName ? `${handoffAgentName} connected` : 'Connecting to agent...')
+                    ? (handoffAgentName ? `${handoffAgentName} connected` : t.handoffConnecting)
                     : t.online}
                 </span>
               </div>
@@ -2282,9 +2299,8 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                   }
                 }}
                 className="chat-widget-close"
-                aria-label={t.reportIssue}
-                title={t.reportIssue}
-                style={{ marginRight: 4 }}
+                aria-label={t.flagIssue}
+                title={t.flagIssue}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill={currentView === 'report' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
               </button>
@@ -2295,13 +2311,12 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                 className="chat-widget-close"
                 aria-label={t.reportConnectToHuman || 'Talk to a person'}
                 title={t.reportConnectToHuman || 'Talk to a person'}
-                style={{ marginRight: 4 }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>
               </button>
             )}
             {handoffActive && currentView === 'chat' && (
-              <span className="chat-widget-handoff-indicator" title="Connected to agent">
+              <span className="chat-widget-handoff-indicator" title={t.handoffConnectedToAgent}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>
               </span>
             )}
@@ -2311,7 +2326,6 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                 className="chat-widget-close"
                 aria-label={t.emailTranscript}
                 title={t.emailTranscript}
-                style={{ marginRight: 4 }}
               >
                 {transcriptSent ? <Check size={18} /> : <Mail size={18} />}
               </button>
@@ -2322,7 +2336,6 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                 className="chat-widget-close"
                 aria-label={isExpanded ? t.shrinkAriaLabel : t.expandAriaLabel}
                 title={isExpanded ? t.shrinkAriaLabel : t.expandAriaLabel}
-                style={{ marginRight: 4 }}
               >
                 {isExpanded ? <Shrink size={18} /> : <Expand size={18} />}
               </button>
@@ -2568,7 +2581,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                         {message.role === 'assistant' && (message as any).metadata?.is_human_agent && (
                           <div style={{ fontSize: '11px', fontWeight: 600, color: config.primaryColor, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
                             <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#22c55e', display: 'inline-block' }} />
-                            {(message as any).metadata?.agent_name || 'Agent'}
+                            {(message as any).metadata?.agent_name || t.defaultAgentName}
                           </div>
                         )}
                         {message.role === 'assistant' ? (
@@ -2830,8 +2843,8 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                   </div>
                 )}
                 {agentIsTyping && !isLoading && (
-                  <div className="chat-widget-agent-typing-indicator" aria-label="Agent is typing">
-                    Agent is typing
+                  <div className="chat-widget-agent-typing-indicator" aria-label={t.agentTyping}>
+                    {t.agentTyping}
                     <span className="chat-widget-agent-typing-dots" aria-hidden="true">
                       <span>.</span><span>.</span><span>.</span>
                     </span>
@@ -2925,7 +2938,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                         type="button"
                         onClick={() => removePendingAttachment(i)}
                         className="chat-widget-pending-remove"
-                        aria-label="Remove"
+                        aria-label={t.removeAttachment}
                       >
                         <XCircle size={16} />
                       </button>
@@ -3108,8 +3121,8 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading || isLoading || atLimit}
                       className="chat-widget-attach-btn"
-                      aria-label={atLimit ? `Max ${maxFiles} files` : t.attachFile}
-                      title={atLimit ? `Max ${maxFiles} files` : t.attachFile}
+                      aria-label={atLimit ? t.maxFilesLabel.replace('{count}', String(maxFiles)) : t.attachFile}
+                      title={atLimit ? t.maxFilesLabel.replace('{count}', String(maxFiles)) : t.attachFile}
                       style={atLimit ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
                     >
                       {isUploading ? <Loader2 size={18} className="animate-spin" /> : <Paperclip size={18} />}
@@ -3232,7 +3245,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                     value={handoffContext}
                     onChange={(e) => setHandoffContext(e.target.value)}
                     placeholder={t.reportDetailsHumanHelp || 'What can we help with? (optional)'}
-                    aria-label="Describe what you need help with"
+                    aria-label={t.handoffDescribeLabel}
                   />
                 </div>
               </div>
@@ -3384,6 +3397,51 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
             </div>
           )}
 
+          {/* Ticket Form Fallback */}
+          {currentView === 'ticket-form' && (() => {
+            const tc = { title: "We'll get back to you", description: 'Our AI assistant is currently unavailable. Submit a ticket and we\'ll respond via email.', showPhone: false, showSubject: false, showPriority: false, ...(creditExhaustionConfig as any)?.tickets };
+            return (
+              <div className="chat-widget-ticket-form" style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px', color: config.formTitleColor || '#0f172a' }}>{tc.title}</h3>
+                <p style={{ fontSize: '13px', color: config.formDescriptionColor || '#6b7280', marginBottom: '16px' }}>{tc.description}</p>
+                <FallbackTicketForm chatbotId={chatbotId} config={tc} widgetConfig={config} onSuccess={() => {}} />
+              </div>
+            );
+          })()}
+
+          {/* Contact Form Fallback */}
+          {currentView === 'contact-form' && (() => {
+            const cc = { title: 'Contact Us', description: 'Leave us a message and we\'ll get back to you.', ...(creditExhaustionConfig as any)?.contact_form };
+            return (
+              <div className="chat-widget-contact-form" style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px', color: config.formTitleColor || '#0f172a' }}>{cc.title}</h3>
+                <p style={{ fontSize: '13px', color: config.formDescriptionColor || '#6b7280', marginBottom: '16px' }}>{cc.description}</p>
+                <FallbackContactForm chatbotId={chatbotId} widgetConfig={config} onSuccess={() => {}} />
+              </div>
+            );
+          })()}
+
+          {/* Purchase Credits Fallback */}
+          {currentView === 'purchase-credits' && (() => {
+            const pc = { upsellMessage: 'You\'ve used all your credits. Purchase more to continue chatting.', purchaseSuccessMessage: 'Credits added! You can now continue chatting.', packages: [], ...(creditExhaustionConfig as any)?.purchase_credits };
+            return (
+              <div className="chat-widget-purchase-view" style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
+                <p style={{ fontSize: '14px', color: config.textColor || '#0f172a', marginBottom: '16px' }}>{pc.upsellMessage}</p>
+                <FallbackPurchaseCredits chatbotId={chatbotId} packages={pc.packages || []} widgetConfig={config} />
+              </div>
+            );
+          })()}
+
+          {/* Help Articles Fallback */}
+          {currentView === 'help-articles' && (() => {
+            const ha = { searchPlaceholder: 'Search help articles...', emptyStateMessage: 'No help articles available yet.', ...(creditExhaustionConfig as any)?.help_articles };
+            return (
+              <div className="chat-widget-articles-view" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+                <FallbackHelpArticles chatbotId={chatbotId} searchPlaceholder={ha.searchPlaceholder} emptyMessage={ha.emptyStateMessage} widgetConfig={config} />
+              </div>
+            );
+          })()}
+
           {/* Branding */}
           {config.showBranding && (
             <div className="chat-widget-branding">
@@ -3463,10 +3521,10 @@ function generateStyles(config: WidgetConfig, isInIframe: boolean, isExpanded: b
     .chat-widget-header {
       background: ${config.primaryColor};
       color: ${config.headerTextColor};
-      padding: 16px;
+      padding: 12px 10px 12px 16px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 2px;
     }
 
     .chat-widget-header-content {
@@ -3474,6 +3532,8 @@ function generateStyles(config: WidgetConfig, isInIframe: boolean, isExpanded: b
       align-items: center;
       gap: 12px;
       flex: 1;
+      min-width: 0;
+      overflow: hidden;
     }
 
     .chat-widget-logo {
@@ -3507,15 +3567,17 @@ function generateStyles(config: WidgetConfig, isInIframe: boolean, isExpanded: b
       border: none;
       color: ${config.headerTextColor};
       cursor: pointer;
-      padding: 10px;
+      padding: 6px;
       border-radius: 4px;
       transition: background 0.2s;
       flex-shrink: 0;
-      min-width: 44px;
-      min-height: 44px;
+      min-width: 32px;
+      min-height: 32px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      position: relative;
+      z-index: 2;
     }
 
     .chat-widget-close:hover {

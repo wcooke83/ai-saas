@@ -117,19 +117,19 @@ export default function WikiPage({ params }: WikiPageProps) {
 
       {/* Page header */}
       <div className="border-b border-secondary-200 dark:border-secondary-700 pb-6">
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-3">
           <div className="p-2 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
             <CategoryIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
           </div>
-          <H1 variant="dashboard" className="text-3xl">
-            {pageData.frontmatter.title}
-          </H1>
+          <div>
+            <H1 variant="dashboard">{pageData.frontmatter.title}</H1>
+            {pageData.frontmatter.description && (
+              <p className="text-secondary-600 dark:text-secondary-400">
+                {pageData.frontmatter.description}
+              </p>
+            )}
+          </div>
         </div>
-        {pageData.frontmatter.description && (
-          <p className="text-lg text-secondary-600 dark:text-secondary-400">
-            {pageData.frontmatter.description}
-          </p>
-        )}
       </div>
 
       {/* Content */}

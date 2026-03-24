@@ -174,9 +174,14 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <H1 variant="dashboard">Dashboard</H1>
-        <p className="text-secondary-600 dark:text-secondary-400">Welcome back! Here&apos;s an overview of your account.</p>
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
+          <BarChart3 className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+        </div>
+        <div>
+          <H1 variant="dashboard">Dashboard</H1>
+          <p className="text-secondary-600 dark:text-secondary-400">Welcome back! Here&apos;s an overview of your account.</p>
+        </div>
       </div>
 
       {/* Stats grid */}

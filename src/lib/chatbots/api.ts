@@ -563,6 +563,13 @@ export async function getChatbotAnalytics(
 ): Promise<ChatbotAnalytics[]> {
   const supabase = await createClient();
 
+  // Aggregate latest data before fetching (runs the DB function that
+  // rolls up chat_sessions / chat_messages into chatbot_analytics).
+  const { createClient: createAdmin } = await import('@/lib/supabase/admin');
+  const admin = createAdmin();
+  const today = new Date().toISOString().split('T')[0];
+  try { await admin.rpc('aggregate_chatbot_analytics', { p_date: today }); } catch { /* ignore */ }
+
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
 

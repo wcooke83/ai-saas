@@ -419,7 +419,8 @@ export function buildSystemPrompt(
   preChatInfo?: Record<string, string> | null,
   memoryContext?: string | null,
   userData?: Record<string, string> | null,
-  userContext?: Record<string, unknown> | null
+  userContext?: Record<string, unknown> | null,
+  calendarEnabled?: boolean
 ): string {
   let systemPrompt = chatbot.system_prompt;
 
@@ -446,6 +447,34 @@ export function buildSystemPrompt(
       .map(([key, value]) => `- ${key}: ${value}`)
       .join('\n');
     systemPrompt += `\n\n## Visitor Information\nThe following information was provided by the user:\n${infoLines}\nUse this to personalize your responses naturally.`;
+  }
+
+  // Add calendar booking instructions if integration is active
+  if (calendarEnabled) {
+    systemPrompt += `
+
+## Calendar Booking
+You have calendar booking capabilities. When a user wants to schedule an appointment, meeting, or booking:
+
+1. COLLECT required information through natural conversation:
+   - Their preferred date(s) and time(s)
+   - Their name (if not already known from visitor info)
+   - Their email address
+   - Their timezone (detect from context or ask)
+
+2. Once you have their preferred dates, tell them you will check availability and include the marker:
+   [CALENDAR_CHECK:{"date_from":"YYYY-MM-DD","date_to":"YYYY-MM-DD","timezone":"IANA_TZ"}]
+
+3. When presenting available slots, format them clearly grouped by date in the user's timezone.
+
+4. When the user confirms a slot, include the marker:
+   [CALENDAR_BOOK:{"start":"ISO8601","end":"ISO8601","name":"...","email":"...","timezone":"..."}]
+
+5. For cancellations include: [CALENDAR_CANCEL:{"booking_id":"...","reason":"..."}]
+6. For rescheduling include: [CALENDAR_RESCHEDULE:{"booking_id":"...","new_start":"ISO8601","new_end":"ISO8601"}]
+
+Never fabricate availability. Always check real availability before suggesting times.
+Format times in the user's local timezone with clear formatting (e.g., "Tuesday, March 24 at 2:00 PM EST").`;
   }
 
   // Add prompt injection protection if enabled

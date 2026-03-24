@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { PageErrorFallback } from '@/components/error-boundary';
 
 export default function Error({
@@ -9,5 +10,12 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  return <PageErrorFallback error={error} reset={reset} />;
+  const router = useRouter();
+
+  const handleReset = () => {
+    router.refresh();
+    reset();
+  };
+
+  return <PageErrorFallback error={error} reset={handleReset} />;
 }

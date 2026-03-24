@@ -18,32 +18,28 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SortableTable, Column } from '@/components/ui/sortable-table';
 import { EscalationDetailDialog } from '@/components/escalations/escalation-detail-dialog';
-import { H1 } from '@/components/ui/heading';
-import type { Escalation, EscalationReason, EscalationStatus } from '@/lib/chatbots/types';
+import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
+import type { Escalation, EscalationStatus } from '@/lib/chatbots/types';
 
-interface ChatbotEscalationsPageProps {
+interface ChatbotIssuesPageProps {
   params: Promise<{ id: string }>;
 }
 
-interface EscalationStats {
+interface IssueStats {
   total: number;
   open: number;
   acknowledged: number;
   resolved: number;
 }
 
-const REASON_LABELS: Record<EscalationReason, string> = {
+const REASON_LABELS: Record<string, string> = {
   wrong_answer: 'Wrong Answer',
   offensive_content: 'Offensive',
-  need_human_help: 'Need Human',
-  other: 'Other',
 };
 
-const REASON_COLORS: Record<EscalationReason, string> = {
+const REASON_COLORS: Record<string, string> = {
   wrong_answer: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
   offensive_content: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
-  need_human_help: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300',
-  other: 'bg-secondary-100 text-secondary-700 dark:bg-secondary-800 dark:text-secondary-300',
 };
 
 const STATUS_COLORS: Record<EscalationStatus, string> = {
@@ -78,19 +74,19 @@ function truncateText(text: string, maxLength: number = 50): string {
   return text.substring(0, maxLength) + '...';
 }
 
-export default function ChatbotEscalationsPage({ params }: ChatbotEscalationsPageProps) {
+export default function ChatbotIssuesPage({ params }: ChatbotIssuesPageProps) {
   const { id: chatbotId } = use(params);
 
-  const [escalations, setEscalations] = useState<Escalation[]>([]);
-  const [stats, setStats] = useState<EscalationStats>({ total: 0, open: 0, acknowledged: 0, resolved: 0 });
-  const [selectedEscalation, setSelectedEscalation] = useState<Escalation | null>(null);
+  const [issues, setIssues] = useState<Escalation[]>([]);
+  const [stats, setStats] = useState<IssueStats>({ total: 0, open: 0, acknowledged: 0, resolved: 0 });
+  const [selectedIssue, setSelectedIssue] = useState<Escalation | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | EscalationStatus>('all');
 
-  async function fetchEscalations() {
+  async function fetchIssues() {
     try {
       setLoading(true);
 
@@ -100,39 +96,39 @@ export default function ChatbotEscalationsPage({ params }: ChatbotEscalationsPag
       }
 
       const response = await fetch(
-        `/api/chatbots/${chatbotId}/escalations?${queryParams.toString()}`
+        `/api/chatbots/${chatbotId}/issues?${queryParams.toString()}`
       );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch escalations');
+        throw new Error('Failed to fetch issues');
       }
 
       const result = await response.json();
-      setEscalations(result.data?.data || []);
+      setIssues(result.data?.data || []);
       setStats(result.data?.stats || { total: 0, open: 0, acknowledged: 0, resolved: 0 });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
-      toast.error('Failed to load escalations');
+      toast.error('Failed to load issues');
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchEscalations();
+    fetchIssues();
   }, [chatbotId, statusFilter]);
 
   const handleStatusChange = () => {
-    fetchEscalations();
+    fetchIssues();
   };
 
   const handleExport = () => {
-    if (escalations.length === 0) return;
+    if (issues.length === 0) return;
 
     setExporting(true);
     try {
       const headers = ['ID', 'Reason', 'Details', 'Status', 'Created', 'Updated'];
-      const rows = escalations.map((e) => [
+      const rows = issues.map((e) => [
         e.id,
         REASON_LABELS[e.reason] || e.reason,
         (e.details || '').replace(/,/g, ';'),
@@ -147,15 +143,15 @@ export default function ChatbotEscalationsPage({ params }: ChatbotEscalationsPag
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `escalations-${chatbotId}-${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `issues-${chatbotId}-${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      toast.success(`Exported ${escalations.length} escalations`);
+      toast.success(`Exported ${issues.length} issues`);
     } catch (err) {
-      toast.error('Failed to export escalations');
+      toast.error('Failed to export issues');
     } finally {
       setExporting(false);
     }
@@ -214,7 +210,7 @@ export default function ChatbotEscalationsPage({ params }: ChatbotEscalationsPag
           size="sm"
           onClick={(e) => {
             e.stopPropagation();
-            setSelectedEscalation(item);
+            setSelectedIssue(item);
             setDialogOpen(true);
           }}
         >
@@ -252,16 +248,7 @@ export default function ChatbotEscalationsPage({ params }: ChatbotEscalationsPag
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <H1 variant="dashboard">
-            Reports
-          </H1>
-          <p className="text-secondary-600 dark:text-secondary-400 mt-1">
-            Review and manage issue reports from conversations
-          </p>
-        </div>
-      </div>
+      <ChatbotPageHeader chatbotId={chatbotId} title="Issues" />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -349,7 +336,7 @@ export default function ChatbotEscalationsPage({ params }: ChatbotEscalationsPag
               variant="outline"
               size="sm"
               onClick={handleExport}
-              disabled={exporting || escalations.length === 0}
+              disabled={exporting || issues.length === 0}
             >
               {exporting ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -360,20 +347,20 @@ export default function ChatbotEscalationsPage({ params }: ChatbotEscalationsPag
             </Button>
           </div>
 
-          {escalations.length > 0 ? (
+          {issues.length > 0 ? (
             <SortableTable
-              data={escalations}
+              data={issues}
               columns={columns}
               keyExtractor={(item) => item.id}
               defaultSortKey="created_at"
               defaultSortDirection="desc"
               searchable
-              searchPlaceholder="Search escalations..."
+              searchPlaceholder="Search issues..."
               paginated
               defaultPageSize={10}
-              emptyMessage="No escalations match your search."
+              emptyMessage="No issues match your search."
               onRowClick={(item) => {
-                setSelectedEscalation(item);
+                setSelectedIssue(item);
                 setDialogOpen(true);
               }}
             />
@@ -383,7 +370,7 @@ export default function ChatbotEscalationsPage({ params }: ChatbotEscalationsPag
                 <ShieldAlert className="w-8 h-8 text-secondary-400" />
               </div>
               <p className="text-secondary-600 dark:text-secondary-400">
-                No reports yet. Issue reports will appear here when visitors flag problems in conversations.
+                No issues yet. Issues will appear here when visitors flag problems in conversations.
               </p>
             </div>
           )}
@@ -392,7 +379,7 @@ export default function ChatbotEscalationsPage({ params }: ChatbotEscalationsPag
 
       {/* Detail Dialog */}
       <EscalationDetailDialog
-        escalation={selectedEscalation}
+        escalation={selectedIssue}
         chatbotId={chatbotId}
         open={dialogOpen}
         onOpenChange={setDialogOpen}

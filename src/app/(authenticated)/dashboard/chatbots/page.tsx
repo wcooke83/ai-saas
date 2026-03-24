@@ -115,13 +115,16 @@ export default function ChatbotsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <H1 variant="dashboard">
-            Chatbots
-          </H1>
-          <p className="text-secondary-600 dark:text-secondary-400 mt-1">
-            Create and manage your AI chatbots
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
+            <Bot className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+          </div>
+          <div>
+            <H1 variant="dashboard">Chatbots</H1>
+            <p className="text-secondary-600 dark:text-secondary-400">
+              Create and manage your AI chatbots
+            </p>
+          </div>
         </div>
         <Button asChild>
           <Link href="/dashboard/chatbots/new">

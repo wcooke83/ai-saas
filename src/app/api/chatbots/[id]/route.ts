@@ -45,6 +45,8 @@ const updateChatbotSchema = z.object({
   live_handoff_config: z.record(z.unknown()).optional(),
   telegram_config: z.record(z.unknown()).optional(),
   live_fetch_threshold: z.number().min(0.5).max(0.95).optional(),
+  credit_exhaustion_mode: z.enum(['tickets', 'contact_form', 'purchase_credits', 'help_articles']).optional(),
+  credit_exhaustion_config: z.record(z.unknown()).optional(),
 });
 
 interface RouteParams {
@@ -69,6 +71,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
     // Verify ownership (RLS should handle this, but double-check)
     if (chatbot.user_id !== user.id) {
+      console.error(`[Chatbot API] Ownership mismatch: chatbot.user_id=${chatbot.user_id}, user.id=${user.id}, user.email=${user.email}, authMethod=${user.authMethod}`);
       throw APIError.forbidden('Access denied');
     }
 

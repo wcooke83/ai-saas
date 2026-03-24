@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { H1 } from '@/components/ui/heading';
+import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
 import type { Chatbot } from '@/lib/chatbots/types';
 
 interface AnalyticsPageProps {
@@ -169,37 +169,33 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <H1 variant="dashboard">
-            Analytics
-          </H1>
-          <p className="text-secondary-600 dark:text-secondary-400 mt-1">
-            Track performance and engagement for {chatbot.name}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center border border-secondary-200 dark:border-secondary-700 rounded-lg overflow-hidden">
-            {(['7', '30', '90'] as const).map((range) => (
-              <button
-                key={range}
-                onClick={() => setDateRange(range)}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  dateRange === range
-                    ? 'bg-primary-500 text-white'
-                    : 'bg-white dark:bg-secondary-800 text-secondary-600 dark:text-secondary-400 hover:bg-secondary-50 dark:hover:bg-secondary-700'
-                }`}
-              >
-                {range}d
-              </button>
-            ))}
+      <ChatbotPageHeader
+        chatbotId={id}
+        title="Analytics"
+        actions={
+          <div className="flex items-center gap-3">
+            <div className="flex items-center border border-secondary-200 dark:border-secondary-700 rounded-lg overflow-hidden">
+              {(['7', '30', '90'] as const).map((range) => (
+                <button
+                  key={range}
+                  onClick={() => setDateRange(range)}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    dateRange === range
+                      ? 'bg-primary-500 text-white'
+                      : 'bg-white dark:bg-secondary-800 text-secondary-600 dark:text-secondary-400 hover:bg-secondary-50 dark:hover:bg-secondary-700'
+                  }`}
+                >
+                  {range}d
+                </button>
+              ))}
+            </div>
+            <Button variant="outline" onClick={handleExport}>
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
           </div>
-          <Button variant="outline" onClick={handleExport}>
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Stats Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">

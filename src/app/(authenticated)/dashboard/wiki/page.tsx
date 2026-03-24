@@ -72,18 +72,16 @@ export default function WikiIndexPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
-            <BookOpen className="w-6 h-6 text-primary-600 dark:text-primary-400" />
-          </div>
-          <H1 variant="dashboard" className="text-3xl">
-            Documentation Wiki
-          </H1>
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
+          <BookOpen className="w-6 h-6 text-primary-600 dark:text-primary-400" />
         </div>
-        <p className="text-secondary-600 dark:text-secondary-400">
-          Learn how to use AI SaaS Tools features and integrate them into your applications
-        </p>
+        <div>
+          <H1 variant="dashboard">Documentation Wiki</H1>
+          <p className="text-secondary-600 dark:text-secondary-400">
+            Learn how to use AI SaaS Tools features and integrate them into your applications
+          </p>
+        </div>
       </div>
 
       {/* Categories */}

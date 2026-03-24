@@ -4,7 +4,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { DEFAULT_WIDGET_CONFIG, DEFAULT_PRE_CHAT_FORM_CONFIG, DEFAULT_POST_CHAT_SURVEY_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, DEFAULT_PROACTIVE_MESSAGES_CONFIG, DEFAULT_TRANSCRIPT_CONFIG, DEFAULT_ESCALATION_CONFIG, DEFAULT_FEEDBACK_CONFIG, DEFAULT_LIVE_HANDOFF_CONFIG, DEFAULT_TELEGRAM_CONFIG } from '@/lib/chatbots/types';
+import { DEFAULT_WIDGET_CONFIG, DEFAULT_PRE_CHAT_FORM_CONFIG, DEFAULT_POST_CHAT_SURVEY_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, DEFAULT_PROACTIVE_MESSAGES_CONFIG, DEFAULT_TRANSCRIPT_CONFIG, DEFAULT_ESCALATION_CONFIG, DEFAULT_FEEDBACK_CONFIG, DEFAULT_LIVE_HANDOFF_CONFIG, DEFAULT_TELEGRAM_CONFIG, DEFAULT_CREDIT_EXHAUSTION_CONFIG } from '@/lib/chatbots/types';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getChatbotCorsOrigin } from '@/lib/api/cors';
 
@@ -28,6 +28,10 @@ interface ChatbotConfig {
   feedback_config: Record<string, unknown> | null;
   live_handoff_config: Record<string, unknown> | null;
   telegram_config: Record<string, unknown> | null;
+  credit_exhaustion_mode: string | null;
+  credit_exhaustion_config: Record<string, unknown> | null;
+  monthly_message_limit: number;
+  messages_this_month: number;
   memory_enabled: boolean;
   session_ttl_hours: number | null;
   is_published: boolean;
@@ -47,7 +51,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     // Filter to only published+active chatbots manually
     const { data: chatbotData, error } = await (supabase as any)
       .from('chatbots')
-      .select('id, name, welcome_message, placeholder_text, logo_url, widget_config, pre_chat_form_config, post_chat_survey_config, file_upload_config, proactive_messages_config, transcript_config, escalation_config, feedback_config, live_handoff_config, telegram_config, memory_enabled, session_ttl_hours, is_published, status, language, allowed_origins')
+      .select('id, name, welcome_message, placeholder_text, logo_url, widget_config, pre_chat_form_config, post_chat_survey_config, file_upload_config, proactive_messages_config, transcript_config, escalation_config, feedback_config, live_handoff_config, telegram_config, credit_exhaustion_mode, credit_exhaustion_config, monthly_message_limit, messages_this_month, memory_enabled, session_ttl_hours, is_published, status, language, allowed_origins')
       .eq('id', chatbotId)
       .eq('is_published', true)
       .eq('status', 'active')
@@ -132,6 +136,12 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
             // on the `agent-presence:${chatbotId}` channel — no server query needed
             return false;
           })(),
+          creditExhausted: chatbot.monthly_message_limit > 0 && chatbot.messages_this_month >= chatbot.monthly_message_limit,
+          creditExhaustionMode: chatbot.credit_exhaustion_mode || 'tickets',
+          creditExhaustionConfig: {
+            ...DEFAULT_CREDIT_EXHAUSTION_CONFIG,
+            ...(chatbot.credit_exhaustion_config || {}),
+          },
           memoryEnabled: chatbot.memory_enabled === true,
           sessionTtlHours: chatbot.session_ttl_hours ?? 24,
         },

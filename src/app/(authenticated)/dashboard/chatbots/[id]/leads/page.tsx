@@ -26,7 +26,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SortableTable, Column } from '@/components/ui/sortable-table';
-import { H1 } from '@/components/ui/heading';
+import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
 import { LeadDetailDialog } from '@/components/leads/lead-detail-dialog';
 import { ConversationDetailDialog } from '@/components/leads/conversation-detail-dialog';
 import { generateLeadsCsv, generateConversationsCsv, downloadCsv } from '@/lib/leads/export';
@@ -406,27 +406,23 @@ export default function ChatbotLeadsPage({ params }: ChatbotLeadsPageProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div>
-          <H1 variant="dashboard">
-            Leads & Conversations
-          </H1>
-          <p className="text-secondary-600 dark:text-secondary-400 mt-1">
-            View pre-chat form submissions and chat history
-          </p>
-        </div>
-        {sessionFilter && (
-          <Badge variant="outline" className="w-fit">
-            Filtered by session: {sessionFilter.slice(0, 16)}...
-            <button
-              onClick={() => router.push(`/dashboard/chatbots/${chatbotId}/leads`)}
-              className="ml-2 hover:text-red-500"
-            >
-              <X className="w-3 h-3" />
-            </button>
-          </Badge>
-        )}
-      </div>
+      <ChatbotPageHeader
+        chatbotId={chatbotId}
+        title="Leads & Conversations"
+        actions={
+          sessionFilter ? (
+            <Badge variant="outline" className="w-fit">
+              Filtered by session: {sessionFilter.slice(0, 16)}...
+              <button
+                onClick={() => router.push(`/dashboard/chatbots/${chatbotId}/leads`)}
+                className="ml-2 hover:text-red-500"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </Badge>
+          ) : undefined
+        }
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

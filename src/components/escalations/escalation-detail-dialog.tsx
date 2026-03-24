@@ -22,7 +22,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import type { Escalation, EscalationReason, EscalationStatus } from '@/lib/chatbots/types';
+import type { Escalation, EscalationStatus } from '@/lib/chatbots/types';
 
 interface Message {
   id: string;
@@ -40,18 +40,14 @@ interface EscalationDetailDialogProps {
   onStatusChange: () => void;
 }
 
-const REASON_LABELS: Record<EscalationReason, string> = {
+const REASON_LABELS: Record<string, string> = {
   wrong_answer: 'Wrong Answer',
   offensive_content: 'Offensive Content',
-  need_human_help: 'Need Human Help',
-  other: 'Other',
 };
 
-const REASON_COLORS: Record<EscalationReason, string> = {
+const REASON_COLORS: Record<string, string> = {
   wrong_answer: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
   offensive_content: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
-  need_human_help: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300',
-  other: 'bg-secondary-100 text-secondary-700 dark:bg-secondary-800 dark:text-secondary-300',
 };
 
 const STATUS_COLORS: Record<EscalationStatus, string> = {
@@ -131,7 +127,7 @@ export function EscalationDetailDialog({
     setUpdatingStatus(newStatus);
     try {
       const response = await fetch(
-        `/api/chatbots/${chatbotId}/escalations/${escalation.id}`,
+        `/api/chatbots/${chatbotId}/issues/${escalation.id}`,
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -168,7 +164,7 @@ export function EscalationDetailDialog({
                 <div className="p-2 bg-orange-100 dark:bg-orange-900/50 rounded-full">
                   <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                 </div>
-                Escalation Details
+                Issue Details
               </DialogTitle>
               <DialogDescription className="mt-2">
                 <div className="flex items-center gap-3 flex-wrap">

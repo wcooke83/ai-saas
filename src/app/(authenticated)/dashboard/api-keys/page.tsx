@@ -234,12 +234,12 @@ export default function APIKeysPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
+          <div className="p-2 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
             <KeyRound className="w-6 h-6 text-primary-600 dark:text-primary-400" />
           </div>
           <div>
-            <H1 variant="dashboard" className="dark:text-white">API Keys</H1>
-            <p className="text-secondary-500 dark:text-secondary-400 text-sm">Manage your API keys for external integrations</p>
+            <H1 variant="dashboard">API Keys</H1>
+            <p className="text-secondary-600 dark:text-secondary-400">Manage your API keys for external integrations</p>
           </div>
         </div>
         <Button onClick={() => setShowCreateForm(true)} className="gap-2">

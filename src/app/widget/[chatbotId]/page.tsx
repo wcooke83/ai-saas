@@ -111,6 +111,9 @@ export default function WidgetPage({ params }: WidgetPageProps) {
       sessionTtlHours={config.sessionTtlHours}
       userData={userData}
       userContext={userContext}
+      creditExhausted={config.creditExhausted === true}
+      creditExhaustionMode={config.creditExhaustionMode}
+      creditExhaustionConfig={config.creditExhaustionConfig}
     />
   );
 }

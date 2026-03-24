@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Check,
   X,
+  Sparkles,
 } from 'lucide-react';
 import { BillingToggle } from '@/components/dashboard/upgrade/BillingToggle';
 import { PlanCard } from '@/components/dashboard/upgrade/PlanCard';
@@ -210,12 +211,17 @@ export default function UpgradePage() {
             Back to Billing
           </Link>
         </Button>
-        <H1 variant="dashboard">
-          Upgrade Your Plan
-        </H1>
-        <p className="text-secondary-600 dark:text-secondary-400">
-          Choose the plan that&apos;s right for you. Upgrade or downgrade anytime.
-        </p>
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
+            <Sparkles className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+          </div>
+          <div>
+            <H1 variant="dashboard">Upgrade Your Plan</H1>
+            <p className="text-secondary-600 dark:text-secondary-400">
+              Choose the plan that&apos;s right for you. Upgrade or downgrade anytime.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Current plan banner */}

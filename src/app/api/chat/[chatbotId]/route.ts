@@ -45,6 +45,8 @@ import { DEFAULT_FILE_UPLOAD_CONFIG, FILE_TYPE_MAP } from '@/lib/chatbots/types'
 import { getActiveHandoff, forwardVisitorMessage } from '@/lib/telegram/handoff';
 import { analyzeConversationSentiment, updateVisitorLoyalty } from '@/lib/chatbots/sentiment';
 import type { AIModelWithProvider } from '@/types/ai-models';
+import { CalendarService } from '@/lib/calendar/service';
+import { handleCalendarToolCall } from '@/lib/chatbots/tools/calendar-handler';
 
 // ── Per-stage timing helper ──────────────────────────────────────────
 function createStageTracker(t0: number) {
@@ -632,10 +634,14 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       console.log(`[Chat] Memory found for visitor ${input.visitor_id}: ${existingMemory.key_facts.length} facts`);
     }
 
+    // Check for active calendar integration (fire-and-forget style, cached)
+    const calendarIntegration = await CalendarService.getIntegration(chatbotId);
+    const hasCalendar = !!calendarIntegration;
+
     // Build prompts with active language (conversation language overrides chatbot default)
     _stages.start('prompts_built');
     const chatbotWithActiveLanguage = { ...chatbot, language: activeLanguage };
-    const systemPrompt = buildSystemPrompt(chatbotWithActiveLanguage, ragContext.contextText.length > 0, preChatInfo, memoryContext, input.user_data, input.user_context);
+    const systemPrompt = buildSystemPrompt(chatbotWithActiveLanguage, ragContext.contextText.length > 0, preChatInfo, memoryContext, input.user_data, input.user_context, hasCalendar);
     const userPrompt = buildRAGPrompt(
       ragContext,
       messages,
@@ -716,12 +722,59 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
             _perf('stream_complete');
             _stages.end('stream_complete');
 
+            // Process calendar markers if calendar is enabled
+            let processedResponse = fullResponse;
+            if (hasCalendar) {
+              const calendarMarkerRegex = /\[CALENDAR_(CHECK|BOOK|CANCEL|RESCHEDULE):(\{[^}]+\})\]/g;
+              let match;
+              while ((match = calendarMarkerRegex.exec(fullResponse)) !== null) {
+                const action = match[1];
+                try {
+                  const params = JSON.parse(match[2]);
+                  let toolName = '';
+                  let toolArgs: Record<string, unknown> = {};
+
+                  switch (action) {
+                    case 'CHECK':
+                      toolName = 'check_availability';
+                      toolArgs = { date_from: params.date_from, date_to: params.date_to, timezone: params.timezone, duration_minutes: params.duration };
+                      break;
+                    case 'BOOK':
+                      toolName = 'create_booking';
+                      toolArgs = { start_time: params.start, end_time: params.end, attendee_name: params.name, attendee_email: params.email, attendee_timezone: params.timezone, notes: params.notes };
+                      break;
+                    case 'CANCEL':
+                      toolName = 'cancel_booking';
+                      toolArgs = { booking_id: params.booking_id, reason: params.reason };
+                      break;
+                    case 'RESCHEDULE':
+                      toolName = 'reschedule_booking';
+                      toolArgs = { booking_id: params.booking_id, new_start_time: params.new_start, new_end_time: params.new_end, reason: params.reason };
+                      break;
+                  }
+
+                  if (toolName) {
+                    const result = await handleCalendarToolCall(toolName, toolArgs, { chatbotId, sessionId });
+                    // Send calendar event to client
+                    controller.enqueue(encoder.encode(
+                      JSON.stringify({ type: 'calendar', action: action.toLowerCase(), data: JSON.parse(result) }) + '\n'
+                    ));
+                    // Remove marker from saved response
+                    processedResponse = processedResponse.replace(match[0], '');
+                  }
+                } catch (calErr) {
+                  console.error('[Calendar] Failed to process marker:', calErr);
+                }
+              }
+              processedResponse = processedResponse.trim();
+            }
+
             // Save assistant message
             const assistantMessage = await createMessage({
               conversation_id: conversation.id,
               chatbot_id: chatbotId,
               role: 'assistant',
-              content: fullResponse,
+              content: processedResponse,
               model: chatbot.model,
               context_chunks: ragContext.chunks.map((c) => c.id),
             }, supabase);
@@ -733,7 +786,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
             // Fire-and-forget: memory extraction + performance log
             if (chatbot.memory_enabled && input.visitor_id) {
-              const allMessages = [...messages, { role: 'user', content: input.message } as Message, { role: 'assistant', content: fullResponse } as Message];
+              const allMessages = [...messages, { role: 'user', content: input.message } as Message, { role: 'assistant', content: processedResponse } as Message];
               extractAndStoreMemory(input.visitor_id, chatbotId, allMessages, existingMemory, supabase)
                 .then(() => ensureMemoryEmailMapping(chatbotId, input.visitor_id!, preChatInfo, supabase))
                 .catch(() => {});
