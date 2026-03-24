@@ -111,7 +111,7 @@ const hasValidOpenAIKey = process.env.OPENAI_API_KEY?.startsWith('sk-') &&
   process.env.OPENAI_API_KEY.length > 20;
 
 const MOCK_MODE = process.env.AI_MOCK_MODE === 'true' ||
-  (!hasValidAnthropicKey && !hasValidOpenAIKey);
+  (process.env.NODE_ENV !== 'production' && !hasValidAnthropicKey && !hasValidOpenAIKey);
 
 function getMockEmailResponse(prompt: string): string {
   // Extract context from prompt for realistic mock
@@ -583,7 +583,7 @@ export async function generate(
         ...(systemPrompt
           ? [{ role: 'system' as const, content: systemPrompt }]
           : []),
-        ...priorTurns.map((m) => ({ role: m.role as const, content: m.content })),
+        ...priorTurns.map((m) => ({ role: m.role as 'user' | 'assistant' | 'system', content: m.content })),
         { role: 'user' as const, content: openaiUserContent },
       ],
     }, { timeout: PROVIDER_TIMEOUT_MS });
@@ -609,7 +609,7 @@ export async function generate(
         ...(systemPrompt
           ? [{ role: 'system' as const, content: systemPrompt }]
           : []),
-        ...priorTurns.map((m) => ({ role: m.role as const, content: m.content })),
+        ...priorTurns.map((m) => ({ role: m.role as 'user' | 'assistant' | 'system', content: m.content })),
         { role: 'user' as const, content: prompt },
       ],
     }, { timeout: PROVIDER_TIMEOUT_MS });
@@ -832,7 +832,7 @@ export async function* generateStream(
         ...(systemPrompt
           ? [{ role: 'system' as const, content: systemPrompt }]
           : []),
-        ...priorTurns.map((m) => ({ role: m.role as const, content: m.content })),
+        ...priorTurns.map((m) => ({ role: m.role as 'user' | 'assistant' | 'system', content: m.content })),
         { role: 'user' as const, content: streamOpenaiContent },
       ],
     }, { timeout: PROVIDER_TIMEOUT_MS });
@@ -870,7 +870,7 @@ export async function* generateStream(
         ...(systemPrompt
           ? [{ role: 'system' as const, content: systemPrompt }]
           : []),
-        ...priorTurns.map((m) => ({ role: m.role as const, content: m.content })),
+        ...priorTurns.map((m) => ({ role: m.role as 'user' | 'assistant' | 'system', content: m.content })),
         { role: 'user' as const, content: prompt },
       ],
     }, { timeout: PROVIDER_TIMEOUT_MS });

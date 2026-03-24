@@ -129,7 +129,7 @@ export class CalendarService {
         end_time: bookingResponse.end || request.end,
         meeting_url: bookingResponse.meetingUrl || null,
         notes: request.notes || null,
-        metadata: request.metadata || {},
+        metadata: (request.metadata || {}) as Record<string, string>,
       })
       .select('id')
       .single();
@@ -378,7 +378,7 @@ export class CalendarService {
     const upserts = Object.entries(slotsByDate).map(([date, slots]) => ({
       integration_id: integrationId,
       date,
-      slots: slots as unknown as Record<string, unknown>[],
+      slots: JSON.parse(JSON.stringify(slots)),
       fetched_at: new Date().toISOString(),
       expires_at: expiresAt,
     }));

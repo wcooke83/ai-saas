@@ -70,7 +70,7 @@ test('Hamburger Menu Blur - Complete Report', async ({ page }) => {
   });
 
   console.log('Has backdrop-blur class:', navState.hasBlurClass);
-  console.log('Blur class:', navState.blurClass);
+  console.log('Blur class:', navState.hasBlurClass);
   console.log('Computed backdrop-filter:', navState.backdropFilter);
   console.log('Background color:', navState.backgroundColor);
 
@@ -112,7 +112,7 @@ test('Hamburger Menu Blur - Complete Report', async ({ page }) => {
   });
 
   console.log('Has backdrop-blur class:', navState.hasBlurClass);
-  console.log('Blur class:', navState.blurClass);
+  console.log('Blur class:', navState.hasBlurClass);
   console.log('Computed backdrop-filter:', navState.backdropFilter);
   console.log('Background color:', navState.backgroundColor);
 
@@ -151,7 +151,7 @@ test('Hamburger Menu Blur - Complete Report', async ({ page }) => {
   });
 
   console.log('Has backdrop-blur class:', navState.hasBlurClass);
-  console.log('Blur class:', navState.blurClass);
+  console.log('Blur class:', navState.hasBlurClass);
   console.log('Computed backdrop-filter:', navState.backdropFilter);
   console.log('Background color:', navState.backgroundColor);
   console.log('WARNING: 100% opacity blocks blur visibility even though blur is applied');

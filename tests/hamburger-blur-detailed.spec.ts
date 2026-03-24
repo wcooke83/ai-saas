@@ -224,7 +224,7 @@ test('Hamburger Menu Blur Settings - Detailed Diagnosis', async ({ page }) => {
           `  Position: ${style.position}`,
           `  Background: ${style.backgroundColor}`,
           `  Backdrop-filter: ${style.backdropFilter}`,
-          `  -webkit-backdrop-filter: ${style.webkitBackdropFilter}`,
+          `  -webkit-backdrop-filter: ${(style as unknown as Record<string, string>)['webkitBackdropFilter'] ?? ''}`,
         ];
 
         // Check if background is fully opaque (which would block blur)

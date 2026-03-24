@@ -2011,9 +2011,135 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                     }}
                   />
                 </div>
-                <div className="p-3 bg-secondary-50 dark:bg-secondary-800 rounded-lg">
-                  <p className="text-xs text-secondary-500 dark:text-secondary-400">
-                    Credit packages are configured in the database directly. Each package needs a Stripe Price ID, credit amount, and price.
+
+                {/* Packages editor */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Packages</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const cfg = { ...watch('creditExhaustionConfig') };
+                        const packages = [...(cfg.purchase_credits?.packages || [])];
+                        packages.push({
+                          id: crypto.randomUUID(),
+                          name: '',
+                          creditAmount: 100,
+                          priceCents: 999,
+                          stripePriceId: '',
+                        });
+                        cfg.purchase_credits = { ...cfg.purchase_credits, packages };
+                        setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                      }}
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add Package
+                    </Button>
+                  </div>
+
+                  {(watch('creditExhaustionConfig')?.purchase_credits?.packages || []).length === 0 && (
+                    <div className="p-3 bg-secondary-50 dark:bg-secondary-800 rounded-lg text-center">
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                        No packages configured yet. Add a package to let visitors purchase additional credits.
+                      </p>
+                    </div>
+                  )}
+
+                  {(watch('creditExhaustionConfig')?.purchase_credits?.packages || []).map((pkg: any, idx: number) => (
+                    <div
+                      key={pkg.id || idx}
+                      className="rounded-lg border border-secondary-200 dark:border-secondary-700 p-3 space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-secondary-500">Package {idx + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const cfg = { ...watch('creditExhaustionConfig') };
+                            const packages = [...(cfg.purchase_credits?.packages || [])];
+                            packages.splice(idx, 1);
+                            cfg.purchase_credits = { ...cfg.purchase_credits, packages };
+                            setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                          }}
+                          className="text-red-500 hover:text-red-600 p-1"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-xs">Package Name</Label>
+                          <Input
+                            placeholder="e.g. 100 Credits"
+                            value={pkg.name || ''}
+                            onChange={(e) => {
+                              const cfg = { ...watch('creditExhaustionConfig') };
+                              const packages = [...(cfg.purchase_credits?.packages || [])];
+                              packages[idx] = { ...packages[idx], name: e.target.value };
+                              cfg.purchase_credits = { ...cfg.purchase_credits, packages };
+                              setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Credits</Label>
+                          <Input
+                            type="number"
+                            min={1}
+                            placeholder="100"
+                            value={pkg.creditAmount || ''}
+                            onChange={(e) => {
+                              const cfg = { ...watch('creditExhaustionConfig') };
+                              const packages = [...(cfg.purchase_credits?.packages || [])];
+                              packages[idx] = { ...packages[idx], creditAmount: parseInt(e.target.value) || 0 };
+                              cfg.purchase_credits = { ...cfg.purchase_credits, packages };
+                              setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Price (cents)</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            placeholder="999"
+                            value={pkg.priceCents || ''}
+                            onChange={(e) => {
+                              const cfg = { ...watch('creditExhaustionConfig') };
+                              const packages = [...(cfg.purchase_credits?.packages || [])];
+                              packages[idx] = { ...packages[idx], priceCents: parseInt(e.target.value) || 0 };
+                              cfg.purchase_credits = { ...cfg.purchase_credits, packages };
+                              setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                            }}
+                          />
+                          {pkg.priceCents > 0 && (
+                            <p className="text-xs text-secondary-400 mt-0.5">${(pkg.priceCents / 100).toFixed(2)}</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label className="text-xs">Stripe Price ID</Label>
+                          <Input
+                            placeholder="price_1ABC..."
+                            value={pkg.stripePriceId || ''}
+                            onChange={(e) => {
+                              const cfg = { ...watch('creditExhaustionConfig') };
+                              const packages = [...(cfg.purchase_credits?.packages || [])];
+                              packages[idx] = { ...packages[idx], stripePriceId: e.target.value };
+                              cfg.purchase_credits = { ...cfg.purchase_credits, packages };
+                              setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    Create prices in your <a href="https://dashboard.stripe.com/prices" target="_blank" rel="noopener noreferrer" className="underline">Stripe Dashboard</a> first, then paste the Price ID here (starts with <code className="text-xs">price_</code>).
                   </p>
                 </div>
               </div>

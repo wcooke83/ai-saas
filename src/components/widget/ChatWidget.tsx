@@ -881,7 +881,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
       (!showPreChat || currentView === 'chat');
     
     if (shouldShowWelcome) {
-      const processedMessage = processWelcomeMessage(chatbot.welcome_message);
+      const processedMessage = processWelcomeMessage(chatbot.welcome_message!);
       const welcomeMessage: WidgetMessage = {
         id: 'welcome',
         role: 'assistant',

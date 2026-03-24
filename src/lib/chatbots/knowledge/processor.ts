@@ -164,7 +164,7 @@ export async function processKnowledgeSource(
       .select('content_hash')
       .eq('chatbot_id', source.chatbot_id)
       .in('content_hash', chunkHashes);
-    const existingHashSet = new Set((existingHashes || []).map((r: { content_hash: string }) => r.content_hash));
+    const existingHashSet = new Set((existingHashes || []).map((r) => r.content_hash).filter(Boolean) as string[]);
 
     // Filter out duplicate chunks
     const dedupedChunks = chunks.filter((_, i) => !existingHashSet.has(chunkHashes[i]));

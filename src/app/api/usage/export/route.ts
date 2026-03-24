@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
         log.tokens_output || 0,
         log.tokens_total || 0,
         log.tokens_billed || 0,
-        log.status_code < 400 ? 'Success' : 'Error',
+        (log.status_code ?? 0) < 400 ? 'Success' : 'Error',
         log.duration_ms || 0,
         log.error_message || ''
       ];

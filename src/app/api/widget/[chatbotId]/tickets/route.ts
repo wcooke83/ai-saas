@@ -80,7 +80,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         message: input.message,
         priority: input.priority,
         reference: reference || `TKT-${Date.now()}`,
-        custom_fields: input.customFields || {},
+        custom_fields: (input.customFields || {}) as Record<string, string>,
       })
       .select()
       .single();

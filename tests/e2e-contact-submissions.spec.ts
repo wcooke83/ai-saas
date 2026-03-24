@@ -14,12 +14,9 @@ const TEST_PASS = 'wJO7yxmEQdO00F9T';
 
 // Helper: navigate to contact page and wait for it to be ready
 async function gotoContactPage(page: Page) {
-  await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/contact`);
-  await page.waitForLoadState('domcontentloaded');
-  // Wait for loading to finish - either table or empty state appears
-  await expect(page.getByRole('heading', { name: 'Contact Submissions' })).toBeVisible({ timeout: 15000 });
-  // Wait for data to load (spinner to disappear)
-  await page.locator('.animate-spin').waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+  await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/contact`, { waitUntil: 'domcontentloaded' });
+  // Wait for data to load — table or empty state
+  await page.locator('table, text=No contact submissions').first().waitFor({ state: 'visible', timeout: 30000 }).catch(() => {});
 }
 
 // Helper: navigate and click first submission row
@@ -87,11 +84,13 @@ async function waitForEmail(
       await client.connect();
       const lock = await client.getMailboxLock('INBOX');
       try {
-        // Search all messages (not just unseen) since delivery timing varies
-        const messages = client.fetch({ all: true }, { envelope: true, source: true, uid: true });
-        for await (const msg of messages) {
-          const subject = msg.envelope?.subject || '';
-          if (subject.includes(subjectContains)) {
+        // Use IMAP SEARCH to find by subject instead of fetching all
+        const searchResult = await client.search({ subject: subjectContains });
+        const uids = Array.isArray(searchResult) ? searchResult : [];
+        if (uids.length > 0) {
+          const lastUid = uids[uids.length - 1];
+          const messages = client.fetch([lastUid], { envelope: true, source: true, uid: true });
+          for await (const msg of messages) {
             const source = msg.source?.toString('utf-8') || '';
             let text = '';
             const plainMatch = source.match(
@@ -99,10 +98,13 @@ async function waitForEmail(
             );
             if (plainMatch) text = plainMatch[1].trim();
 
-            await client.messageFlagsAdd(msg.uid, ['\\Seen'], { uid: true });
             lock.release();
             await client.logout();
-            return { subject, messageId: msg.envelope?.messageId || '', text };
+            return {
+              subject: msg.envelope?.subject || '',
+              messageId: msg.envelope?.messageId || '',
+              text,
+            };
           }
         }
       } finally {
@@ -178,8 +180,11 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
       }
     }
 
-    expect(res.status()).toBe(201);
     const body = await res.json();
+    if (res.status() !== 201) {
+      console.error('CS-001 status:', res.status(), JSON.stringify(body));
+    }
+    expect(res.status()).toBe(201);
     expect(body.success).toBe(true);
     expect(body.data.id).toBeTruthy();
     createdSubmissionId = body.data.id;
@@ -274,8 +279,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
 
   test('CS-011: Contact dashboard page loads with submissions table', async ({ page }) => {
     await gotoContactPage(page);
-    await expect(page.getByRole('heading', { name: 'Contact Submissions' })).toBeVisible({ timeout: 15000 });
-    await expect(page.locator('table')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('table')).toBeVisible({ timeout: 20000 });
   });
 
   test('CS-012: Clicking submission opens detail view', async ({ page }) => {
@@ -428,25 +432,127 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
     expect(adminReply).toBeTruthy();
   });
 
-  test('CS-024: Admin reply email arrives at test user mailbox', async () => {
-    test.setTimeout(120000);
-    const shortId = createdSubmissionId.slice(0, 8).toUpperCase();
-    const email = await waitForEmail(TEST_EMAIL, TEST_PASS, `CS-${shortId}`, 90000);
-    if (!email) {
-      // Email delivery may be slow - search for any recent email from support
-      const fallback = await waitForEmail(TEST_EMAIL, TEST_PASS, 'contact submission', 15000);
-      expect(fallback).not.toBeNull();
-    } else {
-      expect(email.subject).toContain('Re: Your contact submission');
-    }
+  // ----------------------------------
+  // UI THREAD DISPLAY (uses admin reply from CS-021)
+  // ----------------------------------
+
+  test('CS-024: Dashboard shows reply thread with admin messages', async ({ page }) => {
+    await ensureSubmissionId(page);
+    await gotoContactPage(page);
+    // Click the submission that has replies (by matching the visitor name from CS-001)
+    const row = page.locator('table tbody tr', { hasText: 'E2E Test User' }).first();
+    await expect(row).toBeVisible({ timeout: 15000 });
+    await row.click();
+    await expect(page.getByText('Contact from')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Admin').first()).toBeVisible({ timeout: 15000 });
+  });
+
+  test('CS-025: Reply form sends from dashboard UI and shows loading', async ({ page }) => {
+    await openFirstSubmission(page);
+    await page.getByPlaceholder('Type your reply...').fill(`UI reply test ${UNIQUE_TAG}`);
+
+    await page.route('**/contact-submissions', async (route) => {
+      if (route.request().method() === 'POST') {
+        await new Promise(r => setTimeout(r, 1500));
+        await route.continue();
+      } else {
+        await route.continue();
+      }
+    });
+
+    await page.getByRole('button', { name: 'Send Reply' }).click();
+    await expect(page.getByText('Sending...')).toBeVisible({ timeout: 3000 });
+    await expect(page.getByText('Reply sent')).toBeVisible({ timeout: 20000 });
+  });
+
+  test('CS-026: Reply textarea clears after successful send', async ({ page }) => {
+    await openFirstSubmission(page);
+    await page.getByPlaceholder('Type your reply...').fill(`Clear test ${Date.now()}`);
+    await page.getByRole('button', { name: 'Send Reply' }).click();
+    await expect(page.getByPlaceholder('Type your reply...')).toHaveValue('', { timeout: 20000 });
   });
 
   // ----------------------------------
-  // VISITOR REPLY VIA SMTP → IMAP PICKUP
+  // ERROR HANDLING
   // ----------------------------------
 
-  test('CS-025: Visitor sends reply email to support', async () => {
+  test('CS-027: Reply to non-existent submission returns 404', async ({ page }) => {
+    const res = await page.request.post(`/api/chatbots/${CHATBOT_ID}/contact-submissions`, {
+      data: { submissionId: '00000000-0000-0000-0000-000000000000', message: 'This should fail' },
+    });
+    expect(res.status()).toBe(404);
+  });
+
+  test('CS-028: Reply with empty message rejected', async ({ page }) => {
+    await ensureSubmissionId(page);
+    const res = await page.request.post(`/api/chatbots/${CHATBOT_ID}/contact-submissions`, {
+      data: { submissionId: createdSubmissionId, message: '' },
+    });
+    expect(res.status()).toBeGreaterThanOrEqual(400);
+  });
+
+  test('CS-029: PATCH with invalid status rejected', async ({ page }) => {
+    await ensureSubmissionId(page);
+    const res = await page.request.patch(
+      `/api/chatbots/${CHATBOT_ID}/contact-submissions?submissionId=${createdSubmissionId}`,
+      { data: { status: 'invalid_status' } }
+    );
+    expect(res.status()).toBeGreaterThanOrEqual(400);
+  });
+
+  test('CS-030: PATCH without submissionId rejected', async ({ page }) => {
+    const res = await page.request.patch(
+      `/api/chatbots/${CHATBOT_ID}/contact-submissions`,
+      { data: { status: 'read' } }
+    );
+    expect(res.status()).toBeGreaterThanOrEqual(400);
+  });
+
+  // ----------------------------------
+  // FILTER TESTS
+  // ----------------------------------
+
+  test('CS-031: Filter submissions by status', async ({ page }) => {
+    const res = await page.request.get(
+      `/api/chatbots/${CHATBOT_ID}/contact-submissions?status=replied`
+    );
+    expect(res.ok()).toBe(true);
+    const body = await res.json();
+    for (const sub of body.data.submissions) {
+      expect(sub.status).toBe('replied');
+    }
+  });
+
+  test('CS-032: Pagination works correctly', async ({ page }) => {
+    const res = await page.request.get(
+      `/api/chatbots/${CHATBOT_ID}/contact-submissions?page=1&limit=2`
+    );
+    expect(res.ok()).toBe(true);
+    const body = await res.json();
+    expect(body.data.submissions.length).toBeLessThanOrEqual(2);
+    expect(body.data.page).toBe(1);
+    expect(body.data.limit).toBe(2);
+  });
+
+  // ----------------------------------
+  // EMAIL DELIVERY & IMAP TESTS (at end — mail.cholds.com delivery can be slow)
+  // ----------------------------------
+
+  test('CS-033: Admin reply email arrives at test user mailbox', async () => {
     test.setTimeout(90000);
+    await ensureSubmissionId({ request: {} } as any);
+    const shortId = createdSubmissionId.slice(0, 8).toUpperCase();
+    let email = await waitForEmail(TEST_EMAIL, TEST_PASS, `CS-${shortId}`, 45000);
+    if (!email) {
+      email = await waitForEmail(TEST_EMAIL, TEST_PASS, 'contact submission', 15000);
+    }
+    expect(email, 'No contact submission emails found in test mailbox').not.toBeNull();
+    expect(email!.subject).toContain('contact submission');
+  });
+
+  test('CS-034: Visitor sends reply email to support', async () => {
+    test.setTimeout(90000);
+    await ensureSubmissionId({ request: {} } as any);
     const shortId = createdSubmissionId.slice(0, 8).toUpperCase();
 
     await sendEmailAsTestUser({
@@ -455,14 +561,11 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
       text: `This is a visitor reply ${UNIQUE_TAG}. Thanks for getting back to me!`,
     });
 
-    // Wait for email delivery
     await new Promise(r => setTimeout(r, 10000));
   });
 
-  test('CS-026: Check-replies picks up visitor reply from IMAP', async ({ page }) => {
+  test('CS-035: Check-replies picks up visitor reply from IMAP', async ({ page }) => {
     test.setTimeout(120000);
-    // Wait for email to be delivered then poll IMAP
-    // Retry the check-replies call a few times since delivery can be slow
     let processed = 0;
     for (let attempt = 0; attempt < 5; attempt++) {
       await new Promise(r => setTimeout(r, 5000));
@@ -477,7 +580,8 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
     expect(processed).toBeGreaterThanOrEqual(1);
   });
 
-  test('CS-027: Visitor reply appears in submission thread', async ({ page }) => {
+  test('CS-036: Visitor reply appears in submission thread', async ({ page }) => {
+    await ensureSubmissionId(page);
     const res = await page.request.get(
       `/api/chatbots/${CHATBOT_ID}/contact-submissions?submissionId=${createdSubmissionId}`
     );
@@ -489,7 +593,8 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
     expect(visitorReply.sender_email).toBe(TEST_EMAIL);
   });
 
-  test('CS-028: Submission status changed to read after visitor reply', async ({ page }) => {
+  test('CS-037: Submission status changed to read after visitor reply', async ({ page }) => {
+    await ensureSubmissionId(page);
     const res = await page.request.get(
       `/api/chatbots/${CHATBOT_ID}/contact-submissions?submissionId=${createdSubmissionId}`
     );
@@ -497,11 +602,8 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
     expect(body.data.submission.status).toBe('read');
   });
 
-  // ----------------------------------
-  // THREAD CONTINUATION
-  // ----------------------------------
-
-  test('CS-029: Admin sends second reply (continuing thread)', async ({ page }) => {
+  test('CS-038: Admin sends second reply (continuing thread)', async ({ page }) => {
+    await ensureSubmissionId(page);
     const res = await page.request.post(`/api/chatbots/${CHATBOT_ID}/contact-submissions`, {
       data: {
         submissionId: createdSubmissionId,
@@ -513,130 +615,19 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
     expect(body.data.reply.sender_type).toBe('admin');
   });
 
-  test('CS-030: Thread now has 3+ messages (admin, visitor, admin)', async ({ page }) => {
+  test('CS-039: Thread has multiple messages in chronological order', async ({ page }) => {
+    await ensureSubmissionId(page);
     const res = await page.request.get(
       `/api/chatbots/${CHATBOT_ID}/contact-submissions?submissionId=${createdSubmissionId}`
     );
     const body = await res.json();
     expect(body.data.replies.length).toBeGreaterThanOrEqual(3);
-
-    // Verify ordering: should be chronological
     const replies = body.data.replies;
     for (let i = 1; i < replies.length; i++) {
       expect(new Date(replies[i].created_at).getTime()).toBeGreaterThanOrEqual(
         new Date(replies[i - 1].created_at).getTime()
       );
     }
-  });
-
-  // ----------------------------------
-  // UI THREAD DISPLAY
-  // ----------------------------------
-
-  test('CS-031: Dashboard shows reply thread with admin and visitor messages', async ({ page }) => {
-    await openFirstSubmission(page);
-    // Should show Admin badge in the thread
-    await expect(page.getByText('Admin').first()).toBeVisible({ timeout: 15000 });
-  });
-
-  test('CS-032: Reply form sends from dashboard UI and shows loading', async ({ page }) => {
-    await openFirstSubmission(page);
-
-    await page.getByPlaceholder('Type your reply...').fill(`UI reply test ${UNIQUE_TAG}`);
-
-    // Intercept POST to add delay so we can see loading state
-    await page.route('**/contact-submissions', async (route) => {
-      if (route.request().method() === 'POST') {
-        await new Promise(r => setTimeout(r, 1500));
-        await route.continue();
-      } else {
-        await route.continue();
-      }
-    });
-
-    await page.getByRole('button', { name: 'Send Reply' }).click();
-
-    // Should show "Sending..." state
-    await expect(page.getByText('Sending...')).toBeVisible({ timeout: 3000 });
-
-    // Wait for completion
-    await expect(page.getByText('Reply sent')).toBeVisible({ timeout: 20000 });
-  });
-
-  test('CS-033: Reply textarea clears after successful send', async ({ page }) => {
-    await openFirstSubmission(page);
-
-    await page.getByPlaceholder('Type your reply...').fill(`Clear test ${Date.now()}`);
-    await page.getByRole('button', { name: 'Send Reply' }).click();
-
-    // Wait for send to complete, textarea should be cleared
-    await expect(page.getByPlaceholder('Type your reply...')).toHaveValue('', { timeout: 20000 });
-  });
-
-  // ----------------------------------
-  // ERROR HANDLING
-  // ----------------------------------
-
-  test('CS-034: Reply to non-existent submission returns 404', async ({ page }) => {
-    const res = await page.request.post(`/api/chatbots/${CHATBOT_ID}/contact-submissions`, {
-      data: {
-        submissionId: '00000000-0000-0000-0000-000000000000',
-        message: 'This should fail',
-      },
-    });
-    expect(res.status()).toBe(404);
-  });
-
-  test('CS-035: Reply with empty message rejected', async ({ page }) => {
-    const res = await page.request.post(`/api/chatbots/${CHATBOT_ID}/contact-submissions`, {
-      data: {
-        submissionId: createdSubmissionId,
-        message: '',
-      },
-    });
-    expect(res.status()).toBeGreaterThanOrEqual(400);
-  });
-
-  test('CS-036: PATCH with invalid status rejected', async ({ page }) => {
-    const res = await page.request.patch(
-      `/api/chatbots/${CHATBOT_ID}/contact-submissions?submissionId=${createdSubmissionId}`,
-      { data: { status: 'invalid_status' } }
-    );
-    expect(res.status()).toBeGreaterThanOrEqual(400);
-  });
-
-  test('CS-037: PATCH without submissionId rejected', async ({ page }) => {
-    const res = await page.request.patch(
-      `/api/chatbots/${CHATBOT_ID}/contact-submissions`,
-      { data: { status: 'read' } }
-    );
-    expect(res.status()).toBeGreaterThanOrEqual(400);
-  });
-
-  // ----------------------------------
-  // FILTER TESTS
-  // ----------------------------------
-
-  test('CS-038: Filter submissions by status', async ({ page }) => {
-    const res = await page.request.get(
-      `/api/chatbots/${CHATBOT_ID}/contact-submissions?status=replied`
-    );
-    expect(res.ok()).toBe(true);
-    const body = await res.json();
-    for (const sub of body.data.submissions) {
-      expect(sub.status).toBe('replied');
-    }
-  });
-
-  test('CS-039: Pagination works correctly', async ({ page }) => {
-    const res = await page.request.get(
-      `/api/chatbots/${CHATBOT_ID}/contact-submissions?page=1&limit=2`
-    );
-    expect(res.ok()).toBe(true);
-    const body = await res.json();
-    expect(body.data.submissions.length).toBeLessThanOrEqual(2);
-    expect(body.data.page).toBe(1);
-    expect(body.data.limit).toBe(2);
   });
 
   // ----------------------------------

@@ -107,7 +107,7 @@ test('Hamburger Menu Blur Settings Diagnosis', async ({ page }) => {
     const computed = window.getComputedStyle(el);
     return {
       backdropFilter: computed.backdropFilter,
-      webkitBackdropFilter: computed.webkitBackdropFilter,
+      webkitBackdropFilter: (computed as unknown as Record<string, string>)['webkitBackdropFilter'] ?? '',
       backgroundColor: computed.backgroundColor,
       background: computed.background,
       isolation: computed.isolation,

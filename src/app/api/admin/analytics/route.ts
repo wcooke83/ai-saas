@@ -51,37 +51,48 @@ export async function GET(req: NextRequest) {
       .select('plan, status')
       .in('status', ['active', 'trialing']);
 
-    // Get total tokens used (all time and period)
-    const { data: allTimeTokens } = await supabase
+    // Use SQL aggregation to avoid loading all rows into memory
+    const startDateISO = startDate.toISOString();
+
+    // All-time token total
+    const { data: allTimeSumData } = await supabase
       .from('api_logs')
-      .select('tokens_total');
+      .select('tokens_total.sum()');
+    const totalTokensAllTime = (allTimeSumData as any)?.[0]?.sum ?? 0;
 
-    const { data: periodTokens } = await supabase
+    // Period token total
+    const { data: periodSumData } = await supabase
       .from('api_logs')
-      .select('tokens_total, created_at')
-      .gte('created_at', startDate.toISOString());
+      .select('tokens_total.sum()')
+      .gte('created_at', startDateISO);
+    const totalTokensPeriod = (periodSumData as any)?.[0]?.sum ?? 0;
 
-    // Calculate totals
-    const totalTokensAllTime = (allTimeTokens || []).reduce((sum, log) => sum + (log.tokens_total || 0), 0);
-    const totalTokensPeriod = (periodTokens || []).reduce((sum, log) => sum + (log.tokens_total || 0), 0);
-
-    // Get API call stats
-    const { data: apiCalls } = await supabase
+    // API call stats - count with filters (bounded)
+    const { count: totalCallsCount } = await supabase
       .from('api_logs')
-      .select('status_code, created_at')
-      .gte('created_at', startDate.toISOString());
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', startDateISO);
 
-    const successfulCalls = (apiCalls || []).filter(call => call.status_code < 400).length;
-    const failedCalls = (apiCalls || []).filter(call => call.status_code >= 400).length;
+    const { count: failedCallsCount } = await supabase
+      .from('api_logs')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', startDateISO)
+      .gte('status_code', 400);
 
-    // Get top users by token usage
+    const successfulCalls = (totalCallsCount || 0) - (failedCallsCount || 0);
+    const failedCalls = failedCallsCount || 0;
+
+    // Top users by token usage - fetch bounded set
     const { data: topUsersData } = await supabase
       .from('api_logs')
       .select('user_id, tokens_total')
-      .gte('created_at', startDate.toISOString());
+      .gte('created_at', startDateISO)
+      .not('user_id', 'is', null)
+      .limit(10000);
 
     const userTokenMap: Record<string, number> = {};
     (topUsersData || []).forEach(log => {
+      if (!log.user_id) return;
       userTokenMap[log.user_id] = (userTokenMap[log.user_id] || 0) + (log.tokens_total || 0);
     });
 
@@ -95,14 +106,20 @@ export async function GET(req: NextRequest) {
     const { data: profiles } = await supabase
       .from('profiles')
       .select('id, email')
-      .in('id', topUserIds);
+      .in('id', topUserIds.length > 0 ? topUserIds : ['_none_']);
 
     const topUsersWithEmails = topUsers.map(user => ({
       ...user,
       email: profiles?.find(p => p.id === user.userId)?.email || 'Unknown',
     }));
 
-    // Calculate daily usage for chart
+    // Daily usage for chart - bounded
+    const { data: periodTokens } = await supabase
+      .from('api_logs')
+      .select('tokens_total, created_at')
+      .gte('created_at', startDateISO)
+      .limit(10000);
+
     const dailyUsage: Record<string, number> = {};
     (periodTokens || []).forEach(log => {
       const date = new Date(log.created_at).toISOString().split('T')[0];
@@ -116,7 +133,8 @@ export async function GET(req: NextRequest) {
     // Plan distribution
     const planDistribution: Record<string, number> = {};
     (activeSubscriptions || []).forEach(sub => {
-      planDistribution[sub.plan] = (planDistribution[sub.plan] || 0) + 1;
+      const plan = sub.plan ?? 'unknown';
+      planDistribution[plan] = (planDistribution[plan] || 0) + 1;
     });
 
     return successResponse({
@@ -130,7 +148,7 @@ export async function GET(req: NextRequest) {
         totalTokensPeriod,
         apiCallsSuccess: successfulCalls,
         apiCallsFailed: failedCalls,
-        successRate: apiCalls?.length ? (successfulCalls / apiCalls.length) * 100 : 0,
+        successRate: totalCallsCount ? (successfulCalls / totalCallsCount) * 100 : 0,
       },
       topUsers: topUsersWithEmails,
       dailyUsage: dailyUsageArray,

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import { ChatWidget } from '@/components/widget/ChatWidget';
-import type { WidgetConfig, Chatbot, PreChatFormConfig, PostChatSurveyConfig, FileUploadConfig, ProactiveMessagesConfig, TranscriptConfig, EscalationConfig, LiveHandoffConfig } from '@/lib/chatbots/types';
+import type { WidgetConfig, Chatbot, PreChatFormConfig, PostChatSurveyConfig, FileUploadConfig, ProactiveMessagesConfig, TranscriptConfig, EscalationConfig, LiveHandoffConfig, FeedbackConfig } from '@/lib/chatbots/types';
 
 interface WidgetPageProps {
   params: Promise<{ chatbotId: string }>;
@@ -23,6 +23,10 @@ export default function WidgetPage({ params }: WidgetPageProps) {
     agentsAvailable?: boolean;
     memoryEnabled?: boolean;
     sessionTtlHours?: number;
+    feedbackConfig?: FeedbackConfig;
+    creditExhausted?: boolean;
+    creditExhaustionMode?: string;
+    creditExhaustionConfig?: Record<string, unknown>;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -104,7 +108,7 @@ export default function WidgetPage({ params }: WidgetPageProps) {
       proactiveMessagesConfig={config.proactiveMessagesConfig}
       transcriptConfig={config.transcriptConfig}
       escalationConfig={config.escalationConfig}
-      feedbackConfig={config.feedbackConfig}
+      feedbackConfig={config.feedbackConfig as FeedbackConfig | undefined}
       liveHandoffConfig={config.liveHandoffConfig}
       agentsAvailable={config.agentsAvailable === true}
       memoryEnabled={config.memoryEnabled === true}

@@ -24,7 +24,7 @@ export interface AppSettings {
   updated_by: string | null;
 }
 
-export type AIProvider = 'claude' | 'openai' | 'local' | 'mock';
+export type AIProvider = 'claude' | 'openai' | 'deepseek' | 'gemini' | 'local' | 'mock';
 
 /**
  * Get the token multiplier for a specific provider
