@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,8 @@ interface ConnectionStatusProps {
 }
 
 export function ConnectionStatus({ integration, onDisconnect, onTest, testing }: ConnectionStatusProps) {
+  const [confirming, setConfirming] = useState(false);
+
   if (!integration) {
     return (
       <div className="flex items-center gap-2 text-secondary-500">
@@ -51,9 +54,21 @@ export function ConnectionStatus({ integration, onDisconnect, onTest, testing }:
           {testing && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
           Test
         </Button>
-        <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-700" onClick={onDisconnect}>
-          Disconnect
-        </Button>
+        {confirming ? (
+          <>
+            <span className="text-xs text-red-500">Disconnect? This may affect active bookings.</span>
+            <Button size="sm" variant="destructive" onClick={() => { onDisconnect(); setConfirming(false); }}>
+              Yes, disconnect
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setConfirming(false)}>
+              Cancel
+            </Button>
+          </>
+        ) : (
+          <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-700" onClick={() => setConfirming(true)}>
+            Disconnect
+          </Button>
+        )}
       </div>
     </div>
   );

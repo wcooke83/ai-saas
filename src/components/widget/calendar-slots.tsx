@@ -9,9 +9,16 @@ interface CalendarSlotsProps {
   duration: number;
   onSelect: (slot: TimeSlot) => void;
   primaryColor?: string;
+  textColor?: string;
+  mutedColor?: string;
 }
 
-export function CalendarSlots({ slots, timezone, duration, onSelect, primaryColor = '#0ea5e9' }: CalendarSlotsProps) {
+export function CalendarSlots({
+  slots, timezone, duration, onSelect,
+  primaryColor = '#0ea5e9',
+  textColor = 'currentColor',
+  mutedColor = 'inherit',
+}: CalendarSlotsProps) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   // Group slots by date
@@ -32,29 +39,60 @@ export function CalendarSlots({ slots, timezone, duration, onSelect, primaryColo
 
   return (
     <div style={{ margin: '8px 0' }}>
-      {/* Date tabs */}
-      <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '8px' }}>
-        {dates.map((date) => (
-          <button
-            key={date}
-            type="button"
-            onClick={() => setSelectedDate(date)}
+      {/* Date tabs with fade indicators */}
+      <div style={{ position: 'relative' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '6px',
+            overflowX: 'auto',
+            paddingBottom: '8px',
+            marginBottom: '8px',
+            scrollbarWidth: 'thin',
+          }}
+        >
+          {dates.map((date) => (
+            <button
+              key={date}
+              type="button"
+              onClick={() => setSelectedDate(date)}
+              style={{
+                padding: '4px 10px',
+                borderRadius: '12px',
+                fontSize: '12px',
+                fontWeight: 500,
+                whiteSpace: 'nowrap',
+                border: '1px solid',
+                cursor: 'pointer',
+                borderColor: date === active ? primaryColor : `${textColor}33`,
+                backgroundColor: date === active ? primaryColor : 'transparent',
+                color: date === active ? '#fff' : mutedColor,
+                outline: 'none',
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.boxShadow = `0 0 0 2px ${primaryColor}`;
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              {date}
+            </button>
+          ))}
+        </div>
+        {dates.length > 3 && (
+          <div
             style={{
-              padding: '4px 10px',
-              borderRadius: '12px',
-              fontSize: '12px',
-              fontWeight: 500,
-              whiteSpace: 'nowrap',
-              border: '1px solid',
-              cursor: 'pointer',
-              borderColor: date === active ? primaryColor : '#e2e8f0',
-              backgroundColor: date === active ? primaryColor : 'transparent',
-              color: date === active ? '#fff' : '#64748b',
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              bottom: '8px',
+              width: '24px',
+              background: 'linear-gradient(to right, transparent, var(--widget-bg, #fff))',
+              pointerEvents: 'none',
             }}
-          >
-            {date}
-          </button>
-        ))}
+          />
+        )}
       </div>
 
       {/* Time slots */}
@@ -81,6 +119,7 @@ export function CalendarSlots({ slots, timezone, duration, onSelect, primaryColo
                   cursor: 'pointer',
                   fontWeight: 500,
                   transition: 'all 150ms',
+                  outline: 'none',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = primaryColor;
@@ -90,6 +129,16 @@ export function CalendarSlots({ slots, timezone, duration, onSelect, primaryColo
                   e.currentTarget.style.backgroundColor = `${primaryColor}10`;
                   e.currentTarget.style.color = primaryColor;
                 }}
+                onFocus={(e) => {
+                  e.currentTarget.style.backgroundColor = primaryColor;
+                  e.currentTarget.style.color = '#fff';
+                  e.currentTarget.style.boxShadow = `0 0 0 2px ${primaryColor}`;
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.backgroundColor = `${primaryColor}10`;
+                  e.currentTarget.style.color = primaryColor;
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               >
                 {time}
               </button>
@@ -98,7 +147,7 @@ export function CalendarSlots({ slots, timezone, duration, onSelect, primaryColo
         </div>
       )}
 
-      <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '6px' }}>
+      <div style={{ fontSize: '11px', color: mutedColor, opacity: 0.7, marginTop: '6px' }}>
         {duration} min | {timezone}
       </div>
     </div>

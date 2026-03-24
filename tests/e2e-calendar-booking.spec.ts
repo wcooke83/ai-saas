@@ -922,26 +922,33 @@ test.describe('Calendar Booking Integration', () => {
       await expect(page.locator('#et-tz')).toBeVisible();
     });
 
-    test('CAL-173: Selecting customer Cal.com shows API key form', async ({ page }) => {
+    test('CAL-173: Other providers disabled when connected', async ({ page }) => {
+      test.skip(!integrationId, 'No integration');
+
       await page.goto(CALENDAR_SETTINGS_URL);
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(2000);
 
-      await page.getByText('Your Cal.com').first().click();
-      await page.waitForTimeout(500);
+      // When hosted_calcom is connected, other providers should be disabled
+      const calcomBtn = page.getByRole('radio', { name: /Your Cal\.com/i });
+      const calendlyBtn = page.getByRole('radio', { name: /Calendly/i });
 
-      await expect(page.getByText('Connect Your Cal.com').first()).toBeVisible({ timeout: 5000 });
+      if (await calcomBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await expect(calcomBtn).toBeDisabled();
+      }
+      if (await calendlyBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await expect(calendlyBtn).toBeDisabled();
+      }
     });
 
-    test('CAL-174: Selecting Calendly shows connect section', async ({ page }) => {
+    test('CAL-174: Connected provider shows "Connected" badge', async ({ page }) => {
+      test.skip(!integrationId, 'No integration');
+
       await page.goto(CALENDAR_SETTINGS_URL);
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(2000);
 
-      await page.getByText('Calendly').first().click();
-      await page.waitForTimeout(500);
-
-      await expect(page.getByText('Connect Calendly').first()).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Connected').first()).toBeVisible({ timeout: 5000 });
     });
 
     test('CAL-175: Booking history section renders', async ({ page }) => {

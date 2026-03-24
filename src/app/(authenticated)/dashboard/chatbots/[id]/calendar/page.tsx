@@ -179,15 +179,14 @@ export default function CalendarSettingsPage({ params }: PageProps) {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Skeleton className="w-12 h-12 rounded-lg" />
-          <div>
-            <Skeleton className="h-7 w-32" />
-            <Skeleton className="h-4 w-24 mt-2" />
-          </div>
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-24 rounded-lg" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Skeleton className="h-28 rounded-lg" />
+          <Skeleton className="h-28 rounded-lg" />
+          <Skeleton className="h-28 rounded-lg" />
         </div>
-        <Skeleton className="h-32" />
-        <Skeleton className="h-48" />
+        <Skeleton className="h-40 rounded-lg" />
       </div>
     );
   }
@@ -225,6 +224,7 @@ export default function CalendarSettingsPage({ params }: PageProps) {
         <CardContent>
           <ProviderSelector
             selected={selectedProvider}
+            connectedProvider={integration?.provider as CalendarProvider | undefined}
             onSelect={setSelectedProvider}
           />
         </CardContent>

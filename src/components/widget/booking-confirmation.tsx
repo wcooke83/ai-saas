@@ -4,11 +4,14 @@ import type { BookingResponse } from '@/lib/calendar/types';
 
 interface BookingConfirmationProps {
   booking: BookingResponse;
+  eventTitle?: string;
   primaryColor?: string;
+  textColor?: string;
+  mutedColor?: string;
   onCancel?: () => void;
 }
 
-function generateICSContent(booking: BookingResponse): string {
+function generateICSContent(booking: BookingResponse, title: string): string {
   const start = new Date(booking.start).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   const end = new Date(booking.end).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   return [
@@ -17,7 +20,7 @@ function generateICSContent(booking: BookingResponse): string {
     'BEGIN:VEVENT',
     `DTSTART:${start}`,
     `DTEND:${end}`,
-    `SUMMARY:Appointment`,
+    `SUMMARY:${title}`,
     booking.meetingUrl ? `LOCATION:${booking.meetingUrl}` : '',
     `ATTENDEE:${booking.attendeeEmail}`,
     'END:VEVENT',
@@ -25,7 +28,14 @@ function generateICSContent(booking: BookingResponse): string {
   ].filter(Boolean).join('\r\n');
 }
 
-export function BookingConfirmation({ booking, primaryColor = '#0ea5e9', onCancel }: BookingConfirmationProps) {
+export function BookingConfirmation({
+  booking,
+  eventTitle = 'Appointment',
+  primaryColor = '#0ea5e9',
+  textColor = 'currentColor',
+  mutedColor = 'inherit',
+  onCancel,
+}: BookingConfirmationProps) {
   const startDate = new Date(booking.start);
   const endDate = new Date(booking.end);
 
@@ -45,12 +55,12 @@ export function BookingConfirmation({ booking, primaryColor = '#0ea5e9', onCance
   })}`;
 
   function handleAddToCalendar() {
-    const ics = generateICSContent(booking);
+    const ics = generateICSContent(booking, eventTitle);
     const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'appointment.ics';
+    a.download = `${eventTitle.toLowerCase().replace(/\s+/g, '-')}.ics`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -81,12 +91,12 @@ export function BookingConfirmation({ booking, primaryColor = '#0ea5e9', onCance
         >
           &#10003;
         </div>
-        <span style={{ fontWeight: 600, fontSize: '14px', color: '#0f172a' }}>
+        <span style={{ fontWeight: 600, fontSize: '14px', color: textColor }}>
           {booking.status === 'confirmed' ? 'Booking Confirmed' : 'Booking Pending'}
         </span>
       </div>
 
-      <div style={{ fontSize: '13px', color: '#334155', lineHeight: '1.6' }}>
+      <div style={{ fontSize: '13px', color: mutedColor, lineHeight: '1.6' }}>
         <div>{dateStr}</div>
         <div>{timeStr}</div>
         {booking.meetingUrl && (
@@ -115,7 +125,10 @@ export function BookingConfirmation({ booking, primaryColor = '#0ea5e9', onCance
             color: '#fff',
             border: 'none',
             cursor: 'pointer',
+            outline: 'none',
           }}
+          onFocus={(e) => { e.currentTarget.style.boxShadow = `0 0 0 2px ${primaryColor}`; }}
+          onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
         >
           Add to Calendar
         </button>
@@ -131,7 +144,10 @@ export function BookingConfirmation({ booking, primaryColor = '#0ea5e9', onCance
               color: '#ef4444',
               border: '1px solid #ef444433',
               cursor: 'pointer',
+              outline: 'none',
             }}
+            onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 2px #ef4444'; }}
+            onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
           >
             Cancel
           </button>

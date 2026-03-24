@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CalcomConnectFormProps {
@@ -17,6 +17,7 @@ export function CalcomConnectForm({ chatbotId, onConnected }: CalcomConnectFormP
   const [baseUrl, setBaseUrl] = useState('https://api.cal.com');
   const [eventTypeId, setEventTypeId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showKey, setShowKey] = useState(false);
 
   async function handleConnect() {
     if (!apiKey.trim()) {
@@ -56,14 +57,24 @@ export function CalcomConnectForm({ chatbotId, onConnected }: CalcomConnectFormP
     <div className="space-y-4">
       <div>
         <Label htmlFor="calcom-api-key">API Key</Label>
-        <Input
-          id="calcom-api-key"
-          type="password"
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
-          placeholder="cal_live_..."
-          className="mt-1"
-        />
+        <div className="relative mt-1">
+          <Input
+            id="calcom-api-key"
+            type={showKey ? 'text' : 'password'}
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder="cal_live_..."
+            className="pr-10"
+          />
+          <button
+            type="button"
+            onClick={() => setShowKey(!showKey)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-secondary-400 hover:text-secondary-600 focus-visible:ring-2 focus-visible:ring-primary-500 rounded outline-none"
+            aria-label={showKey ? 'Hide API key' : 'Show API key'}
+          >
+            {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
       <div>
         <Label htmlFor="calcom-base-url">Base URL</Label>
