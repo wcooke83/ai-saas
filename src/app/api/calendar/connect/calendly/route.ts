@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
       .single();
 
     if (!chatbot || chatbot.user_id !== user.id) {
-      throw APIError.forbidden();
+      throw APIError.notFound('Chatbot not found');
     }
 
     // Exchange code for tokens

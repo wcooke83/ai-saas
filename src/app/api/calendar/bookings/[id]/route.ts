@@ -39,7 +39,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       .single();
 
     if (!chatbot || chatbot.user_id !== user.id) {
-      throw APIError.forbidden();
+      throw APIError.notFound('Booking not found');
     }
 
     return successResponse(booking);
@@ -77,7 +77,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       .single();
 
     if (!chatbot || chatbot.user_id !== user.id) {
-      throw APIError.forbidden();
+      throw APIError.notFound('Booking not found');
     }
 
     const input = await parseBody(req, rescheduleSchema);
@@ -118,7 +118,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
       .single();
 
     if (!chatbot || chatbot.user_id !== user.id) {
-      throw APIError.forbidden();
+      throw APIError.notFound('Booking not found');
     }
 
     let reason: string | undefined;

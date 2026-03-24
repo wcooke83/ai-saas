@@ -63,16 +63,10 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       throw APIError.unauthorized('Authentication required');
     }
 
-    // Get chatbot
+    // Get chatbot (filter by user_id to avoid RLS "public read" policy leaking other users' chatbots)
     const chatbot = await getChatbot(id);
-    if (!chatbot) {
+    if (!chatbot || chatbot.user_id !== user.id) {
       throw APIError.notFound('Chatbot not found');
-    }
-
-    // Verify ownership (RLS should handle this, but double-check)
-    if (chatbot.user_id !== user.id) {
-      console.error(`[Chatbot API] Ownership mismatch: chatbot.user_id=${chatbot.user_id}, user.id=${user.id}, user.email=${user.email}, authMethod=${user.authMethod}`);
-      throw APIError.forbidden('Access denied');
     }
 
     return successResponse({ chatbot });
@@ -93,12 +87,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
     // Get existing chatbot
     const existing = await getChatbot(id);
-    if (!existing) {
+    if (!existing || existing.user_id !== user.id) {
       throw APIError.notFound('Chatbot not found');
-    }
-
-    if (existing.user_id !== user.id) {
-      throw APIError.forbidden('Access denied');
     }
 
     // Validate input
@@ -183,12 +173,8 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
 
     // Get existing chatbot
     const existing = await getChatbot(id);
-    if (!existing) {
+    if (!existing || existing.user_id !== user.id) {
       throw APIError.notFound('Chatbot not found');
-    }
-
-    if (existing.user_id !== user.id) {
-      throw APIError.forbidden('Access denied');
     }
 
     // Delete chatbot (cascades to all related data)

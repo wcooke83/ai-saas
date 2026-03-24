@@ -349,6 +349,44 @@ export type Database = {
           },
         ]
       }
+      article_extraction_prompts: {
+        Row: {
+          chatbot_id: string
+          created_at: string
+          enabled: boolean
+          id: string
+          question: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          chatbot_id: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          question: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          chatbot_id?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          question?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_extraction_prompts_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -981,6 +1019,8 @@ export type Database = {
       chatbots: {
         Row: {
           allowed_origins: string[] | null
+          article_last_generated_at: string | null
+          article_schedule: string | null
           created_at: string | null
           credit_exhaustion_config: Json
           credit_exhaustion_mode: string
@@ -1024,6 +1064,8 @@ export type Database = {
         }
         Insert: {
           allowed_origins?: string[] | null
+          article_last_generated_at?: string | null
+          article_schedule?: string | null
           created_at?: string | null
           credit_exhaustion_config?: Json
           credit_exhaustion_mode?: string
@@ -1067,6 +1109,8 @@ export type Database = {
         }
         Update: {
           allowed_origins?: string[] | null
+          article_last_generated_at?: string | null
+          article_schedule?: string | null
           created_at?: string | null
           credit_exhaustion_config?: Json
           credit_exhaustion_mode?: string
@@ -1118,6 +1162,47 @@ export type Database = {
           },
         ]
       }
+      contact_replies: {
+        Row: {
+          created_at: string
+          email_message_id: string | null
+          id: string
+          message: string
+          sender_email: string
+          sender_name: string
+          sender_type: string
+          submission_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_message_id?: string | null
+          id?: string
+          message: string
+          sender_email: string
+          sender_name: string
+          sender_type: string
+          submission_id: string
+        }
+        Update: {
+          created_at?: string
+          email_message_id?: string | null
+          id?: string
+          message?: string
+          sender_email?: string
+          sender_name?: string
+          sender_type?: string
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_replies_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "contact_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_submissions: {
         Row: {
           chatbot_id: string
@@ -1152,47 +1237,6 @@ export type Database = {
             columns: ["chatbot_id"]
             isOneToOne: false
             referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      contact_replies: {
-        Row: {
-          id: string
-          submission_id: string
-          sender_type: string
-          sender_name: string
-          sender_email: string
-          message: string
-          email_message_id: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          submission_id: string
-          sender_type: string
-          sender_name: string
-          sender_email: string
-          message: string
-          email_message_id?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          submission_id?: string
-          sender_type?: string
-          sender_name?: string
-          sender_email?: string
-          message?: string
-          email_message_id?: string | null
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contact_replies_submission_id_fkey"
-            columns: ["submission_id"]
-            isOneToOne: false
-            referencedRelation: "contact_submissions"
             referencedColumns: ["id"]
           },
         ]
@@ -1668,11 +1712,13 @@ export type Database = {
           body: string
           chatbot_id: string
           created_at: string
+          extraction_prompt_id: string | null
           id: string
           published: boolean
           search_vector: unknown
           sort_order: number
           source_chunk_ids: string[] | null
+          source_url: string | null
           summary: string
           title: string
           updated_at: string
@@ -1681,11 +1727,13 @@ export type Database = {
           body: string
           chatbot_id: string
           created_at?: string
+          extraction_prompt_id?: string | null
           id?: string
           published?: boolean
           search_vector?: unknown
           sort_order?: number
           source_chunk_ids?: string[] | null
+          source_url?: string | null
           summary: string
           title: string
           updated_at?: string
@@ -1694,11 +1742,13 @@ export type Database = {
           body?: string
           chatbot_id?: string
           created_at?: string
+          extraction_prompt_id?: string | null
           id?: string
           published?: boolean
           search_vector?: unknown
           sort_order?: number
           source_chunk_ids?: string[] | null
+          source_url?: string | null
           summary?: string
           title?: string
           updated_at?: string
@@ -1709,6 +1759,13 @@ export type Database = {
             columns: ["chatbot_id"]
             isOneToOne: false
             referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "help_articles_extraction_prompt_id_fkey"
+            columns: ["extraction_prompt_id"]
+            isOneToOne: false
+            referencedRelation: "article_extraction_prompts"
             referencedColumns: ["id"]
           },
         ]
@@ -2574,6 +2631,44 @@ export type Database = {
           },
         ]
       }
+      ticket_replies: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          sender_email: string
+          sender_name: string
+          sender_type: string
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          sender_email: string
+          sender_name: string
+          sender_type: string
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          sender_email?: string
+          sender_name?: string
+          sender_type?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_replies_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tickets: {
         Row: {
           admin_notes: string | null
@@ -2632,44 +2727,6 @@ export type Database = {
             columns: ["chatbot_id"]
             isOneToOne: false
             referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ticket_replies: {
-        Row: {
-          id: string
-          ticket_id: string
-          sender_type: string
-          sender_email: string
-          sender_name: string
-          message: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          ticket_id: string
-          sender_type: string
-          sender_email: string
-          sender_name: string
-          message: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          ticket_id?: string
-          sender_type?: string
-          sender_email?: string
-          sender_name?: string
-          message?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ticket_replies_ticket_id_fkey"
-            columns: ["ticket_id"]
-            isOneToOne: false
-            referencedRelation: "tickets"
             referencedColumns: ["id"]
           },
         ]
@@ -2974,6 +3031,27 @@ export type Database = {
           },
         ]
       }
+      stripe_events: {
+        Row: {
+          id: string
+          stripe_event_id: string
+          event_type: string
+          processed_at: string
+        }
+        Insert: {
+          id?: string
+          stripe_event_id: string
+          event_type: string
+          processed_at?: string
+        }
+        Update: {
+          id?: string
+          stripe_event_id?: string
+          event_type?: string
+          processed_at?: string
+        }
+        Relationships: []
+      }
       webhooks: {
         Row: {
           created_at: string | null
@@ -3222,7 +3300,7 @@ export type Database = {
       }
       increment_chatbot_messages: {
         Args: { p_amount?: number; p_chatbot_id: string }
-        Returns: undefined
+        Returns: boolean
       }
       increment_conversation_messages: {
         Args: { p_conversation_id: string }

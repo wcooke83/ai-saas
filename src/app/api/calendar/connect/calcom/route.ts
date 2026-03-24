@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (!chatbot || chatbot.user_id !== user.id) {
-      throw APIError.forbidden();
+      throw APIError.notFound('Chatbot not found');
     }
 
     // Validate the API key by making a test request

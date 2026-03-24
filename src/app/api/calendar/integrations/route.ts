@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
       .single();
 
     if (!chatbot || chatbot.user_id !== user.id) {
-      throw APIError.forbidden();
+      throw APIError.notFound('Chatbot not found');
     }
 
     const { data: integration } = await supabase
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (!chatbot || chatbot.user_id !== user.id) {
-      throw APIError.forbidden();
+      throw APIError.notFound('Chatbot not found');
     }
 
     // Deactivate all existing integrations for this chatbot
@@ -125,7 +125,7 @@ export async function DELETE(req: NextRequest) {
       .single();
 
     if (!integration || integration.user_id !== user.id) {
-      throw APIError.forbidden();
+      throw APIError.notFound('Integration not found');
     }
 
     await supabase
