@@ -25,7 +25,7 @@ const defaultOptions: CORSOptions = {
     'X-Tool-ID',
   ],
   exposedHeaders: ['X-Request-ID', 'X-RateLimit-Remaining'],
-  credentials: true,
+  credentials: false,
   maxAge: 86400, // 24 hours
 };
 

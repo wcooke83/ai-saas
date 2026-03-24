@@ -37,11 +37,13 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       return corsJson({ success: false, error: { message: 'Rate limit exceeded' } }, 429, req);
     }
 
-    // Get chatbot
+    // Get chatbot (must be published and active)
     const { data: chatbot } = await supabase
       .from('chatbots')
-      .select('id, name, credit_exhaustion_config, allowed_origins')
+      .select('id, name, is_published, status, credit_exhaustion_config, allowed_origins')
       .eq('id', chatbotId)
+      .eq('is_published', true)
+      .eq('status', 'active')
       .single();
 
     if (!chatbot) {

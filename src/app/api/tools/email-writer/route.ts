@@ -40,13 +40,14 @@ const emailInputSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Authenticate (session or API key)
+    // 1. Authenticate (session or API key) — required
     const user = await authenticate(req);
-
-    // 1.5. Check tool access (if authenticated)
-    if (user) {
-      await requireToolAccess(user, 'email-writer');
+    if (!user) {
+      throw APIError.unauthorized('Authentication required');
     }
+
+    // 1.5. Check tool access
+    await requireToolAccess(user, 'email-writer');
 
     // 2. Rate limiting
     const rateLimitKey = user?.id || getClientIP(req);

@@ -18,10 +18,16 @@ export async function middleware(request: NextRequest) {
 
     // Add CORS headers for external API access
     if (request.method === 'OPTIONS') {
+      // Public widget/chat endpoints allow any origin
+      const isPublicRoute = pathname.startsWith('/api/widget/') || pathname.startsWith('/api/chat/');
+      const reqOrigin = request.headers.get('origin');
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+      const corsOrigin = isPublicRoute ? '*' : (reqOrigin && appUrl && reqOrigin === appUrl ? reqOrigin : '');
+
       return new NextResponse(null, {
         status: 204,
         headers: {
-          'Access-Control-Allow-Origin': '*',
+          ...(corsOrigin ? { 'Access-Control-Allow-Origin': corsOrigin } : {}),
           'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, X-Request-ID',
           'Access-Control-Max-Age': '86400',
@@ -40,8 +46,13 @@ export async function middleware(request: NextRequest) {
     }
 
     // Refresh Supabase session so API route handlers see valid tokens
+    // Authenticated API routes: restrict CORS to same-origin (no wildcard)
     const response = await updateSession(request);
-    response.headers.set('Access-Control-Allow-Origin', '*');
+    const origin = request.headers.get('origin');
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+    if (origin && appUrl && origin === appUrl) {
+      response.headers.set('Access-Control-Allow-Origin', origin);
+    }
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');
     return response;

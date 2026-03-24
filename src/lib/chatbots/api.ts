@@ -431,15 +431,11 @@ export async function createMessage(message: MessageInsert, supabaseClient?: Typ
 
   if (error) throw error;
 
-  // Increment counters in parallel (non-critical, fire-and-forget)
-  void Promise.all([
-    supabase.rpc('increment_conversation_messages', {
-      p_conversation_id: message.conversation_id,
-    }).then(({ error }: { error: any }) => { if (error) console.warn('Failed to increment conversation messages:', error); }),
-    supabase.rpc('increment_chatbot_messages', {
-      p_chatbot_id: message.chatbot_id,
-    }).then(({ error }: { error: any }) => { if (error) console.warn('Failed to increment chatbot messages:', error); }),
-  ]).catch(() => { /* fire-and-forget: counter increments are non-critical */ });
+  // Increment conversation counter (chatbot counter is now handled atomically in the chat route)
+  void Promise.resolve(supabase.rpc('increment_conversation_messages', {
+    p_conversation_id: message.conversation_id,
+  })).then(({ error }: { error: any }) => { if (error) console.warn('Failed to increment conversation messages:', error); })
+    .catch(() => { /* fire-and-forget */ });
 
   return data as unknown as Message;
 }

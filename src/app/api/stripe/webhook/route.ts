@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { getStripeClient } from '@/lib/stripe/client';
+import { createAdminClient } from '@/lib/supabase/admin';
 import {
   handleCheckoutCompleted,
   handleSubscriptionUpdated,
@@ -40,6 +41,25 @@ export async function POST(req: NextRequest) {
   try {
     const stripe = getStripeClient();
     const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+
+    // Idempotency check: skip already-processed events
+    const supabase = createAdminClient();
+    const { data: existing } = await supabase
+      .from('stripe_events')
+      .select('id')
+      .eq('stripe_event_id', event.id)
+      .maybeSingle();
+
+    if (existing) {
+      console.log(`Stripe event already processed: ${event.id}`);
+      return NextResponse.json({ received: true });
+    }
+
+    // Record the event before processing to prevent duplicate handling
+    await supabase.from('stripe_events').insert({
+      stripe_event_id: event.id,
+      event_type: event.type,
+    });
 
     console.log(`Processing Stripe event: ${event.type}`);
 

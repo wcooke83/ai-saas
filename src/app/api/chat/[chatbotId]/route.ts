@@ -278,13 +278,15 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       throw APIError.forbidden('Chatbot is not available');
     }
 
-    // Check message limits
-    if (
-      chatbot.monthly_message_limit > 0 &&
-      chatbot.messages_this_month >= chatbot.monthly_message_limit
-    ) {
-      console.warn(`[Chat:Limit] Chatbot "${chatbot.name || chatbotId}" hit monthly message limit — model: ${chatbot.model || 'default'}, used: ${chatbot.messages_this_month}/${chatbot.monthly_message_limit}`);
-      throw APIError.usageLimitReached('Chatbot has reached its monthly message limit');
+    // Atomic message limit check + increment (prevents TOCTOU race condition)
+    if (chatbot.monthly_message_limit > 0) {
+      const { data: allowed } = await supabase.rpc('increment_chatbot_messages', {
+        p_chatbot_id: chatbotId,
+      });
+      if (allowed === false) {
+        console.warn(`[Chat:Limit] Chatbot "${chatbot.name || chatbotId}" hit monthly message limit — model: ${chatbot.model || 'default'}, limit: ${chatbot.monthly_message_limit}`);
+        throw APIError.usageLimitReached('Chatbot has reached its monthly message limit');
+      }
     }
 
     // Optional API key authentication (for API access)

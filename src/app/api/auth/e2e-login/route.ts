@@ -13,6 +13,9 @@ const E2E_SECRET = process.env.E2E_TEST_SECRET;
 const E2E_TEST_EMAIL = process.env.E2E_TEST_EMAIL || 'e2e-test@test.local';
 
 export async function POST(req: NextRequest) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not available' }, { status: 404 });
+  }
   if (!E2E_SECRET) {
     return NextResponse.json({ error: 'E2E testing not enabled' }, { status: 403 });
   }

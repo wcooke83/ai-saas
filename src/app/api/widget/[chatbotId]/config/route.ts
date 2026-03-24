@@ -143,7 +143,6 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
             ...(chatbot.credit_exhaustion_config || {}),
           },
           memoryEnabled: chatbot.memory_enabled === true,
-          sessionTtlHours: chatbot.session_ttl_hours ?? 24,
         },
       }),
       {
@@ -158,7 +157,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error('[Widget:Config] Unexpected error:', error);
     return new Response(
-      JSON.stringify({ success: false, error: { message: 'Internal server error', details: error instanceof Error ? error.message : String(error) } }),
+      JSON.stringify({ success: false, error: { message: 'Internal server error' } }),
       {
         status: 500,
         headers: {

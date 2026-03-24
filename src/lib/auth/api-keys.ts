@@ -166,50 +166,7 @@ export async function validateAPIKey(
   const supabase = createClient();
   const keyHash = hashAPIKey(key);
 
-  // Check if admin client is working
-  const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
-  console.log('[Admin Client Check]', {
-    hasServiceKey,
-    serviceKeyPrefix: hasServiceKey ? process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 20) + '...' : 'MISSING',
-  });
-
-  // Debug logging
-  console.log('[API Key Validation]', {
-    keyPrefix: key.slice(0, 12) + '...',
-    keyHashPrefix: keyHash.slice(0, 16) + '...',
-    origin,
-  });
-
-  // First check if key exists at all (without join)
-  const { data: keyOnly, error: keyError } = await supabase
-    .from('api_keys')
-    .select('id, user_id, key_hash, key_prefix')
-    .eq('key_hash', keyHash)
-    .single();
-
-  console.log('[API Key Basic Query]', {
-    found: !!keyOnly,
-    keyData: keyOnly ? { id: keyOnly.id, user_id: keyOnly.user_id, key_prefix: keyOnly.key_prefix } : null,
-    error: keyError?.message || null,
-    errorCode: keyError?.code || null,
-  });
-
-  // If key doesn't exist, list all keys for debugging
-  if (!keyOnly) {
-    const { data: allKeys, error: listError } = await supabase
-      .from('api_keys')
-      .select('key_prefix, key_hash');
-    console.log('[All API Keys in DB]', {
-      count: allKeys?.length ?? 0,
-      error: listError?.message || null,
-      keys: allKeys?.map(k => ({
-        prefix: k.key_prefix,
-        hashPrefix: k.key_hash?.slice(0, 16) + '...',
-      })),
-    });
-  }
-
-  // Now get the API key with profile
+  // Get the API key with profile
   const { data, error } = await supabase
     .from('api_keys')
     .select(`
@@ -218,13 +175,6 @@ export async function validateAPIKey(
     `)
     .eq('key_hash', keyHash)
     .single();
-
-  // Debug logging for query result
-  console.log('[API Key Query Result]', {
-    found: !!data,
-    error: error?.message || null,
-    errorCode: error?.code || null,
-  });
 
   if (error || !data) {
     throw APIError.unauthorized('Invalid API key');

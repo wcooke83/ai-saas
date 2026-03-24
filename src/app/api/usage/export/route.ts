@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const startDate = searchParams.get('start_date');
     const endDate = searchParams.get('end_date');
-    const limit = parseInt(searchParams.get('limit') || '1000', 10);
+    const limit = Math.min(parseInt(searchParams.get('limit') || '1000', 10), 10000);
 
     // Build query
     let query = supabase

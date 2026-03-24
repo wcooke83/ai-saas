@@ -363,10 +363,23 @@ ${documentText}`);
  */
 function sanitizeContextValue(value: string): string {
   return value
-    .replace(/ignore\s+(all\s+)?(previous|above|prior)\s+(instructions|rules|prompts)/gi, '[filtered]')
+    // Normalize unicode lookalikes and leetspeak to reduce bypass surface
+    .replace(/[\u0400-\u04FF]/g, c => {
+      const map: Record<string, string> = { '\u0430': 'a', '\u0435': 'e', '\u043E': 'o', '\u0440': 'p', '\u0441': 'c', '\u0443': 'y', '\u0445': 'x' };
+      return map[c] || c;
+    })
+    .replace(/1/g, 'i').replace(/0/g, 'o').replace(/3/g, 'e').replace(/@/g, 'a')
+    // Filter instruction override patterns (broadened)
+    .replace(/ignore\s+(all\s+)?(previous|above|prior|earlier|preceding|system)\s+(instructions|rules|prompts|context|guidelines)/gi, '[filtered]')
+    .replace(/disregard\s+(all\s+)?(previous|above|prior|earlier)?\s*(instructions|rules|prompts|context|guidelines)/gi, '[filtered]')
     .replace(/you\s+are\s+now\s+a?\s*/gi, '[filtered]')
-    .replace(/forget\s+(your|all)\s+(rules|instructions|prompts)/gi, '[filtered]')
-    .replace(/reveal\s+(your|the)\s+(system\s+)?prompt/gi, '[filtered]')
+    .replace(/forget\s+(everything|your|all)\s*(rules|instructions|prompts|about)?/gi, '[filtered]')
+    .replace(/reveal\s+(your|the)\s+(system\s+|internal\s+)?prompt/gi, '[filtered]')
+    .replace(/(show|print|output|display|repeat)\s+(your\s+)?(system\s+)?(prompt|instructions|rules)/gi, '[filtered]')
+    .replace(/\bact\s+as\s+(if\s+you\s+are|a)\s/gi, '[filtered]')
+    .replace(/\bpretend\s+(to\s+be|you\s+are)\s/gi, '[filtered]')
+    .replace(/\bswitch\s+(to|into)\s+(a\s+)?(different|new)\s+(mode|persona|role|character)/gi, '[filtered]')
+    .replace(/\boverride\s+(your|all|the)\s+(safety|rules|instructions|guidelines)/gi, '[filtered]')
     .replace(/\n{3,}/g, '\n\n');
 }
 
@@ -428,7 +441,7 @@ export function buildSystemPrompt(
   if (userData && Object.keys(userData).length > 0) {
     const profileLines = Object.entries(userData)
       .filter(([key]) => key !== 'id')
-      .map(([key, value]) => `- ${key}: ${value}`)
+      .map(([key, value]) => `- ${sanitizeContextValue(key)}: ${sanitizeContextValue(value)}`)
       .join('\n');
     if (profileLines) {
       systemPrompt += `\n\n## Authenticated User Profile\nThis user is logged into the website. Their verified details:\n${profileLines}\nUse this information naturally — address them by name, reference their details when relevant.`;
@@ -444,7 +457,7 @@ export function buildSystemPrompt(
   // Add visitor context if pre-chat form data is available
   if (preChatInfo && Object.keys(preChatInfo).length > 0) {
     const infoLines = Object.entries(preChatInfo)
-      .map(([key, value]) => `- ${key}: ${value}`)
+      .map(([key, value]) => `- ${sanitizeContextValue(key)}: ${sanitizeContextValue(value)}`)
       .join('\n');
     systemPrompt += `\n\n## Visitor Information\nThe following information was provided by the user:\n${infoLines}\nUse this to personalize your responses naturally.`;
   }
