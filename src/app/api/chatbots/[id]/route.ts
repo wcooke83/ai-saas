@@ -16,6 +16,7 @@ import {
   generateUniqueSlug,
 } from '@/lib/chatbots/api';
 import { DEFAULT_WIDGET_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, type WidgetConfig, type FileUploadConfig } from '@/lib/chatbots/types';
+import { checkReembedStatus } from '@/lib/chatbots/reembed-check';
 
 // Update chatbot validation schema
 const updateChatbotSchema = z.object({
@@ -47,6 +48,8 @@ const updateChatbotSchema = z.object({
   live_fetch_threshold: z.number().min(0.5).max(0.95).optional(),
   credit_exhaustion_mode: z.enum(['tickets', 'contact_form', 'purchase_credits', 'help_articles']).optional(),
   credit_exhaustion_config: z.record(z.unknown()).optional(),
+  monthly_message_limit: z.number().min(0).optional(),
+  messages_this_month: z.number().min(0).optional(),
 });
 
 interface RouteParams {
@@ -69,7 +72,9 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       throw APIError.notFound('Chatbot not found');
     }
 
-    return successResponse({ chatbot });
+    const reembedStatus = await checkReembedStatus(id);
+
+    return successResponse({ chatbot, ...reembedStatus });
   } catch (error) {
     return errorResponse(error);
   }

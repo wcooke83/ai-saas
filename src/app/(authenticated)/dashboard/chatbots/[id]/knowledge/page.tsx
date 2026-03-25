@@ -17,6 +17,7 @@ import {
   RefreshCw,
   RotateCw,
   Star,
+  AlertTriangle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -40,6 +41,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
   const [loading, setLoading] = useState(true);
   const [addMode, setAddMode] = useState<'url' | 'text' | 'qa' | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [reembedding, setReembedding] = useState(false);
 
   // Form states
   const [urlInput, setUrlInput] = useState('');
@@ -226,6 +228,44 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
     }
   };
 
+  const handleReembedAll = async () => {
+    setReembedding(true);
+    try {
+      const response = await fetch(`/api/chatbots/${id}/knowledge/reembed-all`, { method: 'POST' });
+      if (!response.ok) throw new Error('Failed to start re-embedding');
+      const data = await response.json();
+      toast.success(data.data?.message || 'Re-embedding started');
+      fetchSources();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to re-embed');
+    } finally {
+      setReembedding(false);
+    }
+  };
+
+  const completedCount = sources.filter(s => s.status === 'completed' || s.status === 'failed').length;
+  const processingCount = sources.filter(s => s.status === 'processing').length;
+
+  // Detect embedding mismatch client-side for instant feedback
+  const needsReembed = (() => {
+    const completed = sources.filter(s => s.status === 'completed' && s.chunks_count > 0);
+    if (completed.length === 0) return false;
+    const providers = new Set(completed.map(s => (s as any).embedding_provider));
+    return providers.has(null) || providers.has(undefined) || providers.size > 1;
+  })();
+
+  const reembedReasonMessage = (() => {
+    const completed = sources.filter(s => s.status === 'completed' && s.chunks_count > 0);
+    const providers = new Set(completed.map(s => (s as any).embedding_provider));
+    if (providers.has(null) || providers.has(undefined)) {
+      return 'Some knowledge sources are missing embedding model information. This can cause search to return incomplete results.';
+    }
+    if (providers.size > 1) {
+      return 'Your knowledge sources were embedded with different AI models. This causes search to return poor or no results.';
+    }
+    return 'Your knowledge base needs re-processing to ensure your chatbot can find answers accurately.';
+  })();
+
   const sourceTypeIcons = {
     document: FileText,
     url: Globe,
@@ -260,12 +300,73 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
         chatbotId={id}
         title="Knowledge Base"
         actions={
-          <Button variant="outline" onClick={() => fetchSources()}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            {completedCount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReembedAll}
+                disabled={reembedding}
+                title="Re-process all sources with the current embedding model so similarity search is consistent"
+              >
+                {reembedding ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RotateCw className="w-4 h-4 mr-2" />}
+                {reembedding ? 'Re-embedding...' : 'Re-embed All'}
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={() => fetchSources()}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
         }
       />
+
+      {/* Re-embed callout */}
+      {needsReembed && !reembedding && processingCount === 0 && (
+        <Card className="border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-950/30">
+          <CardContent className="pt-6 pb-5">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 space-y-3">
+                <h3 className="text-base font-semibold text-amber-900 dark:text-amber-100">
+                  Knowledge base re-processing required
+                </h3>
+                <p className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
+                  {reembedReasonMessage}
+                  {' '}Re-processing will update all sources to use the same model.
+                  This usually takes under a minute.
+                </p>
+                <Button
+                  onClick={handleReembedAll}
+                  className="bg-amber-600 hover:bg-amber-700 text-white"
+                >
+                  <RotateCw className="w-4 h-4 mr-2" />
+                  Re-process All Knowledge
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Re-embed progress */}
+      {(reembedding || (needsReembed && processingCount > 0)) && (
+        <Card className="border-blue-300 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-950/30">
+          <CardContent className="pt-6 pb-5">
+            <div className="flex items-center gap-3">
+              <Loader2 className="w-5 h-5 text-blue-600 dark:text-blue-400 animate-spin flex-shrink-0" />
+              <div>
+                <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                  Re-processing knowledge base...
+                </h3>
+                <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
+                  {sources.filter(s => s.status === 'completed').length} of {sources.length} sources updated
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Add Source Cards */}
       {!addMode && (
@@ -276,10 +377,10 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
           >
             <Globe className="w-8 h-8 text-primary-500 mb-3" />
             <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">
-              Add Website URL
+              Import Website Content
             </h3>
             <p className="text-sm text-secondary-500 mt-1">
-              Scrape content from a webpage
+              Scrape raw content from a webpage and add it directly to the knowledge base
             </p>
           </button>
 
@@ -560,12 +661,12 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
           Article Generation
         </h2>
         <p className="text-sm text-secondary-500 mb-4">
-          Generate help articles from website URLs or existing knowledge sources.
-          Articles are automatically embedded into the knowledge base so your chatbot can answer questions without live-fetching.
+          Generate structured help articles using AI, then embed them into the knowledge base so your chatbot can answer questions without live-fetching URLs.
         </p>
         <ArticleGeneration
           chatbotId={id}
           onGenerated={() => fetchSources()}
+          showKnowledgeGenerate
         />
       </div>
 

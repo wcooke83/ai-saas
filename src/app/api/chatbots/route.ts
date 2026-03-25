@@ -15,6 +15,7 @@ import {
   checkChatbotLimit,
 } from '@/lib/chatbots/api';
 import { DEFAULT_WIDGET_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG } from '@/lib/chatbots/types';
+import { checkReembedStatusBatch } from '@/lib/chatbots/reembed-check';
 
 // Create chatbot validation schema
 const createChatbotSchema = z.object({
@@ -46,7 +47,14 @@ export async function GET(req: NextRequest) {
     // Get chatbots with stats
     const chatbots = await getChatbotsWithStats(user.id);
 
-    return successResponse({ chatbots });
+    // Batch check re-embed status
+    const reembedMap = await checkReembedStatusBatch(chatbots.map(c => c.id));
+    const chatbotsWithReembed = chatbots.map(c => ({
+      ...c,
+      ...reembedMap[c.id],
+    }));
+
+    return successResponse({ chatbots: chatbotsWithReembed });
   } catch (error) {
     return errorResponse(error);
   }
