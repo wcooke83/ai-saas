@@ -16,6 +16,7 @@ interface ParsedReply {
   inReplyTo: string | null;
   references: string[];
   date: Date;
+  uid: number;
 }
 
 function getImapClient(): ImapFlow {
@@ -29,6 +30,7 @@ function getImapClient(): ImapFlow {
     },
     logger: false,
     tls: { rejectUnauthorized: false },
+    connectionTimeout: 30000,
   });
 }
 
@@ -40,7 +42,6 @@ function extractReplyText(text: string): string {
   const lines = text.split('\n');
   const cleaned: string[] = [];
   for (const line of lines) {
-    // Stop at signature or quoted content markers
     if (line.trim() === '--' || line.startsWith('On ') && line.includes('wrote:')) break;
     if (line.startsWith('>')) continue;
     cleaned.push(line);
@@ -53,13 +54,11 @@ function extractReplyText(text: string): string {
  * Looks for [CS-XXXXXXXX] pattern in subject or cs-{uuid} in message IDs.
  */
 function extractSubmissionId(parsed: ParsedReply): string | null {
-  // Try subject: [CS-XXXXXXXX]
   const subjectMatch = parsed.subject.match(/\[CS-([A-F0-9]{8})\]/i);
   if (subjectMatch) {
     return subjectMatch[1].toLowerCase();
   }
 
-  // Try references/inReplyTo: <cs-{uuid}-timestamp@vocui.com>
   const allIds = [parsed.inReplyTo, ...parsed.references].filter(Boolean) as string[];
   for (const id of allIds) {
     const match = id.match(/cs-([0-9a-f-]{36})/i);
@@ -67,6 +66,19 @@ function extractSubmissionId(parsed: ParsedReply): string | null {
   }
 
   return null;
+}
+
+/**
+ * Extract text body from raw email source.
+ */
+function extractTextFromSource(source: string): string {
+  const plainMatch = source.match(/Content-Type: text\/plain[^\r\n]*\r?\n(?:Content-Transfer-Encoding:[^\r\n]*\r?\n)?(?:\r?\n)([\s\S]*?)(?=\r?\n--|\r?\n\.\r?\n|$)/i);
+  if (plainMatch) return plainMatch[1].trim();
+
+  const htmlMatch = source.match(/Content-Type: text\/html[^\r\n]*\r?\n(?:Content-Transfer-Encoding:[^\r\n]*\r?\n)?(?:\r?\n)([\s\S]*?)(?=\r?\n--|\r?\n\.\r?\n|$)/i);
+  if (htmlMatch) return htmlMatch[1].replace(/<[^>]+>/g, '').trim();
+
+  return '';
 }
 
 /**
@@ -85,88 +97,87 @@ export async function pollContactReplies(): Promise<{ processed: number; errors:
     const lock = await client.getMailboxLock('INBOX');
 
     try {
-      // Search for unseen messages
-      const messages = client.fetch(
-        { seen: false },
-        {
-          envelope: true,
-          source: true,
-          uid: true,
-        }
-      );
+      // Search for unseen messages first, then fetch individually
+      const unseenUids = await client.search({ seen: false });
+      if (!unseenUids || unseenUids.length === 0) {
+        lock.release();
+        await client.logout();
+        return { processed: 0, errors: [] };
+      }
 
-      for await (const msg of messages) {
+      // Process each unseen message by UID using fetchOne (avoids async iterator hang)
+      for (const uid of unseenUids) {
         try {
+          const msg = await client.fetchOne(uid, { envelope: true, source: true }, { uid: true });
+          if (!msg) continue;
+
           const envelope = msg.envelope;
           if (!envelope) continue;
-
-          // Extract text from source
-          const source = msg.source?.toString('utf-8') || '';
-          // Simple text extraction from email source
-          let textBody = '';
-
-          // Try to get text/plain content
-          const plainMatch = source.match(/Content-Type: text\/plain[^\r\n]*\r?\n(?:Content-Transfer-Encoding:[^\r\n]*\r?\n)?(?:\r?\n)([\s\S]*?)(?=\r?\n--|\r?\n\.\r?\n|$)/i);
-          if (plainMatch) {
-            textBody = plainMatch[1].trim();
-          } else {
-            // Fallback: strip HTML tags from html content
-            const htmlMatch = source.match(/Content-Type: text\/html[^\r\n]*\r?\n(?:Content-Transfer-Encoding:[^\r\n]*\r?\n)?(?:\r?\n)([\s\S]*?)(?=\r?\n--|\r?\n\.\r?\n|$)/i);
-            if (htmlMatch) {
-              textBody = htmlMatch[1].replace(/<[^>]+>/g, '').trim();
-            }
-          }
-
-          const parsed: ParsedReply = {
-            from: envelope.from?.[0]?.address || '',
-            fromName: envelope.from?.[0]?.name || envelope.from?.[0]?.address || 'Unknown',
-            subject: envelope.subject || '',
-            text: textBody,
-            messageId: envelope.messageId || '',
-            inReplyTo: envelope.inReplyTo || null,
-            references: [], // imapflow puts these in envelope
-            date: envelope.date || new Date(),
-          };
+          const from = envelope.from?.[0]?.address || '';
 
           // Skip emails from our own system
-          if (parsed.from.toLowerCase() === 'support@vocui.com') continue;
+          if (from.toLowerCase() === 'support@vocui.com') {
+            await client.messageFlagsAdd(uid, ['\\Seen'], { uid: true });
+            continue;
+          }
+
+          const subject = envelope.subject || '';
+          const subjectMatch = subject.match(/\[CS-([A-F0-9]{8})\]/i);
+          const inReplyTo = envelope.inReplyTo || null;
+
+          if (!subjectMatch && !inReplyTo) {
+            continue;
+          }
+
+          const textBody = extractTextFromSource(msg.source?.toString('utf-8') || '');
+
+          const parsed: ParsedReply = {
+            from,
+            fromName: envelope.from?.[0]?.name || from || 'Unknown',
+            subject,
+            text: textBody,
+            messageId: envelope.messageId || '',
+            inReplyTo,
+            references: [],
+            date: envelope.date || new Date(),
+            uid,
+          };
 
           // Try to match to a submission
           const shortId = extractSubmissionId(parsed);
-          if (!shortId) continue;
-
-          // Find the submission - try short ID match first
           let submissionId: string | null = null;
 
-          if (shortId.length === 8) {
-            // Short ID from subject - query submissions where id starts with this
-            const { data: submissions } = await supabase
-              .from('contact_submissions')
-              .select('id')
-              .ilike('id', `${shortId}%`)
-              .limit(1);
-            if (submissions?.[0]) submissionId = submissions[0].id;
-          } else {
-            // Full UUID from references
-            submissionId = shortId;
+          if (shortId) {
+            if (shortId.length === 8) {
+              // UUID prefix match — fetch recent submissions and match in JS
+              // (Supabase PostgREST doesn't support LIKE on UUID columns)
+              const { data: submissions } = await supabase
+                .from('contact_submissions')
+                .select('id')
+                .order('created_at', { ascending: false })
+                .limit(200);
+              const match = submissions?.find((s: any) =>
+                (s.id as string).toLowerCase().startsWith(shortId.toLowerCase())
+              );
+              if (match) submissionId = match.id;
+            } else {
+              submissionId = shortId;
+            }
           }
 
-          if (!submissionId) {
-            // Also try matching via the email_message_id in contact_replies
-            if (parsed.inReplyTo) {
-              const { data: reply } = await supabase
-                .from('contact_replies')
-                .select('submission_id')
-                .eq('email_message_id', parsed.inReplyTo)
-                .limit(1)
-                .single();
-              if (reply) submissionId = reply.submission_id;
-            }
+          if (!submissionId && parsed.inReplyTo) {
+            const { data: reply } = await supabase
+              .from('contact_replies')
+              .select('submission_id')
+              .eq('email_message_id', parsed.inReplyTo)
+              .limit(1)
+              .single();
+            if (reply) submissionId = reply.submission_id;
           }
 
           if (!submissionId) continue;
 
-          // Check for duplicate (same messageId already stored)
+          // Check for duplicate
           if (parsed.messageId) {
             const { data: existing } = await supabase
               .from('contact_replies')
@@ -174,15 +185,13 @@ export async function pollContactReplies(): Promise<{ processed: number; errors:
               .eq('email_message_id', parsed.messageId)
               .limit(1);
             if (existing && existing.length > 0) {
-              // Already processed, just mark as seen
-              await client.messageFlagsAdd(msg.uid, ['\\Seen'], { uid: true });
+              await client.messageFlagsAdd(uid, ['\\Seen'], { uid: true });
               continue;
             }
           }
 
           const replyText = extractReplyText(parsed.text) || parsed.text;
 
-          // Insert the reply
           const { error } = await supabase.from('contact_replies').insert({
             submission_id: submissionId,
             sender_type: 'visitor',
@@ -197,14 +206,13 @@ export async function pollContactReplies(): Promise<{ processed: number; errors:
             continue;
           }
 
-          // Update submission status back to 'read' so admin knows there's a new reply
+          // Update submission status back to 'read'
           await supabase
             .from('contact_submissions')
             .update({ status: 'read' })
             .eq('id', submissionId);
 
-          // Mark email as seen
-          await client.messageFlagsAdd(msg.uid, ['\\Seen'], { uid: true });
+          await client.messageFlagsAdd(uid, ['\\Seen'], { uid: true });
           processed++;
         } catch (msgErr) {
           errors.push(`Message processing error: ${(msgErr as Error).message}`);

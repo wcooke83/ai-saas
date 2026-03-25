@@ -317,15 +317,15 @@ export default function ContactPage({ params }: { params: Promise<{ id: string }
         <Card><CardContent className="py-12 text-center text-secondary-500">No contact submissions</CardContent></Card>
       ) : (
         <Card>
-          <CardContent className="p-0">
-            <table className="w-full text-sm">
+          <CardContent className="p-0 overflow-x-auto">
+            <table className="w-full text-sm min-w-[500px]">
               <thead>
                 <tr className="border-b border-secondary-200 dark:border-secondary-700">
                   <th className="text-left px-4 py-3 font-medium text-secondary-500">Name</th>
-                  <th className="text-left px-4 py-3 font-medium text-secondary-500">Email</th>
+                  <th className="text-left px-4 py-3 font-medium text-secondary-500 hidden sm:table-cell">Email</th>
                   <th className="text-left px-4 py-3 font-medium text-secondary-500">Message</th>
                   <th className="text-left px-4 py-3 font-medium text-secondary-500">Status</th>
-                  <th className="text-left px-4 py-3 font-medium text-secondary-500">Date</th>
+                  <th className="text-left px-4 py-3 font-medium text-secondary-500 hidden sm:table-cell">Date</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -333,14 +333,16 @@ export default function ContactPage({ params }: { params: Promise<{ id: string }
                 {submissions.map(sub => (
                   <tr
                     key={sub.id}
-                    className="border-b border-secondary-100 dark:border-secondary-800 hover:bg-secondary-50 dark:hover:bg-secondary-800/50 cursor-pointer"
+                    className="border-b border-secondary-100 dark:border-secondary-800 hover:bg-secondary-50 dark:hover:bg-secondary-800/50 cursor-pointer focus:bg-secondary-50 dark:focus:bg-secondary-800/50 outline-none"
                     onClick={() => setSelected(sub)}
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelected(sub); } }}
                   >
                     <td className="px-4 py-3">{sub.visitor_name}</td>
-                    <td className="px-4 py-3">{sub.visitor_email}</td>
+                    <td className="px-4 py-3 hidden sm:table-cell">{sub.visitor_email}</td>
                     <td className="px-4 py-3 max-w-[200px] truncate">{sub.message}</td>
                     <td className="px-4 py-3"><Badge className={statusColors[sub.status]}>{sub.status}</Badge></td>
-                    <td className="px-4 py-3 text-secondary-500">{new Date(sub.created_at).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 text-secondary-500 hidden sm:table-cell">{new Date(sub.created_at).toLocaleDateString()}</td>
                     <td className="px-4 py-3"><ChevronRight className="w-4 h-4 text-secondary-400" /></td>
                   </tr>
                 ))}
