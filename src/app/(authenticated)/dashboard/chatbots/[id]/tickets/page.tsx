@@ -586,8 +586,8 @@ export default function TicketsPage({ params }: { params: Promise<{ id: string }
         </Card>
       ) : (
         <Card>
-          <CardContent className="p-0">
-            <table className="w-full text-sm">
+          <CardContent className="p-0 overflow-x-auto">
+            <table className="w-full text-sm min-w-[600px]">
               <thead>
                 <tr className="border-b border-secondary-200 dark:border-secondary-700">
                   <th className="text-left px-4 py-3 font-medium text-secondary-500">Reference</th>
@@ -595,7 +595,7 @@ export default function TicketsPage({ params }: { params: Promise<{ id: string }
                   <th className="text-left px-4 py-3 font-medium text-secondary-500">Visitor</th>
                   <th className="text-left px-4 py-3 font-medium text-secondary-500">Priority</th>
                   <th className="text-left px-4 py-3 font-medium text-secondary-500">Status</th>
-                  <th className="text-left px-4 py-3 font-medium text-secondary-500">Created</th>
+                  <th className="text-left px-4 py-3 font-medium text-secondary-500 hidden sm:table-cell">Created</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -603,8 +603,10 @@ export default function TicketsPage({ params }: { params: Promise<{ id: string }
                 {tickets.map(ticket => (
                   <tr
                     key={ticket.id}
-                    className="border-b border-secondary-100 dark:border-secondary-800 hover:bg-secondary-50 dark:hover:bg-secondary-800/50 cursor-pointer"
+                    className="border-b border-secondary-100 dark:border-secondary-800 hover:bg-secondary-50 dark:hover:bg-secondary-800/50 cursor-pointer focus:bg-secondary-50 dark:focus:bg-secondary-800/50 outline-none"
                     onClick={() => selectTicket(ticket)}
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectTicket(ticket); } }}
                   >
                     <td className="px-4 py-3 font-mono text-xs">{ticket.reference}</td>
                     <td className="px-4 py-3 max-w-[200px] truncate">{ticket.subject || '-'}</td>
@@ -623,7 +625,7 @@ export default function TicketsPage({ params }: { params: Promise<{ id: string }
                         </span>
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-secondary-500">
+                    <td className="px-4 py-3 text-secondary-500 hidden sm:table-cell">
                       <div>
                         <div>{new Date(ticket.created_at).toLocaleDateString()}</div>
                         <div className="text-xs text-secondary-400">{formatTimeAgo(ticket.created_at)}</div>

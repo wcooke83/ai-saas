@@ -72,6 +72,22 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
           setHasCustomWidget(isCustomized);
         }
 
+        // Fetch analytics stats
+        try {
+          const analyticsResponse = await fetch(`/api/chatbots/${id}/analytics?days=30`);
+          if (analyticsResponse.ok) {
+            const analyticsData = await analyticsResponse.json();
+            const summary = analyticsData.data;
+            setStats({
+              conversations: summary.total_conversations ?? 0,
+              messages: summary.total_messages ?? 0,
+              satisfaction: summary.satisfaction_rate ?? 0,
+            });
+          }
+        } catch {
+          // Non-critical, leave as defaults
+        }
+
         // Fetch knowledge sources
         try {
           const ksResponse = await fetch(`/api/chatbots/${id}/knowledge`);

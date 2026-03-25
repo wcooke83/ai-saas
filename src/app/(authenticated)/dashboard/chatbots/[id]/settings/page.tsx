@@ -204,6 +204,13 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
   const [showPreChatWarning, setShowPreChatWarning] = useState(false);
   const [showPostChatWarning, setShowPostChatWarning] = useState(false);
 
+  // Credit packages (stored in DB, not in chatbot JSON config)
+  const [creditPackages, setCreditPackages] = useState<Array<{
+    id?: string; name: string; credit_amount: number; price_cents: number; stripe_price_id: string; active: boolean; sort_order: number;
+  }>>([]);
+  const [creditPackagesLoaded, setCreditPackagesLoaded] = useState(false);
+  const [generatingArticles, setGeneratingArticles] = useState(false);
+
   // Language change confirm dialog state
   const [isLanguageDialogOpen, setIsLanguageDialogOpen] = useState(false);
   const [pendingLanguage, setPendingLanguage] = useState<string | null>(null);
@@ -296,6 +303,19 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
     fetchChatbot();
   }, [id, router, reset]);
 
+  // Lazy-load global credit packages when fallback section is opened
+  useEffect(() => {
+    if (activeSection === 'fallback' && !creditPackagesLoaded) {
+      fetch('/api/credit-packages')
+        .then(r => r.json())
+        .then(data => {
+          if (data.data?.packages) setCreditPackages(data.data.packages);
+          setCreditPackagesLoaded(true);
+        })
+        .catch(() => setCreditPackagesLoaded(true));
+    }
+  }, [activeSection, creditPackagesLoaded]);
+
   const handleSave = useCallback(async (formData?: SettingsFormData) => {
     const values = formData ?? getValues();
     if (!values.name.trim()) {
@@ -358,6 +378,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
       const updatedBot = data.data.chatbot as Chatbot;
       setChatbot(updatedBot);
       reset(chatbotToFormValues(updatedBot));
+
       toast.success('Settings saved successfully');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save');
@@ -1822,6 +1843,18 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               ))}
             </div>
 
+            {/* Pre-emptive warning info callout for purchase_credits mode */}
+            {watch('creditExhaustionMode') === 'purchase_credits' && (
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
+                <div className="flex items-start gap-2">
+                  <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-blue-700 dark:text-blue-400">
+                    When this mode is active, visitors will see a non-blocking purchase banner when credits reach 80% usage, allowing them to buy more before running out. Once credits are fully exhausted, the chat will switch to a purchase-only view.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Tickets Config */}
             {watch('creditExhaustionMode') === 'tickets' && (
               <div className="space-y-4 pt-4 border-t border-secondary-200 dark:border-secondary-700">
@@ -1849,7 +1882,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                       }}
                     />
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
                     <label className="flex items-center gap-2 text-sm">
                       <input
                         type="checkbox"
@@ -2012,136 +2045,92 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   />
                 </div>
 
-                {/* Packages editor */}
+                {/* Available packages — read-only, managed by admin */}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs">Packages</Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const cfg = { ...watch('creditExhaustionConfig') };
-                        const packages = [...(cfg.purchase_credits?.packages || [])];
-                        packages.push({
-                          id: crypto.randomUUID(),
-                          name: '',
-                          creditAmount: 100,
-                          priceCents: 999,
-                          stripePriceId: '',
-                        });
-                        cfg.purchase_credits = { ...cfg.purchase_credits, packages };
-                        setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
-                      }}
-                    >
-                      <Plus className="w-4 h-4 mr-1" />
-                      Add Package
-                    </Button>
-                  </div>
+                  <Label className="text-xs">Available Packages</Label>
 
-                  {(watch('creditExhaustionConfig')?.purchase_credits?.packages || []).length === 0 && (
-                    <div className="p-3 bg-secondary-50 dark:bg-secondary-800 rounded-lg text-center">
-                      <p className="text-xs text-secondary-500 dark:text-secondary-400">
-                        No packages configured yet. Add a package to let visitors purchase additional credits.
+                  {!creditPackagesLoaded && (
+                    <div className="p-3 text-center">
+                      <Loader2 className="w-4 h-4 animate-spin mx-auto text-secondary-400" />
+                    </div>
+                  )}
+
+                  {creditPackagesLoaded && creditPackages.length === 0 && (
+                    <div className="p-4 bg-secondary-50 dark:bg-secondary-800 rounded-lg text-center">
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">
+                        No credit packages have been set up yet.
+                      </p>
+                      <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-1">
+                        Contact your platform administrator to configure purchasable credit packages.
+                      </p>
+                      <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-2 italic">
+                        Packages are managed by the platform administrator in the Admin Panel.
                       </p>
                     </div>
                   )}
 
-                  {(watch('creditExhaustionConfig')?.purchase_credits?.packages || []).map((pkg: any, idx: number) => (
-                    <div
-                      key={pkg.id || idx}
-                      className="rounded-lg border border-secondary-200 dark:border-secondary-700 p-3 space-y-3"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-secondary-500">Package {idx + 1}</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const cfg = { ...watch('creditExhaustionConfig') };
-                            const packages = [...(cfg.purchase_credits?.packages || [])];
-                            packages.splice(idx, 1);
-                            cfg.purchase_credits = { ...cfg.purchase_credits, packages };
-                            setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
-                          }}
-                          className="text-red-500 hover:text-red-600 p-1"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <Label className="text-xs">Package Name</Label>
-                          <Input
-                            placeholder="e.g. 100 Credits"
-                            value={pkg.name || ''}
-                            onChange={(e) => {
+                  {creditPackages.map((pkg) => {
+                    const disabledIds: string[] = watch('creditExhaustionConfig')?.purchase_credits?.disabledPackageIds || [];
+                    const isEnabled = !disabledIds.includes(pkg.id!);
+                    return (
+                      <div
+                        key={pkg.id}
+                        className={cn(
+                          'flex items-center justify-between rounded-lg border p-3 transition-colors',
+                          isEnabled
+                            ? 'border-secondary-200 dark:border-secondary-700'
+                            : 'border-secondary-100 dark:border-secondary-800 opacity-60'
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={isEnabled}
+                            onClick={() => {
                               const cfg = { ...watch('creditExhaustionConfig') };
-                              const packages = [...(cfg.purchase_credits?.packages || [])];
-                              packages[idx] = { ...packages[idx], name: e.target.value };
-                              cfg.purchase_credits = { ...cfg.purchase_credits, packages };
+                              const pc = { ...cfg.purchase_credits };
+                              const current: string[] = pc.disabledPackageIds || [];
+                              if (isEnabled) {
+                                pc.disabledPackageIds = [...current, pkg.id!];
+                              } else {
+                                pc.disabledPackageIds = current.filter((id: string) => id !== pkg.id);
+                              }
+                              cfg.purchase_credits = pc;
                               setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
                             }}
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-xs">Credits</Label>
-                          <Input
-                            type="number"
-                            min={1}
-                            placeholder="100"
-                            value={pkg.creditAmount || ''}
-                            onChange={(e) => {
-                              const cfg = { ...watch('creditExhaustionConfig') };
-                              const packages = [...(cfg.purchase_credits?.packages || [])];
-                              packages[idx] = { ...packages[idx], creditAmount: parseInt(e.target.value) || 0 };
-                              cfg.purchase_credits = { ...cfg.purchase_credits, packages };
-                              setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
-                            }}
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-xs">Price (cents)</Label>
-                          <Input
-                            type="number"
-                            min={0}
-                            placeholder="999"
-                            value={pkg.priceCents || ''}
-                            onChange={(e) => {
-                              const cfg = { ...watch('creditExhaustionConfig') };
-                              const packages = [...(cfg.purchase_credits?.packages || [])];
-                              packages[idx] = { ...packages[idx], priceCents: parseInt(e.target.value) || 0 };
-                              cfg.purchase_credits = { ...cfg.purchase_credits, packages };
-                              setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
-                            }}
-                          />
-                          {pkg.priceCents > 0 && (
-                            <p className="text-xs text-secondary-400 mt-0.5">${(pkg.priceCents / 100).toFixed(2)}</p>
-                          )}
-                        </div>
-                        <div>
-                          <Label className="text-xs">Stripe Price ID</Label>
-                          <Input
-                            placeholder="price_1ABC..."
-                            value={pkg.stripePriceId || ''}
-                            onChange={(e) => {
-                              const cfg = { ...watch('creditExhaustionConfig') };
-                              const packages = [...(cfg.purchase_credits?.packages || [])];
-                              packages[idx] = { ...packages[idx], stripePriceId: e.target.value };
-                              cfg.purchase_credits = { ...cfg.purchase_credits, packages };
-                              setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
-                            }}
-                          />
+                            className={cn(
+                              'relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
+                              isEnabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                'inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform',
+                                isEnabled ? 'translate-x-4' : 'translate-x-1'
+                              )}
+                            />
+                          </button>
+                          <div>
+                            <span className="text-sm font-medium">{pkg.name}</span>
+                            <div className="flex items-center gap-2 text-xs text-secondary-500 dark:text-secondary-400">
+                              <span>{pkg.credit_amount} credits</span>
+                              <span>${(pkg.price_cents / 100).toFixed(2)}</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className="text-xs text-blue-700 dark:text-blue-300">
-                    Create prices in your <a href="https://dashboard.stripe.com/prices" target="_blank" rel="noopener noreferrer" className="underline">Stripe Dashboard</a> first, then paste the Price ID here (starts with <code className="text-xs">price_</code>).
-                  </p>
-                </div>
+                {creditPackagesLoaded && creditPackages.length > 0 && (
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <p className="text-xs text-blue-700 dark:text-blue-300">
+                      Packages are configured by your platform administrator. Toggle off any packages you don&apos;t want visitors to see.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -2179,9 +2168,10 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 <Button
                   variant="outline"
                   size="sm"
+                  disabled={generatingArticles}
                   onClick={async () => {
+                    setGeneratingArticles(true);
                     try {
-                      toast.info('Generating articles from knowledge sources...');
                       const res = await fetch(`/api/chatbots/${id}/articles/generate`, {
                         method: 'POST',
                       });
@@ -2190,10 +2180,16 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                       toast.success(data.data?.message || 'Articles generated');
                     } catch (err) {
                       toast.error(err instanceof Error ? err.message : 'Failed to generate articles');
+                    } finally {
+                      setGeneratingArticles(false);
                     }
                   }}
                 >
-                  Generate Articles from Knowledge Sources
+                  {generatingArticles ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating...</>
+                  ) : (
+                    'Generate Articles from Knowledge Sources'
+                  )}
                 </Button>
               </div>
             )}

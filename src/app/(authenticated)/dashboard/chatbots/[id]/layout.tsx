@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Bot } from 'lucide-react';
+import { ArrowLeft, Bot, AlertTriangle } from 'lucide-react';
 import { ChatbotSubNav } from '@/components/chatbots/ChatbotSubNav';
 
 interface ChatbotLayoutProps {
@@ -13,20 +13,22 @@ interface ChatbotLayoutProps {
 export default function ChatbotLayout({ children, params }: ChatbotLayoutProps) {
   const { id } = use(params);
   const [chatbotName, setChatbotName] = useState<string | null>(null);
+  const [needsReembed, setNeedsReembed] = useState(false);
 
   useEffect(() => {
-    async function fetchName() {
+    async function fetchChatbot() {
       try {
         const response = await fetch(`/api/chatbots/${id}`);
         if (response.ok) {
           const data = await response.json();
           setChatbotName(data.data.chatbot.name);
+          setNeedsReembed(data.data.needs_reembed === true);
         }
       } catch {
         // Non-critical, nav still works without name
       }
     }
-    fetchName();
+    fetchChatbot();
   }, [id]);
 
   return (
@@ -53,6 +55,22 @@ export default function ChatbotLayout({ children, params }: ChatbotLayoutProps) 
 
       {/* Shared sub-navigation */}
       <ChatbotSubNav chatbotId={id} />
+
+      {/* Re-embed warning banner */}
+      {needsReembed && (
+        <div className="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 px-4 py-3 flex items-start gap-3 mb-6">
+          <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+          <p className="flex-1 text-sm text-amber-800 dark:text-amber-200">
+            Your knowledge base needs re-processing. Your chatbot may give incorrect answers until this is fixed.
+          </p>
+          <Link
+            href={`/dashboard/chatbots/${id}/knowledge`}
+            className="text-sm font-semibold text-amber-700 dark:text-amber-300 hover:underline whitespace-nowrap flex-shrink-0"
+          >
+            Fix now &rarr;
+          </Link>
+        </div>
+      )}
 
       {/* Page content */}
       {children}

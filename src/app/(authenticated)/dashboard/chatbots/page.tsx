@@ -3,11 +3,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { Plus, Bot, MessageSquare, Users, MoreVertical, Palette, Trash2, Eye, ExternalLink, Headphones } from 'lucide-react';
+import { Plus, Bot, MessageSquare, Users, MoreVertical, Palette, Trash2, Eye, ExternalLink, Headphones, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { getClient } from '@/lib/supabase/client';
 import { H1 } from '@/components/ui/heading';
 import type { ChatbotWithStats } from '@/lib/chatbots/types';
@@ -15,6 +16,12 @@ import type { ChatbotWithStats } from '@/lib/chatbots/types';
 export default function ChatbotsPage() {
   const [chatbots, setChatbots] = useState<ChatbotWithStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const { confirm: confirmDelete, ConfirmDialog: DeleteConfirmDialog } = useConfirmDialog({
+    title: 'Delete Chatbot',
+    description: 'Are you sure you want to delete this chatbot? This action cannot be undone.',
+    confirmText: 'Delete',
+    variant: 'danger',
+  });
 
   useEffect(() => {
     async function fetchChatbots() {
@@ -72,9 +79,8 @@ export default function ChatbotsPage() {
   }, [chatbots.length > 0]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this chatbot? This action cannot be undone.')) {
-      return;
-    }
+    const confirmed = await confirmDelete();
+    if (!confirmed) return;
 
     try {
       const response = await fetch(`/api/chatbots/${id}`, {
@@ -170,6 +176,7 @@ export default function ChatbotsPage() {
           ))}
         </div>
       )}
+      <DeleteConfirmDialog />
     </div>
   );
 }
@@ -211,6 +218,20 @@ function ChatbotCard({ chatbot, onDelete }: ChatbotCardProps) {
                 <Badge className={statusColors[chatbot.status]}>
                   {chatbot.status}
                 </Badge>
+                {(chatbot as any).needs_reembed && (
+                  <Link
+                    href={`/dashboard/chatbots/${chatbot.id}/knowledge`}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <Badge
+                      className="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 cursor-pointer hover:bg-yellow-200 dark:hover:bg-yellow-800/60 transition-colors"
+                      title="Knowledge base needs re-processing — click to fix"
+                    >
+                      <AlertTriangle className="w-3 h-3 mr-1" />
+                      Needs Update
+                    </Badge>
+                  </Link>
+                )}
                 {(chatbot as any).live_handoff_config?.enabled && (
                   <span className={`inline-flex items-center gap-1 text-xs ${
                     (chatbot.agents_online ?? 0) > 0
@@ -234,6 +255,9 @@ function ChatbotCard({ chatbot, onDelete }: ChatbotCardProps) {
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               className="p-1 rounded-md hover:bg-secondary-100 dark:hover:bg-secondary-700 transition-colors"
+              aria-label="Chatbot actions"
+              aria-expanded={menuOpen}
+              aria-haspopup="menu"
             >
               <MoreVertical className="w-5 h-5 text-secondary-500" />
             </button>
@@ -244,10 +268,13 @@ function ChatbotCard({ chatbot, onDelete }: ChatbotCardProps) {
                   onClick={() => setMenuOpen(false)}
                 />
                 <div
+                  role="menu"
+                  aria-label="Chatbot actions"
                   className="absolute right-0 mt-1 w-48 rounded-lg shadow-lg border z-20"
                   style={{ backgroundColor: 'rgb(var(--modal-bg))', borderColor: 'rgb(var(--modal-border))' }}
                 >
                   <Link
+                    role="menuitem"
                     href={`/dashboard/chatbots/${chatbot.id}`}
                     className="flex items-center gap-2 px-4 py-2 text-sm text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-700"
                     onClick={() => setMenuOpen(false)}
@@ -256,6 +283,7 @@ function ChatbotCard({ chatbot, onDelete }: ChatbotCardProps) {
                     View Details
                   </Link>
                   <Link
+                    role="menuitem"
                     href={`/dashboard/chatbots/${chatbot.id}/customize`}
                     className="flex items-center gap-2 px-4 py-2 text-sm text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-700"
                     onClick={() => setMenuOpen(false)}
@@ -264,6 +292,7 @@ function ChatbotCard({ chatbot, onDelete }: ChatbotCardProps) {
                     Customize
                   </Link>
                   <Link
+                    role="menuitem"
                     href={`/dashboard/chatbots/${chatbot.id}/conversations`}
                     className="flex items-center gap-2 px-4 py-2 text-sm text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-700"
                     onClick={() => setMenuOpen(false)}
@@ -273,6 +302,7 @@ function ChatbotCard({ chatbot, onDelete }: ChatbotCardProps) {
                   </Link>
                   {chatbot.is_published && (
                     <a
+                      role="menuitem"
                       href={`/widget/${chatbot.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -284,6 +314,7 @@ function ChatbotCard({ chatbot, onDelete }: ChatbotCardProps) {
                     </a>
                   )}
                   <button
+                    role="menuitem"
                     onClick={() => {
                       setMenuOpen(false);
                       onDelete();

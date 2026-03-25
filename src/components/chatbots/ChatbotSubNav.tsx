@@ -114,7 +114,7 @@ export function ChatbotSubNav({ chatbotId }: { chatbotId: string }) {
               'cursor-pointer'
             )}
             aria-expanded={moreOpen}
-            aria-haspopup="true"
+            aria-haspopup="menu"
           >
             {activeSecondary ? (
               <>
@@ -136,11 +136,16 @@ export function ChatbotSubNav({ chatbotId }: { chatbotId: string }) {
           </button>
 
           {moreOpen && (
-            <div className="absolute top-full left-0 mt-1 w-52 rounded-lg border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-900 shadow-lg z-50 py-1">
+            <div
+              role="menu"
+              aria-label="More navigation options"
+              className="absolute top-full left-0 mt-1 w-52 rounded-lg border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-900 shadow-lg z-50 py-1"
+            >
               {secondaryNav.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
                   href={`${basePath}${href}`}
+                  role="menuitem"
                   className={cn(
                     'flex items-center gap-2.5 px-3 py-2 text-sm transition-colors',
                     isActive(href)
