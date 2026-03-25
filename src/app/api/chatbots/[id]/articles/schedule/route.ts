@@ -29,19 +29,21 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     if (!chatbot || chatbot.user_id !== user.id) throw APIError.notFound('Chatbot not found');
 
     const supabase = createAdminClient();
-    // New columns not yet in generated types — use raw select
     const { data, error } = await supabase
       .from('chatbots')
-      .select('*')
+      .select('article_schedule, article_last_generated_at')
       .eq('id', id)
       .single();
 
     if (error) throw error;
 
-    const row = data as any;
+    // article_source_urls added via migration — cast to access
+    const row = data as typeof data & { article_source_urls?: string[] };
+
     return successResponse({
-      schedule: row.article_schedule || 'manual',
-      lastGeneratedAt: row.article_last_generated_at,
+      schedule: data.article_schedule || 'manual',
+      lastGeneratedAt: data.article_last_generated_at,
+      sourceUrls: row.article_source_urls || [],
     });
   } catch (error) {
     return errorResponse(error);
@@ -62,7 +64,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     const supabase = createAdminClient();
     const { error } = await supabase
       .from('chatbots')
-      .update({ article_schedule: input.article_schedule } as any)
+      .update({ article_schedule: input.article_schedule })
       .eq('id', id);
 
     if (error) throw error;

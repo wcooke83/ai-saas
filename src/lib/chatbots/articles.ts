@@ -64,15 +64,29 @@ interface ExtractionPrompt {
   question: string;
   enabled: boolean;
   sort_order: number;
+  schedule: string;
+  last_generated_at: string | null;
 }
 
-async function fetchEnabledPrompts(supabase: ReturnType<typeof createAdminClient>, chatbotId: string): Promise<ExtractionPrompt[]> {
-  const { data } = await (supabase.from as any)('article_extraction_prompts')
-    .select('id, question, enabled, sort_order')
+async function fetchEnabledPrompts(
+  supabase: ReturnType<typeof createAdminClient>,
+  chatbotId: string,
+  promptIds?: string[]
+): Promise<ExtractionPrompt[]> {
+  // schedule + last_generated_at added via migration — select all with *
+  let query = supabase.from('article_extraction_prompts')
+    .select('*')
     .eq('chatbot_id', chatbotId)
     .eq('enabled', true)
     .order('sort_order', { ascending: true });
-  return (data || []) as ExtractionPrompt[];
+
+  if (promptIds && promptIds.length > 0) {
+    query = query.in('id', promptIds);
+  }
+
+  // schedule + last_generated_at added via migration — cast result
+  const { data } = await query;
+  return (data || []) as unknown as ExtractionPrompt[];
 }
 
 function truncateContent(content: string, maxLen = 8000): string {
@@ -94,10 +108,44 @@ async function embedArticlesAsKnowledge(
   if (articles.length === 0) return 0;
 
   const supabase = createAdminClient();
-  const embeddingConfig = await resolveEmbeddingConfig();
-  if (!embeddingConfig) {
+
+  // Match the embedding provider that existing chunks use, so the RAG query
+  // embedding (which also matches existing chunks) will find these new chunks.
+  // This mirrors the logic in rag.ts lines 152-185.
+  const defaultConfig = await resolveEmbeddingConfig();
+  if (!defaultConfig) {
     console.warn('[Articles] No embedding provider available — skipping knowledge chunk creation');
     return 0;
+  }
+
+  let embeddingConfig = defaultConfig;
+
+  const { data: existingSources } = await supabase
+    .from('knowledge_sources')
+    .select('embedding_provider, embedding_model')
+    .eq('chatbot_id', chatbotId)
+    .not('embedding_provider', 'is', null)
+    .not('name', 'like', 'Generated Articles:%')
+    .limit(1);
+
+  if (existingSources?.[0]?.embedding_provider) {
+    const provider = existingSources[0].embedding_provider as 'openai' | 'gemini';
+    const model = existingSources[0].embedding_model;
+    // Verify we have the API key for this provider
+    const openaiKey = process.env.OPENAI_API_KEY;
+    const hasOpenAI = !!openaiKey && openaiKey.startsWith('sk-') && openaiKey.length > 20;
+    const hasGemini = !!process.env.GOOGLE_API_KEY;
+
+    if ((provider === 'openai' && hasOpenAI) || (provider === 'gemini' && hasGemini)) {
+      embeddingConfig = {
+        provider,
+        model: model || (provider === 'openai' ? 'text-embedding-ada-002' : 'gemini-embedding-001'),
+        dimensions: 1536,
+      };
+      if (embeddingConfig.provider !== defaultConfig.provider) {
+        console.log(`[Articles] Using ${provider}/${embeddingConfig.model} to match existing chunks (default was ${defaultConfig.provider})`);
+      }
+    }
   }
 
   // Create a knowledge source to group these article chunks
@@ -192,12 +240,17 @@ async function embedArticlesAsKnowledge(
  * Generate articles using extraction prompts against all knowledge chunks.
  * Each enabled prompt searches the full knowledge base and produces one focused article.
  * Articles are also embedded back into the knowledge base for the chatbot to use.
+ *
+ * @param chatbotId - The chatbot to generate articles for
+ * @param promptIds - Optional array of specific prompt IDs to run (for per-prompt scheduling).
+ *                    If omitted, runs all enabled prompts.
  */
-export async function generateHelpArticles(chatbotId: string): Promise<GenerateResult> {
+export async function generateHelpArticles(chatbotId: string, promptIds?: string[]): Promise<GenerateResult> {
   const supabase = createAdminClient();
 
-  // Fetch extraction prompts
-  const prompts = await fetchEnabledPrompts(supabase, chatbotId);
+  // Fetch extraction prompts (optionally filtered)
+  const prompts = await fetchEnabledPrompts(supabase, chatbotId, promptIds);
+  const isSelectiveRegen = !!promptIds && promptIds.length > 0;
 
   // Fetch all knowledge chunks for this chatbot (exclude article-generated sources to avoid circular refs)
   const { data: articleSources } = await supabase
@@ -227,12 +280,20 @@ export async function generateHelpArticles(chatbotId: string): Promise<GenerateR
     return { count: 0, sourcesUsed: sourcesCount || 0, promptsUsed: 0, chunksCreated: 0 };
   }
 
-  // Delete existing articles and their knowledge sources
-  await supabase.from('help_articles').delete().eq('chatbot_id', chatbotId);
-  // Clean up old article-generated knowledge sources
-  for (const sid of articleSourceIds) {
-    await supabase.from('knowledge_chunks').delete().eq('source_id', sid);
-    await supabase.from('knowledge_sources').delete().eq('id', sid);
+  // Delete existing articles (and their knowledge sources)
+  if (isSelectiveRegen) {
+    // Only delete articles for the specific prompts being regenerated
+    const promptIdSet = new Set(promptIds);
+    await supabase.from('help_articles').delete()
+      .eq('chatbot_id', chatbotId)
+      .in('extraction_prompt_id', Array.from(promptIdSet));
+  } else {
+    // Full regeneration: delete all articles and old article-generated knowledge sources
+    await supabase.from('help_articles').delete().eq('chatbot_id', chatbotId);
+    for (const sid of articleSourceIds) {
+      await supabase.from('knowledge_chunks').delete().eq('source_id', sid);
+      await supabase.from('knowledge_sources').delete().eq('id', sid);
+    }
   }
 
   const combinedContent = truncateContent(relevantChunks.map(c => c.content).join('\n\n'));
@@ -252,7 +313,7 @@ export async function generateHelpArticles(chatbotId: string): Promise<GenerateR
         const article = parseArticleJson(result.content);
         if (!article || article.skip) continue;
 
-        await (supabase.from as any)('help_articles').insert({
+        await supabase.from('help_articles').insert({
           chatbot_id: chatbotId,
           title: article.title,
           summary: article.summary,
@@ -297,7 +358,7 @@ export async function generateHelpArticles(chatbotId: string): Promise<GenerateR
           body: content,
         };
 
-        await (supabase.from as any)('help_articles').insert({
+        await supabase.from('help_articles').insert({
           chatbot_id: chatbotId,
           title: article.title,
           summary: article.summary,
@@ -322,10 +383,21 @@ export async function generateHelpArticles(chatbotId: string): Promise<GenerateR
     `Generated Articles: Knowledge Base (${new Date().toISOString().slice(0, 10)})`
   );
 
+  const now = new Date().toISOString();
   await supabase
     .from('chatbots')
-    .update({ article_last_generated_at: new Date().toISOString() } as any)
+    .update({ article_last_generated_at: now })
     .eq('id', chatbotId);
+
+  // Update per-prompt last_generated_at (column added via migration — cast update payload)
+  if (prompts && prompts.length > 0) {
+    for (const prompt of prompts) {
+      await supabase
+        .from('article_extraction_prompts')
+        .update({ updated_at: now, last_generated_at: now } as any)
+        .eq('id', prompt.id);
+    }
+  }
 
   return {
     count: articleCount,
@@ -369,7 +441,7 @@ export async function generateArticlesFromUrl(chatbotId: string, url: string): P
       body: truncated,
     };
 
-    await (supabase.from as any)('help_articles').insert({
+    await supabase.from('help_articles').insert({
       chatbot_id: chatbotId,
       title: article.title,
       summary: article.summary,
@@ -404,7 +476,7 @@ export async function generateArticlesFromUrl(chatbotId: string, url: string): P
         const article = parseArticleJson(result.content);
         if (!article || article.skip) continue;
 
-        await (supabase.from as any)('help_articles').insert({
+        await supabase.from('help_articles').insert({
           chatbot_id: chatbotId,
           title: article.title,
           summary: article.summary,
@@ -432,7 +504,7 @@ export async function generateArticlesFromUrl(chatbotId: string, url: string): P
 
   await supabase
     .from('chatbots')
-    .update({ article_last_generated_at: new Date().toISOString() } as any)
+    .update({ article_last_generated_at: new Date().toISOString() })
     .eq('id', chatbotId);
 
   return {

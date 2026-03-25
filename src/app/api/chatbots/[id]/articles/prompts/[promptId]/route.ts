@@ -15,6 +15,7 @@ const updatePromptSchema = z.object({
   question: z.string().min(3).max(500).optional(),
   enabled: z.boolean().optional(),
   sort_order: z.number().optional(),
+  schedule: z.enum(['inherit', 'manual', 'daily', 'weekly', 'monthly']).optional(),
 });
 
 interface RouteParams {
@@ -33,7 +34,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     const input = await parseBody(req, updatePromptSchema);
 
     const supabase = createAdminClient();
-    const { data: prompt, error } = await (supabase.from as any)('article_extraction_prompts')
+    const { data: prompt, error } = await supabase
+      .from('article_extraction_prompts')
       .update({ ...input, updated_at: new Date().toISOString() })
       .eq('id', promptId)
       .eq('chatbot_id', id)
@@ -58,7 +60,8 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     if (!chatbot || chatbot.user_id !== user.id) throw APIError.notFound('Chatbot not found');
 
     const supabase = createAdminClient();
-    const { error } = await (supabase.from as any)('article_extraction_prompts')
+    const { error } = await supabase
+      .from('article_extraction_prompts')
       .delete()
       .eq('id', promptId)
       .eq('chatbot_id', id);

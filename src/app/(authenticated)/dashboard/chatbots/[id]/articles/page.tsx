@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import { toast } from 'sonner';
-import { Loader2, BookOpen, Trash2, Eye, EyeOff, Globe } from 'lucide-react';
+import { Loader2, BookOpen, Trash2, Eye, EyeOff, Globe, CheckCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +31,7 @@ export default function ArticlesPage({ params }: { params: Promise<{ id: string 
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Article | null>(null);
   const [editForm, setEditForm] = useState({ title: '', summary: '', body: '' });
+  const [publishing, setPublishing] = useState(false);
 
   const fetchArticles = async () => {
     setLoading(true);
@@ -64,7 +65,8 @@ export default function ArticlesPage({ params }: { params: Promise<{ id: string 
     }
   };
 
-  const deleteArticle = async (articleId: string) => {
+  const deleteArticle = async (articleId: string, title?: string) => {
+    if (!confirm(`Delete article "${title || 'this article'}"? This cannot be undone.`)) return;
     try {
       const res = await fetch(`/api/chatbots/${id}/articles/${articleId}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed');
@@ -92,6 +94,23 @@ export default function ArticlesPage({ params }: { params: Promise<{ id: string 
       toast.error('Failed to save');
     }
   };
+
+  const publishAll = async () => {
+    setPublishing(true);
+    try {
+      const res = await fetch(`/api/chatbots/${id}/articles/publish-all`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || 'Failed');
+      toast.success(data.data?.message || 'All drafts published');
+      fetchArticles();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to publish');
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  const draftCount = articles.filter(a => !a.published).length;
 
   if (editing) {
     return (
@@ -134,9 +153,22 @@ export default function ArticlesPage({ params }: { params: Promise<{ id: string 
         chatbotId={id}
         title="Help Articles"
         actions={
-          <span className="text-sm text-secondary-500">
-            {articles.length} articles from {sourcesCount} sources
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-secondary-500">
+              {articles.length} articles from {sourcesCount} sources
+            </span>
+            {draftCount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={publishAll}
+                disabled={publishing}
+              >
+                {publishing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCheck className="w-4 h-4 mr-2" />}
+                Publish All ({draftCount})
+              </Button>
+            )}
+          </div>
         }
       />
 
@@ -205,7 +237,7 @@ export default function ArticlesPage({ params }: { params: Promise<{ id: string 
                       variant="ghost"
                       size="sm"
                       className="text-red-500 hover:text-red-600"
-                      onClick={() => deleteArticle(article.id)}
+                      onClick={() => deleteArticle(article.id, article.title)}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

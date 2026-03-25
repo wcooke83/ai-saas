@@ -539,6 +539,7 @@ export interface PurchaseCreditsFallbackConfig {
   upsellMessage: string;
   purchaseSuccessMessage: string;
   packages: CreditPackageConfig[];
+  disabledPackageIds: string[];
 }
 
 export interface HelpArticlesFallbackConfig {
@@ -576,6 +577,7 @@ export const DEFAULT_CREDIT_EXHAUSTION_CONFIG: CreditExhaustionConfig = {
     upsellMessage: 'You\'ve used all your credits this month. Purchase more to continue chatting.',
     purchaseSuccessMessage: 'Thank you for your purchase! Your credits have been added. You can now continue chatting.',
     packages: [],
+    disabledPackageIds: [],
   },
   help_articles: {
     searchPlaceholder: 'Search help articles...',

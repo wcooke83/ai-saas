@@ -2,8 +2,6 @@
  * Extraction Prompts API
  * GET  /api/chatbots/:id/articles/prompts - List prompts
  * POST /api/chatbots/:id/articles/prompts - Create prompt
- *
- * Note: Uses `as any` on .from() until database types are regenerated after migration.
  */
 
 import { NextRequest } from 'next/server';
@@ -40,7 +38,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     if (!chatbot || chatbot.user_id !== user.id) throw APIError.notFound('Chatbot not found');
 
     const supabase = createAdminClient();
-    const { data: prompts, error } = await (supabase.from as any)('article_extraction_prompts')
+    const { data: prompts, error } = await supabase
+      .from('article_extraction_prompts')
       .select('*')
       .eq('chatbot_id', id)
       .order('sort_order', { ascending: true });
@@ -56,7 +55,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         enabled: true,
       }));
 
-      const { data: seeded, error: seedError } = await (supabase.from as any)('article_extraction_prompts')
+      const { data: seeded, error: seedError } = await supabase
+        .from('article_extraction_prompts')
         .insert(inserts)
         .select();
 
@@ -89,15 +89,17 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const supabase = createAdminClient();
 
     // Get max sort_order
-    const { data: existing } = await (supabase.from as any)('article_extraction_prompts')
+    const { data: existing } = await supabase
+      .from('article_extraction_prompts')
       .select('sort_order')
       .eq('chatbot_id', id)
       .order('sort_order', { ascending: false })
       .limit(1);
 
-    const nextOrder = existing && existing.length > 0 ? (existing[0] as any).sort_order + 1 : 0;
+    const nextOrder = existing && existing.length > 0 ? existing[0].sort_order + 1 : 0;
 
-    const { data: prompt, error } = await (supabase.from as any)('article_extraction_prompts')
+    const { data: prompt, error } = await supabase
+      .from('article_extraction_prompts')
       .insert({
         chatbot_id: id,
         question: input.question,
