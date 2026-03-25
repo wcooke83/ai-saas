@@ -7,45 +7,33 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.1"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
-      agent_presence: {
-        Row: {
-          agent_name: string | null
-          chatbot_id: string
-          id: string
-          last_heartbeat: string
-          user_id: string
-        }
-        Insert: {
-          agent_name?: string | null
-          chatbot_id: string
-          id?: string
-          last_heartbeat?: string
-          user_id: string
-        }
-        Update: {
-          agent_name?: string | null
-          chatbot_id?: string
-          id?: string
-          last_heartbeat?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agent_presence_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       ai_models: {
         Row: {
           api_model_id: string
@@ -162,7 +150,7 @@ export type Database = {
       api_keys: {
         Row: {
           allowed_domains: string[] | null
-          created_at: string | null
+          created_at: string
           expires_at: string | null
           id: string
           key_hash: string
@@ -174,7 +162,7 @@ export type Database = {
         }
         Insert: {
           allowed_domains?: string[] | null
-          created_at?: string | null
+          created_at?: string
           expires_at?: string | null
           id?: string
           key_hash: string
@@ -186,7 +174,7 @@ export type Database = {
         }
         Update: {
           allowed_domains?: string[] | null
-          created_at?: string | null
+          created_at?: string
           expires_at?: string | null
           id?: string
           key_hash?: string
@@ -206,88 +194,9 @@ export type Database = {
           },
         ]
       }
-      api_logs: {
-        Row: {
-          created_at: string
-          duration_ms: number | null
-          endpoint: string
-          error_message: string | null
-          id: string
-          ip_address: string | null
-          method: string
-          model: string | null
-          provider: string | null
-          raw_ai_prompt: string | null
-          raw_ai_response: string | null
-          request_body: Json | null
-          response_body: Json | null
-          status_code: number | null
-          tokens_billed: number | null
-          tokens_input: number | null
-          tokens_output: number | null
-          tokens_total: number | null
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          duration_ms?: number | null
-          endpoint: string
-          error_message?: string | null
-          id?: string
-          ip_address?: string | null
-          method?: string
-          model?: string | null
-          provider?: string | null
-          raw_ai_prompt?: string | null
-          raw_ai_response?: string | null
-          request_body?: Json | null
-          response_body?: Json | null
-          status_code?: number | null
-          tokens_billed?: number | null
-          tokens_input?: number | null
-          tokens_output?: number | null
-          tokens_total?: number | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          duration_ms?: number | null
-          endpoint?: string
-          error_message?: string | null
-          id?: string
-          ip_address?: string | null
-          method?: string
-          model?: string | null
-          provider?: string | null
-          raw_ai_prompt?: string | null
-          raw_ai_response?: string | null
-          request_body?: Json | null
-          response_body?: Json | null
-          status_code?: number | null
-          tokens_billed?: number | null
-          tokens_input?: number | null
-          tokens_output?: number | null
-          tokens_total?: number | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "api_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       app_settings: {
         Row: {
           ai_provider: string
-          chat_debug_mode: boolean
-          embedding_model_id: string | null
           id: string
           local_api_key: string | null
           local_api_path: string | null
@@ -296,14 +205,11 @@ export type Database = {
           multiplier_claude: number | null
           multiplier_local: number | null
           multiplier_openai: number | null
-          token_multiplier: number
           updated_at: string
           updated_by: string | null
         }
         Insert: {
           ai_provider?: string
-          chat_debug_mode?: boolean
-          embedding_model_id?: string | null
           id?: string
           local_api_key?: string | null
           local_api_path?: string | null
@@ -312,14 +218,11 @@ export type Database = {
           multiplier_claude?: number | null
           multiplier_local?: number | null
           multiplier_openai?: number | null
-          token_multiplier?: number
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
           ai_provider?: string
-          chat_debug_mode?: boolean
-          embedding_model_id?: string | null
           id?: string
           local_api_key?: string | null
           local_api_path?: string | null
@@ -328,18 +231,10 @@ export type Database = {
           multiplier_claude?: number | null
           multiplier_local?: number | null
           multiplier_openai?: number | null
-          token_multiplier?: number
           updated_at?: string
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "app_settings_embedding_model_id_fkey"
-            columns: ["embedding_model_id"]
-            isOneToOne: false
-            referencedRelation: "ai_models"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "app_settings_updated_by_fkey"
             columns: ["updated_by"]
@@ -349,48 +244,10 @@ export type Database = {
           },
         ]
       }
-      article_extraction_prompts: {
-        Row: {
-          chatbot_id: string
-          created_at: string
-          enabled: boolean
-          id: string
-          question: string
-          sort_order: number
-          updated_at: string
-        }
-        Insert: {
-          chatbot_id: string
-          created_at?: string
-          enabled?: boolean
-          id?: string
-          question: string
-          sort_order?: number
-          updated_at?: string
-        }
-        Update: {
-          chatbot_id?: string
-          created_at?: string
-          enabled?: boolean
-          id?: string
-          question?: string
-          sort_order?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "article_extraction_prompts_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       audit_log: {
         Row: {
           action: string
-          created_at: string | null
+          created_at: string
           entity_id: string | null
           entity_type: string
           id: string
@@ -401,7 +258,7 @@ export type Database = {
         }
         Insert: {
           action: string
-          created_at?: string | null
+          created_at?: string
           entity_id?: string | null
           entity_type: string
           id?: string
@@ -412,7 +269,7 @@ export type Database = {
         }
         Update: {
           action?: string
-          created_at?: string | null
+          created_at?: string
           entity_id?: string | null
           entity_type?: string
           id?: string
@@ -430,394 +287,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      calendar_availability_cache: {
-        Row: {
-          date: string
-          expires_at: string
-          fetched_at: string | null
-          id: string
-          integration_id: string
-          slots: Json
-        }
-        Insert: {
-          date: string
-          expires_at: string
-          fetched_at?: string | null
-          id?: string
-          integration_id: string
-          slots: Json
-        }
-        Update: {
-          date?: string
-          expires_at?: string
-          fetched_at?: string | null
-          id?: string
-          integration_id?: string
-          slots?: Json
-        }
-        Relationships: [
-          {
-            foreignKeyName: "calendar_availability_cache_integration_id_fkey"
-            columns: ["integration_id"]
-            isOneToOne: false
-            referencedRelation: "calendar_integrations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      calendar_bookings: {
-        Row: {
-          attendee_email: string
-          attendee_name: string
-          attendee_timezone: string
-          chat_session_id: string | null
-          chatbot_id: string
-          created_at: string | null
-          end_time: string
-          id: string
-          integration_id: string | null
-          meeting_url: string | null
-          metadata: Json | null
-          notes: string | null
-          provider: string
-          provider_booking_id: string | null
-          start_time: string
-          status: string
-          updated_at: string | null
-        }
-        Insert: {
-          attendee_email: string
-          attendee_name: string
-          attendee_timezone?: string
-          chat_session_id?: string | null
-          chatbot_id: string
-          created_at?: string | null
-          end_time: string
-          id?: string
-          integration_id?: string | null
-          meeting_url?: string | null
-          metadata?: Json | null
-          notes?: string | null
-          provider: string
-          provider_booking_id?: string | null
-          start_time: string
-          status?: string
-          updated_at?: string | null
-        }
-        Update: {
-          attendee_email?: string
-          attendee_name?: string
-          attendee_timezone?: string
-          chat_session_id?: string | null
-          chatbot_id?: string
-          created_at?: string | null
-          end_time?: string
-          id?: string
-          integration_id?: string | null
-          meeting_url?: string | null
-          metadata?: Json | null
-          notes?: string | null
-          provider?: string
-          provider_booking_id?: string | null
-          start_time?: string
-          status?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "calendar_bookings_chat_session_id_fkey"
-            columns: ["chat_session_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "calendar_bookings_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "calendar_bookings_integration_id_fkey"
-            columns: ["integration_id"]
-            isOneToOne: false
-            referencedRelation: "calendar_integrations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      calendar_business_hours: {
-        Row: {
-          day_of_week: number
-          end_time: string
-          id: string
-          integration_id: string
-          is_enabled: boolean | null
-          start_time: string
-        }
-        Insert: {
-          day_of_week: number
-          end_time?: string
-          id?: string
-          integration_id: string
-          is_enabled?: boolean | null
-          start_time?: string
-        }
-        Update: {
-          day_of_week?: number
-          end_time?: string
-          id?: string
-          integration_id?: string
-          is_enabled?: boolean | null
-          start_time?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "calendar_business_hours_integration_id_fkey"
-            columns: ["integration_id"]
-            isOneToOne: false
-            referencedRelation: "calendar_integrations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      calendar_event_types: {
-        Row: {
-          buffer_after_minutes: number | null
-          buffer_before_minutes: number | null
-          created_at: string | null
-          description: string | null
-          duration_minutes: number
-          id: string
-          integration_id: string
-          is_active: boolean | null
-          max_days_ahead: number | null
-          min_notice_hours: number | null
-          provider_event_type_id: string | null
-          provider_schedule_id: string | null
-          slug: string
-          timezone: string
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          buffer_after_minutes?: number | null
-          buffer_before_minutes?: number | null
-          created_at?: string | null
-          description?: string | null
-          duration_minutes?: number
-          id?: string
-          integration_id: string
-          is_active?: boolean | null
-          max_days_ahead?: number | null
-          min_notice_hours?: number | null
-          provider_event_type_id?: string | null
-          provider_schedule_id?: string | null
-          slug?: string
-          timezone?: string
-          title?: string
-          updated_at?: string | null
-        }
-        Update: {
-          buffer_after_minutes?: number | null
-          buffer_before_minutes?: number | null
-          created_at?: string | null
-          description?: string | null
-          duration_minutes?: number
-          id?: string
-          integration_id?: string
-          is_active?: boolean | null
-          max_days_ahead?: number | null
-          min_notice_hours?: number | null
-          provider_event_type_id?: string | null
-          provider_schedule_id?: string | null
-          slug?: string
-          timezone?: string
-          title?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "calendar_event_types_integration_id_fkey"
-            columns: ["integration_id"]
-            isOneToOne: false
-            referencedRelation: "calendar_integrations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      calendar_integrations: {
-        Row: {
-          chatbot_id: string
-          config: Json
-          created_at: string | null
-          id: string
-          is_active: boolean | null
-          provider: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          chatbot_id: string
-          config?: Json
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          provider: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          chatbot_id?: string
-          config?: Json
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          provider?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "calendar_integrations_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "calendar_integrations_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chat_performance_log: {
-        Row: {
-          assistant_response: string | null
-          attachments_ms: number | null
-          chatbot_id: string
-          chatbot_loaded_ms: number | null
-          conversation_id: string | null
-          conversation_ready_ms: number | null
-          created_at: string
-          first_token_ms: number | null
-          history_msg_handoff_ms: number | null
-          id: string
-          is_streaming: boolean | null
-          live_fetch_triggered: boolean | null
-          message_length: number | null
-          model: string | null
-          pipeline_timings: Json | null
-          prompts_built_ms: number | null
-          rag_chunks_count: number | null
-          rag_confidence: number | null
-          rag_embedding_ms: number | null
-          rag_live_fetch_ms: number | null
-          rag_similarity_ms: number | null
-          rag_total_ms: number | null
-          response_length: number | null
-          session_id: string | null
-          stream_complete_ms: number | null
-          total_ms: number | null
-          user_message: string | null
-        }
-        Insert: {
-          assistant_response?: string | null
-          attachments_ms?: number | null
-          chatbot_id: string
-          chatbot_loaded_ms?: number | null
-          conversation_id?: string | null
-          conversation_ready_ms?: number | null
-          created_at?: string
-          first_token_ms?: number | null
-          history_msg_handoff_ms?: number | null
-          id?: string
-          is_streaming?: boolean | null
-          live_fetch_triggered?: boolean | null
-          message_length?: number | null
-          model?: string | null
-          pipeline_timings?: Json | null
-          prompts_built_ms?: number | null
-          rag_chunks_count?: number | null
-          rag_confidence?: number | null
-          rag_embedding_ms?: number | null
-          rag_live_fetch_ms?: number | null
-          rag_similarity_ms?: number | null
-          rag_total_ms?: number | null
-          response_length?: number | null
-          session_id?: string | null
-          stream_complete_ms?: number | null
-          total_ms?: number | null
-          user_message?: string | null
-        }
-        Update: {
-          assistant_response?: string | null
-          attachments_ms?: number | null
-          chatbot_id?: string
-          chatbot_loaded_ms?: number | null
-          conversation_id?: string | null
-          conversation_ready_ms?: number | null
-          created_at?: string
-          first_token_ms?: number | null
-          history_msg_handoff_ms?: number | null
-          id?: string
-          is_streaming?: boolean | null
-          live_fetch_triggered?: boolean | null
-          message_length?: number | null
-          model?: string | null
-          pipeline_timings?: Json | null
-          prompts_built_ms?: number | null
-          rag_chunks_count?: number | null
-          rag_confidence?: number | null
-          rag_embedding_ms?: number | null
-          rag_live_fetch_ms?: number | null
-          rag_similarity_ms?: number | null
-          rag_total_ms?: number | null
-          response_length?: number | null
-          session_id?: string | null
-          stream_complete_ms?: number | null
-          total_ms?: number | null
-          user_message?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_performance_log_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chat_performance_log_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chat_rate_limits: {
-        Row: {
-          count: number
-          key: string
-          window_start: string
-        }
-        Insert: {
-          count?: number
-          key: string
-          window_start?: string
-        }
-        Update: {
-          count?: number
-          key?: string
-          window_start?: string
-        }
-        Relationships: []
       }
       chatbot_analytics: {
         Row: {
@@ -932,221 +401,74 @@ export type Database = {
           },
         ]
       }
-      chatbot_leads: {
-        Row: {
-          chatbot_id: string
-          conversation_id: string | null
-          created_at: string | null
-          form_data: Json
-          id: string
-          session_id: string | null
-        }
-        Insert: {
-          chatbot_id: string
-          conversation_id?: string | null
-          created_at?: string | null
-          form_data?: Json
-          id?: string
-          session_id?: string | null
-        }
-        Update: {
-          chatbot_id?: string
-          conversation_id?: string | null
-          created_at?: string | null
-          form_data?: Json
-          id?: string
-          session_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chatbot_leads_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chatbot_leads_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chatbot_survey_responses: {
-        Row: {
-          chatbot_id: string
-          conversation_id: string | null
-          created_at: string | null
-          id: string
-          responses: Json
-          session_id: string | null
-        }
-        Insert: {
-          chatbot_id: string
-          conversation_id?: string | null
-          created_at?: string | null
-          id?: string
-          responses?: Json
-          session_id?: string | null
-        }
-        Update: {
-          chatbot_id?: string
-          conversation_id?: string | null
-          created_at?: string | null
-          id?: string
-          responses?: Json
-          session_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chatbot_survey_responses_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chatbot_survey_responses_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       chatbots: {
         Row: {
-          allowed_origins: string[] | null
-          article_last_generated_at: string | null
-          article_schedule: string | null
           created_at: string | null
-          credit_exhaustion_config: Json
-          credit_exhaustion_mode: string
-          custom_text_updated_at: string | null
           description: string | null
           enable_prompt_protection: boolean
-          escalation_config: Json
-          feedback_config: Json | null
-          file_upload_config: Json
           id: string
           is_published: boolean | null
-          language: string
-          language_updated_at: string | null
-          live_fetch_threshold: number | null
-          live_handoff_config: Json
           logo_url: string | null
           max_tokens: number | null
-          memory_days: number
-          memory_enabled: boolean
           messages_this_month: number | null
           model: string | null
           monthly_message_limit: number | null
           name: string
           placeholder_text: string | null
-          post_chat_survey_config: Json | null
-          pre_chat_form_config: Json | null
           pricing_type: string | null
-          proactive_messages_config: Json | null
-          session_ttl_hours: number
           slug: string
           status: string | null
           stripe_product_id: string | null
           system_prompt: string
-          telegram_config: Json
           temperature: number | null
-          transcript_config: Json
           updated_at: string | null
           user_id: string
           welcome_message: string | null
           widget_config: Json | null
         }
         Insert: {
-          allowed_origins?: string[] | null
-          article_last_generated_at?: string | null
-          article_schedule?: string | null
           created_at?: string | null
-          credit_exhaustion_config?: Json
-          credit_exhaustion_mode?: string
-          custom_text_updated_at?: string | null
           description?: string | null
           enable_prompt_protection?: boolean
-          escalation_config?: Json
-          feedback_config?: Json | null
-          file_upload_config?: Json
           id?: string
           is_published?: boolean | null
-          language?: string
-          language_updated_at?: string | null
-          live_fetch_threshold?: number | null
-          live_handoff_config?: Json
           logo_url?: string | null
           max_tokens?: number | null
-          memory_days?: number
-          memory_enabled?: boolean
           messages_this_month?: number | null
           model?: string | null
           monthly_message_limit?: number | null
           name: string
           placeholder_text?: string | null
-          post_chat_survey_config?: Json | null
-          pre_chat_form_config?: Json | null
           pricing_type?: string | null
-          proactive_messages_config?: Json | null
-          session_ttl_hours?: number
           slug: string
           status?: string | null
           stripe_product_id?: string | null
           system_prompt?: string
-          telegram_config?: Json
           temperature?: number | null
-          transcript_config?: Json
           updated_at?: string | null
           user_id: string
           welcome_message?: string | null
           widget_config?: Json | null
         }
         Update: {
-          allowed_origins?: string[] | null
-          article_last_generated_at?: string | null
-          article_schedule?: string | null
           created_at?: string | null
-          credit_exhaustion_config?: Json
-          credit_exhaustion_mode?: string
-          custom_text_updated_at?: string | null
           description?: string | null
           enable_prompt_protection?: boolean
-          escalation_config?: Json
-          feedback_config?: Json | null
-          file_upload_config?: Json
           id?: string
           is_published?: boolean | null
-          language?: string
-          language_updated_at?: string | null
-          live_fetch_threshold?: number | null
-          live_handoff_config?: Json
           logo_url?: string | null
           max_tokens?: number | null
-          memory_days?: number
-          memory_enabled?: boolean
           messages_this_month?: number | null
           model?: string | null
           monthly_message_limit?: number | null
           name?: string
           placeholder_text?: string | null
-          post_chat_survey_config?: Json | null
-          pre_chat_form_config?: Json | null
           pricing_type?: string | null
-          proactive_messages_config?: Json | null
-          session_ttl_hours?: number
           slug?: string
           status?: string | null
           stripe_product_id?: string | null
           system_prompt?: string
-          telegram_config?: Json
           temperature?: number | null
-          transcript_config?: Json
           updated_at?: string | null
           user_id?: string
           welcome_message?: string | null
@@ -1162,215 +484,6 @@ export type Database = {
           },
         ]
       }
-      contact_replies: {
-        Row: {
-          created_at: string
-          email_message_id: string | null
-          id: string
-          message: string
-          sender_email: string
-          sender_name: string
-          sender_type: string
-          submission_id: string
-        }
-        Insert: {
-          created_at?: string
-          email_message_id?: string | null
-          id?: string
-          message: string
-          sender_email: string
-          sender_name: string
-          sender_type: string
-          submission_id: string
-        }
-        Update: {
-          created_at?: string
-          email_message_id?: string | null
-          id?: string
-          message?: string
-          sender_email?: string
-          sender_name?: string
-          sender_type?: string
-          submission_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contact_replies_submission_id_fkey"
-            columns: ["submission_id"]
-            isOneToOne: false
-            referencedRelation: "contact_submissions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      contact_submissions: {
-        Row: {
-          chatbot_id: string
-          created_at: string
-          id: string
-          message: string
-          status: string
-          visitor_email: string
-          visitor_name: string
-        }
-        Insert: {
-          chatbot_id: string
-          created_at?: string
-          id?: string
-          message: string
-          status?: string
-          visitor_email: string
-          visitor_name: string
-        }
-        Update: {
-          chatbot_id?: string
-          created_at?: string
-          id?: string
-          message?: string
-          status?: string
-          visitor_email?: string
-          visitor_name?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contact_submissions_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      conversation_escalations: {
-        Row: {
-          chatbot_id: string
-          conversation_id: string | null
-          created_at: string
-          details: string | null
-          id: string
-          message_id: string | null
-          reason: string
-          session_id: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          chatbot_id: string
-          conversation_id?: string | null
-          created_at?: string
-          details?: string | null
-          id?: string
-          message_id?: string | null
-          reason: string
-          session_id?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          chatbot_id?: string
-          conversation_id?: string | null
-          created_at?: string
-          details?: string | null
-          id?: string
-          message_id?: string | null
-          reason?: string
-          session_id?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "conversation_escalations_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversation_escalations_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      conversation_memory: {
-        Row: {
-          chatbot_id: string
-          created_at: string
-          id: string
-          key_facts: Json
-          last_accessed: string
-          summary: string | null
-          updated_at: string
-          visitor_id: string
-        }
-        Insert: {
-          chatbot_id: string
-          created_at?: string
-          id?: string
-          key_facts?: Json
-          last_accessed?: string
-          summary?: string | null
-          updated_at?: string
-          visitor_id: string
-        }
-        Update: {
-          chatbot_id?: string
-          created_at?: string
-          id?: string
-          key_facts?: Json
-          last_accessed?: string
-          summary?: string | null
-          updated_at?: string
-          visitor_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "conversation_memory_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      conversation_memory_emails: {
-        Row: {
-          chatbot_id: string
-          created_at: string
-          email: string
-          id: string
-          verified_at: string
-          visitor_id: string
-        }
-        Insert: {
-          chatbot_id: string
-          created_at?: string
-          email: string
-          id?: string
-          verified_at?: string
-          visitor_id: string
-        }
-        Update: {
-          chatbot_id?: string
-          created_at?: string
-          email?: string
-          id?: string
-          verified_at?: string
-          visitor_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "conversation_memory_emails_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       conversations: {
         Row: {
           channel: string | null
@@ -1378,19 +491,12 @@ export type Database = {
           created_at: string | null
           feedback_text: string | null
           first_message_at: string | null
-          handoff_active: boolean
           id: string
-          language: string | null
           last_message_at: string | null
           message_count: number | null
           rating: number | null
-          sentiment_analyzed_at: string | null
-          sentiment_label: string | null
-          sentiment_score: number | null
-          sentiment_summary: string | null
           session_id: string
           status: string | null
-          summary: string | null
           updated_at: string | null
           visitor_id: string | null
           visitor_metadata: Json | null
@@ -1401,19 +507,12 @@ export type Database = {
           created_at?: string | null
           feedback_text?: string | null
           first_message_at?: string | null
-          handoff_active?: boolean
           id?: string
-          language?: string | null
           last_message_at?: string | null
           message_count?: number | null
           rating?: number | null
-          sentiment_analyzed_at?: string | null
-          sentiment_label?: string | null
-          sentiment_score?: number | null
-          sentiment_summary?: string | null
           session_id: string
           status?: string | null
-          summary?: string | null
           updated_at?: string | null
           visitor_id?: string | null
           visitor_metadata?: Json | null
@@ -1424,19 +523,12 @@ export type Database = {
           created_at?: string | null
           feedback_text?: string | null
           first_message_at?: string | null
-          handoff_active?: boolean
           id?: string
-          language?: string | null
           last_message_at?: string | null
           message_count?: number | null
           rating?: number | null
-          sentiment_analyzed_at?: string | null
-          sentiment_label?: string | null
-          sentiment_score?: number | null
-          sentiment_summary?: string | null
           session_id?: string
           status?: string | null
-          summary?: string | null
           updated_at?: string | null
           visitor_id?: string | null
           visitor_metadata?: Json | null
@@ -1447,134 +539,6 @@ export type Database = {
             columns: ["chatbot_id"]
             isOneToOne: false
             referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      credit_adjustments: {
-        Row: {
-          admin_id: string
-          amount: number
-          created_at: string
-          effective_at: string
-          id: string
-          reason: string
-          user_id: string
-        }
-        Insert: {
-          admin_id: string
-          amount: number
-          created_at?: string
-          effective_at?: string
-          id?: string
-          reason: string
-          user_id: string
-        }
-        Update: {
-          admin_id?: string
-          amount?: number
-          created_at?: string
-          effective_at?: string
-          id?: string
-          reason?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      credit_packages: {
-        Row: {
-          active: boolean
-          chatbot_id: string
-          created_at: string
-          credit_amount: number
-          id: string
-          name: string
-          price_cents: number
-          sort_order: number
-          stripe_price_id: string
-        }
-        Insert: {
-          active?: boolean
-          chatbot_id: string
-          created_at?: string
-          credit_amount: number
-          id?: string
-          name: string
-          price_cents: number
-          sort_order?: number
-          stripe_price_id: string
-        }
-        Update: {
-          active?: boolean
-          chatbot_id?: string
-          created_at?: string
-          credit_amount?: number
-          id?: string
-          name?: string
-          price_cents?: number
-          sort_order?: number
-          stripe_price_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "credit_packages_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      credit_purchases: {
-        Row: {
-          amount_paid_cents: number
-          chatbot_id: string
-          created_at: string
-          credit_amount: number
-          id: string
-          package_id: string
-          status: string
-          stripe_payment_intent_id: string | null
-          stripe_session_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          amount_paid_cents: number
-          chatbot_id: string
-          created_at?: string
-          credit_amount: number
-          id?: string
-          package_id: string
-          status?: string
-          stripe_payment_intent_id?: string | null
-          stripe_session_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          amount_paid_cents?: number
-          chatbot_id?: string
-          created_at?: string
-          credit_amount?: number
-          id?: string
-          package_id?: string
-          status?: string
-          stripe_payment_intent_id?: string | null
-          stripe_session_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "credit_purchases_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "credit_purchases_package_id_fkey"
-            columns: ["package_id"]
-            isOneToOne: false
-            referencedRelation: "credit_packages"
             referencedColumns: ["id"]
           },
         ]
@@ -1637,67 +601,60 @@ export type Database = {
       }
       generations: {
         Row: {
-          created_at: string | null
+          created_at: string
           duration_ms: number | null
           error_message: string | null
           id: string
           is_favorite: boolean | null
           metadata: Json | null
-          model: string | null
+          model: string
           output: string | null
           prompt: string
           rating: number | null
-          status: string | null
+          status: string
           tokens_input: number | null
           tokens_output: number | null
-          tool_id: string | null
+          tool_id: string
           type: string
           user_id: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           duration_ms?: number | null
           error_message?: string | null
           id?: string
           is_favorite?: boolean | null
           metadata?: Json | null
-          model?: string | null
+          model?: string
           output?: string | null
           prompt: string
           rating?: number | null
-          status?: string | null
+          status?: string
           tokens_input?: number | null
           tokens_output?: number | null
-          tool_id?: string | null
+          tool_id: string
           type: string
           user_id: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           duration_ms?: number | null
           error_message?: string | null
           id?: string
           is_favorite?: boolean | null
           metadata?: Json | null
-          model?: string | null
+          model?: string
           output?: string | null
           prompt?: string
           rating?: number | null
-          status?: string | null
+          status?: string
           tokens_input?: number | null
           tokens_output?: number | null
-          tool_id?: string | null
+          tool_id?: string
           type?: string
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "generations_tool_id_fkey"
-            columns: ["tool_id"]
-            isOneToOne: false
-            referencedRelation: "tools"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "generations_user_id_fkey"
             columns: ["user_id"]
@@ -1707,75 +664,11 @@ export type Database = {
           },
         ]
       }
-      help_articles: {
-        Row: {
-          body: string
-          chatbot_id: string
-          created_at: string
-          extraction_prompt_id: string | null
-          id: string
-          published: boolean
-          search_vector: unknown
-          sort_order: number
-          source_chunk_ids: string[] | null
-          source_url: string | null
-          summary: string
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          body: string
-          chatbot_id: string
-          created_at?: string
-          extraction_prompt_id?: string | null
-          id?: string
-          published?: boolean
-          search_vector?: unknown
-          sort_order?: number
-          source_chunk_ids?: string[] | null
-          source_url?: string | null
-          summary: string
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          body?: string
-          chatbot_id?: string
-          created_at?: string
-          extraction_prompt_id?: string | null
-          id?: string
-          published?: boolean
-          search_vector?: unknown
-          sort_order?: number
-          source_chunk_ids?: string[] | null
-          source_url?: string | null
-          summary?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "help_articles_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "help_articles_extraction_prompt_id_fkey"
-            columns: ["extraction_prompt_id"]
-            isOneToOne: false
-            referencedRelation: "article_extraction_prompts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       knowledge_chunks: {
         Row: {
           chatbot_id: string
           chunk_index: number
           content: string
-          content_hash: string | null
           created_at: string | null
           embedding: string | null
           id: string
@@ -1787,7 +680,6 @@ export type Database = {
           chatbot_id: string
           chunk_index: number
           content: string
-          content_hash?: string | null
           created_at?: string | null
           embedding?: string | null
           id?: string
@@ -1799,7 +691,6 @@ export type Database = {
           chatbot_id?: string
           chunk_index?: number
           content?: string
-          content_hash?: string | null
           created_at?: string | null
           embedding?: string | null
           id?: string
@@ -1831,14 +722,11 @@ export type Database = {
           chunks_count: number | null
           content: string | null
           created_at: string | null
-          embedding_model: string | null
-          embedding_provider: string | null
           error_message: string | null
           file_path: string | null
           file_size: number | null
           file_type: string | null
           id: string
-          is_priority: boolean
           metadata: Json | null
           name: string
           question: string | null
@@ -1853,14 +741,11 @@ export type Database = {
           chunks_count?: number | null
           content?: string | null
           created_at?: string | null
-          embedding_model?: string | null
-          embedding_provider?: string | null
           error_message?: string | null
           file_path?: string | null
           file_size?: number | null
           file_type?: string | null
           id?: string
-          is_priority?: boolean
           metadata?: Json | null
           name: string
           question?: string | null
@@ -1875,14 +760,11 @@ export type Database = {
           chunks_count?: number | null
           content?: string | null
           created_at?: string | null
-          embedding_model?: string | null
-          embedding_provider?: string | null
           error_message?: string | null
           file_path?: string | null
           file_size?: number | null
           file_type?: string | null
           id?: string
-          is_priority?: boolean
           metadata?: Json | null
           name?: string
           question?: string | null
@@ -1901,143 +783,15 @@ export type Database = {
           },
         ]
       }
-      license_key_redemptions: {
-        Row: {
-          id: string
-          license_key_id: string
-          new_plan_slug: string
-          previous_plan_slug: string | null
-          redeemed_at: string
-          stacked_tier: number
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          license_key_id: string
-          new_plan_slug: string
-          previous_plan_slug?: string | null
-          redeemed_at?: string
-          stacked_tier?: number
-          user_id: string
-        }
-        Update: {
-          id?: string
-          license_key_id?: string
-          new_plan_slug?: string
-          previous_plan_slug?: string | null
-          redeemed_at?: string
-          stacked_tier?: number
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "license_key_redemptions_license_key_id_fkey"
-            columns: ["license_key_id"]
-            isOneToOne: false
-            referencedRelation: "license_keys"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "license_key_redemptions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      license_keys: {
-        Row: {
-          created_at: string
-          expires_at: string | null
-          id: string
-          is_active: boolean
-          key: string
-          max_redemptions: number
-          plan_slug: string
-          redemptions_count: number
-          source: string
-          tier: number
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          is_active?: boolean
-          key: string
-          max_redemptions?: number
-          plan_slug: string
-          redemptions_count?: number
-          source?: string
-          tier?: number
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          is_active?: boolean
-          key?: string
-          max_redemptions?: number
-          plan_slug?: string
-          redemptions_count?: number
-          source?: string
-          tier?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      memory_verification_codes: {
-        Row: {
-          chatbot_id: string
-          code: string
-          created_at: string
-          email: string
-          expires_at: string
-          id: string
-          used: boolean
-        }
-        Insert: {
-          chatbot_id: string
-          code: string
-          created_at?: string
-          email: string
-          expires_at: string
-          id?: string
-          used?: boolean
-        }
-        Update: {
-          chatbot_id?: string
-          code?: string
-          created_at?: string
-          email?: string
-          expires_at?: string
-          id?: string
-          used?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "memory_verification_codes_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       messages: {
         Row: {
-          attachments: Json | null
           chatbot_id: string
           content: string
           context_chunks: Json | null
           conversation_id: string
           created_at: string | null
-          feedback_reason: string | null
           id: string
           latency_ms: number | null
-          metadata: Json | null
           model: string | null
           role: string
           thumbs_up: boolean | null
@@ -2045,16 +799,13 @@ export type Database = {
           tokens_output: number | null
         }
         Insert: {
-          attachments?: Json | null
           chatbot_id: string
           content: string
           context_chunks?: Json | null
           conversation_id: string
           created_at?: string | null
-          feedback_reason?: string | null
           id?: string
           latency_ms?: number | null
-          metadata?: Json | null
           model?: string | null
           role: string
           thumbs_up?: boolean | null
@@ -2062,16 +813,13 @@ export type Database = {
           tokens_output?: number | null
         }
         Update: {
-          attachments?: Json | null
           chatbot_id?: string
           content?: string
           context_chunks?: Json | null
           conversation_id?: string
           created_at?: string | null
-          feedback_reason?: string | null
           id?: string
           latency_ms?: number | null
-          metadata?: Json | null
           model?: string | null
           role?: string
           thumbs_up?: boolean | null
@@ -2098,36 +846,36 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
-          created_at: string | null
+          created_at: string
           email: string
           full_name: string | null
           id: string
           is_admin: boolean
           is_affiliate: boolean | null
           preferred_model_id: string | null
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
           avatar_url?: string | null
-          created_at?: string | null
+          created_at?: string
           email: string
           full_name?: string | null
           id: string
           is_admin?: boolean
           is_affiliate?: boolean | null
           preferred_model_id?: string | null
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
           avatar_url?: string | null
-          created_at?: string | null
+          created_at?: string
           email?: string
           full_name?: string | null
           id?: string
           is_admin?: boolean
           is_affiliate?: boolean | null
           preferred_model_id?: string | null
-          updated_at?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -2243,66 +991,6 @@ export type Database = {
           },
         ]
       }
-      subscription_changes: {
-        Row: {
-          applied_to_invoice_id: string | null
-          change_type: string
-          created_at: string | null
-          credit_amount_cents: number
-          id: string
-          new_plan_id: string
-          new_stripe_subscription_id: string | null
-          old_plan_id: string | null
-          old_stripe_subscription_id: string | null
-          status: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          applied_to_invoice_id?: string | null
-          change_type: string
-          created_at?: string | null
-          credit_amount_cents?: number
-          id?: string
-          new_plan_id: string
-          new_stripe_subscription_id?: string | null
-          old_plan_id?: string | null
-          old_stripe_subscription_id?: string | null
-          status?: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          applied_to_invoice_id?: string | null
-          change_type?: string
-          created_at?: string | null
-          credit_amount_cents?: number
-          id?: string
-          new_plan_id?: string
-          new_stripe_subscription_id?: string | null
-          old_plan_id?: string | null
-          old_stripe_subscription_id?: string | null
-          status?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "subscription_changes_new_plan_id_fkey"
-            columns: ["new_plan_id"]
-            isOneToOne: false
-            referencedRelation: "subscription_plans"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "subscription_changes_old_plan_id_fkey"
-            columns: ["old_plan_id"]
-            isOneToOne: false
-            referencedRelation: "subscription_plans"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       subscription_plans: {
         Row: {
           api_keys_limit: number | null
@@ -2317,7 +1005,6 @@ export type Database = {
           is_featured: boolean | null
           is_hidden: boolean | null
           name: string
-          price_lifetime_cents: number | null
           price_monthly_cents: number
           price_yearly_cents: number | null
           rate_limit_is_hard_cap: boolean | null
@@ -2344,7 +1031,6 @@ export type Database = {
           is_featured?: boolean | null
           is_hidden?: boolean | null
           name: string
-          price_lifetime_cents?: number | null
           price_monthly_cents?: number
           price_yearly_cents?: number | null
           rate_limit_is_hard_cap?: boolean | null
@@ -2371,7 +1057,6 @@ export type Database = {
           is_featured?: boolean | null
           is_hidden?: boolean | null
           name?: string
-          price_lifetime_cents?: number | null
           price_monthly_cents?: number
           price_yearly_cents?: number | null
           rate_limit_is_hard_cap?: boolean | null
@@ -2391,64 +1076,58 @@ export type Database = {
         Row: {
           billing_interval: string | null
           cancel_at_period_end: boolean | null
-          created_at: string | null
+          created_at: string
           current_period_end: string | null
           current_period_start: string | null
-          external_license_key: string | null
           grace_period_ends_at: string | null
           id: string
           payment_failed_at: string | null
-          plan: string | null
+          plan: string
           plan_id: string | null
-          purchase_source: string | null
-          status: string | null
+          status: string
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           trial_ends_at: string | null
           trial_link_id: string | null
-          updated_at: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
           billing_interval?: string | null
           cancel_at_period_end?: boolean | null
-          created_at?: string | null
+          created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
-          external_license_key?: string | null
           grace_period_ends_at?: string | null
           id?: string
           payment_failed_at?: string | null
-          plan?: string | null
+          plan?: string
           plan_id?: string | null
-          purchase_source?: string | null
-          status?: string | null
+          status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           trial_ends_at?: string | null
           trial_link_id?: string | null
-          updated_at?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
           billing_interval?: string | null
           cancel_at_period_end?: boolean | null
-          created_at?: string | null
+          created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
-          external_license_key?: string | null
           grace_period_ends_at?: string | null
           id?: string
           payment_failed_at?: string | null
-          plan?: string | null
+          plan?: string
           plan_id?: string | null
-          purchase_source?: string | null
-          status?: string | null
+          status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           trial_ends_at?: string | null
           trial_link_id?: string | null
-          updated_at?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -2469,264 +1148,8 @@ export type Database = {
           {
             foreignKeyName: "subscriptions_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      telegram_command_log: {
-        Row: {
-          arguments: string[] | null
-          chatbot_id: string
-          command: string
-          error_message: string | null
-          executed_at: string
-          id: string
-          success: boolean
-          telegram_user_id: number
-          telegram_username: string | null
-        }
-        Insert: {
-          arguments?: string[] | null
-          chatbot_id: string
-          command: string
-          error_message?: string | null
-          executed_at?: string
-          id?: string
-          success?: boolean
-          telegram_user_id: number
-          telegram_username?: string | null
-        }
-        Update: {
-          arguments?: string[] | null
-          chatbot_id?: string
-          command?: string
-          error_message?: string | null
-          executed_at?: string
-          id?: string
-          success?: boolean
-          telegram_user_id?: number
-          telegram_username?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "telegram_command_log_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      telegram_handoff_sessions: {
-        Row: {
-          agent_name: string | null
-          agent_source: string
-          agent_telegram_id: number | null
-          agent_user_id: string | null
-          chatbot_id: string
-          conversation_id: string
-          created_at: string
-          escalation_id: string | null
-          id: string
-          resolved_at: string | null
-          session_id: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          agent_name?: string | null
-          agent_source?: string
-          agent_telegram_id?: number | null
-          agent_user_id?: string | null
-          chatbot_id: string
-          conversation_id: string
-          created_at?: string
-          escalation_id?: string | null
-          id?: string
-          resolved_at?: string | null
-          session_id?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          agent_name?: string | null
-          agent_source?: string
-          agent_telegram_id?: number | null
-          agent_user_id?: string | null
-          chatbot_id?: string
-          conversation_id?: string
-          created_at?: string
-          escalation_id?: string | null
-          id?: string
-          resolved_at?: string | null
-          session_id?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "telegram_handoff_sessions_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "telegram_handoff_sessions_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: true
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "telegram_handoff_sessions_escalation_id_fkey"
-            columns: ["escalation_id"]
-            isOneToOne: false
-            referencedRelation: "conversation_escalations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      telegram_message_mappings: {
-        Row: {
-          chatbot_id: string
-          conversation_id: string
-          created_at: string
-          id: string
-          telegram_chat_id: number
-          telegram_message_id: number
-        }
-        Insert: {
-          chatbot_id: string
-          conversation_id: string
-          created_at?: string
-          id?: string
-          telegram_chat_id: number
-          telegram_message_id: number
-        }
-        Update: {
-          chatbot_id?: string
-          conversation_id?: string
-          created_at?: string
-          id?: string
-          telegram_chat_id?: number
-          telegram_message_id?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "telegram_message_mappings_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "telegram_message_mappings_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: true
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ticket_replies: {
-        Row: {
-          created_at: string
-          id: string
-          message: string
-          sender_email: string
-          sender_name: string
-          sender_type: string
-          ticket_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          message: string
-          sender_email: string
-          sender_name: string
-          sender_type: string
-          ticket_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          message?: string
-          sender_email?: string
-          sender_name?: string
-          sender_type?: string
-          ticket_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ticket_replies_ticket_id_fkey"
-            columns: ["ticket_id"]
-            isOneToOne: false
-            referencedRelation: "tickets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      tickets: {
-        Row: {
-          admin_notes: string | null
-          chatbot_id: string
-          created_at: string
-          custom_fields: Json | null
-          id: string
-          message: string
-          priority: string
-          reference: string
-          resolved_at: string | null
-          status: string
-          subject: string | null
-          updated_at: string
-          visitor_email: string
-          visitor_name: string
-          visitor_phone: string | null
-        }
-        Insert: {
-          admin_notes?: string | null
-          chatbot_id: string
-          created_at?: string
-          custom_fields?: Json | null
-          id?: string
-          message: string
-          priority?: string
-          reference: string
-          resolved_at?: string | null
-          status?: string
-          subject?: string | null
-          updated_at?: string
-          visitor_email: string
-          visitor_name: string
-          visitor_phone?: string | null
-        }
-        Update: {
-          admin_notes?: string | null
-          chatbot_id?: string
-          created_at?: string
-          custom_fields?: Json | null
-          id?: string
-          message?: string
-          priority?: string
-          reference?: string
-          resolved_at?: string | null
-          status?: string
-          subject?: string | null
-          updated_at?: string
-          visitor_email?: string
-          visitor_name?: string
-          visitor_phone?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tickets_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
             referencedColumns: ["id"]
           },
         ]
@@ -2735,38 +1158,38 @@ export type Database = {
         Row: {
           category: string
           config: Json | null
-          created_at: string | null
+          created_at: string
           description: string
           id: string
           is_active: boolean | null
           is_featured: boolean | null
           name: string
           slug: string
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
           category: string
           config?: Json | null
-          created_at?: string | null
+          created_at?: string
           description: string
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
           name: string
           slug: string
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
           category?: string
           config?: Json | null
-          created_at?: string | null
+          created_at?: string
           description?: string
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
           name?: string
           slug?: string
-          updated_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2886,40 +1309,40 @@ export type Database = {
       }
       usage: {
         Row: {
-          created_at: string | null
-          credits_limit: number | null
-          credits_used: number | null
+          created_at: string
+          credits_limit: number
+          credits_used: number
           id: string
-          period_end: string | null
-          period_start: string | null
-          updated_at: string | null
+          period_end: string
+          period_start: string
+          updated_at: string
           user_id: string
         }
         Insert: {
-          created_at?: string | null
-          credits_limit?: number | null
-          credits_used?: number | null
+          created_at?: string
+          credits_limit?: number
+          credits_used?: number
           id?: string
-          period_end?: string | null
-          period_start?: string | null
-          updated_at?: string | null
+          period_end?: string
+          period_start?: string
+          updated_at?: string
           user_id: string
         }
         Update: {
-          created_at?: string | null
-          credits_limit?: number | null
-          credits_used?: number | null
+          created_at?: string
+          credits_limit?: number
+          credits_used?: number
           id?: string
-          period_end?: string | null
-          period_start?: string | null
-          updated_at?: string | null
+          period_end?: string
+          period_start?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "usage_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -2984,108 +1407,40 @@ export type Database = {
           },
         ]
       }
-      visitor_loyalty: {
-        Row: {
-          avg_sentiment: number
-          chatbot_id: string
-          created_at: string
-          id: string
-          last_sentiment_score: number | null
-          loyalty_score: number
-          loyalty_trend: string
-          total_sessions: number
-          updated_at: string
-          visitor_id: string
-        }
-        Insert: {
-          avg_sentiment?: number
-          chatbot_id: string
-          created_at?: string
-          id?: string
-          last_sentiment_score?: number | null
-          loyalty_score?: number
-          loyalty_trend?: string
-          total_sessions?: number
-          updated_at?: string
-          visitor_id: string
-        }
-        Update: {
-          avg_sentiment?: number
-          chatbot_id?: string
-          created_at?: string
-          id?: string
-          last_sentiment_score?: number | null
-          loyalty_score?: number
-          loyalty_trend?: string
-          total_sessions?: number
-          updated_at?: string
-          visitor_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "visitor_loyalty_chatbot_id_fkey"
-            columns: ["chatbot_id"]
-            isOneToOne: false
-            referencedRelation: "chatbots"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      stripe_events: {
-        Row: {
-          id: string
-          stripe_event_id: string
-          event_type: string
-          processed_at: string
-        }
-        Insert: {
-          id?: string
-          stripe_event_id: string
-          event_type: string
-          processed_at?: string
-        }
-        Update: {
-          id?: string
-          stripe_event_id?: string
-          event_type?: string
-          processed_at?: string
-        }
-        Relationships: []
-      }
       webhooks: {
         Row: {
-          created_at: string | null
+          created_at: string
           events: string[] | null
           failure_count: number | null
           id: string
           is_active: boolean | null
           last_triggered_at: string | null
           secret: string
-          updated_at: string | null
+          updated_at: string
           url: string
           user_id: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           events?: string[] | null
           failure_count?: number | null
           id?: string
           is_active?: boolean | null
           last_triggered_at?: string | null
           secret: string
-          updated_at?: string | null
+          updated_at?: string
           url: string
           user_id: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           events?: string[] | null
           failure_count?: number | null
           id?: string
           is_active?: boolean | null
           last_triggered_at?: string | null
           secret?: string
-          updated_at?: string | null
+          updated_at?: string
           url?: string
           user_id?: string
         }
@@ -3130,30 +1485,21 @@ export type Database = {
         }
         Returns: boolean
       }
-      check_rate_limit:
-        | {
-            Args: {
-              p_key: string
-              p_max_requests: number
-              p_window_seconds: number
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              p_token_limit: number
-              p_tokens_requested: number
-              p_user_id: string
-              p_window_seconds: number
-            }
-            Returns: {
-              allowed: boolean
-              is_soft_cap: boolean
-              reset_at: string
-              tokens_remaining: number
-              tokens_used: number
-            }[]
-          }
+      check_rate_limit: {
+        Args: {
+          p_token_limit: number
+          p_tokens_requested: number
+          p_user_id: string
+          p_window_seconds: number
+        }
+        Returns: {
+          allowed: boolean
+          is_soft_cap: boolean
+          reset_at: string
+          tokens_remaining: number
+          tokens_used: number
+        }[]
+      }
       check_subscription_status: {
         Args: { p_user_id: string }
         Returns: {
@@ -3167,7 +1513,6 @@ export type Database = {
         }[]
       }
       cleanup_rate_limit_usage: { Args: never; Returns: number }
-      cleanup_rate_limits: { Args: never; Returns: undefined }
       clear_payment_failure: {
         Args: { p_stripe_subscription_id: string }
         Returns: undefined
@@ -3205,24 +1550,6 @@ export type Database = {
           trial_id: string
         }[]
       }
-      get_chat_perf_aggregates: {
-        Args: {
-          p_chatbot_id: string
-          p_live_fetch?: boolean
-          p_models?: string[]
-          p_since: string
-          p_to?: string
-        }
-        Returns: Json
-      }
-      get_chatbot_stats: {
-        Args: { p_chatbot_ids: string[] }
-        Returns: {
-          chatbot_id: string
-          conversation_count: number
-          message_count: number
-        }[]
-      }
       get_credit_balance: {
         Args: { p_user_id: string }
         Returns: {
@@ -3250,43 +1577,6 @@ export type Database = {
           trial_expires_at: string
         }[]
       }
-      get_or_create_conversation: {
-        Args: {
-          p_channel?: string
-          p_chatbot_id: string
-          p_session_id: string
-          p_visitor_id?: string
-        }
-        Returns: {
-          channel: string | null
-          chatbot_id: string
-          created_at: string | null
-          feedback_text: string | null
-          first_message_at: string | null
-          handoff_active: boolean
-          id: string
-          language: string | null
-          last_message_at: string | null
-          message_count: number | null
-          rating: number | null
-          sentiment_analyzed_at: string | null
-          sentiment_label: string | null
-          sentiment_score: number | null
-          sentiment_summary: string | null
-          session_id: string
-          status: string | null
-          summary: string | null
-          updated_at: string | null
-          visitor_id: string | null
-          visitor_metadata: Json | null
-        }
-        SetofOptions: {
-          from: "*"
-          to: "conversations"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
       get_rate_limit_status: {
         Args: { p_user_id: string }
         Returns: {
@@ -3300,22 +1590,22 @@ export type Database = {
       }
       increment_chatbot_messages: {
         Args: { p_amount?: number; p_chatbot_id: string }
-        Returns: boolean
+        Returns: undefined
       }
       increment_conversation_messages: {
         Args: { p_conversation_id: string }
         Returns: undefined
       }
       increment_usage: {
-        Args: { p_amount: number; p_user_id: string }
+        Args: { p_amount?: number; p_user_id: string }
         Returns: undefined
       }
       is_admin: { Args: { p_user_id: string }; Returns: boolean }
       match_knowledge_chunks: {
         Args: {
           p_chatbot_id: string
-          p_match_count: number
-          p_match_threshold: number
+          p_match_count?: number
+          p_match_threshold?: number
           p_query_embedding: string
         }
         Returns: {
@@ -3323,35 +1613,6 @@ export type Database = {
           id: string
           metadata: Json
           similarity: number
-        }[]
-      }
-      match_priority_knowledge_chunks: {
-        Args: {
-          p_chatbot_id: string
-          p_match_count: number
-          p_match_threshold: number
-          p_query_embedding: string
-          p_source_ids: string[]
-        }
-        Returns: {
-          content: string
-          id: string
-          metadata: Json
-          similarity: number
-        }[]
-      }
-      next_ticket_reference: {
-        Args: { p_chatbot_id: string; p_prefix?: string }
-        Returns: string
-      }
-      redeem_license_key: {
-        Args: { p_key: string; p_user_id: string }
-        Returns: {
-          message: string
-          plan_name: string
-          plan_slug: string
-          success: boolean
-          tier: number
         }[]
       }
       redeem_trial_link: {
@@ -3514,7 +1775,11 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
 } as const
+
