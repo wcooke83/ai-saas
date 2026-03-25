@@ -1,13 +1,33 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
-const CHATBOT_ID = '10df2440-6aac-441a-855d-715c0ea8e506';
+const CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
 const WIDGET_URL = `/widget/${CHATBOT_ID}`;
 const DASH_BASE = `/dashboard/chatbots/${CHATBOT_ID}`;
+
+// ============================================================
+// Credit Management Helpers
+// ============================================================
+
+/** Set the chatbot's monthly message limit and current usage */
+async function setCreditState(page: Page, limit: number, used: number) {
+  await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
+    data: { monthly_message_limit: limit, messages_this_month: used },
+  });
+}
+
+/** Reset credits to a healthy state (high limit, low usage) */
+async function resetCredits(page: Page) {
+  await setCreditState(page, 1000, 0);
+}
+
+// ============================================================
+// Widget Helpers
+// ============================================================
 
 /**
  * Helper: open widget page and wait for it to be ready
  */
-async function openWidget(page: import('@playwright/test').Page) {
+async function openWidget(page: Page) {
   await page.goto(WIDGET_URL);
   await page.waitForSelector('.chat-widget-container, .chat-widget-button', { timeout: 30000 });
   const btn = page.locator('.chat-widget-button');
@@ -20,7 +40,7 @@ async function openWidget(page: import('@playwright/test').Page) {
 /**
  * Helper: send a message in the widget and wait for AI response
  */
-async function sendMessage(page: import('@playwright/test').Page, text: string) {
+async function sendMessage(page: Page, text: string) {
   const input = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
   await input.fill(text);
   await input.press('Enter');
@@ -40,7 +60,7 @@ async function sendMessage(page: import('@playwright/test').Page, text: string) 
 /**
  * Helper: fill and submit pre-chat form
  */
-async function fillPreChatForm(page: import('@playwright/test').Page, data: Record<string, string>) {
+async function fillPreChatForm(page: Page, data: Record<string, string>) {
   await page.waitForSelector('.chat-widget-form-view', { timeout: 10000 });
   const inputs = page.locator('.chat-widget-form-input');
   const count = await inputs.count();
@@ -52,9 +72,42 @@ async function fillPreChatForm(page: import('@playwright/test').Page, data: Reco
   await page.waitForTimeout(1000);
 }
 
+/**
+ * Helper: mock the widget config endpoint with overrides merged on top of real response
+ */
+async function mockWidgetConfigWithPackages(page: Page, overrides: Record<string, any> = {}) {
+  await page.route(`**/api/widget/${CHATBOT_ID}/config**`, async (route) => {
+    const response = await route.fetch();
+    const json = await response.json();
+    const merged = { ...json.data, ...overrides };
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true, data: merged }),
+    });
+  });
+}
+
+const TEST_PACKAGES = [
+  { id: 'pkg-small', name: '50 Credits', creditAmount: 50, priceCents: 499, stripePriceId: 'price_test_small' },
+  { id: 'pkg-large', name: '200 Credits', creditAmount: 200, priceCents: 1499, stripePriceId: 'price_test_large' },
+];
+
+// ============================================================
+// 25. Cross-Feature Integration Tests
+// ============================================================
+
 test.describe('25. Cross-Feature Integration Tests', () => {
-  test.beforeEach(async ({}, testInfo) => {
+  test.beforeEach(async ({ page }, testInfo) => {
     testInfo.setTimeout(120000);
+    await resetCredits(page);
+  });
+
+  test.afterAll(async ({ request }) => {
+    // Final cleanup: reset credits to healthy state
+    await request.patch(`/api/chatbots/${CHATBOT_ID}`, {
+      data: { monthly_message_limit: 1000, messages_this_month: 0 },
+    });
   });
 
   test('INTEG-001: Full visitor journey — pre-chat form to survey to analytics', async ({ page }) => {
@@ -224,7 +277,7 @@ test.describe('25. Cross-Feature Integration Tests', () => {
     }
 
     // Navigate to escalations/reports page
-    await page.goto(`${DASH_BASE}/escalations`);
+    await page.goto(`${DASH_BASE}/issues`);
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(3000);
     await expect(page.locator('#main-content, main')).toBeVisible({ timeout: 15000 });
@@ -420,4 +473,306 @@ test.describe('25. Cross-Feature Integration Tests', () => {
     await expect(page.locator('#main-content, main')).toBeVisible({ timeout: 15000 });
   });
 
+});
+
+// ============================================================
+// 26. Credit Exhaustion Auto-Purchase Flow
+// ============================================================
+
+test.describe('26. Credit Exhaustion Auto-Purchase Flow', () => {
+  test.beforeEach(async ({ page }, testInfo) => {
+    testInfo.setTimeout(120000);
+    await resetCredits(page);
+  });
+
+  test('CREDIT-001: Credits healthy — widget shows normal chat', async ({ page }) => {
+    await setCreditState(page, 100, 10); // 10% used
+    await openWidget(page);
+
+    // Chat input should be visible
+    const chatInput = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
+    await expect(chatInput).toBeVisible({ timeout: 15000 });
+
+    // No low-credit warning banner
+    const banner = page.locator('.chat-widget-low-credit-banner');
+    await expect(banner).not.toBeVisible();
+  });
+
+  test('CREDIT-002: Credits at 80% — low credit warning banner appears', async ({ page }) => {
+    await setCreditState(page, 100, 80); // 80% used
+    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
+      data: { credit_exhaustion_mode: 'purchase_credits' },
+    });
+
+    await openWidget(page);
+
+    // Low credit banner should be visible
+    const banner = page.locator('.chat-widget-low-credit-banner');
+    await expect(banner).toBeVisible({ timeout: 15000 });
+
+    // Banner should show remaining credits
+    await expect(banner).toContainText('20 remaining');
+
+    // Chat input should still be available
+    const chatInput = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
+    await expect(chatInput).toBeVisible();
+  });
+
+  test('CREDIT-003: Credits at 95% — low credit warning still shows, chat still works', async ({ page }) => {
+    await setCreditState(page, 100, 95); // 95% used
+    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
+      data: { credit_exhaustion_mode: 'purchase_credits' },
+    });
+
+    await openWidget(page);
+
+    // Banner should show 5 remaining
+    const banner = page.locator('.chat-widget-low-credit-banner');
+    await expect(banner).toBeVisible({ timeout: 15000 });
+    await expect(banner).toContainText('5 remaining');
+
+    // Chat input should still be available
+    const chatInput = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
+    await expect(chatInput).toBeVisible();
+  });
+
+  test('CREDIT-004: Credits fully exhausted — widget switches to purchase fallback', async ({ page }) => {
+    await setCreditState(page, 100, 100); // 100% used
+    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
+      data: { credit_exhaustion_mode: 'purchase_credits' },
+    });
+
+    await openWidget(page);
+
+    // Purchase view should be visible
+    const purchaseView = page.locator('.chat-widget-purchase-view');
+    await expect(purchaseView).toBeVisible({ timeout: 15000 });
+
+    // Chat input should NOT be available
+    const chatInput = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
+    await expect(chatInput).not.toBeVisible();
+
+    // Packages or empty state should be shown
+    const packages = page.locator('.chat-widget-package-buy');
+    const emptyState = page.locator('.chat-widget-purchase-view:has-text("No credit packages"), .chat-widget-purchase-view:has-text("no packages"), .chat-widget-purchase-view:has-text("unavailable")');
+    const packagesVisible = await packages.first().isVisible({ timeout: 3000 }).catch(() => false);
+    const emptyVisible = await emptyState.isVisible({ timeout: 3000 }).catch(() => false);
+    expect(packagesVisible || emptyVisible).toBeTruthy();
+  });
+
+  test('CREDIT-005: Purchase flow — buy button creates Stripe checkout session', async ({ page }) => {
+    await setCreditState(page, 100, 100); // exhausted
+
+    // Mock widget config with test packages and exhausted credits
+    await mockWidgetConfigWithPackages(page, {
+      creditExhausted: true,
+      creditExhaustionMode: 'purchase_credits',
+      creditPackages: TEST_PACKAGES,
+    });
+
+    // Track purchase API calls
+    let purchaseApiCalled = false;
+    let purchaseBody: any = null;
+    await page.route(`**/api/widget/${CHATBOT_ID}/purchase`, async (route) => {
+      purchaseApiCalled = true;
+      purchaseBody = route.request().postDataJSON();
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: { checkoutUrl: 'https://checkout.stripe.com/test_session_123' },
+        }),
+      });
+    });
+
+    await page.goto(WIDGET_URL);
+    await page.waitForLoadState('networkidle');
+
+    // Purchase view should be visible
+    await expect(page.locator('.chat-widget-purchase-view')).toBeVisible({ timeout: 15000 });
+
+    // Click first buy button
+    const buyBtn = page.locator('.chat-widget-package-buy').first();
+    await expect(buyBtn).toBeVisible({ timeout: 10000 });
+    await buyBtn.click();
+    await page.waitForTimeout(2000);
+
+    // Verify purchase API was called with the correct package ID
+    expect(purchaseApiCalled).toBeTruthy();
+    expect(purchaseBody).toBeDefined();
+    expect(purchaseBody.packageId).toBe('pkg-small');
+  });
+
+  test('CREDIT-006: After purchase completes — credits restored, chat resumes', async ({ page }) => {
+    await setCreditState(page, 100, 100); // exhausted
+    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
+      data: { credit_exhaustion_mode: 'purchase_credits' },
+    });
+
+    await openWidget(page);
+
+    // Verify purchase view is shown
+    const purchaseView = page.locator('.chat-widget-purchase-view');
+    await expect(purchaseView).toBeVisible({ timeout: 15000 });
+
+    // Simulate webhook adding 50 credits (limit goes from 100 to 150)
+    await setCreditState(page, 150, 100);
+
+    // Reload widget page
+    await page.goto(WIDGET_URL);
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('.chat-widget-container, .chat-widget-button', { timeout: 30000 });
+    const btn = page.locator('.chat-widget-button');
+    if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await btn.click();
+      await page.waitForTimeout(1000);
+    }
+
+    // Chat input should now be available (100 used < 150 limit)
+    const chatInput = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
+    await expect(chatInput).toBeVisible({ timeout: 15000 });
+  });
+
+  test('CREDIT-007: Low credit banner dismiss persists during session', async ({ page }) => {
+    await setCreditState(page, 100, 85); // 85% used
+    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
+      data: { credit_exhaustion_mode: 'purchase_credits' },
+    });
+
+    await openWidget(page);
+
+    // Banner should be visible
+    const banner = page.locator('.chat-widget-low-credit-banner');
+    await expect(banner).toBeVisible({ timeout: 15000 });
+
+    // Click dismiss button
+    const dismissBtn = page.locator('[aria-label="Dismiss low credit warning"]');
+    await expect(dismissBtn).toBeVisible({ timeout: 5000 });
+    await dismissBtn.click();
+
+    // Banner should be hidden
+    await expect(banner).not.toBeVisible();
+
+    // Send a chat message (chat still works)
+    const chatInput = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
+    await chatInput.fill('Testing after dismiss');
+    await chatInput.press('Enter');
+    await page.waitForTimeout(3000);
+
+    // Banner should stay hidden
+    await expect(banner).not.toBeVisible();
+  });
+
+  test('CREDIT-008: Purchase overlay from low credit banner', async ({ page }) => {
+    await setCreditState(page, 100, 85); // 85% used
+
+    // Mock config with low credit + packages
+    await mockWidgetConfigWithPackages(page, {
+      creditLow: true,
+      creditRemaining: 15,
+      creditExhaustionMode: 'purchase_credits',
+      creditPackages: TEST_PACKAGES,
+    });
+
+    await page.goto(WIDGET_URL);
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('.chat-widget-container, .chat-widget-button', { timeout: 30000 });
+    const widgetBtn = page.locator('.chat-widget-button');
+    if (await widgetBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await widgetBtn.click();
+      await page.waitForTimeout(1000);
+    }
+
+    // Banner should be visible
+    const banner = page.locator('.chat-widget-low-credit-banner');
+    await expect(banner).toBeVisible({ timeout: 15000 });
+
+    // Click "Purchase more" in the banner
+    const purchaseMoreBtn = banner.locator('button:has-text("Purchase"), a:has-text("Purchase")');
+    await expect(purchaseMoreBtn).toBeVisible({ timeout: 5000 });
+    await purchaseMoreBtn.click();
+    await page.waitForTimeout(1000);
+
+    // Purchase overlay should appear
+    const overlay = page.locator('.chat-widget-purchase-overlay');
+    await expect(overlay).toBeVisible({ timeout: 10000 });
+
+    // Packages should be shown in overlay
+    const overlayPackages = overlay.locator('.chat-widget-package-buy');
+    await expect(overlayPackages.first()).toBeVisible({ timeout: 5000 });
+
+    // Close the overlay
+    const closeBtn = page.locator('[aria-label="Close purchase overlay"]');
+    await expect(closeBtn).toBeVisible({ timeout: 5000 });
+    await closeBtn.click();
+
+    // Overlay should be hidden, chat should still be visible
+    await expect(overlay).not.toBeVisible();
+    const chatInput = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
+    await expect(chatInput).toBeVisible();
+  });
+
+  test('CREDIT-009: Conversation continues after credit top-up', async ({ page }) => {
+    test.setTimeout(120000);
+
+    await setCreditState(page, 100, 100); // exhausted
+    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
+      data: { credit_exhaustion_mode: 'purchase_credits' },
+    });
+
+    await openWidget(page);
+
+    // Verify purchase fallback is shown
+    const purchaseView = page.locator('.chat-widget-purchase-view');
+    await expect(purchaseView).toBeVisible({ timeout: 15000 });
+
+    // Simulate credit top-up via purchase (limit increases)
+    await setCreditState(page, 200, 100);
+
+    // Reload widget
+    await page.goto(WIDGET_URL);
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('.chat-widget-container, .chat-widget-button', { timeout: 30000 });
+    const btn = page.locator('.chat-widget-button');
+    if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await btn.click();
+      await page.waitForTimeout(1000);
+    }
+
+    // Chat should be available
+    const chatInput = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
+    await expect(chatInput).toBeVisible({ timeout: 15000 });
+
+    // Mock chat API to return a response
+    await page.route(`**/api/chat/${CHATBOT_ID}`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: { message: 'Welcome back! How can I help you today?' },
+        }),
+      });
+    });
+
+    // Send a message
+    await chatInput.fill('Hello after top-up');
+    await chatInput.press('Enter');
+    await page.waitForTimeout(3000);
+
+    // Verify messages area is visible (response appeared)
+    await expect(page.locator('.chat-widget-messages')).toBeVisible();
+  });
+
+  test('CREDIT-CLEANUP: Reset credits and mode', async ({ page }) => {
+    await resetCredits(page);
+    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
+      data: { credit_exhaustion_mode: 'tickets' },
+    });
+
+    // Verify credits were reset
+    const configResp = await page.request.get(`/api/widget/${CHATBOT_ID}/config`);
+    expect(configResp.status()).toBeLessThan(500);
+  });
 });

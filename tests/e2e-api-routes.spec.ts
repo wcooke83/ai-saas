@@ -62,9 +62,9 @@ test.describe('API Routes - Authenticated', () => {
     expect(body.data).toBeDefined();
   });
 
-  test('GET /api/chatbots/:id/escalations returns escalations', async ({ page }) => {
-    const res = await page.request.get(`/api/chatbots/${CHATBOT_ID}/escalations`);
-    expect(res.ok()).toBeTruthy();
+  test('GET /dashboard/chatbots/:id/issues page loads', async ({ page }) => {
+    const res = await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/issues`);
+    expect(res?.ok() || res?.status() === 304).toBeTruthy();
   });
 
   test('GET /api/chatbots/:id/analytics returns analytics', async ({ page }) => {
