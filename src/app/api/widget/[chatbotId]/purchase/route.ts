@@ -52,12 +52,12 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const body = await req.json();
     const input = purchaseSchema.parse(body);
 
-    // Get the credit package
+    // Get the global credit package
     const { data: pkg } = await supabase
       .from('credit_packages')
       .select('*')
       .eq('id', input.packageId)
-      .eq('chatbot_id', chatbotId)
+      .eq('is_global', true)
       .eq('active', true)
       .single();
 

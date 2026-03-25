@@ -137,12 +137,40 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
             return false;
           })(),
           creditExhausted: chatbot.monthly_message_limit > 0 && chatbot.messages_this_month >= chatbot.monthly_message_limit,
+          creditLow: (() => {
+            const creditExhausted = chatbot.monthly_message_limit > 0 && chatbot.messages_this_month >= chatbot.monthly_message_limit;
+            const usageRatio = chatbot.monthly_message_limit > 0 ? chatbot.messages_this_month / chatbot.monthly_message_limit : 0;
+            return chatbot.monthly_message_limit > 0 && usageRatio >= 0.8 && !creditExhausted;
+          })(),
+          creditRemaining: chatbot.monthly_message_limit > 0 ? Math.max(0, chatbot.monthly_message_limit - chatbot.messages_this_month) : null,
           creditExhaustionMode: chatbot.credit_exhaustion_mode || 'tickets',
           creditExhaustionConfig: {
             ...DEFAULT_CREDIT_EXHAUSTION_CONFIG,
             ...(chatbot.credit_exhaustion_config || {}),
           },
+          creditPackages: await (async () => {
+            if ((chatbot.credit_exhaustion_mode || 'tickets') !== 'purchase_credits') return [];
+            const creditExhausted = chatbot.monthly_message_limit > 0 && chatbot.messages_this_month >= chatbot.monthly_message_limit;
+            const usageRatio = chatbot.monthly_message_limit > 0 ? chatbot.messages_this_month / chatbot.monthly_message_limit : 0;
+            const creditLow = chatbot.monthly_message_limit > 0 && usageRatio >= 0.8 && !creditExhausted;
+            if (!creditExhausted && !creditLow) return [];
+            // Fetch global packages, filter out any disabled by this chatbot
+            const { data: pkgs } = await supabase
+              .from('credit_packages')
+              .select('id, name, credit_amount, price_cents, stripe_price_id')
+              .eq('is_global', true)
+              .eq('active', true)
+              .order('sort_order', { ascending: true });
+            const disabledIds: string[] = (chatbot.credit_exhaustion_config as any)?.purchase_credits?.disabledPackageIds || [];
+            return (pkgs || [])
+              .filter((p: any) => !disabledIds.includes(p.id))
+              .map((p: any) => ({
+                id: p.id, name: p.name, creditAmount: p.credit_amount,
+                priceCents: p.price_cents, stripePriceId: p.stripe_price_id,
+              }));
+          })(),
           memoryEnabled: chatbot.memory_enabled === true,
+          sessionTtlHours: chatbot.session_ttl_hours ?? 24,
         },
       }),
       {

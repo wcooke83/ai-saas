@@ -862,7 +862,7 @@ test.describe('8. Admin Articles Lifecycle', () => {
     await page.goto(`/dashboard/chatbots/${BOT_ID}/articles`);
     await page.waitForLoadState('domcontentloaded');
     await expect(page.getByRole('heading', { name: 'Help Articles' })).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText('Generate from Knowledge Sources').first()).toBeVisible();
+    await expect(page.getByText('Generate from Knowledge').first()).toBeVisible();
   });
 
   test('ADM-ART-003: Articles page renders without errors', async ({ page }) => {

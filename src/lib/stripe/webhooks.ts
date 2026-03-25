@@ -15,6 +15,12 @@ export async function handleCheckoutCompleted(
   const supabase = createAdminClient();
   const userId = session.metadata?.user_id;
 
+  // Chatbot ad-hoc credit purchase (from widget) — no user_id needed
+  if (session.mode === 'payment' && session.metadata?.type === 'credit_purchase') {
+    await handleChatbotCreditPurchase(session);
+    return;
+  }
+
   if (!userId) {
     console.error('Missing user_id in checkout session metadata');
     return;
@@ -147,6 +153,54 @@ async function handleCreditPurchase(
   });
 
   console.log(`Added ${creditAmount} credits for user ${userId} (${type})`);
+}
+
+/**
+ * Handle chatbot ad-hoc credit purchase (from widget fallback)
+ * Increases monthly_message_limit to expand the chatbot's quota
+ */
+async function handleChatbotCreditPurchase(
+  session: Stripe.Checkout.Session
+): Promise<void> {
+  const supabase = createAdminClient();
+  const chatbotId = session.metadata?.chatbot_id;
+  const packageId = session.metadata?.package_id;
+  const creditAmount = parseInt(session.metadata?.credit_amount || '0');
+
+  if (!chatbotId || creditAmount <= 0) {
+    console.error('[CreditPurchase] Missing chatbot_id or invalid credit_amount in metadata');
+    return;
+  }
+
+  // Mark the credit_purchases record as completed
+  if (session.id) {
+    await supabase
+      .from('credit_purchases')
+      .update({
+        status: 'completed',
+        stripe_payment_intent_id: session.payment_intent as string || null,
+      })
+      .eq('stripe_session_id', session.id);
+  }
+
+  // Increase monthly_message_limit to expand the quota
+  const { data: chatbot } = await supabase
+    .from('chatbots')
+    .select('monthly_message_limit')
+    .eq('id', chatbotId)
+    .single();
+
+  if (chatbot) {
+    const currentLimit = (chatbot as any).monthly_message_limit || 0;
+    const newLimit = currentLimit + creditAmount;
+
+    await supabase
+      .from('chatbots')
+      .update({ monthly_message_limit: newLimit })
+      .eq('id', chatbotId);
+
+    console.log(`[CreditPurchase] Chatbot ${chatbotId}: increased monthly_message_limit from ${currentLimit} to ${newLimit} (+${creditAmount} purchased)`);
+  }
 }
 
 /**

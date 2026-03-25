@@ -25,8 +25,11 @@ export default function WidgetPage({ params }: WidgetPageProps) {
     sessionTtlHours?: number;
     feedbackConfig?: FeedbackConfig;
     creditExhausted?: boolean;
+    creditLow?: boolean;
+    creditRemaining?: number | null;
     creditExhaustionMode?: string;
     creditExhaustionConfig?: Record<string, unknown>;
+    creditPackages?: Array<{ id: string; name: string; creditAmount: number; priceCents: number; stripePriceId: string }>;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -116,8 +119,11 @@ export default function WidgetPage({ params }: WidgetPageProps) {
       userData={userData}
       userContext={userContext}
       creditExhausted={config.creditExhausted === true}
+      creditLow={config.creditLow === true}
+      creditRemaining={config.creditRemaining ?? null}
       creditExhaustionMode={config.creditExhaustionMode}
       creditExhaustionConfig={config.creditExhaustionConfig}
+      creditPackages={config.creditPackages}
     />
   );
 }

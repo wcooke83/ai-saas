@@ -269,11 +269,14 @@ interface ChatWidgetProps {
   userData?: Record<string, string> | null;
   userContext?: Record<string, unknown> | null;
   creditExhausted?: boolean;
+  creditLow?: boolean;
+  creditRemaining?: number | null;
   creditExhaustionMode?: string;
   creditExhaustionConfig?: Record<string, unknown>;
+  creditPackages?: Array<{ id: string; name: string; creditAmount: number; priceCents: number; stripePriceId: string }>;
 }
 
-export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, postChatSurveyConfig, language = 'en', fileUploadConfig, proactiveMessagesConfig, transcriptConfig, escalationConfig, feedbackConfig, liveHandoffConfig, agentsAvailable = false, memoryEnabled = false, sessionTtlHours, userData, userContext, creditExhausted = false, creditExhaustionMode = 'tickets', creditExhaustionConfig = {} }: ChatWidgetProps) {
+export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, postChatSurveyConfig, language = 'en', fileUploadConfig, proactiveMessagesConfig, transcriptConfig, escalationConfig, feedbackConfig, liveHandoffConfig, agentsAvailable = false, memoryEnabled = false, sessionTtlHours, userData, userContext, creditExhausted = false, creditLow = false, creditRemaining = null, creditExhaustionMode = 'tickets', creditExhaustionConfig = {}, creditPackages = [] }: ChatWidgetProps) {
   const [activeLanguage, setActiveLanguage] = useState(language);
   const t = getTranslations(activeLanguage);
   const tRef = useRef(t);
@@ -322,7 +325,26 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Chat disabled state (message limit reached or chatbot unavailable)
-  const [chatDisabled, setChatDisabled] = useState<'message_limit' | 'unavailable' | null>(null);
+  const [chatDisabled, setChatDisabled] = useState<'message_limit' | 'unavailable' | null>(
+    creditExhausted ? 'message_limit' : null
+  );
+
+  // If credits are already exhausted on mount, immediately show the fallback view
+  useEffect(() => {
+    if (creditExhausted && currentView === 'chat') {
+      const viewMap: Record<string, WidgetView> = {
+        tickets: 'ticket-form',
+        contact_form: 'contact-form',
+        purchase_credits: 'purchase-credits',
+        help_articles: 'help-articles',
+      };
+      const fallbackView = viewMap[creditExhaustionMode];
+      if (fallbackView) {
+        setChatDisabled('message_limit');
+        setCurrentView(fallbackView);
+      }
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- only on mount
 
   // Transcript state
   const transcriptEnabled = transcriptConfig?.enabled === true;
@@ -332,6 +354,11 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
   const [transcriptError, setTranscriptError] = useState('');
   const [showTranscriptInput, setShowTranscriptInput] = useState(false);
   const pendingSurveyAfterTranscript = useRef(false);
+
+  // Low credit warning state
+  const [lowCreditDismissed, setLowCreditDismissed] = useState(false);
+  const [showPurchaseOverlay, setShowPurchaseOverlay] = useState(false);
+  const showLowCreditBanner = creditLow && creditExhaustionMode === 'purchase_credits' && !lowCreditDismissed && !creditExhausted;
 
   // Feedback follow-up state
   const feedbackFollowUpEnabled = feedbackConfig?.follow_up_enabled === true;
@@ -754,7 +781,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
 
   // Helper to process welcome message with any placeholders from form data
   const processWelcomeMessage = useCallback((message: string): string => {
-    if (!preChatFormConfig || !preChatFormData) return message;
+    if (!preChatFormConfig || !preChatFormData || !preChatFormConfig.fields) return message;
 
     let processedMessage = message;
 
@@ -2522,6 +2549,58 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
           {/* Chat View */}
           {currentView === 'chat' && (
             <>
+              {/* Low credit warning banner */}
+              {showLowCreditBanner && (
+                <div className="chat-widget-low-credit-banner" style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
+                  padding: '8px 12px', backgroundColor: '#fef3c7', borderBottom: '1px solid #f59e0b',
+                  fontSize: '13px', color: '#92400e', flexShrink: 0,
+                }}>
+                  <span>
+                    You&apos;re running low on credits ({creditRemaining ?? 0} remaining).{' '}
+                    <button
+                      onClick={() => setShowPurchaseOverlay(true)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d97706', fontWeight: 600, fontSize: '13px', padding: 0, textDecoration: 'underline' }}
+                    >
+                      Purchase more &rarr;
+                    </button>
+                  </span>
+                  <button
+                    onClick={() => setLowCreditDismissed(true)}
+                    aria-label="Dismiss low credit warning"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#92400e', fontSize: '16px', lineHeight: 1, padding: '2px 4px', flexShrink: 0 }}
+                  >
+                    &times;
+                  </button>
+                </div>
+              )}
+
+              {/* Purchase overlay (shown from low credit banner) */}
+              {showPurchaseOverlay && (
+                <div className="chat-widget-purchase-overlay" style={{
+                  position: 'absolute', inset: 0, zIndex: 50,
+                  display: 'flex', flexDirection: 'column', backgroundColor: 'rgba(0,0,0,0.4)',
+                }}>
+                  <div style={{
+                    margin: '20px', borderRadius: '12px', backgroundColor: config.backgroundColor || '#fff',
+                    padding: '20px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                      <p style={{ fontSize: '15px', fontWeight: 600, color: config.textColor || '#0f172a' }}>Purchase More Credits</p>
+                      <button
+                        onClick={() => setShowPurchaseOverlay(false)}
+                        aria-label="Close purchase overlay"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: config.textColor || '#0f172a', fontSize: '20px', lineHeight: 1, padding: '4px' }}
+                      >
+                        &times;
+                      </button>
+                    </div>
+                    <FallbackPurchaseCredits chatbotId={chatbotId} packages={creditPackages} widgetConfig={config} />
+                  </div>
+                </div>
+              )}
+
               {/* Messages */}
               <div className="chat-widget-messages" ref={messagesContainerRef} role="log" aria-live="polite">
                 {/* Loading spinner for lazy-loaded history */}
@@ -3404,7 +3483,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
               <div className="chat-widget-ticket-form" style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
                 <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px', color: config.formTitleColor || '#0f172a' }}>{tc.title}</h3>
                 <p style={{ fontSize: '13px', color: config.formDescriptionColor || '#6b7280', marginBottom: '16px' }}>{tc.description}</p>
-                <FallbackTicketForm chatbotId={chatbotId} config={tc} widgetConfig={config} onSuccess={() => {}} />
+                <FallbackTicketForm chatbotId={chatbotId} config={tc} widgetConfig={config} onSuccess={() => {}} onBack={() => setCurrentView('chat')} />
               </div>
             );
           })()}
@@ -3413,10 +3492,10 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
           {currentView === 'contact-form' && (() => {
             const cc = { title: 'Contact Us', description: 'Leave us a message and we\'ll get back to you.', ...(creditExhaustionConfig as any)?.contact_form };
             return (
-              <div className="chat-widget-contact-form" style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
+              <div className="chat-widget-contact-form-wrapper" style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
                 <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px', color: config.formTitleColor || '#0f172a' }}>{cc.title}</h3>
                 <p style={{ fontSize: '13px', color: config.formDescriptionColor || '#6b7280', marginBottom: '16px' }}>{cc.description}</p>
-                <FallbackContactForm chatbotId={chatbotId} widgetConfig={config} onSuccess={() => {}} />
+                <FallbackContactForm chatbotId={chatbotId} widgetConfig={config} onSuccess={() => {}} onBack={() => setCurrentView('chat')} />
               </div>
             );
           })()}
@@ -3427,7 +3506,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
             return (
               <div className="chat-widget-purchase-view" style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
                 <p style={{ fontSize: '14px', color: config.textColor || '#0f172a', marginBottom: '16px' }}>{pc.upsellMessage}</p>
-                <FallbackPurchaseCredits chatbotId={chatbotId} packages={pc.packages || []} widgetConfig={config} />
+                <FallbackPurchaseCredits chatbotId={chatbotId} packages={creditPackages.length > 0 ? creditPackages : pc.packages} widgetConfig={config} />
               </div>
             );
           })()}
