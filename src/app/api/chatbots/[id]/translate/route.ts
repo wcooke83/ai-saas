@@ -93,7 +93,7 @@ ${prepared}`;
 
   try {
     const result = await generate(prompt, {
-      model: 'gpt-4o-mini', // Use a fast, cost-effective model for translations
+      model: 'fast', // Use a fast, cost-effective model for translations
       temperature: 0.3, // Lower temperature for more consistent translations
       maxTokens: 500,
     });
@@ -274,7 +274,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     // Translate Pre-Chat Form if provided
     if (input.preChatFormConfig) {
       result.preChatFormConfig = await translatePreChatForm(
-        input.preChatFormConfig as PreChatFormConfig,
+        input.preChatFormConfig as unknown as PreChatFormConfig,
         input.targetLanguage
       );
     }
@@ -282,7 +282,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     // Translate Post-Chat Survey if provided
     if (input.postChatSurveyConfig) {
       result.postChatSurveyConfig = await translatePostChatSurvey(
-        input.postChatSurveyConfig as PostChatSurveyConfig,
+        input.postChatSurveyConfig as unknown as PostChatSurveyConfig,
         input.targetLanguage
       );
     }

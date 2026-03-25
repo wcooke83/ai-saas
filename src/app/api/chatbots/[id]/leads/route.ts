@@ -68,7 +68,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     if (error instanceof APIError) {
       return new Response(
         JSON.stringify({ success: false, error: { message: error.message, code: error.code } }),
-        { status: error.status, headers: { 'Content-Type': 'application/json' } }
+        { status: (error as any).status ?? 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
     console.error('Leads API error:', error);

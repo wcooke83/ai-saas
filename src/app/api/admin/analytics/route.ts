@@ -71,8 +71,8 @@ export async function GET(req: NextRequest) {
       .select('status_code, created_at')
       .gte('created_at', startDate.toISOString());
 
-    const successfulCalls = (apiCalls || []).filter(call => call.status_code < 400).length;
-    const failedCalls = (apiCalls || []).filter(call => call.status_code >= 400).length;
+    const successfulCalls = (apiCalls || []).filter(call => (call.status_code ?? 0) < 400).length;
+    const failedCalls = (apiCalls || []).filter(call => (call.status_code ?? 0) >= 400).length;
 
     // Get top users by token usage
     const { data: topUsersData } = await supabase
@@ -82,7 +82,8 @@ export async function GET(req: NextRequest) {
 
     const userTokenMap: Record<string, number> = {};
     (topUsersData || []).forEach(log => {
-      userTokenMap[log.user_id] = (userTokenMap[log.user_id] || 0) + (log.tokens_total || 0);
+      const uid = log.user_id ?? 'unknown';
+      userTokenMap[uid] = (userTokenMap[uid] || 0) + (log.tokens_total || 0);
     });
 
     const topUsers = Object.entries(userTokenMap)
@@ -116,7 +117,8 @@ export async function GET(req: NextRequest) {
     // Plan distribution
     const planDistribution: Record<string, number> = {};
     (activeSubscriptions || []).forEach(sub => {
-      planDistribution[sub.plan] = (planDistribution[sub.plan] || 0) + 1;
+      const plan = sub.plan ?? 'unknown';
+      planDistribution[plan] = (planDistribution[plan] || 0) + 1;
     });
 
     return successResponse({
