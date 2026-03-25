@@ -1,14 +1,14 @@
 /**
  * E2E Tests: Calendar Booking Integration
  *
- * Tests the full calendar booking lifecycle against the live self-hosted Cal.com instance.
+ * Tests the full calendar booking lifecycle against the live Easy!Appointments instance.
  * Covers: setup/config, availability, booking CRUD, rescheduling, cancellation,
  * chat-driven bookings, dashboard UI, and database state.
  *
  * Prerequisites:
- * - Self-hosted Cal.com at CALCOM_BASE_URL with valid CALCOM_API_KEY
+ * - Easy!Appointments at EASY_APPOINTMENTS_URL with valid EASY_APPOINTMENTS_KEY
  * - E2E test chatbot (e2e00000-0000-0000-0000-000000000001) exists and is active
- * - Cal.com event type id=3 (30min) with Mon-Fri 9:00-17:00 AEST
+ * - At least one EA service and provider configured
  */
 
 import { test, expect } from '@playwright/test';
@@ -26,16 +26,54 @@ for (const line of envFile.split('\n')) {
 
 const DASHBOARD_CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
 const WIDGET_CHATBOT_ID = '10df2440-6aac-441a-855d-715c0ea8e506';
-const CALCOM_EVENT_TYPE_ID = '3';
 const TIMEZONE = 'Australia/Brisbane';
 const CHAT_URL = `/api/chat/${DASHBOARD_CHATBOT_ID}`;
 const CALENDAR_SETTINGS_URL = `/dashboard/chatbots/${DASHBOARD_CHATBOT_ID}/calendar`;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
+// Easy!Appointments API helpers
+const EA_BASE_URL = `${(process.env.EASY_APPOINTMENTS_URL || '').replace(/\/+$/, '')}/index.php/api/v1`;
+const EA_AUTH = `Basic ${process.env.EASY_APPOINTMENTS_KEY || ''}`;
+
 // Track resources for cleanup
 const createdIntegrationIds: string[] = [];
 const createdBookingIds: string[] = [];
+const createdEAAppointmentIds: number[] = [];
+
+// ── Easy!Appointments API helpers ──
+
+async function eaRequest<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const res = await fetch(`${EA_BASE_URL}${path}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: EA_AUTH,
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const contentType = res.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    return res.json();
+  }
+  return res.text() as unknown as T;
+}
+
+async function eaGetServices(): Promise<Array<{ id: number; name: string; duration: number }>> {
+  return eaRequest('GET', '/services');
+}
+
+async function eaGetProviders(): Promise<Array<{ id: number; firstName: string; lastName: string }>> {
+  return eaRequest('GET', '/providers');
+}
+
+async function eaCancelAppointment(appointmentId: number): Promise<void> {
+  try {
+    await eaRequest('DELETE', `/appointments/${appointmentId}`);
+  } catch (e) {
+    console.warn(`[Calendar E2E] Failed to cancel EA appointment ${appointmentId}:`, e);
+  }
+}
 
 // ── Supabase helpers ──
 
@@ -128,6 +166,21 @@ async function getLastAssistantMessage(page: import('@playwright/test').Page): P
 
 // ── Seed helpers ──
 
+/** Resolve an EA service_id and provider_id for seeding */
+let eaServiceId: string | null = null;
+let eaProviderId: string | null = null;
+
+async function resolveEAIds(): Promise<void> {
+  if (eaServiceId && eaProviderId) return;
+  try {
+    const [services, providers] = await Promise.all([eaGetServices(), eaGetProviders()]);
+    if (services.length > 0) eaServiceId = String(services[0].id);
+    if (providers.length > 0) eaProviderId = String(providers[0].id);
+  } catch (e) {
+    console.warn('[Calendar E2E] Failed to resolve EA IDs:', e);
+  }
+}
+
 async function seedCalendarIntegration(
   chatbotId: string,
   config: Record<string, unknown> = {}
@@ -145,12 +198,14 @@ async function seedCalendarIntegration(
     await supabaseDelete('calendar_integrations', 'id', existing.map((r: { id: string }) => r.id));
   }
 
+  await resolveEAIds();
+
   const integration = await supabaseInsert('calendar_integrations', {
     chatbot_id: chatbotId,
     user_id: chatbots[0].user_id,
-    provider: 'hosted_calcom',
+    provider: 'easy_appointments',
     is_active: true,
-    config: { event_type_id: CALCOM_EVENT_TYPE_ID, ...config },
+    config: { service_id: eaServiceId, provider_id: eaProviderId, ...config },
   });
 
   if (integration?.id) {
@@ -171,7 +226,7 @@ async function seedBooking(
   const booking = await supabaseInsert('calendar_bookings', {
     integration_id: integrationId,
     chatbot_id: DASHBOARD_CHATBOT_ID,
-    provider: 'hosted_calcom',
+    provider: 'easy_appointments',
     provider_booking_id: `e2e-booking-${Date.now()}`,
     status: 'confirmed',
     attendee_name: 'E2E Test User',
@@ -208,6 +263,7 @@ test.describe('Calendar Booking Integration', () => {
     integrationId = await seedCalendarIntegration(DASHBOARD_CHATBOT_ID);
     bookingDate = getNextWeekday();
     console.log('[Calendar E2E] Integration:', integrationId, '| Booking date:', bookingDate);
+    console.log('[Calendar E2E] EA service:', eaServiceId, '| EA provider:', eaProviderId);
 
     // Also seed widget chatbot integration for conversation tests
     const widgetChatbots = await supabaseSelect('chatbots', `id=eq.${WIDGET_CHATBOT_ID}&select=user_id`);
@@ -219,32 +275,26 @@ test.describe('Calendar Booking Integration', () => {
       const wi = await supabaseInsert('calendar_integrations', {
         chatbot_id: WIDGET_CHATBOT_ID,
         user_id: widgetChatbots[0].user_id,
-        provider: 'hosted_calcom',
+        provider: 'easy_appointments',
         is_active: true,
-        config: { event_type_id: CALCOM_EVENT_TYPE_ID },
+        config: { service_id: eaServiceId, provider_id: eaProviderId },
       });
       if (wi?.id) createdIntegrationIds.push(wi.id);
     }
   });
 
   test.afterAll(async () => {
-    // Cancel any live Cal.com bookings we created
+    // Cancel any live Easy!Appointments bookings we created
+    for (const eaId of createdEAAppointmentIds) {
+      await eaCancelAppointment(eaId);
+      console.log('[Calendar E2E] Cancelled EA appointment:', eaId);
+    }
     if (liveProviderBookingId) {
       try {
-        const calcomUrl = process.env.CALCOM_BASE_URL!;
-        const calcomKey = process.env.CALCOM_API_KEY!;
-        await fetch(`${calcomUrl}/api/v2/bookings/${liveProviderBookingId}/cancel`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${calcomKey}`,
-            'Content-Type': 'application/json',
-            'cal-api-version': '2024-06-14',
-          },
-          body: JSON.stringify({ cancellationReason: 'E2E test cleanup' }),
-        });
-        console.log('[Calendar E2E] Cancelled Cal.com booking:', liveProviderBookingId);
+        await eaRequest('DELETE', `/appointments/${liveProviderBookingId}`);
+        console.log('[Calendar E2E] Cancelled EA appointment:', liveProviderBookingId);
       } catch (e) {
-        console.warn('[Calendar E2E] Failed to cancel Cal.com booking:', e);
+        console.warn('[Calendar E2E] Failed to cancel EA appointment:', e);
       }
     }
 
@@ -256,10 +306,10 @@ test.describe('Calendar Booking Integration', () => {
   });
 
   // ═══════════════════════════════════════════════
-  // LIVE CAL.COM: Availability
+  // LIVE EASY!APPOINTMENTS: Availability
   // ═══════════════════════════════════════════════
 
-  test.describe('Live Cal.com Availability', () => {
+  test.describe('Live Easy!Appointments Availability', () => {
     test('CAL-100: Weekday returns available slots', async ({ request }) => {
       test.skip(!integrationId, 'No integration');
 
@@ -360,10 +410,10 @@ test.describe('Calendar Booking Integration', () => {
   });
 
   // ═══════════════════════════════════════════════
-  // LIVE CAL.COM: Booking Lifecycle
+  // LIVE EASY!APPOINTMENTS: Booking Lifecycle
   // ═══════════════════════════════════════════════
 
-  test.describe('Live Cal.com Booking Lifecycle', () => {
+  test.describe('Live Easy!Appointments Booking Lifecycle', () => {
     test('CAL-110: Create booking on available slot', async ({ request }) => {
       test.skip(!availableSlot, 'No slot available');
 
@@ -395,6 +445,7 @@ test.describe('Calendar Booking Integration', () => {
       liveBookingId = body.data.id;
       liveProviderBookingId = body.data.providerBookingId;
       createdBookingIds.push(liveBookingId!);
+      createdEAAppointmentIds.push(Number(liveProviderBookingId));
       console.log(`[CAL-110] Booking: ${liveBookingId}, provider: ${liveProviderBookingId}`);
     });
 
@@ -408,7 +459,7 @@ test.describe('Calendar Booking Integration', () => {
       expect(body.data.attendee_name).toBe('E2E Live Booker');
       expect(body.data.attendee_email).toBe('e2e-live@example.com');
       expect(body.data.chatbot_id).toBe(DASHBOARD_CHATBOT_ID);
-      expect(body.data.provider).toBe('hosted_calcom');
+      expect(body.data.provider).toBe('easy_appointments');
     });
 
     test('CAL-112: Booking appears in integration listing', async ({ request }) => {
@@ -449,7 +500,6 @@ test.describe('Calendar Booking Integration', () => {
           liveProviderBookingId = body.data.providerBookingId;
         }
       } else {
-        // Some Cal.com versions don't support reschedule via API
         console.log(`[CAL-113] Reschedule returned: ${res.status()}`);
         expect(res.status()).toBeLessThan(500);
       }
@@ -473,7 +523,7 @@ test.describe('Calendar Booking Integration', () => {
         expect(getBody.data.status).toBe('cancelled');
       }
       console.log(`[CAL-114] Booking cancelled: ${liveBookingId}`);
-      // Mark as cleaned up so afterAll doesn't double-cancel on Cal.com
+      // Mark as cleaned up so afterAll doesn't double-cancel on EA
       liveProviderBookingId = null;
     });
 
@@ -484,11 +534,7 @@ test.describe('Calendar Booking Integration', () => {
       expect(res.status()).toBeLessThan(500);
     });
 
-    test.skip('CAL-116: Second full lifecycle (create + cancel)', async ({ request }) => {
-      // Skipped: Cal.com availability race condition — previously booked slots
-      // from CAL-110 are consumed on the live instance, causing the service's
-      // double-booking check to reject the second booking. Requires Cal.com
-      // booking cleanup between test runs to work reliably.
+    test('CAL-116: Second full lifecycle (create + cancel)', async ({ request }) => {
       test.setTimeout(180_000);
       test.skip(!integrationId, 'No integration');
 
@@ -540,19 +586,9 @@ test.describe('Calendar Booking Integration', () => {
       expect(cancelRes.ok()).toBeTruthy();
       console.log(`[CAL-116] Second lifecycle complete: ${id2}`);
 
-      // Cleanup Cal.com side
+      // Cleanup EA side
       if (providerId2) {
-        try {
-          await fetch(`${process.env.CALCOM_BASE_URL}/api/v2/bookings/${providerId2}/cancel`, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${process.env.CALCOM_API_KEY}`,
-              'Content-Type': 'application/json',
-              'cal-api-version': '2024-06-14',
-            },
-            body: JSON.stringify({ cancellationReason: 'E2E cleanup' }),
-          });
-        } catch { /* ignore */ }
+        await eaCancelAppointment(Number(providerId2));
       }
     });
   });
@@ -633,17 +669,10 @@ test.describe('Calendar Booking Integration', () => {
       expect(res.ok()).toBeFalsy();
     });
 
-    test('CAL-128: Cal.com connect validates API key', async ({ request }) => {
-      const res = await request.post('/api/calendar/connect/calcom', {
-        data: { chatbotId: DASHBOARD_CHATBOT_ID, apiKey: 'invalid-key', baseUrl: 'https://api.cal.com' },
-      });
-      expect(res.status()).toBeGreaterThanOrEqual(400);
-    });
-
     test('CAL-129: Webhook rejects invalid signature', async ({ request }) => {
-      const res = await request.post('/api/calendar/webhook/calcom', {
-        data: { triggerEvent: 'BOOKING_CREATED', payload: { uid: 'test' } },
-        headers: { 'x-cal-signature-256': 'invalid' },
+      const res = await request.post('/api/calendar/webhook/easy_appointments', {
+        data: { triggerEvent: 'BOOKING_CREATED', payload: { id: 1 } },
+        headers: { Authorization: 'Basic invalid-credentials' },
       });
       expect(res.status()).toBe(401);
     });
@@ -667,8 +696,14 @@ test.describe('Calendar Booking Integration', () => {
       const res = await request.get(`/api/calendar/setup?chatbotId=${DASHBOARD_CHATBOT_ID}`);
       expect(res.ok()).toBeTruthy();
       const body = await res.json();
-      // May or may not have eventType/businessHours depending on whether setup POST was used
+      // Should include services and providers lists from EA
       expect(body.data).toBeDefined();
+      if (body.data.services) {
+        expect(Array.isArray(body.data.services)).toBe(true);
+      }
+      if (body.data.providers) {
+        expect(Array.isArray(body.data.providers)).toBe(true);
+      }
     });
 
     test('CAL-141: POST setup creates event type and business hours', async ({ request }) => {
@@ -695,18 +730,22 @@ test.describe('Calendar Booking Integration', () => {
             { dayOfWeek: 5, startTime: '09:00', endTime: '17:00', isEnabled: true },
             { dayOfWeek: 6, startTime: '09:00', endTime: '17:00', isEnabled: false },
           ],
+          serviceId: eaServiceId || undefined,
+          providerId: eaProviderId || undefined,
         },
       });
 
       if (res.ok()) {
         const body = await res.json();
-        expect(body.data?.provider_event_type_id).toBeTruthy();
-        expect(body.data?.provider_schedule_id).toBeTruthy();
-        console.log(`[CAL-141] Provisioned event type: ${body.data.provider_event_type_id}`);
+        expect(body.data?.integration_id).toBeTruthy();
+        console.log(`[CAL-141] Setup saved, integration: ${body.data.integration_id}`);
+        if (body.data.service_id) {
+          console.log(`[CAL-141] service_id: ${body.data.service_id}, provider_id: ${body.data.provider_id}`);
+        }
       } else {
         const errText = await res.text().catch(() => '');
         console.log(`[CAL-141] Setup POST returned ${res.status()}: ${errText.slice(0, 300)}`);
-        // Setup may fail if Cal.com rejects the slug or has rate limits
+        // Setup may fail if EA is not configured
         expect(res.status()).toBeLessThan(500);
       }
     });
@@ -724,6 +763,68 @@ test.describe('Calendar Booking Integration', () => {
         expect(monday?.isEnabled).toBe(true);
         const sunday = body.data.businessHours.find((h: { dayOfWeek: number }) => h.dayOfWeek === 0);
         expect(sunday?.isEnabled).toBe(false);
+      }
+    });
+
+    test('CAL-143: GET setup returns EA services and providers', async ({ request }) => {
+      test.skip(!integrationId, 'No integration');
+
+      const res = await request.get(`/api/calendar/setup?chatbotId=${DASHBOARD_CHATBOT_ID}`);
+      expect(res.ok()).toBeTruthy();
+      const body = await res.json();
+
+      // EA services should have id, name, duration
+      if (body.data?.services?.length > 0) {
+        expect(body.data.services[0]).toHaveProperty('id');
+        expect(body.data.services[0]).toHaveProperty('name');
+        expect(body.data.services[0]).toHaveProperty('duration');
+      }
+
+      // EA providers should have id, firstName, lastName
+      if (body.data?.providers?.length > 0) {
+        expect(body.data.providers[0]).toHaveProperty('id');
+        expect(body.data.providers[0]).toHaveProperty('firstName');
+        expect(body.data.providers[0]).toHaveProperty('lastName');
+      }
+    });
+
+    test('CAL-144: POST setup persists serviceId and providerId', async ({ request }) => {
+      test.skip(!eaServiceId || !eaProviderId, 'No EA service/provider IDs');
+
+      const res = await request.post('/api/calendar/setup', {
+        data: {
+          chatbotId: DASHBOARD_CHATBOT_ID,
+          eventType: {
+            title: 'EA Config Test',
+            slug: `ea-config-${Date.now()}`,
+            durationMinutes: 30,
+            bufferBeforeMinutes: 0,
+            bufferAfterMinutes: 0,
+            minNoticeHours: 1,
+            maxDaysAhead: 30,
+            timezone: TIMEZONE,
+          },
+          businessHours: [
+            { dayOfWeek: 0, startTime: '09:00', endTime: '17:00', isEnabled: false },
+            { dayOfWeek: 1, startTime: '09:00', endTime: '17:00', isEnabled: true },
+            { dayOfWeek: 2, startTime: '09:00', endTime: '17:00', isEnabled: true },
+            { dayOfWeek: 3, startTime: '09:00', endTime: '17:00', isEnabled: true },
+            { dayOfWeek: 4, startTime: '09:00', endTime: '17:00', isEnabled: true },
+            { dayOfWeek: 5, startTime: '09:00', endTime: '17:00', isEnabled: true },
+            { dayOfWeek: 6, startTime: '09:00', endTime: '17:00', isEnabled: false },
+          ],
+          serviceId: eaServiceId,
+          providerId: eaProviderId,
+        },
+      });
+
+      if (res.ok()) {
+        // Verify via GET
+        const getRes = await request.get(`/api/calendar/setup?chatbotId=${DASHBOARD_CHATBOT_ID}`);
+        expect(getRes.ok()).toBeTruthy();
+        const getBody = await getRes.json();
+        expect(String(getBody.data?.serviceId)).toBe(eaServiceId);
+        expect(String(getBody.data?.providerId)).toBe(eaProviderId);
       }
     });
   });
@@ -895,60 +996,62 @@ test.describe('Calendar Booking Integration', () => {
       await expect(page.getByText('Calendar Booking').first()).toBeVisible({ timeout: 20000 });
     });
 
-    test('CAL-171: Provider selector shows three options', async ({ page }) => {
+    test('CAL-171: Easy!Appointments connection card visible', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(2000);
 
-      await expect(page.getByText('Hosted Calendar').first()).toBeVisible({ timeout: 10000 });
-      await expect(page.getByText('Your Cal.com').first()).toBeVisible();
-      await expect(page.getByText('Calendly').first()).toBeVisible();
+      await expect(page.getByText('Easy!Appointments Connection').first()).toBeVisible({ timeout: 10000 });
     });
 
-    test('CAL-172: Selecting hosted shows appointment settings and business hours', async ({ page }) => {
+    test('CAL-172: Service and provider dropdowns visible', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(2000);
 
-      await page.getByRole('button', { name: /Hosted Calendar/i }).click();
-      await page.waitForTimeout(500);
+      // Service dropdown
+      const serviceSelect = page.locator('#ea-service');
+      if (await serviceSelect.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await expect(serviceSelect).toBeVisible();
+        // Should have "Select a service..." placeholder
+        await expect(serviceSelect.locator('option').first()).toContainText('Select a service');
+      }
 
+      // Provider dropdown
+      const providerSelect = page.locator('#ea-provider');
+      if (await providerSelect.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await expect(providerSelect).toBeVisible();
+        await expect(providerSelect.locator('option').first()).toContainText('Select a provider');
+      }
+
+      // Appointment settings and availability sections
       await expect(page.locator('text=Appointment Settings')).toBeVisible({ timeout: 5000 });
       await expect(page.locator('text=Availability')).toBeVisible();
-      await expect(page.locator('text=Business Hours')).toBeVisible();
+    });
+
+    test('CAL-173: Appointment settings form elements visible', async ({ page }) => {
+      await page.goto(CALENDAR_SETTINGS_URL);
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(2000);
+
+      await expect(page.locator('text=Appointment Settings')).toBeVisible({ timeout: 5000 });
       // Duration selector
       await expect(page.locator('#et-duration')).toBeVisible();
       // Timezone selector
       await expect(page.locator('#et-tz')).toBeVisible();
     });
 
-    test('CAL-173: Other providers disabled when connected', async ({ page }) => {
+    test('CAL-174: Connected integration shows status', async ({ page }) => {
       test.skip(!integrationId, 'No integration');
 
       await page.goto(CALENDAR_SETTINGS_URL);
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(2000);
 
-      // When hosted_calcom is connected, other providers should be disabled
-      const calcomBtn = page.getByRole('radio', { name: /Your Cal\.com/i });
-      const calendlyBtn = page.getByRole('radio', { name: /Calendly/i });
-
-      if (await calcomBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await expect(calcomBtn).toBeDisabled();
-      }
-      if (await calendlyBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await expect(calendlyBtn).toBeDisabled();
-      }
-    });
-
-    test('CAL-174: Connected provider shows "Connected" badge', async ({ page }) => {
-      test.skip(!integrationId, 'No integration');
-
-      await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
-
-      await expect(page.getByText('Connected').first()).toBeVisible({ timeout: 5000 });
+      // Should show "Calendar Active" badge or connection status
+      await expect(
+        page.getByText('Calendar Active').or(page.getByText('Easy!Appointments')).first()
+      ).toBeVisible({ timeout: 5000 });
     });
 
     test('CAL-175: Booking history section renders', async ({ page }) => {
@@ -993,8 +1096,12 @@ test.describe('Calendar Booking Integration', () => {
       const rows = await supabaseSelect('calendar_integrations', `id=eq.${integrationId}&select=*`);
       expect(rows).toHaveLength(1);
       expect(rows[0].chatbot_id).toBe(DASHBOARD_CHATBOT_ID);
-      expect(rows[0].provider).toBe('hosted_calcom');
+      expect(rows[0].provider).toBe('easy_appointments');
       expect(rows[0].is_active).toBe(true);
+      // Config should contain service_id and provider_id
+      const config = rows[0].config as Record<string, unknown>;
+      if (eaServiceId) expect(String(config.service_id)).toBe(eaServiceId);
+      if (eaProviderId) expect(String(config.provider_id)).toBe(eaProviderId);
     });
 
     test('CAL-181: Booking records persist correctly', async () => {
@@ -1086,15 +1193,15 @@ test.describe('Calendar Booking Integration', () => {
       const tmp = await supabaseInsert('calendar_integrations', {
         chatbot_id: DASHBOARD_CHATBOT_ID,
         user_id: userId,
-        provider: 'calendly',
+        provider: 'easy_appointments',
         is_active: false,
-        config: { access_token: 'test' },
+        config: { service_id: null, provider_id: null },
       });
 
       const tmpBooking = await supabaseInsert('calendar_bookings', {
         integration_id: tmp.id,
         chatbot_id: DASHBOARD_CHATBOT_ID,
-        provider: 'calendly',
+        provider: 'easy_appointments',
         status: 'pending',
         attendee_name: 'Cascade',
         attendee_email: 'cascade@test.local',

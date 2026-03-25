@@ -100,6 +100,8 @@ ANTHROPIC_API_KEY          # Primary AI provider
 OPENAI_API_KEY             # Fallback + embeddings
 STRIPE_SECRET_KEY
 STRIPE_WEBHOOK_SECRET
+EASY_APPOINTMENTS_URL       # Easy!Appointments instance URL
+EASY_APPOINTMENTS_KEY       # Base64-encoded Basic Auth credentials
 ```
 
 Set `AI_MOCK_MODE=true` to force mock AI responses during development.

@@ -1,6 +1,6 @@
 /**
  * Calendar Setup API
- * POST /api/calendar/setup - Create/update event type + business hours + provision on Cal.com
+ * POST /api/calendar/setup - Create/update event type + business hours for Easy!Appointments
  * GET  /api/calendar/setup?chatbotId=xxx - Get current event type + business hours config
  */
 
@@ -9,8 +9,8 @@ import { z } from 'zod';
 import { authenticate } from '@/lib/auth/session';
 import { successResponse, errorResponse, APIError, parseBody } from '@/lib/api/utils';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { CalcomAdminAPI, toCalcomDay } from '@/lib/calendar/calcom-admin';
-import type { BusinessHoursEntry, EventTypeConfig } from '@/lib/calendar/types';
+import { EasyAppointmentsAdapter } from '@/lib/calendar/providers/easy-appointments';
+import type { BusinessHoursEntry } from '@/lib/calendar/types';
 
 const businessHoursSchema = z.array(z.object({
   dayOfWeek: z.number().min(0).max(6),
@@ -35,6 +35,8 @@ const setupSchema = z.object({
   chatbotId: z.string().uuid(),
   eventType: eventTypeSchema,
   businessHours: businessHoursSchema,
+  serviceId: z.string().optional(),
+  providerId: z.string().optional(),
 });
 
 export async function GET(req: NextRequest) {
@@ -61,13 +63,13 @@ export async function GET(req: NextRequest) {
     // Get active integration
     const { data: integration } = await supabase
       .from('calendar_integrations')
-      .select('id')
+      .select('id, config')
       .eq('chatbot_id', chatbotId)
       .eq('is_active', true)
       .maybeSingle();
 
     if (!integration) {
-      return successResponse({ eventType: null, businessHours: null });
+      return successResponse({ eventType: null, businessHours: null, services: [], providers: [] });
     }
 
     // Get event type and business hours
@@ -93,6 +95,18 @@ export async function GET(req: NextRequest) {
       isEnabled: row.is_enabled as boolean,
     }));
 
+    // Fetch available services and providers from EA
+    let services: Array<{ id: number; name: string; duration: number }> = [];
+    let providers: Array<{ id: number; firstName: string; lastName: string }> = [];
+    try {
+      const ea = new EasyAppointmentsAdapter({});
+      [services, providers] = await Promise.all([ea.getServices(), ea.getProviders()]);
+    } catch {
+      // EA might not be configured yet
+    }
+
+    const config = integration.config as Record<string, unknown>;
+
     return successResponse({
       eventType: eventType ? {
         title: eventType.title,
@@ -104,10 +118,12 @@ export async function GET(req: NextRequest) {
         minNoticeHours: eventType.min_notice_hours,
         maxDaysAhead: eventType.max_days_ahead,
         timezone: eventType.timezone,
-        providerEventTypeId: eventType.provider_event_type_id,
-        providerScheduleId: eventType.provider_schedule_id,
       } : null,
       businessHours: businessHours.length > 0 ? businessHours : null,
+      serviceId: config.service_id || null,
+      providerId: config.provider_id || null,
+      services,
+      providers,
     });
   } catch (error) {
     return errorResponse(error);
@@ -133,17 +149,27 @@ export async function POST(req: NextRequest) {
       throw APIError.notFound('Chatbot not found');
     }
 
+    // Validate EA connection
+    const ea = new EasyAppointmentsAdapter({
+      service_id: input.serviceId,
+      provider_id: input.providerId,
+    });
+    const validation = await ea.validateConfig();
+    if (!validation.valid) {
+      throw APIError.badRequest(validation.error || 'Easy!Appointments connection failed');
+    }
+
     // Get or create integration
     let { data: integration } = await supabase
       .from('calendar_integrations')
       .select('id, config')
       .eq('chatbot_id', input.chatbotId)
-      .eq('provider', 'hosted_calcom')
+      .eq('provider', 'easy_appointments')
       .eq('is_active', true)
       .maybeSingle();
 
     if (!integration) {
-      // Deactivate other integrations, create hosted one
+      // Deactivate other integrations, create new one
       await supabase
         .from('calendar_integrations')
         .update({ is_active: false })
@@ -154,105 +180,30 @@ export async function POST(req: NextRequest) {
         .insert({
           chatbot_id: input.chatbotId,
           user_id: user.id,
-          provider: 'hosted_calcom',
+          provider: 'easy_appointments',
           is_active: true,
-          config: {},
+          config: {
+            service_id: input.serviceId || null,
+            provider_id: input.providerId || null,
+          },
         })
         .select('id, config')
         .single();
 
       if (error) throw error;
       integration = newInt;
-    }
-
-    // Check for existing event type config
-    const { data: existingEventType } = await supabase
-      .from('calendar_event_types')
-      .select('provider_event_type_id, provider_schedule_id')
-      .eq('integration_id', integration.id)
-      .eq('is_active', true)
-      .maybeSingle();
-
-    // Provision on Cal.com
-    const calcom = new CalcomAdminAPI();
-    const enabledHours = input.businessHours.filter(h => h.isEnabled);
-
-    // Group consecutive days with same hours
-    const availabilityBlocks: Array<{ days: string[]; startTime: string; endTime: string }> = [];
-    for (const h of enabledHours) {
-      const existing = availabilityBlocks.find(
-        b => b.startTime === h.startTime && b.endTime === h.endTime
-      );
-      if (existing) {
-        existing.days.push(toCalcomDay(h.dayOfWeek));
-      } else {
-        availabilityBlocks.push({
-          days: [toCalcomDay(h.dayOfWeek)],
-          startTime: h.startTime,
-          endTime: h.endTime,
-        });
-      }
-    }
-
-    let providerScheduleId = existingEventType?.provider_schedule_id;
-    let providerEventTypeId = existingEventType?.provider_event_type_id;
-
-    if (providerScheduleId) {
-      // Update existing schedule
-      await calcom.updateSchedule(Number(providerScheduleId), {
-        name: `${input.eventType.title} Schedule`,
-        timeZone: input.eventType.timezone,
-        availability: availabilityBlocks,
-      });
     } else {
-      // Create new schedule
-      const schedule = await calcom.createSchedule({
-        name: `${input.eventType.title} Schedule`,
-        timeZone: input.eventType.timezone,
-        isDefault: false,
-        availability: availabilityBlocks,
-      });
-      providerScheduleId = String(schedule.id);
+      // Update config with service/provider IDs
+      await supabase
+        .from('calendar_integrations')
+        .update({
+          config: {
+            service_id: input.serviceId || null,
+            provider_id: input.providerId || null,
+          },
+        })
+        .eq('id', integration.id);
     }
-
-    if (providerEventTypeId) {
-      // Update existing event type
-      await calcom.updateEventType(Number(providerEventTypeId), {
-        title: input.eventType.title,
-        slug: input.eventType.slug || input.eventType.title.toLowerCase().replace(/\s+/g, '-'),
-        lengthInMinutes: input.eventType.durationMinutes,
-        description: input.eventType.description,
-        scheduleId: Number(providerScheduleId),
-        beforeEventBuffer: input.eventType.bufferBeforeMinutes,
-        afterEventBuffer: input.eventType.bufferAfterMinutes,
-        minimumBookingNotice: input.eventType.minNoticeHours * 60,
-      });
-    } else {
-      // Create new event type
-      const eventType = await calcom.createEventType({
-        title: input.eventType.title,
-        slug: input.eventType.slug || input.eventType.title.toLowerCase().replace(/\s+/g, '-'),
-        lengthInMinutes: input.eventType.durationMinutes,
-        description: input.eventType.description,
-        scheduleId: Number(providerScheduleId),
-        beforeEventBuffer: input.eventType.bufferBeforeMinutes,
-        afterEventBuffer: input.eventType.bufferAfterMinutes,
-        minimumBookingNotice: input.eventType.minNoticeHours * 60,
-      });
-      providerEventTypeId = String(eventType.id);
-    }
-
-    // Update integration config with provider IDs
-    await supabase
-      .from('calendar_integrations')
-      .update({
-        config: {
-          ...(integration.config as Record<string, unknown>),
-          event_type_id: providerEventTypeId,
-          provider_schedule_id: providerScheduleId,
-        },
-      })
-      .eq('id', integration.id);
 
     // Replace local event type record
     await supabase
@@ -264,8 +215,6 @@ export async function POST(req: NextRequest) {
       .from('calendar_event_types')
       .insert({
         integration_id: integration.id,
-        provider_event_type_id: providerEventTypeId,
-        provider_schedule_id: providerScheduleId,
         title: input.eventType.title,
         slug: input.eventType.slug || input.eventType.title.toLowerCase().replace(/\s+/g, '-'),
         description: input.eventType.description || null,
@@ -287,7 +236,6 @@ export async function POST(req: NextRequest) {
       is_enabled: h.isEnabled,
     }));
 
-    // Delete existing and insert fresh (simpler than upsert for 7 rows)
     await supabase
       .from('calendar_business_hours')
       .delete()
@@ -299,8 +247,8 @@ export async function POST(req: NextRequest) {
 
     return successResponse({
       integration_id: integration.id,
-      provider_event_type_id: providerEventTypeId,
-      provider_schedule_id: providerScheduleId,
+      service_id: input.serviceId,
+      provider_id: input.providerId,
     });
   } catch (error) {
     return errorResponse(error);

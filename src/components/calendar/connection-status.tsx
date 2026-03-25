@@ -26,9 +26,7 @@ export function ConnectionStatus({ integration, onDisconnect, onTest, testing }:
   }
 
   const providerLabels: Record<string, string> = {
-    hosted_calcom: 'Hosted Calendar',
-    customer_calcom: 'Cal.com',
-    calendly: 'Calendly',
+    easy_appointments: 'Easy!Appointments',
   };
 
   return (

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Menu, X, Home, Key, BarChart3, Settings, LogOut, User, CreditCard, Bot, Plug, Shield, ChevronDown, ChevronLeft, ChevronRight, Cpu, FileText, Mail, PenTool, MessageSquare, Megaphone, Share2, Package, Gift, BookOpen } from 'lucide-react';
+import { Menu, X, Home, Key, BarChart3, Settings, LogOut, User, CreditCard, Bot, Plug, Shield, ChevronDown, ChevronLeft, ChevronRight, Cpu, FileText, Mail, PenTool, MessageSquare, Megaphone, Share2, Package, Gift, BookOpen, Coins, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggleSimple } from '@/components/ui/theme-toggle';
 import { useFocusTrap } from '@/hooks/use-focus-trap';
@@ -47,8 +47,11 @@ const adminNavItem: NavItem = {
   label: 'Admin',
   icon: Shield,
   children: [
+    { href: '/admin', label: 'Overview', icon: Shield },
     { href: '/admin/ai-config', label: 'AI Config', icon: Cpu },
     { href: '/admin/plans', label: 'Plans', icon: Package },
+    { href: '/admin/credits', label: 'Credits', icon: Coins },
+    { href: '/admin/credit-packages', label: 'Credit Packages', icon: ShoppingBag },
     { href: '/admin/trials', label: 'Trial Links', icon: Gift },
     { href: '/admin/logs', label: 'Logs', icon: FileText },
   ],
@@ -66,7 +69,17 @@ export default function DashboardLayout({
   const [loading, setLoading] = useState(true);
   const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
   const [activeChatbotName, setActiveChatbotName] = useState<string | null>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
   const pathname = usePathname();
+
+  // Track desktop breakpoint for aria-hidden
+  useEffect(() => {
+    const mql = window.matchMedia('(min-width: 1024px)');
+    setIsDesktop(mql.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
 
   // Load collapsed state from localStorage
   useEffect(() => {
@@ -229,7 +242,7 @@ export default function DashboardLayout({
         )}
         style={{ backgroundColor: 'rgb(var(--card-bg))' }}
         aria-label="Sidebar navigation"
-        aria-hidden={!sidebarOpen ? 'true' : undefined}
+        aria-hidden={!isDesktop && !sidebarOpen ? 'true' : undefined}
       >
         <div className="flex flex-col h-full overflow-hidden">
           {/* Logo */}

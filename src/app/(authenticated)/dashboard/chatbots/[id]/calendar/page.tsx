@@ -7,16 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Label } from '@/components/ui/label';
 import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
-import { ProviderSelector } from '@/components/calendar/provider-selector';
-import { CalcomConnectForm } from '@/components/calendar/calcom-connect-form';
-import { CalendlyOAuthButton } from '@/components/calendar/calendly-oauth-button';
 import { ConnectionStatus } from '@/components/calendar/connection-status';
 import { BookingHistory } from '@/components/calendar/booking-history';
 import { BusinessHoursEditor } from '@/components/calendar/business-hours-editor';
 import { EventTypeConfigForm } from '@/components/calendar/event-type-config';
 import type {
-  CalendarProvider,
   CalendarIntegration,
   CalendarBooking,
   BusinessHoursEntry,
@@ -28,16 +25,33 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+interface EAService {
+  id: number;
+  name: string;
+  duration: number;
+}
+
+interface EAProvider {
+  id: number;
+  firstName: string;
+  lastName: string;
+}
+
 export default function CalendarSettingsPage({ params }: PageProps) {
   const { id: chatbotId } = use(params);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState<CalendarProvider | null>(null);
   const [integration, setIntegration] = useState<CalendarIntegration | null>(null);
   const [bookings, setBookings] = useState<CalendarBooking[]>([]);
 
-  // Hosted Cal.com config
+  // Easy!Appointments config
+  const [services, setServices] = useState<EAService[]>([]);
+  const [providers, setProviders] = useState<EAProvider[]>([]);
+  const [selectedServiceId, setSelectedServiceId] = useState<string>('');
+  const [selectedProviderId, setSelectedProviderId] = useState<string>('');
+
+  // Event type + business hours config
   const [eventTypeConfig, setEventTypeConfig] = useState<EventTypeConfig>({
     ...DEFAULT_EVENT_TYPE,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -53,11 +67,8 @@ export default function CalendarSettingsPage({ params }: PageProps) {
       const int = data.data?.integration;
       setIntegration(int || null);
       setBookings(data.data?.bookings || []);
-      if (int) {
-        setSelectedProvider(int.provider);
-      }
 
-      // Fetch setup config (event type + business hours)
+      // Fetch setup config (event type + business hours + EA services/providers)
       const setupRes = await fetch(`/api/calendar/setup?chatbotId=${chatbotId}`);
       if (setupRes.ok) {
         const setupData = await setupRes.json();
@@ -66,6 +77,18 @@ export default function CalendarSettingsPage({ params }: PageProps) {
         }
         if (setupData.data?.businessHours) {
           setBusinessHours(setupData.data.businessHours);
+        }
+        if (setupData.data?.services) {
+          setServices(setupData.data.services);
+        }
+        if (setupData.data?.providers) {
+          setProviders(setupData.data.providers);
+        }
+        if (setupData.data?.serviceId) {
+          setSelectedServiceId(String(setupData.data.serviceId));
+        }
+        if (setupData.data?.providerId) {
+          setSelectedProviderId(String(setupData.data.providerId));
         }
       }
     } catch {
@@ -79,21 +102,7 @@ export default function CalendarSettingsPage({ params }: PageProps) {
     fetchData();
   }, [fetchData]);
 
-  // Check URL for connection success
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('connected')) {
-      toast.success(`${urlParams.get('connected')} connected successfully!`);
-      window.history.replaceState({}, '', window.location.pathname);
-      fetchData();
-    }
-    if (urlParams.get('error')) {
-      toast.error('Connection failed. Please try again.');
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-  }, [fetchData]);
-
-  async function handleSaveHosted() {
+  async function handleSave() {
     setSaving(true);
     try {
       const res = await fetch('/api/calendar/setup', {
@@ -103,6 +112,8 @@ export default function CalendarSettingsPage({ params }: PageProps) {
           chatbotId,
           eventType: eventTypeConfig,
           businessHours,
+          serviceId: selectedServiceId || undefined,
+          providerId: selectedProviderId || undefined,
         }),
       });
       if (!res.ok) {
@@ -127,7 +138,6 @@ export default function CalendarSettingsPage({ params }: PageProps) {
       if (!res.ok) throw new Error('Failed to disconnect');
       toast.success('Calendar disconnected');
       setIntegration(null);
-      setSelectedProvider(null);
     } catch {
       toast.error('Failed to disconnect');
     }
@@ -181,11 +191,7 @@ export default function CalendarSettingsPage({ params }: PageProps) {
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-24 rounded-lg" />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Skeleton className="h-28 rounded-lg" />
-          <Skeleton className="h-28 rounded-lg" />
-          <Skeleton className="h-28 rounded-lg" />
-        </div>
+        <Skeleton className="h-40 rounded-lg" />
         <Skeleton className="h-40 rounded-lg" />
       </div>
     );
@@ -215,86 +221,93 @@ export default function CalendarSettingsPage({ params }: PageProps) {
         />
       )}
 
-      {/* Provider Selection */}
+      {/* Easy!Appointments Service & Provider Selection */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Calendar Provider</CardTitle>
-          <CardDescription>Choose how you want to manage your booking calendar.</CardDescription>
+          <CardTitle className="text-base">Easy!Appointments Connection</CardTitle>
+          <CardDescription>
+            Select the service and provider from your Easy!Appointments instance.
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <ProviderSelector
-            selected={selectedProvider}
-            connectedProvider={integration?.provider as CalendarProvider | undefined}
-            onSelect={setSelectedProvider}
-          />
+        <CardContent className="space-y-4">
+          {services.length > 0 ? (
+            <div>
+              <Label htmlFor="ea-service">Service</Label>
+              <select
+                id="ea-service"
+                value={selectedServiceId}
+                onChange={(e) => setSelectedServiceId(e.target.value)}
+                className="mt-1 block w-full rounded-md border border-secondary-300 dark:border-secondary-600 bg-white dark:bg-secondary-800 px-3 py-2 text-sm text-secondary-900 dark:text-secondary-100 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+              >
+                <option value="">Select a service...</option>
+                {services.map((s) => (
+                  <option key={s.id} value={String(s.id)}>
+                    {s.name} ({s.duration} min)
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <p className="text-sm text-secondary-500">
+              No services found. Make sure Easy!Appointments is configured and has at least one service.
+            </p>
+          )}
+
+          {providers.length > 0 && (
+            <div>
+              <Label htmlFor="ea-provider">Provider</Label>
+              <select
+                id="ea-provider"
+                value={selectedProviderId}
+                onChange={(e) => setSelectedProviderId(e.target.value)}
+                className="mt-1 block w-full rounded-md border border-secondary-300 dark:border-secondary-600 bg-white dark:bg-secondary-800 px-3 py-2 text-sm text-secondary-900 dark:text-secondary-100 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+              >
+                <option value="">Select a provider...</option>
+                {providers.map((p) => (
+                  <option key={p.id} value={String(p.id)}>
+                    {p.firstName} {p.lastName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Hosted Cal.com — Event Type + Business Hours */}
-      {selectedProvider === 'hosted_calcom' && (
-        <>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Appointment Settings</CardTitle>
-              <CardDescription>Configure what type of appointments can be booked through your chatbot.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <EventTypeConfigForm value={eventTypeConfig} onChange={setEventTypeConfig} />
-            </CardContent>
-          </Card>
+      {/* Appointment Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Appointment Settings</CardTitle>
+          <CardDescription>Configure what type of appointments can be booked through your chatbot.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <EventTypeConfigForm value={eventTypeConfig} onChange={setEventTypeConfig} />
+        </CardContent>
+      </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Availability</CardTitle>
-              <CardDescription>Set which days and times you accept bookings.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <BusinessHoursEditor value={businessHours} onChange={setBusinessHours} />
-            </CardContent>
-          </Card>
+      {/* Availability / Business Hours */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Availability</CardTitle>
+          <CardDescription>Set which days and times you accept bookings.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <BusinessHoursEditor value={businessHours} onChange={setBusinessHours} />
+        </CardContent>
+      </Card>
 
-          <div className="flex gap-3">
-            <Button onClick={handleSaveHosted} disabled={saving}>
-              {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {integration?.provider === 'hosted_calcom' ? 'Update' : 'Enable'} Calendar
-            </Button>
-            {integration?.provider === 'hosted_calcom' && (
-              <Button variant="outline" onClick={handleTest} disabled={testing}>
-                {testing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Test Connection
-              </Button>
-            )}
-          </div>
-        </>
-      )}
-
-      {selectedProvider === 'customer_calcom' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Connect Your Cal.com</CardTitle>
-            <CardDescription>Enter your Cal.com API key and instance URL.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CalcomConnectForm chatbotId={chatbotId} onConnected={fetchData} />
-          </CardContent>
-        </Card>
-      )}
-
-      {selectedProvider === 'calendly' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Connect Calendly</CardTitle>
-            <CardDescription>Authorize access to your Calendly account.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {integration?.provider === 'calendly' ? (
-              <p className="text-sm text-green-600">Calendly is connected.</p>
-            ) : (
-              <CalendlyOAuthButton chatbotId={chatbotId} />
-            )}
-          </CardContent>
-        </Card>
-      )}
+      <div className="flex gap-3">
+        <Button onClick={handleSave} disabled={saving}>
+          {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          {integration ? 'Update' : 'Enable'} Calendar
+        </Button>
+        {integration && (
+          <Button variant="outline" onClick={handleTest} disabled={testing}>
+            {testing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            Test Connection
+          </Button>
+        )}
+      </div>
 
       {/* Booking History */}
       <Card>

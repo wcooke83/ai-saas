@@ -72,17 +72,6 @@ export async function handleCalendarToolCall(
           }
         );
 
-        if (booking.schedulingUrl) {
-          // Calendly case - return scheduling link
-          return JSON.stringify({
-            success: true,
-            status: 'pending',
-            message: 'Please complete your booking using the link below.',
-            scheduling_url: booking.schedulingUrl,
-            booking_id: booking.id,
-          });
-        }
-
         return JSON.stringify({
           success: true,
           status: booking.status,

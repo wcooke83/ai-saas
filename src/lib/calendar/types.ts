@@ -1,9 +1,9 @@
 /**
  * Calendar Booking Integration Types
- * Unified interface for Cal.com (hosted + customer) and Calendly providers
+ * Unified interface for Easy!Appointments provider
  */
 
-export type CalendarProvider = 'hosted_calcom' | 'customer_calcom' | 'calendly';
+export type CalendarProvider = 'easy_appointments';
 
 export interface TimeSlot {
   start: string; // ISO 8601
@@ -14,7 +14,7 @@ export interface AvailabilityRequest {
   dateFrom: string;  // YYYY-MM-DD
   dateTo: string;    // YYYY-MM-DD
   timezone: string;  // IANA timezone
-  duration?: number; // minutes, defaults to event type duration
+  duration?: number; // minutes, defaults to service duration
 }
 
 export interface AvailabilityResponse {
@@ -39,7 +39,6 @@ export interface BookingResponse {
   start: string;
   end: string;
   meetingUrl?: string;
-  schedulingUrl?: string; // For Calendly where direct booking isn't possible
   attendeeName: string;
   attendeeEmail: string;
 }
@@ -105,12 +104,10 @@ export interface CalendarAvailabilityCache {
   expires_at: string;
 }
 
-// Config types for each provider
-export interface HostedCalcomConfig {
-  calcom_user_id?: string;
-  event_type_id?: string;
-  calendar_id?: string;
-  provider_schedule_id?: string;
+// Easy!Appointments config stored per-integration
+export interface EasyAppointmentsConfig {
+  service_id?: string;
+  provider_id?: string;
 }
 
 // Business hours & event type config (local)
@@ -154,25 +151,10 @@ export const DEFAULT_EVENT_TYPE: EventTypeConfig = {
   timezone: 'UTC',
 };
 
-export interface CustomerCalcomConfig {
-  api_key: string;
-  base_url: string;
-  event_type_id?: string;
-}
-
-export interface CalendlyConfig {
-  access_token: string;
-  refresh_token: string;
-  organization_uri?: string;
-  user_uri?: string;
-  event_type_uuid?: string;
-}
-
 // Chat message content types for calendar
 export type CalendarMessageContent =
   | { type: 'availability'; slots: TimeSlot[]; timezone: string; duration: number }
-  | { type: 'booking_confirmation'; booking: BookingResponse }
-  | { type: 'calendly_link'; url: string; eventType: string };
+  | { type: 'booking_confirmation'; booking: BookingResponse };
 
 // Calendar tool definitions for AI function calling
 export const CALENDAR_TOOLS = [

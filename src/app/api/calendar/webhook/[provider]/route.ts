@@ -1,66 +1,66 @@
 /**
  * Calendar Webhook Handler
- * POST /api/calendar/webhook/:provider - Receive webhooks from Cal.com and Calendly
+ * POST /api/calendar/webhook/easy_appointments - Receive webhooks from Easy!Appointments
+ *
+ * Note: Easy!Appointments doesn't have built-in webhook support by default.
+ * This endpoint can be used with custom webhook plugins or external triggers
+ * to sync booking status changes.
  */
 
 import { NextRequest } from 'next/server';
-import { CalendarService } from '@/lib/calendar/service';
-import type { CalendarProvider } from '@/lib/calendar/types';
-import { createHmac } from 'crypto';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 interface RouteParams {
   params: Promise<{ provider: string }>;
 }
 
-function verifyCalcomSignature(payload: string, signature: string | null): boolean {
-  const secret = process.env.CALCOM_WEBHOOK_SECRET;
-  if (!secret || !signature) return false;
-
-  const expected = createHmac('sha256', secret).update(payload).digest('hex');
-  return signature === expected;
-}
-
-function verifyCalendlySignature(payload: string, signature: string | null): boolean {
-  const key = process.env.CALENDLY_WEBHOOK_SIGNING_KEY;
-  if (!key || !signature) return false;
-
-  const expected = createHmac('sha256', key).update(payload).digest('hex');
-  return signature === expected;
-}
-
 export async function POST(req: NextRequest, { params }: RouteParams) {
   const { provider } = await params;
 
-  const validProviders: CalendarProvider[] = ['hosted_calcom', 'customer_calcom', 'calendly'];
-  // Normalize: webhook URLs use 'calcom' for both hosted and customer
-  const normalizedProvider = provider === 'calcom' ? 'hosted_calcom' : provider as CalendarProvider;
-
-  if (!validProviders.includes(normalizedProvider)) {
+  if (provider !== 'easy_appointments') {
     return new Response('Invalid provider', { status: 400 });
   }
 
   try {
-    const rawBody = await req.text();
+    const payload = await req.json();
+    console.log('[Calendar:Webhook] Received Easy!Appointments webhook:', payload.event || payload.type);
 
-    // Verify webhook signatures
-    if (normalizedProvider === 'hosted_calcom' || normalizedProvider === 'customer_calcom') {
-      const signature = req.headers.get('x-cal-signature-256');
-      if (!verifyCalcomSignature(rawBody, signature)) {
-        console.warn('[Calendar:Webhook] Invalid Cal.com signature');
-        return new Response('Invalid signature', { status: 401 });
-      }
-    } else if (normalizedProvider === 'calendly') {
-      const signature = req.headers.get('calendly-webhook-signature');
-      if (!verifyCalendlySignature(rawBody, signature)) {
-        console.warn('[Calendar:Webhook] Invalid Calendly signature');
-        return new Response('Invalid signature', { status: 401 });
-      }
+    const supabase = createAdminClient();
+    const appointmentId = String(payload.appointmentId || payload.id || '');
+    if (!appointmentId) {
+      return new Response('Missing appointment ID', { status: 400 });
     }
 
-    const payload = JSON.parse(rawBody);
-    console.log(`[Calendar:Webhook] Received ${provider} webhook:`, payload.triggerEvent || payload.event);
+    const event = payload.event || payload.type || '';
 
-    await CalendarService.handleWebhook(normalizedProvider, payload);
+    switch (event) {
+      case 'appointment_created':
+      case 'created':
+        await supabase
+          .from('calendar_bookings')
+          .update({ status: 'confirmed' })
+          .eq('provider_booking_id', appointmentId);
+        break;
+      case 'appointment_cancelled':
+      case 'cancelled':
+      case 'deleted':
+        await supabase
+          .from('calendar_bookings')
+          .update({ status: 'cancelled' })
+          .eq('provider_booking_id', appointmentId);
+        break;
+      case 'appointment_updated':
+      case 'updated': {
+        const update: Record<string, unknown> = { status: 'rescheduled' };
+        if (payload.start) update.start_time = payload.start;
+        if (payload.end) update.end_time = payload.end;
+        await supabase
+          .from('calendar_bookings')
+          .update(update)
+          .eq('provider_booking_id', appointmentId);
+        break;
+      }
+    }
 
     return new Response('OK', { status: 200 });
   } catch (error) {
