@@ -98,8 +98,10 @@ test.describe('Section 32: Analytics Dashboard Details', () => {
     await expect(page.getByText('Message Growth')).toBeVisible();
     await expect(page.getByText('Engagement Trend')).toBeVisible();
 
-    await expect(page.getByText('Active')).toBeVisible();
-    await expect(page.getByText('Growing')).toBeVisible();
+    // Target the insight badges specifically within the Insights card
+    const insightsCard = page.locator('text=Insights').locator('..').locator('..');
+    await expect(insightsCard.getByText('Active', { exact: true })).toBeVisible();
+    await expect(insightsCard.getByText('Growing', { exact: true })).toBeVisible();
   });
 
   test('DASH-002: Analytics daily data gap filling', async ({ page }) => {
