@@ -75,7 +75,6 @@ export default function ProposalGeneratorPage() {
 
       {/* Main Tool */}
       <main className="container mx-auto px-4 py-8">
-        {/* TODO: Pass isPro based on user subscription status from auth context */}
         <ProposalGenerator />
       </main>
 

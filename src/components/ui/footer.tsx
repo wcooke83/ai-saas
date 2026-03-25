@@ -18,14 +18,12 @@ const footerLinks = {
     { label: 'FAQ', href: '/faq' },
   ],
   company: [
-    { label: 'About', href: '/about' },
-    { label: 'Contact', href: '/contact' },
-    { label: 'Careers', href: '/careers' },
+    { label: 'Help', href: '/help' },
+    { label: 'FAQ', href: '/faq' },
   ],
   legal: [
     { label: 'Privacy Policy', href: '/privacy' },
     { label: 'Terms of Service', href: '/terms' },
-    { label: 'Cookie Policy', href: '/cookies' },
   ],
 };
 

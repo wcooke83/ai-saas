@@ -327,7 +327,7 @@ function LoginForm() {
               <div className="w-full border-t border-secondary-200 dark:border-secondary-700" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-white dark:bg-secondary-800 px-2 text-secondary-500 dark:text-secondary-400">Or continue with</span>
+              <span className="px-2 text-secondary-500 dark:text-secondary-400" style={{ backgroundColor: 'rgb(var(--card-bg))' }}>Or continue with</span>
             </div>
           </div>
 
@@ -398,7 +398,7 @@ function LoginForm() {
 function LoginSkeleton() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: 'rgb(var(--page-bg))' }}>
-      <Card className="w-full max-w-md dark:bg-[rgb(30,41,59)]">
+      <Card className="w-full max-w-md dark:bg-secondary-800">
         <CardHeader className="text-center">
           <div className="h-8 w-48 bg-secondary-200 dark:bg-secondary-700 rounded animate-pulse mx-auto mb-2" />
           <div className="h-4 w-64 bg-secondary-100 dark:bg-secondary-800 rounded animate-pulse mx-auto" />

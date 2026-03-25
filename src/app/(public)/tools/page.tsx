@@ -128,7 +128,8 @@ const tools = [
   },
 ];
 
-const categories = ['All', 'Communication', 'Sales', 'Social Media', 'Advertising', 'Analytics', 'Automation', 'Content', 'Productivity'];
+// Categories kept for reference but filtering requires client-side state
+// const categories = ['All', 'Communication', 'Sales', 'Social Media', 'Advertising', 'Analytics', 'Automation', 'Content', 'Productivity'];
 
 export default function ToolsPage() {
   return (
@@ -146,21 +147,6 @@ export default function ToolsPage() {
 
         {/* Tools Grid */}
         <section className="container mx-auto px-4 pb-16">
-          {/* Category Filter */}
-          <div className="flex flex-wrap justify-center gap-2 mb-8">
-            {categories.map((category) => (
-              <button
-                key={category}
-                className={`px-4 py-2 text-sm font-medium rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                  category === 'All'
-                    ? 'bg-primary-500 text-white'
-                    : 'bg-white dark:bg-secondary-800 text-secondary-600 dark:text-secondary-300 border border-secondary-200 dark:border-secondary-700 hover:bg-secondary-50 dark:hover:bg-secondary-700'
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
             {tools.map((tool) => {
               const Icon = tool.icon;

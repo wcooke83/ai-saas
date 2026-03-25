@@ -185,34 +185,6 @@ export function Header({
   useEffect(() => {
     if (menuOpen) {
       document.body.style.overflow = 'hidden';
-
-      // Debug: Log backdrop and nav element styles after menu opens
-      setTimeout(() => {
-        const menuContainer = document.getElementById('nav-menu');
-        const backdropEl = menuContainer?.querySelector('div[aria-hidden="true"]');
-        const navEl = document.querySelector('nav[aria-label="Main navigation"]');
-
-        if (backdropEl) {
-          const computedStyle = window.getComputedStyle(backdropEl);
-          console.log('[Header] Backdrop element:', {
-            className: backdropEl.className,
-            backdropFilter: computedStyle.backdropFilter,
-            webkitBackdropFilter: (computedStyle as unknown as Record<string, string>)['webkitBackdropFilter'],
-            backgroundColor: computedStyle.backgroundColor,
-          });
-        } else {
-          console.log('[Header] Backdrop element NOT found');
-        }
-
-        if (navEl) {
-          const computedStyle = window.getComputedStyle(navEl);
-          console.log('[Header] Nav element:', {
-            className: navEl.className,
-            background: computedStyle.background,
-            backgroundColor: computedStyle.backgroundColor,
-          });
-        }
-      }, 100);
     } else {
       document.body.style.overflow = '';
     }

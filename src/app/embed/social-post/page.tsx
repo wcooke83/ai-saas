@@ -65,7 +65,7 @@ function SocialPostEmbed() {
       <div className="mt-6 text-center text-xs text-secondary-400 dark:text-secondary-500">
         Powered by{' '}
         <a
-          href="https://yourdomain.com"
+          href={process.env.NEXT_PUBLIC_APP_URL || '/'}
           target="_blank"
           rel="noopener noreferrer"
           className="text-primary-500 dark:text-primary-400 hover:underline dark:hover:text-primary-300"

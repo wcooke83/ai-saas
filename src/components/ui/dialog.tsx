@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
+import { useFocusTrap } from '@/hooks';
 
 const MODAL_BORDER_COOKIE_NAME = 'theme-modal-border-enabled';
 
@@ -97,6 +98,12 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
 export function DialogContent({ children, className }: DialogContentProps) {
   const context = React.useContext(DialogContext);
   const [showBorder, setShowBorder] = React.useState(true);
+  const { containerRef } = useFocusTrap<HTMLDivElement>({
+    isActive: true,
+    onEscape: context?.onClose,
+    restoreFocus: true,
+    autoFocus: true,
+  });
 
   React.useEffect(() => {
     const checkBorderState = () => {
@@ -133,6 +140,7 @@ export function DialogContent({ children, className }: DialogContentProps) {
 
   return (
     <div
+      ref={containerRef}
       role="dialog"
       aria-modal="true"
       className={cn(

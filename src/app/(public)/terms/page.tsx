@@ -13,6 +13,7 @@ export default function TermsPage() {
     <PageBackground>
       <Header cta={{ label: 'Sign In', href: '/login' }} />
 
+      <main id="main-content">
       <ToolsHero
         badge="Legal"
         title="Terms of Service"
@@ -22,7 +23,7 @@ export default function TermsPage() {
         ]}
       />
 
-      <main className="container mx-auto px-4 py-12 max-w-3xl">
+      <div className="container mx-auto px-4 py-12 max-w-3xl">
         <div className="prose prose-secondary max-w-none">
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mb-4">1. Acceptance of Terms</h2>
@@ -165,6 +166,7 @@ export default function TermsPage() {
             </p>
           </section>
         </div>
+      </div>
       </main>
 
       <Footer />
