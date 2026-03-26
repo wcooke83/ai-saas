@@ -51,7 +51,6 @@ test.describe('36. Middleware & Infrastructure', () => {
     // Navigating to /login should redirect to /dashboard
     await page.goto('/login');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
 
     const url = page.url();
     // Should redirect to dashboard (or already be on dashboard)

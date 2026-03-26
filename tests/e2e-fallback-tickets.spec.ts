@@ -14,7 +14,7 @@ test.describe('Fallback Tickets', () => {
       },
     });
     // May get 404 if chatbot not configured or 201 on success
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('TICKET-002: Ticket form validation rejects empty fields', async ({ request }) => {
@@ -35,7 +35,7 @@ test.describe('Fallback Tickets', () => {
 
   test('TICKET-004: Admin tickets endpoint returns list', async ({ page }) => {
     const res = await page.request.get(`/api/chatbots/${CHATBOT_ID}/tickets`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const data = await res.json();
       expect(data.data).toHaveProperty('tickets');
@@ -52,15 +52,19 @@ test.describe('Fallback Tickets', () => {
   test('TICKET-006: Ticket status filter tabs render', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/tickets`);
     await page.waitForLoadState('domcontentloaded');
-    await expect(page.getByText('All')).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText('Open')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'All', exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('button', { name: 'Open', exact: true })).toBeVisible();
   });
 
   test('TICKET-007: Ticket list shows no tickets or table', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/tickets`);
     await page.waitForLoadState('domcontentloaded');
-    // Wait for loading to finish (spinner to disappear)
-    await page.waitForTimeout(8000);
+    // Wait for loading to finish
+    await Promise.race([
+      page.getByText('No tickets found').waitFor({ timeout: 15000 }),
+      page.locator('table').waitFor({ timeout: 15000 }),
+      page.getByRole('heading', { name: 'Tickets' }).waitFor({ timeout: 15000 }),
+    ]).catch(() => {});
     // Page should show either "No tickets found" or a table
     const noTicketsVisible = await page.getByText('No tickets found').isVisible().catch(() => false);
     const tableVisible = await page.locator('table').isVisible().catch(() => false);

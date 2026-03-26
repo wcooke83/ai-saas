@@ -10,18 +10,17 @@ test.describe('Handoff & Escalation Flow', () => {
 
   test('check handoff status with invalid conversation returns empty', async ({ page }) => {
     const res = await page.request.get(`/api/widget/${CHATBOT_ID}/handoff?conversation_id=00000000-0000-0000-0000-000000000000`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('escalations list endpoint works', async ({ page }) => {
-    const res = await page.request.get(`/api/chatbots/${CHATBOT_ID}/escalations`);
+    const res = await page.request.get(`/api/chatbots/${CHATBOT_ID}/issues`);
     expect(res.ok()).toBeTruthy();
   });
 
   test('escalations page loads', async ({ page }) => {
-    await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/escalations`);
+    await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/issues`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
   });
 

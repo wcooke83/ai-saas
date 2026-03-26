@@ -7,6 +7,7 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { TypedSupabaseClient } from '@/lib/supabase/admin';
 import { generate } from '@/lib/ai/provider';
+import { getSentimentModel } from '@/lib/settings';
 import type { Message, SentimentLabel, LoyaltyTrend } from './types';
 
 
@@ -76,9 +77,11 @@ Rules:
 - Only use extremes (1 or 5) for clearly strong emotions`;
 
   try {
+    // Use admin-configured sentiment model, or fall back to system default
+    const sentimentModel = await getSentimentModel();
+
     const result = await generate(prompt, {
-      provider: 'claude',
-      model: 'fast',
+      ...(sentimentModel ? { specificModel: sentimentModel } : {}),
       temperature: 0.1,
       maxTokens: 300,
     });

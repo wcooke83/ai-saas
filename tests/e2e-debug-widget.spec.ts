@@ -80,7 +80,7 @@ test('debug LOW-001 error capture', async ({ page }) => {
   );
 
   await page.goto(`/widget/${BOT_ID}`);
-  await page.waitForTimeout(5000);
+  await page.waitForLoadState('domcontentloaded');
 
   const hasError = await page.getByText('Something went wrong').isVisible().catch(() => false);
   expect(hasError).toBeFalsy();

@@ -6,7 +6,7 @@ const WIDGET_CHATBOT_ID = '10df2440-6aac-441a-855d-715c0ea8e506';
 test.describe('Fallback Help Articles', () => {
   test('ARTICLE-001: Widget articles endpoint returns list', async ({ request }) => {
     const res = await request.get(`/api/widget/${WIDGET_CHATBOT_ID}/articles`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const data = await res.json();
       expect(data.data).toHaveProperty('articles');
@@ -16,7 +16,7 @@ test.describe('Fallback Help Articles', () => {
 
   test('ARTICLE-002: Widget articles search works', async ({ request }) => {
     const res = await request.get(`/api/widget/${WIDGET_CHATBOT_ID}/articles?q=test`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const data = await res.json();
       expect(Array.isArray(data.data?.articles)).toBeTruthy();
@@ -25,7 +25,7 @@ test.describe('Fallback Help Articles', () => {
 
   test('ARTICLE-003: Admin articles endpoint returns list with sources count', async ({ page }) => {
     const res = await page.request.get(`/api/chatbots/${CHATBOT_ID}/articles`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const data = await res.json();
       expect(data.data).toHaveProperty('articles');
@@ -42,7 +42,7 @@ test.describe('Fallback Help Articles', () => {
   test('ARTICLE-005: Generate button is visible on articles page', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/articles`);
     await page.waitForLoadState('domcontentloaded');
-    await expect(page.getByText('Generate from Knowledge Sources')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Generate from Knowledge')).toBeVisible({ timeout: 15000 });
   });
 
   test('ARTICLE-006: Credit exhaustion mode can be set to help_articles', async ({ page }) => {
@@ -57,16 +57,16 @@ test.describe('Fallback Help Articles', () => {
         },
       },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('ARTICLE-007: Empty articles shows empty state', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/articles`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(5000);
+    await expect(page.getByText('Generate from Knowledge').or(page.getByText('No help articles generated yet'))).toBeVisible({ timeout: 15000 });
     // Either articles are listed or empty state shown
     const emptyVisible = await page.getByText('No help articles generated yet').isVisible().catch(() => false);
-    const generateVisible = await page.getByText('Generate from Knowledge Sources').isVisible().catch(() => false);
+    const generateVisible = await page.getByText('Generate from Knowledge').isVisible().catch(() => false);
     expect(emptyVisible || generateVisible).toBeTruthy();
   });
 

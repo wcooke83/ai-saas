@@ -33,7 +33,7 @@ async function openWidget(page: Page) {
   const btn = page.locator('.chat-widget-button');
   if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) {
     await btn.click();
-    await page.waitForTimeout(1000);
+    await expect(page.locator('.chat-widget-container')).toBeVisible({ timeout: 5000 });
   }
 }
 
@@ -53,8 +53,8 @@ async function sendMessage(page: Page, text: string) {
     text,
     { timeout: 30000 }
   );
-  // Small delay for streaming to complete
-  await page.waitForTimeout(2000);
+  // Wait for streaming to complete by checking the response stops growing
+  await page.waitForLoadState('networkidle');
 }
 
 /**
@@ -69,7 +69,7 @@ async function fillPreChatForm(page: Page, data: Record<string, string>) {
     await inputs.nth(i).fill(data[keys[i]]);
   }
   await page.locator('.chat-widget-form-submit').click();
-  await page.waitForTimeout(1000);
+  await page.waitForSelector('.chat-widget-messages', { timeout: 10000 });
 }
 
 /**
@@ -131,7 +131,7 @@ test.describe('25. Cross-Feature Integration Tests', () => {
       const input = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
       await input.fill(`Integration test message ${i}`);
       await input.press('Enter');
-      await page.waitForTimeout(3000);
+      await page.waitForLoadState('networkidle');
     }
 
     // Verify messages appeared
@@ -140,10 +140,10 @@ test.describe('25. Cross-Feature Integration Tests', () => {
 
     // Verify dashboard pages load via API (avoids slow navigation after widget)
     const leadsResp = await page.request.get(`/api/chatbots/${CHATBOT_ID}/leads`);
-    expect(leadsResp.status()).toBeLessThan(500);
+    expect(leadsResp.ok()).toBeTruthy();
 
     const analyticsResp = await page.request.get(`/api/chatbots/${CHATBOT_ID}/conversations?limit=1`);
-    expect(analyticsResp.status()).toBeLessThan(500);
+    expect(analyticsResp.ok()).toBeTruthy();
   });
 
   test('INTEG-002: Full handoff journey — widget to agent console to resolution', async ({ page }) => {
@@ -154,7 +154,7 @@ test.describe('25. Cross-Feature Integration Tests', () => {
     const input = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
     await input.fill('I need help with my order');
     await input.press('Enter');
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState('networkidle');
 
     // Look for handoff icon (headset)
     const handoffBtn = page.locator('[aria-label*="handoff"], [aria-label*="human"], [aria-label*="person"], .chat-widget-close').first();
@@ -163,7 +163,6 @@ test.describe('25. Cross-Feature Integration Tests', () => {
     if (handoffVisible) {
       // Click handoff
       await handoffBtn.click();
-      await page.waitForTimeout(2000);
 
       // Check for confirmation panel
       const confirmPanel = page.locator('.chat-widget-handoff-confirm');
@@ -172,7 +171,7 @@ test.describe('25. Cross-Feature Integration Tests', () => {
         const connectBtn = confirmPanel.locator('button:has-text("Connect"), button:has-text("Yes")');
         if (await connectBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
           await connectBtn.click();
-          await page.waitForTimeout(2000);
+          await page.waitForLoadState('networkidle');
         }
       }
     }
@@ -246,7 +245,7 @@ test.describe('25. Cross-Feature Integration Tests', () => {
     const input = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
     await input.fill('Tell me about refund policy');
     await input.press('Enter');
-    await page.waitForTimeout(5000);
+    await page.waitForLoadState('networkidle');
 
     // Look for report/flag button on assistant message
     const reportBtn = page.locator('.chat-widget-report-btn').first();
@@ -254,7 +253,6 @@ test.describe('25. Cross-Feature Integration Tests', () => {
 
     if (reportVisible) {
       await reportBtn.click();
-      await page.waitForTimeout(1000);
 
       // Select "Wrong Answer" reason
       const wrongAnswer = page.locator('.chat-widget-report-reasons label:has-text("Wrong"), .chat-widget-report-reasons input[value*="wrong"]').first();
@@ -272,14 +270,13 @@ test.describe('25. Cross-Feature Integration Tests', () => {
       const submitBtn = page.locator('.chat-widget-report-form button[type="submit"], .chat-widget-report-form button:has-text("Submit"), .chat-widget-report-form button:has-text("Report")');
       if (await submitBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
         await submitBtn.click();
-        await page.waitForTimeout(2000);
+        await page.waitForLoadState('networkidle');
       }
     }
 
     // Navigate to escalations/reports page
     await page.goto(`${DASH_BASE}/issues`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
     await expect(page.locator('#main-content, main')).toBeVisible({ timeout: 15000 });
   });
 
@@ -300,7 +297,7 @@ test.describe('25. Cross-Feature Integration Tests', () => {
     const input = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
     await input.fill('What file types do you support?');
     await input.press('Enter');
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState('networkidle');
 
     await expect(page.locator('.chat-widget-messages')).toBeVisible();
   });
@@ -313,7 +310,7 @@ test.describe('25. Cross-Feature Integration Tests', () => {
     const input = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
     await input.fill('I need a transcript of this conversation');
     await input.press('Enter');
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState('networkidle');
 
     // Look for transcript/email icon in header
     const transcriptBtn = page.locator('[aria-label*="transcript"], [aria-label*="email"]').first();
@@ -321,7 +318,6 @@ test.describe('25. Cross-Feature Integration Tests', () => {
 
     if (transcriptVisible) {
       await transcriptBtn.click();
-      await page.waitForTimeout(1000);
 
       // Check for email input
       const emailInput = page.locator('input[type="email"], input[placeholder*="email"]');
@@ -341,7 +337,6 @@ test.describe('25. Cross-Feature Integration Tests', () => {
     const input = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
     await input.fill('What services do you offer?');
     await input.press('Enter');
-    await page.waitForTimeout(5000);
 
     // Verify AI responded (any assistant message)
     const assistantMessages = page.locator('.chat-widget-messages >> text=/./');
@@ -352,7 +347,6 @@ test.describe('25. Cross-Feature Integration Tests', () => {
     test.setTimeout(120000);
     await page.goto(`${DASH_BASE}/settings`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
     await expect(page.locator('#main-content, main')).toBeVisible({ timeout: 15000 });
     await openWidget(page);
     await page.waitForSelector('.chat-widget-messages, .chat-widget-form-view', { timeout: 15000 });
@@ -364,10 +358,7 @@ test.describe('25. Cross-Feature Integration Tests', () => {
     await page.goto(WIDGET_URL);
     await page.waitForSelector('.chat-widget-container, .chat-widget-button', { timeout: 15000 });
 
-    // Wait a bit for proactive message (if configured)
-    await page.waitForTimeout(5000);
-
-    // Widget should be accessible
+    // Widget should be accessible (allow time for proactive message if configured)
     const container = page.locator('.chat-widget-container');
     const button = page.locator('.chat-widget-button');
     const widgetVisible = await container.isVisible().catch(() => false);
@@ -381,13 +372,11 @@ test.describe('25. Cross-Feature Integration Tests', () => {
     // Navigate to customize page
     await page.goto(`${DASH_BASE}/customize`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
     await expect(page.locator('#main-content, main')).toBeVisible({ timeout: 15000 });
 
     // Navigate to deploy page
     await page.goto(`${DASH_BASE}/deploy`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
     await expect(page.locator('#main-content, main')).toBeVisible({ timeout: 15000 });
 
     // Check for preview iframe or preview section
@@ -431,7 +420,7 @@ test.describe('25. Cross-Feature Integration Tests', () => {
     const input = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
     await input.fill('Tell me about your features');
     await input.press('Enter');
-    await page.waitForTimeout(5000);
+    await page.waitForLoadState('networkidle');
 
     // Look for feedback buttons
     const feedbackBtns = page.locator('.chat-widget-feedback-btn');
@@ -442,14 +431,12 @@ test.describe('25. Cross-Feature Integration Tests', () => {
       const thumbsDown = page.locator('[aria-label*="not helpful"], [aria-label*="Not helpful"]').first();
       if (await thumbsDown.isVisible({ timeout: 3000 }).catch(() => false)) {
         await thumbsDown.click();
-        await page.waitForTimeout(1000);
       }
     }
 
     // Navigate to sentiment page
     await page.goto(`${DASH_BASE}/sentiment`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
     await expect(page.locator('#main-content, main')).toBeVisible({ timeout: 15000 });
   });
 
@@ -458,7 +445,6 @@ test.describe('25. Cross-Feature Integration Tests', () => {
     // Navigate to agent console / leads conversations
     await page.goto(`${DASH_BASE}/leads`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
     await expect(page.locator('#main-content, main')).toBeVisible({ timeout: 15000 });
 
     // Check conversations tab exists
@@ -467,7 +453,6 @@ test.describe('25. Cross-Feature Integration Tests', () => {
 
     if (tabVisible) {
       await conversationsTab.click();
-      await page.waitForTimeout(2000);
     }
 
     await expect(page.locator('#main-content, main')).toBeVisible({ timeout: 15000 });
@@ -596,7 +581,8 @@ test.describe('26. Credit Exhaustion Auto-Purchase Flow', () => {
     const buyBtn = page.locator('.chat-widget-package-buy').first();
     await expect(buyBtn).toBeVisible({ timeout: 10000 });
     await buyBtn.click();
-    await page.waitForTimeout(2000);
+    // Wait for purchase API call to complete
+    await page.waitForLoadState('networkidle');
 
     // Verify purchase API was called with the correct package ID
     expect(purchaseApiCalled).toBeTruthy();
@@ -626,7 +612,7 @@ test.describe('26. Credit Exhaustion Auto-Purchase Flow', () => {
     const btn = page.locator('.chat-widget-button');
     if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) {
       await btn.click();
-      await page.waitForTimeout(1000);
+      await expect(page.locator('.chat-widget-container')).toBeVisible({ timeout: 5000 });
     }
 
     // Chat input should now be available (100 used < 150 limit)
@@ -658,7 +644,7 @@ test.describe('26. Credit Exhaustion Auto-Purchase Flow', () => {
     const chatInput = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
     await chatInput.fill('Testing after dismiss');
     await chatInput.press('Enter');
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState('networkidle');
 
     // Banner should stay hidden
     await expect(banner).not.toBeVisible();
@@ -681,7 +667,7 @@ test.describe('26. Credit Exhaustion Auto-Purchase Flow', () => {
     const widgetBtn = page.locator('.chat-widget-button');
     if (await widgetBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
       await widgetBtn.click();
-      await page.waitForTimeout(1000);
+      await expect(page.locator('.chat-widget-container')).toBeVisible({ timeout: 5000 });
     }
 
     // Banner should be visible
@@ -692,7 +678,6 @@ test.describe('26. Credit Exhaustion Auto-Purchase Flow', () => {
     const purchaseMoreBtn = banner.locator('button:has-text("Purchase"), a:has-text("Purchase")');
     await expect(purchaseMoreBtn).toBeVisible({ timeout: 5000 });
     await purchaseMoreBtn.click();
-    await page.waitForTimeout(1000);
 
     // Purchase overlay should appear
     const overlay = page.locator('.chat-widget-purchase-overlay');
@@ -737,7 +722,7 @@ test.describe('26. Credit Exhaustion Auto-Purchase Flow', () => {
     const btn = page.locator('.chat-widget-button');
     if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) {
       await btn.click();
-      await page.waitForTimeout(1000);
+      await expect(page.locator('.chat-widget-container')).toBeVisible({ timeout: 5000 });
     }
 
     // Chat should be available
@@ -759,7 +744,7 @@ test.describe('26. Credit Exhaustion Auto-Purchase Flow', () => {
     // Send a message
     await chatInput.fill('Hello after top-up');
     await chatInput.press('Enter');
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState('networkidle');
 
     // Verify messages area is visible (response appeared)
     await expect(page.locator('.chat-widget-messages')).toBeVisible();
@@ -773,6 +758,6 @@ test.describe('26. Credit Exhaustion Auto-Purchase Flow', () => {
 
     // Verify credits were reset
     const configResp = await page.request.get(`/api/widget/${CHATBOT_ID}/config`);
-    expect(configResp.status()).toBeLessThan(500);
+    expect(configResp.ok()).toBeTruthy();
   });
 });

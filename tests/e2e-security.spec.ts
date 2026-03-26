@@ -28,7 +28,7 @@ test.describe('Security — User Isolation', () => {
     await ctx.clearCookies();
     const page = await ctx.newPage();
 
-    const res = await page.request.get(`http://localhost:3030/api/chatbots/${CHATBOT_ID}/escalations`);
+    const res = await page.request.get(`http://localhost:3030/api/chatbots/${CHATBOT_ID}/issues`);
     expect(res.status()).not.toBe(200);
     await ctx.close();
   });
@@ -66,7 +66,7 @@ test.describe('Security — User Isolation', () => {
       `/api/chatbots/${fakeId}`,
       `/api/chatbots/${fakeId}/knowledge`,
       `/api/chatbots/${fakeId}/performance`,
-      `/api/chatbots/${fakeId}/escalations`,
+      `/api/chatbots/${fakeId}/issues`,
       `/api/chatbots/${fakeId}/conversations`,
     ];
 

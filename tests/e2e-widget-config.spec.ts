@@ -5,7 +5,7 @@ const CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
 test.describe('Widget Configuration', () => {
   test('widget config endpoint returns config', async ({ page }) => {
     const res = await page.request.get(`/api/widget/${CHATBOT_ID}/config`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const body = await res.json();
       // Should have at minimum a chatbot name and color config
@@ -19,13 +19,12 @@ test.describe('Widget Configuration', () => {
         widget_config: { primaryColor: '#FF5733', position: 'bottom-right' },
       },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('customize page loads', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/customize`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
   });
 });

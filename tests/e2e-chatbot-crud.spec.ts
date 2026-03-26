@@ -6,7 +6,6 @@ test.describe('Chatbot CRUD', () => {
   test('can navigate to chatbots list', async ({ page }) => {
     await page.goto('/dashboard/chatbots');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
     // Should see E2E Test Bot or a create button
@@ -17,7 +16,6 @@ test.describe('Chatbot CRUD', () => {
   test('can open create chatbot wizard', async ({ page }) => {
     await page.goto('/dashboard/chatbots/new');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
     // Wizard should show step 1 (basic info)
@@ -50,7 +48,6 @@ test.describe('Chatbot CRUD', () => {
 
     await page.goto(`/dashboard/chatbots/${createdChatbotId}`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
   });
@@ -60,7 +57,6 @@ test.describe('Chatbot CRUD', () => {
 
     await page.goto(`/dashboard/chatbots/${createdChatbotId}/settings`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
   });

@@ -16,7 +16,7 @@ test.describe('Widget SDK', () => {
     await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
 
     const res = await page.goto(`/widget/${CHATBOT_ID}`);
-    expect(res?.status()).toBeLessThan(500);
+    expect(res?.ok()).toBeTruthy();
   });
 
   test('widget config returns required fields', async ({ page }) => {
@@ -42,11 +42,10 @@ test.describe('Widget Mobile', () => {
     const page = await ctx.newPage();
 
     const res = await page.goto(`http://localhost:3030/widget/${CHATBOT_ID}`);
-    expect(res?.status()).toBeLessThan(500);
+    expect(res?.ok()).toBeTruthy();
 
     // Page should render something
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
     const bodyText = await page.locator('body').textContent();
     expect(bodyText?.length).toBeGreaterThan(0);
 

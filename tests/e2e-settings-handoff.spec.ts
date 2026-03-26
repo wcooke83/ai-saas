@@ -8,7 +8,6 @@ async function gotoHandoffSection(page: import('@playwright/test').Page) {
   await page.goto(SETTINGS_URL, { waitUntil: 'domcontentloaded' });
   await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
   await page.locator('nav button', { hasText: 'Live Handoff' }).click();
-  await page.waitForTimeout(500);
 }
 
 test.describe('13. Settings -- Live Handoff', () => {
@@ -40,14 +39,17 @@ test.describe('13. Settings -- Live Handoff', () => {
     await page.waitForLoadState('networkidle');
     await expect(page.locator('.chat-widget-container')).toBeVisible({ timeout: 15000 });
 
-    // Widget loaded — test validates structure
-    expect(true).toBe(true);
+    // Widget loaded — verify the chat container is present
+    await expect(page.locator('.chat-widget-container')).toBeVisible();
   });
 
   test('SET-HANDOFF-004: Require agent online toggle', async ({ page }) => {
     await gotoHandoffSection(page);
 
     // Look for "Require Agent Online" toggle
+    // Live Handoff heading should always be visible
+    await expect(page.getByRole('heading', { name: 'Live Handoff' })).toBeVisible({ timeout: 10000 });
+
     const requireLabel = page.locator('text=Require Agent Online');
     if (await requireLabel.isVisible({ timeout: 5000 }).catch(() => false)) {
       const toggle = requireLabel.locator('..').locator('button[role="switch"]');
@@ -55,7 +57,6 @@ test.describe('13. Settings -- Live Handoff', () => {
         await expect(toggle).toBeVisible();
       }
     }
-    expect(true).toBe(true);
   });
 
   test('SET-HANDOFF-005: Handoff request flow', async ({ page }) => {
@@ -125,7 +126,8 @@ test.describe('13. Settings -- Live Handoff', () => {
         await expect(chatIdInput).toBeVisible();
       }
     }
-    expect(true).toBe(true);
+    // Live Handoff heading should always be visible
+    await expect(page.getByRole('heading', { name: 'Live Handoff' })).toBeVisible({ timeout: 5000 });
   });
 
   test('SET-HANDOFF-012: Real-time messages during handoff', async ({ page }) => {

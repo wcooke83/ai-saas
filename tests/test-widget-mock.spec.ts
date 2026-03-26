@@ -45,7 +45,7 @@ test('debug widget page load', async ({ page }) => {
   );
 
   await page.goto(`/widget/${BOT_ID}`);
-  await page.waitForTimeout(5000);
+  await page.waitForLoadState('domcontentloaded');
 
   const html = await page.content();
   console.log('PAGE TITLE:', await page.title());

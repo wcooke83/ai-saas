@@ -15,7 +15,7 @@ test.describe('Settings Validation', () => {
     const res = await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
       data: { memory_enabled: true, memory_days: 30 },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('update file upload config', async ({ page }) => {
@@ -29,7 +29,7 @@ test.describe('Settings Validation', () => {
         },
       },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('update proactive message config', async ({ page }) => {
@@ -47,6 +47,6 @@ test.describe('Settings Validation', () => {
         ],
       },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 });

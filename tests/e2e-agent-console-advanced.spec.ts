@@ -156,11 +156,10 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     await page.getByTestId('filter-resolved').click();
     await page.getByTestId('filter-all').click();
 
-    // Wait for debounce to settle
-    await page.waitForTimeout(2000);
-
-    // Due to debouncing, should have fewer than 4 requests
-    expect(requests.length).toBeLessThanOrEqual(4);
+    // Wait for debounce to settle and verify request count
+    await expect(async () => {
+      expect(requests.length).toBeLessThanOrEqual(4);
+    }).toPass({ timeout: 3000 });
   });
 
   test('AGENT-ADV-002: Message cache stays in sync with Realtime inserts', async ({ page }) => {
@@ -183,7 +182,7 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
 
     // Switch back — cached messages should appear without skeleton
     await items.nth(0).click();
-    await page.waitForTimeout(200); // Brief pause for React render
+    await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 5000 });
     const skeletonVisible = await page.getByTestId('messages-skeleton').isVisible().catch(() => false);
     expect(skeletonVisible).toBe(false);
     await expect(page.getByTestId('chat-messages-area')).toBeVisible();
@@ -200,15 +199,15 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     const messagesArea = page.getByTestId('chat-messages-area');
     await expect(messagesArea).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId('messages-skeleton')).not.toBeVisible({ timeout: 20000 });
-    await page.waitForTimeout(1000);
 
     const initialText = await messagesArea.textContent();
     expect(initialText!.length).toBeGreaterThan(0);
 
     // Page should be stable — no duplicate rendering
-    await page.waitForTimeout(2000);
-    const laterText = await messagesArea.textContent();
-    expect(laterText).toBe(initialText);
+    await expect(async () => {
+      const laterText = await messagesArea.textContent();
+      expect(laterText).toBe(initialText);
+    }).toPass({ timeout: 3000 });
   });
 
   test('AGENT-ADV-004: Agent typing throttle (2-second interval)', async ({ page }) => {
@@ -216,24 +215,22 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 20000 });
 
     await page.getByTestId('filter-active').click();
-    await page.waitForTimeout(1500);
+    await expect(page.getByTestId('conversation-list-body')).toBeVisible({ timeout: 15000 });
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     const count = await items.count();
     if (count === 0) { test.skip(); return; }
 
     await items.first().click();
-    await page.waitForTimeout(2000);
+    await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
 
     const textarea = page.locator('textarea[placeholder="Type a reply..."]');
     await expect(textarea).toBeVisible({ timeout: 10000 });
 
     // Type rapidly — broadcasts are throttled
     await textarea.type('Hello this is a typing throttle test message');
-    await page.waitForTimeout(1000);
 
-    const value = await textarea.inputValue();
-    expect(value.length).toBeGreaterThan(0);
+    await expect(textarea).not.toHaveValue('');
   });
 
   test('AGENT-ADV-005: Visitor presence tracking -- multiple visitors', async ({ page }) => {
@@ -242,7 +239,7 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     await items.first().click();
-    await page.waitForTimeout(2000);
+    await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
 
     // Should show presence (Online or Offline)
     const hasOnline = await page.getByText('Online').isVisible().catch(() => false);
@@ -256,7 +253,7 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     await items.first().click();
-    await page.waitForTimeout(2000);
+    await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
 
     // Without active visitor, should show Offline
     const hasOffline = await page.getByText('Offline').isVisible().catch(() => false);
@@ -285,14 +282,14 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 20000 });
 
     await page.getByTestId('filter-active').click();
-    await page.waitForTimeout(1500);
+    await expect(page.getByTestId('conversation-list-body')).toBeVisible({ timeout: 15000 });
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     const count = await items.count();
     if (count === 0) { test.skip(); return; }
 
     await items.first().click();
-    await page.waitForTimeout(2000);
+    await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
 
     const textarea = page.locator('textarea[placeholder="Type a reply..."]');
     await expect(textarea).toBeVisible({ timeout: 10000 });
@@ -307,25 +304,24 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 20000 });
 
     await page.getByTestId('filter-active').click();
-    await page.waitForTimeout(1500);
+    await expect(page.getByTestId('conversation-list-body')).toBeVisible({ timeout: 15000 });
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     const count = await items.count();
     if (count === 0) { test.skip(); return; }
 
     await items.first().click();
-    await page.waitForTimeout(2000);
+    await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
 
     const textarea = page.locator('textarea[placeholder="Type a reply..."]');
     await expect(textarea).toBeVisible({ timeout: 10000 });
 
     await textarea.fill('Hello from typing test');
-    await page.waitForTimeout(500);
+    await expect(textarea).toHaveValue('Hello from typing test');
     await textarea.press('Enter');
-    await page.waitForTimeout(2000);
 
     // Textarea should be cleared after send
-    await expect(textarea).toHaveValue('');
+    await expect(textarea).toHaveValue('', { timeout: 5000 });
   });
 
   test('AGENT-ADV-011: Escalation reason label mappings in chat panel', async ({ page }) => {
@@ -335,14 +331,14 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     // Our setup created an escalation with reason 'wrong_answer'
     // Click on the pending filter to find it
     await page.getByTestId('filter-pending').click();
-    await page.waitForTimeout(1500);
+    await expect(page.getByTestId('conversation-list-body')).toBeVisible({ timeout: 15000 });
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     const count = await items.count();
     if (count === 0) { test.skip(); return; }
 
     await items.first().click();
-    await page.waitForTimeout(2000);
+    await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
 
     // The chat panel header should show escalation reason label
     const bodyText = await page.locator('body').textContent();
@@ -356,14 +352,14 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 20000 });
 
     await page.getByTestId('filter-active').click();
-    await page.waitForTimeout(1500);
+    await expect(page.getByTestId('conversation-list-body')).toBeVisible({ timeout: 15000 });
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     const count = await items.count();
     if (count === 0) { test.skip(); return; }
 
     await items.first().click();
-    await page.waitForTimeout(2000);
+    await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
 
     const resolveBtn = page.getByTestId('action-resolve');
     const returnBtn = page.getByTestId('action-return-to-ai');
@@ -395,7 +391,7 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 20000 });
 
     await page.getByTestId('filter-active').click();
-    await page.waitForTimeout(1500);
+    await expect(page.getByTestId('conversation-list-body')).toBeVisible({ timeout: 15000 });
 
     const listBody = page.getByTestId('conversation-list-body');
     const bodyText = await listBody.textContent();
@@ -414,8 +410,7 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     // Click a filter — list should remain visible (opacity transition)
     await page.getByTestId('filter-resolved').click();
     await expect(listBody).toBeVisible();
-    await page.waitForTimeout(1500);
-    await expect(listBody).toBeVisible();
+    await expect(listBody).toBeVisible({ timeout: 5000 });
   });
 
   test('AGENT-ADV-016: Agent presence channel distinct from conversation channel', async ({ page }) => {
@@ -427,7 +422,6 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     const items = page.locator('[data-testid^="conversation-item-"]');
     if ((await items.count()) > 0) {
       await items.first().click();
-      await page.waitForTimeout(2000);
       await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
     }
 

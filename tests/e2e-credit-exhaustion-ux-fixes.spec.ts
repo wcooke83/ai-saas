@@ -94,7 +94,7 @@ async function triggerFallbackViaMessage(page: Page) {
   await expect(page.locator('.chat-widget-input')).toBeVisible({ timeout: 15000 });
   await page.locator('.chat-widget-input').fill('Test message');
   await page.locator('.chat-widget-send').click();
-  await page.waitForTimeout(3000);
+  await expect(page.locator('.chat-widget-ticket-form, .chat-widget-contact-form, .chat-widget-purchase-view, .chat-widget-articles-view, .chat-widget-message-error')).toBeVisible({ timeout: 10000 });
 }
 
 /** Default base config for full mocking when real API is not needed */
@@ -235,7 +235,6 @@ test.describe('2. Per-Field Validation', () => {
 
     // Submit empty form
     await page.locator('.chat-widget-ticket-submit').click();
-    await page.waitForTimeout(500);
 
     // Per-field errors should appear
     await expect(page.locator('#ticket-name-err')).toBeVisible();
@@ -260,7 +259,6 @@ test.describe('2. Per-Field Validation', () => {
     await page.locator('#ticket-email').fill('not-an-email');
     await page.locator('#ticket-message').fill('Test message');
     await page.locator('.chat-widget-ticket-submit').click();
-    await page.waitForTimeout(500);
 
     // Email-specific error
     await expect(page.locator('#ticket-email-err')).toBeVisible();
@@ -281,7 +279,6 @@ test.describe('2. Per-Field Validation', () => {
 
     // Trigger errors
     await page.locator('.chat-widget-ticket-submit').click();
-    await page.waitForTimeout(300);
     await expect(page.locator('#ticket-name-err')).toBeVisible();
 
     // Start typing in name field — error should clear
@@ -300,7 +297,6 @@ test.describe('2. Per-Field Validation', () => {
 
     // Submit empty
     await page.locator('.chat-widget-contact-form button[type="submit"]').click();
-    await page.waitForTimeout(500);
 
     await expect(page.locator('#contact-name-err')).toBeVisible();
     await expect(page.locator('#contact-email-err')).toBeVisible();
@@ -320,7 +316,6 @@ test.describe('2. Per-Field Validation', () => {
     await page.locator('#contact-email').fill('bademail');
     await page.locator('#contact-message').fill('Test msg');
     await page.locator('.chat-widget-contact-form button[type="submit"]').click();
-    await page.waitForTimeout(500);
 
     await expect(page.locator('#contact-email-err')).toHaveText('Please enter a valid email address');
   });
@@ -380,7 +375,6 @@ test.describe('3. Accessibility', () => {
 
     // Trigger errors
     await page.locator('.chat-widget-ticket-submit').click();
-    await page.waitForTimeout(500);
 
     // Error elements should have role="alert"
     const nameErr = page.locator('#ticket-name-err');
@@ -482,7 +476,6 @@ test.describe('4. Purchase Error Display', () => {
 
     // Click buy
     await page.locator('.chat-widget-package-buy').first().click();
-    await page.waitForTimeout(2000);
 
     // Error should be VISIBLE to user via .chat-widget-purchase-error (not generic [role="alert"])
     await expect(page.locator('.chat-widget-purchase-error')).toBeVisible({ timeout: 5000 });
@@ -645,7 +638,7 @@ test.describe('6. Credit Packages from DB', () => {
 
   test('PKG-DB-001: Credit packages API returns list', async ({ page }) => {
     const res = await page.request.get(`/api/chatbots/${BOT_ID}/credit-packages`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const data = await res.json();
       expect(data.data).toHaveProperty('packages');
@@ -662,7 +655,7 @@ test.describe('6. Credit Packages from DB', () => {
         ],
       },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
 
     if (res.ok()) {
       const data = await res.json();
@@ -1002,10 +995,9 @@ test.describe('8. Full Credit Exhaustion → Purchase → Continue Flow', () => 
 
     // Click the first package's buy button
     await page.locator('.chat-widget-package-buy').first().click();
-    await page.waitForTimeout(1000);
 
     // Verify the purchase API was called with the correct packageId
-    expect(capturedBody).not.toBeNull();
+    await expect.poll(() => capturedBody).not.toBeNull();
     expect(capturedBody!.packageId).toBe('pkg-flow-a');
   });
 
@@ -1119,7 +1111,6 @@ test.describe('9. Settings Credit Exhaustion UI', () => {
     await expect(page.getByRole('heading', { name: 'Credit Exhaustion Fallback' })).toBeVisible({ timeout: 10000 });
 
     await page.locator('input[value="purchase_credits"]').click({ force: true });
-    await page.waitForTimeout(500);
 
     // The callout should explain the pre-emptive 80% behavior
     const calloutText = page.getByText('visitors will see a non-blocking purchase banner when credits reach 80% usage');
@@ -1138,7 +1129,6 @@ test.describe('9. Settings Credit Exhaustion UI', () => {
     await expect(page.getByRole('heading', { name: 'Credit Exhaustion Fallback' })).toBeVisible({ timeout: 10000 });
 
     await page.locator('input[value="purchase_credits"]').click({ force: true });
-    await page.waitForTimeout(500);
 
     // Find Upsell Message field and type into it
     const upsellLabel = page.getByText('Upsell Message');
@@ -1172,7 +1162,6 @@ test.describe('9. Settings Credit Exhaustion UI', () => {
     await expect(page.getByRole('heading', { name: 'Credit Exhaustion Fallback' })).toBeVisible({ timeout: 10000 });
 
     await page.locator('input[value="help_articles"]').click({ force: true });
-    await page.waitForTimeout(500);
 
     // Generate button should be visible and not disabled initially
     const genBtn = page.getByText('Generate Articles from Knowledge Sources').first();

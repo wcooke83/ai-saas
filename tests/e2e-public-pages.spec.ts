@@ -19,7 +19,6 @@ test.describe('Public Pages', () => {
     test(`${label} page loads`, async ({ page }) => {
       const response = await page.goto(path);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
 
       // Page should load (even if it redirects)
       const status = response?.status() ?? 200;

@@ -195,7 +195,6 @@ test.describe('AI Email Sequence Builder Audit', () => {
     const expandAllButton = page.locator('button:has-text("Expand All")');
     await expect(expandAllButton).toBeVisible();
     await expandAllButton.click();
-    await page.waitForTimeout(500);
 
     // Check that multiple emails are expanded
     const expandedEmails = page.locator('[id*="email-"][id*="-content"]');
@@ -212,7 +211,6 @@ test.describe('AI Email Sequence Builder Audit', () => {
     // Test collapse all
     const collapseAllButton = page.locator('button:has-text("Collapse All")');
     await collapseAllButton.click();
-    await page.waitForTimeout(500);
 
     await page.screenshot({
       path: path.join(SCREENSHOT_DIR, '05-collapsed-all.png'),
@@ -224,14 +222,12 @@ test.describe('AI Email Sequence Builder Audit', () => {
     // Test individual email toggle
     const firstEmailHeader = page.locator('button[aria-expanded]').first();
     await firstEmailHeader.click();
-    await page.waitForTimeout(300);
     observations.push('Individual email expand/collapse works');
 
     // Test copy individual email
     const copyFullEmailButton = page.locator('button:has-text("Copy Full Email")').first();
     if (await copyFullEmailButton.isVisible()) {
       await copyFullEmailButton.click();
-      await page.waitForTimeout(500);
       // Check for "Copied!" feedback
       const copiedFeedback = page.locator('text=Copied!');
       if (await copiedFeedback.isVisible()) {
@@ -242,7 +238,6 @@ test.describe('AI Email Sequence Builder Audit', () => {
     // Test copy all emails
     const copyAllButton = page.locator('button:has-text("Copy All")');
     await copyAllButton.click();
-    await page.waitForTimeout(500);
 
     await page.screenshot({
       path: path.join(SCREENSHOT_DIR, '06-copy-all.png'),
@@ -296,7 +291,6 @@ test.describe('AI Email Sequence Builder Audit', () => {
 
     // Scroll to sequence types at bottom
     await page.locator('h2:has-text("Sequence Types")').scrollIntoViewIfNeeded();
-    await page.waitForTimeout(300);
 
     // Check all 8 sequence type cards
     const sequenceTypeNames = [

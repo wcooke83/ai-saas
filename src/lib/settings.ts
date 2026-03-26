@@ -19,6 +19,7 @@ export interface AppSettings {
   multiplier_openai: number;
   multiplier_local: number;
   embedding_model_id: string | null; // Preferred model for embeddings
+  sentiment_model_id: string | null; // Preferred model for sentiment analysis
   chat_debug_mode: boolean; // When true, logs full prompt sources for every chat message
   updated_at: string;
   updated_by: string | null;
@@ -158,7 +159,8 @@ export function clearSettingsCache(): void {
  */
 export async function isUserAdmin(userId: string): Promise<boolean> {
   try {
-    const supabase = await createClient();
+    // Use admin client to bypass RLS (profiles RLS may block is_admin column reads)
+    const supabase = createAdminClient();
 
     // Use type assertion since is_admin column may not be in generated types yet
     const { data, error } = await (supabase as any)
@@ -404,6 +406,31 @@ export async function getEmbeddingModel(): Promise<AIModelWithProvider | null> {
     return model;
   } catch (error) {
     console.error('Failed to fetch embedding model:', error);
+    return null;
+  }
+}
+
+/**
+ * Get the preferred sentiment analysis model from app settings
+ * Returns null when not set (falls back to system default chat model)
+ */
+export async function getSentimentModel(): Promise<AIModelWithProvider | null> {
+  try {
+    const settings = await getAppSettings();
+
+    if (!settings?.sentiment_model_id) {
+      return null;
+    }
+
+    const model = await getModelById(settings.sentiment_model_id);
+
+    if (!model || !model.is_enabled || !model.provider?.is_enabled) {
+      return null;
+    }
+
+    return model;
+  } catch (error) {
+    console.error('Failed to fetch sentiment model:', error);
     return null;
   }
 }

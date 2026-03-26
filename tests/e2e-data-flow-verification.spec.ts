@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const CHATBOT_ID = '10df2440-6aac-441a-855d-715c0ea8e506';
+const CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
 const WIDGET_URL = `/widget/${CHATBOT_ID}`;
 const DASH_BASE = `/dashboard/chatbots/${CHATBOT_ID}`;
 
@@ -10,7 +10,7 @@ async function openWidget(page: import('@playwright/test').Page) {
   const btn = page.locator('.chat-widget-button');
   if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) {
     await btn.click();
-    await page.waitForTimeout(1000);
+    await page.waitForSelector('.chat-widget-messages, .chat-widget-container textarea, .chat-widget-container input[type="text"]', { timeout: 5000 }).catch(() => {});
   }
 }
 
@@ -24,7 +24,7 @@ async function navigateToDashboard(page: import('@playwright/test').Page, path: 
   } catch {
     // Dashboard might be stuck loading due to stale session;
     // verify the underlying API works instead
-    const apiPath = path.replace('/dashboard/chatbots/', '/api/chatbots/').replace(/\/(leads|analytics|surveys|escalations|sentiment|performance|settings|customize|deploy|knowledge|conversations)/, '/$1');
+    const apiPath = path.replace('/dashboard/chatbots/', '/api/chatbots/').replace(/\/(leads|analytics|surveys|issues|sentiment|performance|settings|customize|deploy|knowledge|conversations)/, '/$1');
     // Just verify we're not getting a server error
     const url = page.url();
     expect(url).toBeTruthy();
@@ -35,8 +35,9 @@ async function sendWidgetMessage(page: import('@playwright/test').Page, text: st
   const input = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
   await input.fill(text);
   await input.press('Enter');
-  await page.waitForTimeout(3000);
+  await page.waitForLoadState('domcontentloaded');
 }
+
 
 async function fillPreChatForm(page: import('@playwright/test').Page, data: Record<string, string>) {
   await page.waitForSelector('.chat-widget-form-view', { timeout: 10000 });
@@ -47,7 +48,7 @@ async function fillPreChatForm(page: import('@playwright/test').Page, data: Reco
     await inputs.nth(i).fill(data[keys[i]]);
   }
   await page.locator('.chat-widget-form-submit').click();
-  await page.waitForTimeout(1500);
+  await page.waitForSelector('.chat-widget-messages, .chat-widget-input', { timeout: 10000 }).catch(() => {});
 }
 
 test.describe('26. Data Flow Verification Tests', () => {
@@ -74,7 +75,7 @@ test.describe('26. Data Flow Verification Tests', () => {
 
     // Verify leads via API (avoids dashboard session expiry in long runs)
     const leadsResp = await page.request.get(`/api/chatbots/${CHATBOT_ID}/leads?limit=5`);
-    expect(leadsResp.status()).toBeLessThan(500);
+    expect(leadsResp.ok()).toBeTruthy();
   });
 
   test('DATAFLOW-002: Pre-chat form submission -> Leads conversations tab', async ({ page }) => {
@@ -96,7 +97,7 @@ test.describe('26. Data Flow Verification Tests', () => {
 
     // Verify conversations via API
     const convResp = await page.request.get(`/api/chatbots/${CHATBOT_ID}/conversations?limit=5`);
-    expect(convResp.status()).toBeLessThan(500);
+    expect(convResp.ok()).toBeTruthy();
   });
 
   test('DATAFLOW-003: Survey submission -> Surveys dashboard data accuracy', async ({ page }) => {
@@ -177,7 +178,7 @@ test.describe('26. Data Flow Verification Tests', () => {
 
   test('DATAFLOW-008: Escalation report in widget -> Escalations dashboard data accuracy', async ({ page }) => {
     // Check escalations dashboard
-    await navigateToDashboard(page, `${DASH_BASE}/escalations`);
+    await navigateToDashboard(page, `${DASH_BASE}/issues`);
 
     // Look for stats cards
     const statsCards = page.locator('[class*="stat"], [class*="card"]');
@@ -185,10 +186,10 @@ test.describe('26. Data Flow Verification Tests', () => {
   });
 
   test('DATAFLOW-009: Escalation status change -> dashboard stats counters update', async ({ page }) => {
-    await navigateToDashboard(page, `${DASH_BASE}/escalations`);
+    await navigateToDashboard(page, `${DASH_BASE}/issues`);
 
     // Look for stats cards showing Open/Acknowledged/Resolved counts
-    const mainContent = await page.locator('main').textContent();
+    const mainContent = await page.locator('#main-content, main').first().textContent({ timeout: 30000 });
     expect(mainContent).toBeTruthy();
 
     // Look for escalation rows
@@ -198,14 +199,14 @@ test.describe('26. Data Flow Verification Tests', () => {
     if (rowCount > 0) {
       // Click first row to open detail
       await rows.first().click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
     }
 
     // Dashboard loaded (or fallback handled by navigateToDashboard)
   });
 
   test('DATAFLOW-010: Escalation export CSV data accuracy', async ({ page }) => {
-    await navigateToDashboard(page, `${DASH_BASE}/escalations`);
+    await navigateToDashboard(page, `${DASH_BASE}/issues`);
 
     const exportBtn = page.locator('button:has-text("Export"), button:has-text("export")');
     const exportVisible = await exportBtn.isVisible({ timeout: 5000 }).catch(() => false);
@@ -232,13 +233,11 @@ test.describe('26. Data Flow Verification Tests', () => {
     await page.waitForSelector('.chat-widget-messages', { timeout: 15000 });
 
     await sendWidgetMessage(page, 'Tell me about your return policy for feedback test');
-    await page.waitForTimeout(3000);
 
     // Check for feedback buttons
     const thumbsUp = page.locator('[aria-label*="helpful"]:not([aria-label*="not"])').first();
     if (await thumbsUp.isVisible({ timeout: 3000 }).catch(() => false)) {
       await thumbsUp.click();
-      await page.waitForTimeout(500);
     }
 
     // Check sentiment page
@@ -248,7 +247,7 @@ test.describe('26. Data Flow Verification Tests', () => {
   test('DATAFLOW-012: Handoff conversation -> Analytics tracking', async ({ page }) => {
     // Verify analytics data is accessible via API
     const resp = await page.request.get(`/api/chatbots/${CHATBOT_ID}/conversations?limit=1`);
-    expect(resp.status()).toBeLessThan(500);
+    expect(resp.ok()).toBeTruthy();
   });
 
   test('DATAFLOW-013: Handoff conversation -> Sentiment analysis', async ({ page }) => {
@@ -292,7 +291,7 @@ test.describe('26. Data Flow Verification Tests', () => {
     const conversationsTab = page.locator('button:has-text("Conversations"), [role="tab"]:has-text("Conversations")');
     if (await conversationsTab.isVisible({ timeout: 5000 }).catch(() => false)) {
       await conversationsTab.click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('domcontentloaded');
 
       const exportBtn = page.locator('button:has-text("Export"), button:has-text("export")');
       if (await exportBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -340,7 +339,7 @@ test.describe('26. Data Flow Verification Tests', () => {
     const rangeBtn = page.locator('button:has-text("30d"), button:has-text("30 days")');
     if (await rangeBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await rangeBtn.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
     }
 
     const exportBtn = page.locator('button:has-text("Export"), button:has-text("export")');
@@ -367,13 +366,12 @@ test.describe('26. Data Flow Verification Tests', () => {
     const conversationsTab = page.locator('button:has-text("Conversations"), [role="tab"]:has-text("Conversations")');
     if (await conversationsTab.isVisible({ timeout: 5000 }).catch(() => false)) {
       await conversationsTab.click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('domcontentloaded');
 
       // Click first conversation row
       const rows = page.locator('table tbody tr, [class*="conversation"]');
       if (await rows.first().isVisible({ timeout: 5000 }).catch(() => false)) {
         await rows.first().click();
-        await page.waitForTimeout(2000);
 
         // Verify detail view shows messages
         const detailView = page.locator('[class*="detail"], [class*="dialog"], [role="dialog"]');
@@ -413,10 +411,10 @@ test.describe('26. Data Flow Verification Tests', () => {
     await sendWidgetMessage(page, 'Full journey test message 2');
 
     // Verify all dashboard APIs are accessible (avoids stale-session dashboard timeouts)
-    const endpoints = ['leads', 'conversations?limit=1', 'escalations', 'sentiment', 'surveys'];
+    const endpoints = ['leads', 'conversations?limit=1', 'issues', 'sentiment', 'surveys'];
     for (const endpoint of endpoints) {
       const resp = await page.request.get(`/api/chatbots/${CHATBOT_ID}/${endpoint}`);
-      expect(resp.status()).toBeLessThan(500);
+      expect(resp.ok()).toBeTruthy();
     }
   });
 

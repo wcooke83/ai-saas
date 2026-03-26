@@ -56,7 +56,7 @@ test.describe('Widget Chat Interaction', () => {
     await sendButton.click();
 
     // Give time for the message to process (may crash here)
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState('domcontentloaded');
 
     // Check if widget crashed after sending
     const crashedAfterSend = await page.locator('text=Something went wrong').isVisible().catch(() => false);

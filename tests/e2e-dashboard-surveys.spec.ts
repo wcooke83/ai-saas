@@ -9,7 +9,6 @@ async function waitForSurveys(page: Page) {
     page.getByRole('heading', { name: 'Survey Results' }).waitFor({ timeout: 60000 }),
     page.getByText('An error occurred').waitFor({ timeout: 60000 }),
   ]).catch(() => {});
-  await page.waitForTimeout(1000);
 }
 
 test.describe('Section 18: Surveys Dashboard', () => {
@@ -55,7 +54,6 @@ test.describe('Section 18: Surveys Dashboard', () => {
     const tableRows = page.locator('table tbody tr, [role="row"]');
     if (await tableRows.count() > 0) {
       await tableRows.first().click();
-      await page.waitForTimeout(1000);
 
       // SurveyDetailDialog should open
       const dialog = page.locator('[role="dialog"], [data-state="open"]');
@@ -77,20 +75,17 @@ test.describe('Section 18: Surveys Dashboard', () => {
     // Click 7d
     const btn7 = page.getByRole('button', { name: '7d', exact: true });
     await btn7.click();
-    await page.waitForTimeout(1500);
-    await expect(btn7).toHaveClass(/bg-primary-500/);
+    await expect(btn7).toHaveClass(/bg-primary-500/, { timeout: 10000 });
 
     // Click 90d
     const btn90 = page.getByRole('button', { name: '90d', exact: true });
     await btn90.click();
-    await page.waitForTimeout(1500);
-    await expect(btn90).toHaveClass(/bg-primary-500/);
+    await expect(btn90).toHaveClass(/bg-primary-500/, { timeout: 10000 });
 
     // Click All — use exact locator to avoid matching other buttons
     const btnAll = page.locator('button').filter({ hasText: /^All$/ });
     await btnAll.click();
-    await page.waitForTimeout(1500);
-    await expect(btnAll).toHaveClass(/bg-primary-500/);
+    await expect(btnAll).toHaveClass(/bg-primary-500/, { timeout: 10000 });
   });
 
   test('SURVEYS-005: Survey not configured notice', async ({ page }) => {
@@ -141,7 +136,7 @@ test.describe('Section 32: Surveys Dashboard Details', () => {
     // Set date range to 90d — Recent card should still show 7-day count
     const btn90 = page.locator('button', { hasText: '90d' });
     await btn90.click();
-    await page.waitForTimeout(2000);
+    await expect(btn90).toHaveClass(/bg-primary-500/, { timeout: 10000 });
 
     // Card should still say "Recent (7 days)" — it's independent of date filter
     await expect(page.getByText('Recent (7 days)')).toBeVisible();

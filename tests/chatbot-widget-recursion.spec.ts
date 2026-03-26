@@ -5,15 +5,13 @@ test.describe('Chatbot Widget - Recursion Prevention', () => {
     const chatbotId = '10df2440-6aac-441a-855d-715c0ea8e506';
     
     await page.goto('/');
-    await page.waitForTimeout(1500);
-    
+
     const chatButton = page.locator('#chatbot-widget-button');
     await expect(chatButton).toBeVisible();
     await chatButton.click();
-    
-    await page.waitForTimeout(1000);
-    
+
     const iframe = page.frameLocator('#chatbot-widget-container iframe');
+    await expect(page.locator('#chatbot-widget-container iframe')).toBeVisible({ timeout: 5000 });
     
     const nestedWidgetButton = iframe.locator('#chatbot-widget-button');
     const nestedWidgetCount = await nestedWidgetButton.count();
@@ -27,21 +25,15 @@ test.describe('Chatbot Widget - Recursion Prevention', () => {
   test('should prevent SDK initialization in iframe context', async ({ page }) => {
     const chatbotId = '10df2440-6aac-441a-855d-715c0ea8e506';
     await page.goto(`/widget/${chatbotId}`);
-    
-    await page.waitForTimeout(2000);
-    
-    const hasWidget = await page.evaluate(() => {
-      return document.getElementById('chatbot-widget-container') !== null;
-    });
-    
-    expect(hasWidget).toBe(false);
+
+    await expect(page.locator('#chatbot-widget-container')).not.toBeVisible();
   });
 
   test('should detect iframe context correctly', async ({ page }) => {
     await page.goto('/');
-    await page.waitForTimeout(1000);
-    
+
     const chatButton = page.locator('#chatbot-widget-button');
+    await expect(chatButton).toBeVisible();
     await chatButton.click();
     
     const iframe = page.frameLocator('#chatbot-widget-container iframe');
@@ -55,8 +47,8 @@ test.describe('Chatbot Widget - Recursion Prevention', () => {
 
   test('should only load widget script once on main page', async ({ page }) => {
     await page.goto('/');
-    await page.waitForTimeout(1000);
-    
+    await expect(page.locator('#chatbot-widget-button')).toBeVisible();
+
     const scriptCount = await page.evaluate(() => {
       const scripts = document.querySelectorAll('script[src="/widget/sdk.js"]');
       return scripts.length;
@@ -68,42 +60,24 @@ test.describe('Chatbot Widget - Recursion Prevention', () => {
   test('should not load widget on /widget/* paths', async ({ page }) => {
     const chatbotId = '10df2440-6aac-441a-855d-715c0ea8e506';
     await page.goto(`/widget/${chatbotId}`);
-    
-    await page.waitForTimeout(2000);
-    
-    const widgetExists = await page.evaluate(() => {
-      return document.getElementById('chatbot-widget-button') !== null;
-    });
-    
-    expect(widgetExists).toBe(false);
+
+    await expect(page.locator('#chatbot-widget-button')).not.toBeVisible();
   });
 
   test('should handle rapid navigation without widget duplication', async ({ page }) => {
     await page.goto('/');
-    await page.waitForTimeout(500);
-    
     await page.goto('/dashboard');
-    await page.waitForTimeout(500);
-    
     await page.goto('/');
-    await page.waitForTimeout(1000);
-    
-    const widgetCount = await page.locator('#chatbot-widget-container').count();
-    expect(widgetCount).toBeLessThanOrEqual(1);
+
+    await expect(page.locator('#chatbot-widget-container')).toHaveCount(1);
   });
 
   test('should cleanup widget on navigation', async ({ page }) => {
     await page.goto('/');
-    await page.waitForTimeout(1000);
-    
-    const initialCount = await page.locator('#chatbot-widget-container').count();
-    expect(initialCount).toBe(1);
-    
+    await expect(page.locator('#chatbot-widget-container')).toHaveCount(1);
+
     await page.goto('/dashboard');
-    await page.waitForTimeout(1000);
-    
-    const afterNavCount = await page.locator('#chatbot-widget-container').count();
-    expect(afterNavCount).toBeLessThanOrEqual(1);
+    await expect(page.locator('#chatbot-widget-container')).toHaveCount(1);
   });
 
   test('should verify widget layout has separate html/body', async ({ page }) => {
@@ -120,9 +94,8 @@ test.describe('Chatbot Widget - Recursion Prevention', () => {
   test('should not inherit parent layout in widget iframe', async ({ page }) => {
     const chatbotId = '10df2440-6aac-441a-855d-715c0ea8e506';
     await page.goto(`/widget/${chatbotId}`);
-    
-    await page.waitForTimeout(1000);
-    
+    await page.waitForLoadState('domcontentloaded');
+
     const hasThemeProvider = await page.evaluate(() => {
       const bodyContent = document.body.innerHTML;
       return bodyContent.includes('ThemeProvider') || 
@@ -134,8 +107,8 @@ test.describe('Chatbot Widget - Recursion Prevention', () => {
 
   test('should prevent multiple init calls', async ({ page }) => {
     await page.goto('/');
-    await page.waitForTimeout(1000);
-    
+    await expect(page.locator('#chatbot-widget-button')).toBeVisible();
+
     const initResult = await page.evaluate(() => {
       if ((window as any).ChatWidget) {
         (window as any).ChatWidget.init({
@@ -192,37 +165,36 @@ test.describe('Chatbot Widget - Recursion Prevention', () => {
       </html>
     `);
     
-    await page.waitForTimeout(1000);
-    
+    await expect(page.locator('#chatbot-widget-container')).toBeVisible({ timeout: 5000 });
+
     const frame = page.frameLocator('#level1');
     const widgetInFrame = await frame.locator('#chatbot-widget-container').count();
-    
+
     expect(widgetInFrame).toBe(0);
   });
 
   test('should handle missing chatbotId gracefully', async ({ page }) => {
     await page.goto('/');
-    await page.waitForTimeout(1000);
-    
+    await expect(page.locator('#chatbot-widget-button')).toBeVisible();
+
     const consoleMessages: string[] = [];
     page.on('console', msg => {
       if (msg.type() === 'error') {
         consoleMessages.push(msg.text());
       }
     });
-    
+
     await page.evaluate(() => {
       if ((window as any).ChatWidget) {
         (window as any).ChatWidget.init({});
       }
     });
-    
-    await page.waitForTimeout(500);
-    
-    const hasError = consoleMessages.some(msg => 
-      msg.includes('chatbotId is required')
-    );
-    
-    expect(hasError).toBe(true);
+
+    await expect(async () => {
+      const hasError = consoleMessages.some(msg =>
+        msg.includes('chatbotId is required')
+      );
+      expect(hasError).toBe(true);
+    }).toPass({ timeout: 2000 });
   });
 });

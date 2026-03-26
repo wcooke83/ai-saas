@@ -34,12 +34,12 @@ test.describe('Fallback Purchase Credits', () => {
         },
       },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('PURCHASE-004: Widget config returns credit exhaustion data', async ({ request }) => {
     const res = await request.get(`/api/widget/${WIDGET_CHATBOT_ID}/config`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const data = await res.json();
       expect(data.data).toHaveProperty('creditExhaustionMode');

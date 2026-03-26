@@ -57,7 +57,7 @@ async function triggerFallback(page: Page) {
   await page.locator('.chat-widget-input').fill('Hello, I need help');
   await page.locator('.chat-widget-send').click();
   // The widget shows the error, then transitions after 1.5s
-  await page.waitForTimeout(3000);
+  await expect(page.locator('.chat-widget-ticket-form, .chat-widget-contact-form, .chat-widget-purchase-view, .chat-widget-articles-view, .chat-widget-message-error')).toBeVisible({ timeout: 10000 });
 }
 
 // ============================================================
@@ -102,7 +102,7 @@ test.describe('1. Configuration Propagation', () => {
         },
       },
     });
-    expect(patchRes.status()).toBeLessThan(500);
+    expect(patchRes.ok()).toBeTruthy();
 
     // Verify widget config
     const configRes = await page.request.get(`/api/widget/${BOT_ID}/config`);
@@ -253,8 +253,6 @@ test.describe('2. Widget Fallback: Tickets Mode', () => {
     await page.locator('input[placeholder="Your name"]').fill('Test');
     // Submit — the form uses JS validation that shows error text
     await page.locator('.chat-widget-ticket-submit').click();
-    // Either browser native validation or our JS validation kicks in
-    await page.waitForTimeout(500);
     // Form should still be visible (not submitted)
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible();
     await expect(page.locator('.chat-widget-ticket-success')).not.toBeVisible();
@@ -345,7 +343,6 @@ test.describe('3. Widget Fallback: Contact Form Mode', () => {
     // Fill only name, skip email and message
     await page.locator('input[placeholder="Your name"]').fill('Test');
     await page.locator('.chat-widget-contact-form button[type="submit"]').click();
-    await page.waitForTimeout(500);
     // Form should still be visible (not submitted)
     await expect(page.locator('.chat-widget-contact-form')).toBeVisible();
     await expect(page.locator('text=Message sent!').first()).not.toBeVisible();
@@ -452,8 +449,7 @@ test.describe('4. Widget Fallback: Purchase Credits Mode', () => {
 
     // Click the first package buy button
     await page.locator('.chat-widget-package-buy').first().click();
-    await page.waitForTimeout(1000);
-
+    await expect.poll(() => purchaseCalled).toBeTruthy();
     expect(purchaseCalled).toBeTruthy();
     expect(purchaseBody).toHaveProperty('packageId');
   });
@@ -659,7 +655,7 @@ test.describe('5. Widget Fallback: Help Articles Mode', () => {
     // Type search query and click Search
     await page.locator('.chat-widget-articles-search input').fill('billing');
     await page.locator('.chat-widget-articles-search button').click();
-    await page.waitForTimeout(2000);
+    await expect.poll(() => requestUrls.length).toBeGreaterThan(beforeCount);
 
     // A new request should have been made after the search
     expect(requestUrls.length).toBeGreaterThan(beforeCount);
@@ -700,7 +696,7 @@ test.describe('6. Admin Ticket Lifecycle', () => {
 
   test('ADM-TKT-002: Tickets appear in admin list endpoint', async ({ page }) => {
     const res = await page.request.get(`/api/chatbots/${BOT_ID}/tickets`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const data = await res.json();
       expect(data.data.tickets).toBeDefined();
@@ -723,11 +719,10 @@ test.describe('6. Admin Ticket Lifecycle', () => {
   test('ADM-TKT-004: Filter tabs change displayed tickets', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${BOT_ID}/tickets`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
+    await expect(page.getByRole('heading', { name: 'Tickets' })).toBeVisible({ timeout: 15000 });
 
     // Click "Open" filter
     await page.getByText('Open').first().click();
-    await page.waitForTimeout(2000);
     // Page should not error out
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
   });
@@ -744,7 +739,7 @@ test.describe('6. Admin Ticket Lifecycle', () => {
     const updateRes = await page.request.patch(`/api/chatbots/${BOT_ID}/tickets/${ticket.id}`, {
       data: { status: 'in_progress' },
     });
-    expect(updateRes.status()).toBeLessThan(500);
+    expect(updateRes.ok()).toBeTruthy();
 
     if (updateRes.ok()) {
       const updateData = await updateRes.json();
@@ -762,7 +757,7 @@ test.describe('6. Admin Ticket Lifecycle', () => {
     const updateRes = await page.request.patch(`/api/chatbots/${BOT_ID}/tickets/${ticket.id}`, {
       data: { admin_notes: 'E2E test admin note' },
     });
-    expect(updateRes.status()).toBeLessThan(500);
+    expect(updateRes.ok()).toBeTruthy();
 
     if (updateRes.ok()) {
       const updateData = await updateRes.json();
@@ -802,13 +797,12 @@ test.describe('7. Admin Contact Submission Lifecycle', () => {
         message: 'Testing admin contact lifecycle.',
       },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('ADM-CTF-002: Contact submissions endpoint returns valid response', async ({ page }) => {
     const res = await page.request.get(`/api/chatbots/${BOT_ID}/contact-submissions`);
-    // Endpoint should respond without 500
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const data = await res.json();
       expect(data.data).toHaveProperty('submissions');
@@ -834,7 +828,7 @@ test.describe('7. Admin Contact Submission Lifecycle', () => {
       `/api/chatbots/${BOT_ID}/contact-submissions?submissionId=${sub.id}`,
       { data: { status: 'read' } }
     );
-    expect(updateRes.status()).toBeLessThan(500);
+    expect(updateRes.ok()).toBeTruthy();
     if (updateRes.ok()) {
       const updateData = await updateRes.json();
       expect(updateData.data.submission.status).toBe('read');
@@ -850,7 +844,7 @@ test.describe('8. Admin Articles Lifecycle', () => {
 
   test('ADM-ART-001: Articles admin endpoint returns list with source count', async ({ page }) => {
     const res = await page.request.get(`/api/chatbots/${BOT_ID}/articles`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const data = await res.json();
       expect(data.data).toHaveProperty('articles');
@@ -875,7 +869,7 @@ test.describe('8. Admin Articles Lifecycle', () => {
 
   test('ADM-ART-004: Widget articles endpoint returns array', async ({ request }) => {
     const res = await request.get(`/api/widget/${BOT_ID}/articles`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const data = await res.json();
       expect(Array.isArray(data.data?.articles)).toBeTruthy();
@@ -884,7 +878,7 @@ test.describe('8. Admin Articles Lifecycle', () => {
 
   test('ADM-ART-005: Widget articles search with query param', async ({ request }) => {
     const res = await request.get(`/api/widget/${BOT_ID}/articles?q=test`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 });
 
@@ -916,7 +910,6 @@ test.describe('9. Language Consistency', () => {
     await setFallbackConfig(page, 'contact_form', {
       contact_form: { title: 'Contactez-nous', description: 'Test FR' },
     });
-    await page.waitForTimeout(500);
     await page.request.patch(`/api/chatbots/${BOT_ID}`, { data: { language: 'fr' } });
 
     await mockCreditExhausted(page, BOT_ID);
@@ -931,7 +924,6 @@ test.describe('9. Language Consistency', () => {
     await setFallbackConfig(page, 'purchase_credits', {
       purchase_credits: { upsellMessage: 'Arabic test', packages: [] },
     });
-    await page.waitForTimeout(500);
     await page.request.patch(`/api/chatbots/${BOT_ID}`, { data: { language: 'ar' } });
 
     await mockCreditExhausted(page, BOT_ID);
@@ -946,7 +938,6 @@ test.describe('9. Language Consistency', () => {
     await setFallbackConfig(page, 'help_articles', {
       help_articles: { searchPlaceholder: 'Search JP', emptyStateMessage: 'None' },
     });
-    await page.waitForTimeout(500);
     await page.request.patch(`/api/chatbots/${BOT_ID}`, { data: { language: 'ja' } });
 
     await mockCreditExhausted(page, BOT_ID);
@@ -969,7 +960,6 @@ test.describe('9. Language Consistency', () => {
   test('LANG-005: Language update is tracked with language_updated_at', async ({ page }) => {
     // Reset to English first
     await page.request.patch(`/api/chatbots/${BOT_ID}`, { data: { language: 'en' } });
-    await page.waitForTimeout(500);
 
     const before = await page.request.get(`/api/chatbots/${BOT_ID}`);
     const beforeData = await before.json();
@@ -977,7 +967,6 @@ test.describe('9. Language Consistency', () => {
 
     // Change language to German
     await page.request.patch(`/api/chatbots/${BOT_ID}`, { data: { language: 'de' } });
-    await page.waitForTimeout(500);
 
     const after = await page.request.get(`/api/chatbots/${BOT_ID}`);
     const afterData = await after.json();
@@ -1072,7 +1061,7 @@ test.describe('10. Edge Cases & Validation', () => {
     await expect(page.locator('.chat-widget-input')).toBeVisible({ timeout: 15000 });
     await page.locator('.chat-widget-input').fill('Hello');
     await page.locator('.chat-widget-send').click();
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState('domcontentloaded');
 
     // Should NOT show any fallback view
     await expect(page.locator('.chat-widget-ticket-form')).not.toBeVisible();
@@ -1093,7 +1082,7 @@ test.describe('10. Edge Cases & Validation', () => {
         customFields: { department: 'Sales', urgency: 'ASAP' },
       },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('EDGE-010: Admin article delete endpoint works', async ({ page }) => {

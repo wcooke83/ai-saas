@@ -7,7 +7,6 @@ async function gotoSurveySection(page: import('@playwright/test').Page) {
   await page.goto(SETTINGS_URL, { waitUntil: 'domcontentloaded' });
   await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
   await page.locator('nav button', { hasText: 'Post-Chat Survey' }).click();
-  await page.waitForTimeout(500);
 }
 
 test.describe('7. Settings -- Post-Chat Survey', () => {
@@ -58,10 +57,9 @@ test.describe('7. Settings -- Post-Chat Survey', () => {
       // Look for the thank you message or preview section
       const preview = page.locator('text=/Preview/i');
       if (await preview.isVisible({ timeout: 3000 }).catch(() => false)) {
-        expect(true).toBe(true);
+        await expect(preview).toBeVisible();
       }
     }
-    expect(true).toBe(true);
   });
 
   test('SET-SURVEY-006: Return to chat from survey-thanks view', async ({ page }) => {
@@ -72,8 +70,7 @@ test.describe('7. Settings -- Post-Chat Survey', () => {
     // Verify link to survey results exists
     const viewLink = page.locator('text=/View survey results/i');
     if (await viewLink.isVisible({ timeout: 5000 }).catch(() => false)) {
-      expect(true).toBe(true);
+      await expect(viewLink).toBeVisible();
     }
-    expect(true).toBe(true);
   });
 });

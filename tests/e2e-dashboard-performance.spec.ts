@@ -10,7 +10,6 @@ async function waitForPerformance(page: Page) {
     page.getByText('Response time analytics for each pipeline stage').waitFor({ timeout: 60000 }),
     page.getByText('No performance data yet').waitFor({ timeout: 60000 }),
   ]).catch(() => {});
-  await page.waitForTimeout(1000);
 }
 
 test.describe('Section 16: Performance Dashboard', () => {
@@ -37,7 +36,6 @@ test.describe('Section 16: Performance Dashboard', () => {
     const requestRow = page.locator('.cursor-pointer').first();
     if (await requestRow.isVisible()) {
       await requestRow.click();
-      await page.waitForTimeout(1000);
 
       const stageLabels = ['Load Chatbot', 'Get Conversation', 'Build Prompts', 'First Token'];
       let foundStages = 0;
@@ -70,8 +68,7 @@ test.describe('Section 16: Performance Dashboard', () => {
       const nextBtn = page.getByRole('button', { name: 'Next' });
       if (await nextBtn.isEnabled()) {
         await nextBtn.click();
-        await page.waitForTimeout(2000);
-        expect(page.url()).toContain('page=2');
+        await page.waitForURL(/page=2/, { timeout: 10000 });
       }
     }
   });
@@ -86,7 +83,6 @@ test.describe('Section 16: Performance Dashboard', () => {
     const requestRow = page.locator('.cursor-pointer').first();
     if (await requestRow.isVisible()) {
       await requestRow.click();
-      await page.waitForTimeout(1000);
       const tooltipTriggers = page.locator('.cursor-help');
       expect(await tooltipTriggers.count()).toBeGreaterThan(0);
     }
@@ -124,7 +120,6 @@ test.describe('Section 32: Performance Dashboard Details', () => {
     const requestRow = page.locator('.cursor-pointer').first();
     if (await requestRow.isVisible()) {
       await requestRow.click();
-      await page.waitForTimeout(1000);
       // Overhead bars inserted for gaps >10ms — count may be 0
       expect(await page.getByText('Overhead').count()).toBeGreaterThanOrEqual(0);
     }
@@ -140,11 +135,10 @@ test.describe('Section 32: Performance Dashboard Details', () => {
     const requestRow = page.locator('.cursor-pointer').first();
     if (await requestRow.isVisible()) {
       await requestRow.click();
-      await page.waitForTimeout(1000);
-      await expect(page.getByText('Model').first()).toBeVisible();
-      await expect(page.getByText('Message').first()).toBeVisible();
-      await expect(page.getByText('Response').first()).toBeVisible();
-      await expect(page.getByText('RAG').first()).toBeVisible();
+      // Expanded row shows pipeline stage details
+      await expect(page.getByText('Pipeline Setup').first()).toBeVisible();
+      await expect(page.getByText('Save Message').first()).toBeVisible();
+      await expect(page.getByText('RAG: Embedding').first()).toBeVisible();
     }
   });
 });

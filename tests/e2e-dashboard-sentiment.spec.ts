@@ -9,7 +9,6 @@ async function waitForSentiment(page: Page) {
     page.getByRole('heading', { name: 'Sentiment & Loyalty' }).waitFor({ timeout: 60000 }),
     page.getByText('Chatbot not found').waitFor({ timeout: 60000 }),
   ]).catch(() => {});
-  await page.waitForTimeout(1000);
 }
 
 test.describe('Section 19: Sentiment Analysis', () => {
@@ -136,7 +135,6 @@ test.describe('Section 19: Sentiment Analysis', () => {
       const nextButton = page.getByRole('button', { name: 'Next' }).first();
       if (await nextButton.isEnabled()) {
         await nextButton.click();
-        await page.waitForTimeout(2000);
         // Page number should update
         await expect(page.getByText(/Page 2 of/)).toBeVisible();
       }

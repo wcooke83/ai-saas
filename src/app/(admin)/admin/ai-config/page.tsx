@@ -170,7 +170,9 @@ export default function AIConfigPage() {
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [embeddingModelId, setEmbeddingModelId] = useState<string | null>(null);
+  const [sentimentModelId, setSentimentModelId] = useState<string | null>(null);
   const [savingEmbeddingModel, setSavingEmbeddingModel] = useState(false);
+  const [savingSentimentModel, setSavingSentimentModel] = useState(false);
 
   // Loading states for individual operations
   const [togglingProvider, setTogglingProvider] = useState<string | null>(null);
@@ -238,6 +240,7 @@ export default function AIConfigPage() {
       const data = await response.json();
       if (data.success && data.data) {
         setEmbeddingModelId(data.data.embedding_model_id || null);
+        setSentimentModelId(data.data.sentiment_model_id || null);
       }
     } catch (err) {
       console.error('Failed to load settings:', err);
@@ -618,6 +621,43 @@ export default function AIConfigPage() {
     }
   };
 
+  const handleSetSentimentModel = async (modelId: string | null) => {
+    setSavingSentimentModel(true);
+    const previousValue = sentimentModelId;
+    setSentimentModelId(modelId);
+
+    try {
+      const response = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sentiment_model_id: modelId }),
+      });
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error?.message || 'Failed to update sentiment model');
+      }
+
+      const modelName = modelId
+        ? models.find((m) => m.id === modelId)?.name || 'Model'
+        : 'Chat default';
+      toast.success(`Sentiment model set to ${modelName}`);
+    } catch (err) {
+      setSentimentModelId(previousValue);
+      toast.error(err instanceof Error ? err.message : 'Failed to update sentiment model');
+    } finally {
+      setSavingSentimentModel(false);
+    }
+  };
+
+  // Get non-embedding models (for chat default and sentiment dropdowns)
+  const chatCapableModels = useMemo(() => {
+    return models.filter((m) => {
+      const modelId = m.api_model_id?.toLowerCase() || '';
+      return !modelId.includes('embedding') && m.enabled;
+    });
+  }, [models]);
+
   // Handle column sort
   const handleSort = useCallback((column: SortColumn) => {
     if (sortColumn === column) {
@@ -644,13 +684,10 @@ export default function AIConfigPage() {
 
   // Get embedding-capable models (models whose api_model_id contains "embedding")
   const embeddingCapableModels = useMemo(() => {
-    console.log('[DEBUG] All models:', models.map(m => ({ name: m.name, api_model_id: m.api_model_id, slug: m.slug })));
-    const filtered = models.filter((m) => {
+    return models.filter((m) => {
       const modelId = m.api_model_id?.toLowerCase() || '';
       return modelId.includes('embedding');
     });
-    console.log('[DEBUG] Embedding models:', filtered.map(m => ({ name: m.name, api_model_id: m.api_model_id })));
-    return filtered;
   }, [models]);
 
   // Filter and sort models
@@ -836,61 +873,98 @@ export default function AIConfigPage() {
         </CardContent>
       </Card>
 
-      {/* Embedding Provider Section */}
-      <Card>
+      {/* Active Model Assignments */}
+      <Card className="sticky top-16 z-10 shadow-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary-500" aria-hidden="true" />
-            Embedding Provider
+            <Zap className="w-5 h-5 text-primary-500" aria-hidden="true" />
+            Active Model Assignments
           </CardTitle>
           <CardDescription>
-            Choose which AI model to use for generating embeddings in knowledge bases. Leave as "Auto" to automatically select the best available provider (Gemini → OpenAI).
+            Which AI model is used for each task. Changes take effect immediately.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            <Label htmlFor="embedding-model" className="text-sm font-medium">
-              Embedding Model
-            </Label>
-            <div className="flex items-center gap-3">
-              <select
-                id="embedding-model"
-                value={embeddingModelId || ''}
-                onChange={(e) => handleSetEmbeddingModel(e.target.value || null)}
-                disabled={savingEmbeddingModel}
-                className="flex-1 px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <option value="">Auto-select (Recommended)</option>
-                {embeddingCapableModels.length > 0 && (
-                  <optgroup label="Embedding-Capable Models">
-                    {embeddingCapableModels.map((model) => (
+          <div className="space-y-4">
+            {/* Chat Default */}
+            <div className="flex items-center gap-4">
+              <Label className="text-sm font-medium w-40 shrink-0">Chat (default)</Label>
+              <div className="flex-1">
+                <select
+                  value={models.find((m) => m.is_default)?.id || ''}
+                  onChange={(e) => e.target.value && handleSetDefault(e.target.value)}
+                  disabled={settingDefault !== null}
+                  className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {chatCapableModels.map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {model.provider_name} - {model.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <p className="text-xs text-secondary-500 dark:text-secondary-400 w-36 shrink-0">
+                Users can override
+              </p>
+            </div>
+
+            {/* Embeddings */}
+            <div className="flex items-center gap-4">
+              <Label htmlFor="embedding-model" className="text-sm font-medium w-40 shrink-0">Embeddings</Label>
+              <div className="flex-1 flex items-center gap-2">
+                <select
+                  id="embedding-model"
+                  value={embeddingModelId || ''}
+                  onChange={(e) => handleSetEmbeddingModel(e.target.value || null)}
+                  disabled={savingEmbeddingModel}
+                  className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="">Auto-select (Gemini → OpenAI)</option>
+                  {embeddingCapableModels.length > 0 &&
+                    embeddingCapableModels.map((model) => (
                       <option key={model.id} value={model.id}>
                         {model.provider_name} - {model.name}
                         {model.pricing.cost_in === 0 && model.pricing.cost_out === 0 ? ' (FREE)' : ''}
                       </option>
-                    ))}
-                  </optgroup>
+                    ))
+                  }
+                </select>
+                {savingEmbeddingModel && (
+                  <Loader2 className="w-5 h-5 animate-spin text-primary-500 shrink-0" />
                 )}
-              </select>
-              {savingEmbeddingModel && (
-                <Loader2 className="w-5 h-5 animate-spin text-primary-500" />
-              )}
+              </div>
+              <p className="text-xs text-secondary-500 dark:text-secondary-400 w-36 shrink-0">
+                Knowledge base vectors
+              </p>
             </div>
-            <p className="text-xs text-secondary-500 dark:text-secondary-400">
-              {embeddingModelId ? (
-                <>
-                  Using{' '}
-                  <span className="font-medium">
-                    {embeddingCapableModels.find((m) => m.id === embeddingModelId)?.name || 'selected model'}
-                  </span>{' '}
-                  for all embedding generation
-                </>
-              ) : (
-                <>
-                  Auto-selecting best available provider: Gemini (free) → OpenAI (paid)
-                </>
-              )}
-            </p>
+
+            {/* Sentiment Analysis */}
+            <div className="flex items-center gap-4">
+              <Label htmlFor="sentiment-model" className="text-sm font-medium w-40 shrink-0">
+                Sentiment Analysis
+              </Label>
+              <div className="flex-1 flex items-center gap-2">
+                <select
+                  id="sentiment-model"
+                  value={sentimentModelId || ''}
+                  onChange={(e) => handleSetSentimentModel(e.target.value || null)}
+                  disabled={savingSentimentModel}
+                  className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {chatCapableModels.map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {model.provider_name} - {model.name}
+                    </option>
+                  ))}
+                </select>
+                {savingSentimentModel && (
+                  <Loader2 className="w-5 h-5 animate-spin text-primary-500 shrink-0" />
+                )}
+              </div>
+              <p className="text-xs text-secondary-500 dark:text-secondary-400 w-36 shrink-0">
+                Conversation scoring
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -959,12 +1033,12 @@ export default function AIConfigPage() {
                     </Tooltip>
                   </th>
                   <th className="text-center py-3 px-4 text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                    <Tooltip content="Default model for new users" side="bottom">
+                    <Tooltip content="Default chat model — users can override in their settings" side="bottom">
                       <button
                         onClick={() => handleSort('default')}
                         className="flex items-center justify-center w-full hover:text-secondary-900 dark:hover:text-secondary-200 transition-colors"
                       >
-                        Default
+                        Chat Default
                         {getSortIcon('default')}
                       </button>
                     </Tooltip>
@@ -1032,7 +1106,7 @@ export default function AIConfigPage() {
                       </td>
                       <td className="py-3 px-4 text-center">
                         <Tooltip
-                          content={model.is_default ? 'Current default model' : 'Set as default for new users'}
+                          content={model.is_default ? 'Current chat default' : 'Set as chat default'}
                           side="top"
                         >
                           <div className="relative inline-flex items-center justify-center">

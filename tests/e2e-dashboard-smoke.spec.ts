@@ -4,7 +4,6 @@ test.describe('Dashboard Smoke Tests', () => {
   test('dashboard loads for authenticated user', async ({ page }) => {
     await page.goto('/dashboard');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(5000);
 
     // Should not redirect to login (we're authenticated)
     expect(page.url()).toContain('/dashboard');
@@ -16,7 +15,6 @@ test.describe('Dashboard Smoke Tests', () => {
   test('chatbots list page loads', async ({ page }) => {
     await page.goto('/dashboard/chatbots');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     expect(page.url()).toContain('/dashboard');
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();

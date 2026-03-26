@@ -7,7 +7,6 @@ async function gotoProactiveSection(page: import('@playwright/test').Page) {
   await page.goto(SETTINGS_URL, { waitUntil: 'domcontentloaded' });
   await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
   await page.locator('nav button', { hasText: 'Proactive' }).click();
-  await page.waitForTimeout(500);
 }
 
 test.describe('9. Settings -- Proactive Messages', () => {
@@ -26,7 +25,6 @@ test.describe('9. Settings -- Proactive Messages', () => {
     const addBtn = page.locator('button', { hasText: /Add (?:First )?Rule/i }).first();
     if (await addBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await addBtn.click();
-      await page.waitForTimeout(500);
 
       // Look for trigger type dropdown
       const triggerSelect = page.locator('select').filter({ hasText: /Time on Page|Page URL|Scroll Depth/i }).first();
@@ -49,7 +47,6 @@ test.describe('9. Settings -- Proactive Messages', () => {
       expect(options.join(' ')).toMatch(/Bubble/i);
       expect(options.join(' ')).toMatch(/Auto-open/i);
     }
-    expect(true).toBe(true);
   });
 
   test('SET-PROACTIVE-004: Time-on-page trigger fires', async ({ page }) => {
@@ -64,9 +61,6 @@ test.describe('9. Settings -- Proactive Messages', () => {
 
     // Check for max shows input if a rule exists
     const maxShowsInput = page.locator('text=/Max Shows/i');
-    if (await maxShowsInput.isVisible({ timeout: 5000 }).catch(() => false)) {
-      expect(true).toBe(true);
-    }
     // Section renders correctly
     await expect(page.getByRole('heading', { name: 'Proactive Messages' })).toBeVisible({ timeout: 5000 });
   });

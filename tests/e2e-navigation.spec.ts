@@ -4,7 +4,6 @@ test.describe('Sidebar Navigation', () => {
   test('sidebar links are visible on dashboard', async ({ page }) => {
     await page.goto('/dashboard');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     // Core nav items should be present
     const navItems = ['Dashboard', 'Chatbots', 'API Keys', 'Usage'];
@@ -20,7 +19,6 @@ test.describe('Sidebar Navigation', () => {
   test('clicking Chatbots navigates to chatbots list', async ({ page }) => {
     await page.goto('/dashboard');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     // Use link role with exact name to find the sidebar nav link
     const chatbotsLink = page.getByRole('link', { name: 'Chatbots', exact: true }).first();
@@ -36,13 +34,11 @@ test.describe('Sidebar Navigation', () => {
     const CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/performance`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     const backLink = page.locator('text=Back to Chatbot').first();
     if (await backLink.isVisible()) {
       await backLink.click();
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
 
       // Should navigate back to chatbot overview
       expect(page.url()).toContain(`/dashboard/chatbots/${CHATBOT_ID}`);
@@ -70,7 +66,6 @@ test.describe('Auth Redirects', () => {
 
     await page.goto('http://localhost:3030/');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
 
     // Should stay on home page
     expect(page.url()).not.toContain('/login');

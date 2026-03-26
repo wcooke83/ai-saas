@@ -8,7 +8,6 @@ async function gotoPrechatSection(page: import('@playwright/test').Page) {
   await page.goto(SETTINGS_URL, { waitUntil: 'domcontentloaded' });
   await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
   await page.locator('nav button', { hasText: 'Pre-Chat Form' }).click();
-  await page.waitForTimeout(500);
 }
 
 test.describe('6. Settings -- Pre-Chat Form', () => {
@@ -40,7 +39,6 @@ test.describe('6. Settings -- Pre-Chat Form', () => {
     if (await addBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       const fieldCountBefore = await page.locator('text=/Field #/').count();
       await addBtn.click();
-      await page.waitForTimeout(500);
 
       const fieldCountAfter = await page.locator('text=/Field #/').count();
       expect(fieldCountAfter).toBeGreaterThan(fieldCountBefore);
@@ -101,7 +99,6 @@ test.describe('6. Settings -- Pre-Chat Form', () => {
       if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
         await emailInput.fill('not-an-email');
         await page.locator('.chat-widget-form-submit').click();
-        await page.waitForTimeout(500);
 
         // Should show email validation error
         const errorMsg = page.locator('.chat-widget-form-error-message, [role="alert"]');
@@ -121,7 +118,6 @@ test.describe('6. Settings -- Pre-Chat Form', () => {
       if (await phoneInput.isVisible({ timeout: 3000 }).catch(() => false)) {
         await phoneInput.fill('abc');
         await page.locator('.chat-widget-form-submit').click();
-        await page.waitForTimeout(500);
 
         const errorMsg = page.locator('.chat-widget-form-error-message, [role="alert"]');
         await expect(errorMsg.first()).toBeVisible({ timeout: 5000 });
@@ -148,7 +144,6 @@ test.describe('6. Settings -- Pre-Chat Form', () => {
       }
 
       await page.locator('.chat-widget-form-submit').click();
-      await page.waitForTimeout(2000);
 
       // Chat view should open after successful submission
       await expect(page.locator('.chat-widget-input')).toBeVisible({ timeout: 10000 });
@@ -161,8 +156,6 @@ test.describe('6. Settings -- Pre-Chat Form', () => {
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
     await expect(page.locator('.chat-widget-container')).toBeVisible({ timeout: 15000 });
-    // Verify widget loaded successfully
-    expect(true).toBe(true);
   });
 
   test('SET-PRECHAT-011: Pre-chat form persists across widget reopens', async ({ page }) => {
@@ -182,7 +175,6 @@ test.describe('6. Settings -- Pre-Chat Form', () => {
         await emailInput.fill('persist@test.com');
       }
       await page.locator('.chat-widget-form-submit').click();
-      await page.waitForTimeout(2000);
     }
 
     // Verify chat input is visible (form was submitted or not shown)

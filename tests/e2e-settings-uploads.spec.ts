@@ -8,7 +8,6 @@ async function gotoUploadsSection(page: import('@playwright/test').Page) {
   await page.goto(SETTINGS_URL, { waitUntil: 'domcontentloaded' });
   await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
   await page.locator('nav button', { hasText: 'File Uploads' }).click();
-  await page.waitForTimeout(500);
 }
 
 test.describe('8. Settings -- File Uploads', () => {
@@ -28,7 +27,7 @@ test.describe('8. Settings -- File Uploads', () => {
     for (const type of types) {
       const label = page.locator(`text=${type}`).first();
       if (await label.isVisible({ timeout: 3000 }).catch(() => false)) {
-        expect(true).toBe(true);
+        await expect(label).toBeVisible();
       }
     }
   });
@@ -74,7 +73,7 @@ test.describe('8. Settings -- File Uploads', () => {
         await emailInput.fill('upload@test.com');
       }
       await page.locator('.chat-widget-form-submit').click();
-      await page.waitForTimeout(2000);
+      await page.waitForSelector('.chat-widget-input, .chat-widget-messages', { timeout: 10000 }).catch(() => {});
     }
 
     // Check if attach button exists (uploads enabled)
@@ -101,8 +100,6 @@ test.describe('8. Settings -- File Uploads', () => {
     await page.waitForLoadState('networkidle');
     await expect(page.locator('.chat-widget-container')).toBeVisible({ timeout: 15000 });
 
-    // This test validates the widget loads without errors
-    // Attachment download requires a message with an attachment to exist
-    expect(true).toBe(true);
+    // Widget loaded — attachment download requires a message with an attachment to exist
   });
 });

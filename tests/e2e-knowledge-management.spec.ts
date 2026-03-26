@@ -6,7 +6,6 @@ test.describe('Knowledge Management', () => {
   test('knowledge page loads with add source options', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/knowledge`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
   });

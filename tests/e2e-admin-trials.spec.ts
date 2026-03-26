@@ -45,7 +45,7 @@ test.describe('Section 40: Admin -- Trial Links (/admin/trials)', () => {
     // Select a plan — wait for plans to load into dropdown
     const planSelect = page.locator('select').filter({ has: page.locator('option', { hasText: 'Select a plan...' }) });
     // Wait for plan options to load
-    await page.waitForTimeout(2000);
+    await expect(planSelect.locator('option')).not.toHaveCount(0, { timeout: 5000 });
     const options = await planSelect.locator('option').allTextContents();
     if (options.length <= 1) {
       // No plans available — skip the rest of this test
@@ -78,8 +78,6 @@ test.describe('Section 40: Admin -- Trial Links (/admin/trials)', () => {
       page.getByText('Trial link created successfully').or(page.getByText(uniqueCode))
     ).toBeVisible({ timeout: 15000 });
 
-    // Wait for data reload
-    await page.waitForTimeout(2000);
     await expect(page.getByText(uniqueCode)).toBeVisible({ timeout: 10000 });
   });
 
@@ -167,7 +165,7 @@ test.describe('Section 40: Admin -- Trial Links (/admin/trials)', () => {
     await page.locator('input[placeholder="e.g., SUMMER2024"]').fill(uniqueCode);
 
     const planSelect = page.locator('select').filter({ has: page.locator('option', { hasText: 'Select a plan...' }) });
-    await page.waitForTimeout(2000);
+    await expect(planSelect.locator('option')).not.toHaveCount(0, { timeout: 5000 });
     const options = await planSelect.locator('option').allTextContents();
     if (options.length <= 1) {
       test.skip(true, 'No plans available in dropdown');
@@ -211,8 +209,8 @@ test.describe('Section 40: Admin -- Trial Links (/admin/trials)', () => {
     const checkbox = page.getByLabel('Show inactive trials');
     if (!(await checkbox.isChecked())) {
       await checkbox.check();
-      await page.waitForTimeout(2000);
     }
+    await expect(checkbox).toBeChecked();
 
     // Find a status badge (Active or Inactive)
     const statusBtns = page.locator('button').filter({ hasText: /^(Active|Inactive)$/ });
@@ -224,7 +222,6 @@ test.describe('Section 40: Admin -- Trial Links (/admin/trials)', () => {
 
     // Click to toggle
     await firstStatus.click();
-    await page.waitForTimeout(2000);
 
     // Status should have changed
     const newText = await statusBtns.first().textContent();
@@ -240,8 +237,8 @@ test.describe('Section 40: Admin -- Trial Links (/admin/trials)', () => {
     const checkbox = page.getByLabel('Show inactive trials');
     if (!(await checkbox.isChecked())) {
       await checkbox.check();
-      await page.waitForTimeout(2000);
     }
+    await expect(checkbox).toBeChecked();
 
     // Check if any rows have opacity-50
     const inactiveRows = page.locator('tr.opacity-50');
@@ -265,7 +262,6 @@ test.describe('Section 40: Admin -- Trial Links (/admin/trials)', () => {
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
     await copyBtn.click();
-    await page.waitForTimeout(500);
 
     // Check icon should briefly appear (green check)
     const checkIcon = page.locator('button[title="Copy trial URL"] .text-green-500').first();
@@ -300,7 +296,7 @@ test.describe('Section 40: Admin -- Trial Links (/admin/trials)', () => {
     const deleteCode = `DEL-${Date.now().toString(36).toUpperCase()}`;
     await page.locator('input[placeholder="e.g., SUMMER2024"]').fill(deleteCode);
     const planSelect = page.locator('select').filter({ has: page.locator('option', { hasText: 'Select a plan...' }) });
-    await page.waitForTimeout(2000);
+    await expect(planSelect.locator('option')).not.toHaveCount(0, { timeout: 5000 });
     const options = await planSelect.locator('option').allTextContents();
     if (options.length <= 1) {
       test.skip(true, 'No plans available in dropdown');
@@ -309,7 +305,9 @@ test.describe('Section 40: Admin -- Trial Links (/admin/trials)', () => {
     await planSelect.selectOption({ index: 1 });
     await page.locator('input[type="number"][min="1"][max="365"]').fill('7');
     await page.locator('form button[type="submit"]').click();
-    await page.waitForTimeout(5000);
+    await expect(
+      page.getByText('Trial link created successfully').or(page.getByText(deleteCode))
+    ).toBeVisible({ timeout: 15000 });
 
     // Now delete it - find the row with our code and click delete
     const row = page.locator('tr', { hasText: deleteCode });
@@ -322,7 +320,6 @@ test.describe('Section 40: Admin -- Trial Links (/admin/trials)', () => {
 
       // Confirm delete
       await page.getByRole('button', { name: 'Delete' }).filter({ hasNotText: /trial link/ }).click();
-      await page.waitForTimeout(3000);
 
       // Trial should be removed
       await expect(page.getByText(deleteCode)).not.toBeVisible({ timeout: 5000 });
@@ -356,12 +353,10 @@ test.describe('Section 40: Admin -- Trial Links (/admin/trials)', () => {
       await checkbox.check();
     }
     await expect(checkbox).toBeChecked();
-    await page.waitForTimeout(2000);
 
     // Toggle off
     await checkbox.uncheck();
     await expect(checkbox).not.toBeChecked();
-    await page.waitForTimeout(2000);
   });
 
   test('ADMIN-TRIALS-017: Redemptions count display', async ({ page }) => {

@@ -13,7 +13,6 @@ async function waitForAnalytics(page: Page) {
     page.getByText('Failed to fetch chatbot').waitFor({ timeout: 60000 }),
     page.getByText('Chatbot not found').waitFor({ timeout: 60000 }),
   ]).catch(() => {});
-  await page.waitForTimeout(1000);
 }
 
 test.describe('Section 15: Analytics Dashboard', () => {
@@ -38,14 +37,12 @@ test.describe('Section 15: Analytics Dashboard', () => {
 
     const btn7 = page.locator('button', { hasText: '7d' });
     await btn7.click();
-    await page.waitForTimeout(3000);
-    await expect(btn7).toHaveClass(/bg-primary-500/);
+    await expect(btn7).toHaveClass(/bg-primary-500/, { timeout: 10000 });
     await expect(btn30).not.toHaveClass(/bg-primary-500/);
 
     const btn90 = page.locator('button', { hasText: '90d' });
     await btn90.click();
-    await page.waitForTimeout(3000);
-    await expect(btn90).toHaveClass(/bg-primary-500/);
+    await expect(btn90).toHaveClass(/bg-primary-500/, { timeout: 10000 });
     await expect(btn7).not.toHaveClass(/bg-primary-500/);
   });
 
@@ -111,7 +108,7 @@ test.describe('Section 32: Analytics Dashboard Details', () => {
     await expect(page.getByText('Conversations Over Time')).toBeVisible();
 
     await page.locator('button', { hasText: '7d' }).click();
-    await page.waitForTimeout(5000);
+    await expect(page.locator('button', { hasText: '7d' })).toHaveClass(/bg-primary-500/, { timeout: 10000 });
 
     const chartBars = page.locator('.bg-primary-500.rounded-t[title]');
     const count = await chartBars.count();

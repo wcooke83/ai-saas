@@ -13,13 +13,12 @@ test.describe('Conversations & History', () => {
   test('conversations page loads', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/conversations`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
   });
 
   test('widget history endpoint works', async ({ page }) => {
     const res = await page.request.get(`/api/widget/${CHATBOT_ID}/history?session_id=e2e-nonexistent`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('transcript endpoint works', async ({ page }) => {

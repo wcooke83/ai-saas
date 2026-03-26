@@ -63,7 +63,6 @@ setup('authenticate e2e test user', async ({ page, context }) => {
   // 3. Verify auth works
   await page.goto('/dashboard');
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(3000);
 
   const url = page.url();
   console.log(`After auth, URL: ${url}`);

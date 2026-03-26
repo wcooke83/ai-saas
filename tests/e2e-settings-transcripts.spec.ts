@@ -7,7 +7,6 @@ async function gotoTranscriptsSection(page: import('@playwright/test').Page) {
   await page.goto(SETTINGS_URL, { waitUntil: 'domcontentloaded' });
   await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
   await page.locator('nav button', { hasText: 'Transcripts' }).click();
-  await page.waitForTimeout(500);
 }
 
 test.describe('10. Settings -- Email Transcripts', () => {

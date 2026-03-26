@@ -251,9 +251,6 @@ test.describe('AI Proposal Generator Audit', () => {
       console.log('Loading state did not appear - checking for immediate response or error');
     }
 
-    // Wait a bit for content to render
-    await page.waitForTimeout(1000);
-
     // Take screenshot of results
     await page.screenshot({
       path: `${SCREENSHOT_DIR}/05-generated-results.png`,
@@ -339,7 +336,6 @@ test.describe('AI Proposal Generator Audit', () => {
     if (await loadingText.isVisible({ timeout: 5000 }).catch(() => false)) {
       await expect(loadingText).toBeHidden({ timeout: 90000 });
     }
-    await page.waitForTimeout(1000);
 
     // Check if generation succeeded
     const placeholderStillVisible = await page.getByText('Your Proposal Will Appear Here').isVisible();
@@ -364,7 +360,6 @@ test.describe('AI Proposal Generator Audit', () => {
     const exportButton = page.getByRole('button', { name: /Export/i });
     if (await exportButton.isVisible()) {
       await exportButton.click();
-      await page.waitForTimeout(500);
 
       // Take screenshot of export menu
       await page.screenshot({
@@ -427,7 +422,6 @@ test.describe('AI Proposal Generator Audit', () => {
       const firstCollapsible = collapsibleButtons.first();
       const initialState = await firstCollapsible.getAttribute('aria-expanded');
       await firstCollapsible.click();
-      await page.waitForTimeout(300);
 
       const newState = await firstCollapsible.getAttribute('aria-expanded');
       if (initialState === newState) {
@@ -489,7 +483,6 @@ test.describe('AI Proposal Generator Audit', () => {
 
     // Enable dark mode via system preference
     await page.emulateMedia({ colorScheme: 'dark' });
-    await page.waitForTimeout(500);
 
     // Take dark mode screenshot
     await page.screenshot({
@@ -538,7 +531,6 @@ test.describe('AI Proposal Generator Audit', () => {
 
     // Test tablet viewport
     await page.setViewportSize({ width: 768, height: 1024 });
-    await page.waitForTimeout(300);
 
     await page.screenshot({
       path: `${SCREENSHOT_DIR}/11-tablet-view.png`,

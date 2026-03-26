@@ -140,7 +140,7 @@ async function openWidget(page: import('@playwright/test').Page) {
   const btn = page.locator('.chat-widget-button');
   if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) {
     await btn.click();
-    await page.waitForTimeout(1000);
+    await expect(page.locator('.chat-widget-container')).toBeVisible({ timeout: 5000 });
   }
 }
 
@@ -150,14 +150,11 @@ async function sendMessage(page: import('@playwright/test').Page, text: string) 
   );
   await input.fill(text);
   await input.press('Enter');
-  await page.waitForTimeout(1000);
   await page.locator('.chat-widget-typing').waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
   await expect(page.locator('.chat-widget-typing')).not.toBeVisible({ timeout: 60000 });
-  await page.waitForTimeout(2000);
 }
 
 async function getLastAssistantMessage(page: import('@playwright/test').Page): Promise<string> {
-  await page.waitForTimeout(500);
   const messages = page.locator('.chat-widget-bubble-assistant, .chat-widget-message-assistant');
   const count = await messages.count();
   if (count === 0) return '';
@@ -999,7 +996,6 @@ test.describe('Calendar Booking Integration', () => {
     test('CAL-171: Easy!Appointments connection card visible', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
 
       await expect(page.getByText('Easy!Appointments Connection').first()).toBeVisible({ timeout: 10000 });
     });
@@ -1007,7 +1003,6 @@ test.describe('Calendar Booking Integration', () => {
     test('CAL-172: Service and provider dropdowns visible', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
 
       // Service dropdown
       const serviceSelect = page.locator('#ea-service');
@@ -1032,7 +1027,6 @@ test.describe('Calendar Booking Integration', () => {
     test('CAL-173: Appointment settings form elements visible', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
 
       await expect(page.locator('text=Appointment Settings')).toBeVisible({ timeout: 5000 });
       // Duration selector
@@ -1046,7 +1040,6 @@ test.describe('Calendar Booking Integration', () => {
 
       await page.goto(CALENDAR_SETTINGS_URL);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
 
       // Should show "Calendar Active" badge or connection status
       await expect(
@@ -1057,7 +1050,6 @@ test.describe('Calendar Booking Integration', () => {
     test('CAL-175: Booking history section renders', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
       await expect(page.getByText('Booking History').first()).toBeVisible({ timeout: 15000 });
     });
 
@@ -1067,7 +1059,6 @@ test.describe('Calendar Booking Integration', () => {
       await seedBooking(integrationId!);
       await page.goto(CALENDAR_SETTINGS_URL);
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(3000);
 
       await expect(page.getByText('E2E Test User').first()).toBeVisible({ timeout: 15000 });
     });
@@ -1075,7 +1066,6 @@ test.describe('Calendar Booking Integration', () => {
     test('CAL-177: Calendar tab in chatbot sub-nav', async ({ page }) => {
       await page.goto(`/dashboard/chatbots/${DASHBOARD_CHATBOT_ID}`);
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(3000);
 
       const link = page.locator('nav a:has-text("Calendar")');
       await expect(link).toBeVisible({ timeout: 15000 });

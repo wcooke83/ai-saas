@@ -7,14 +7,14 @@ async function selectE2eUser(page: import('@playwright/test').Page) {
   const searchInput = page.locator('input[placeholder="Search by email..."]');
   await searchInput.click();
   await searchInput.fill('e2e');
-  await page.waitForTimeout(1000);
+  await expect(page.locator('.absolute.z-10')).toBeVisible({ timeout: 5000 }).catch(() => {});
 
   const dropdown = page.locator('.absolute.z-10');
   const visible = await dropdown.isVisible().catch(() => false);
   if (!visible) return false;
 
   await dropdown.locator('button').first().click();
-  await page.waitForTimeout(2000);
+  await page.waitForLoadState('domcontentloaded');
   return true;
 }
 
@@ -40,7 +40,6 @@ test.describe('Section 44: Admin -- Data Flow Verification', () => {
     await page.getByRole('button', { name: /add usage/i }).click();
     await page.locator('input[placeholder="e.g. 10000"]').fill('1');
     await page.locator('textarea').fill('E2E DATAFLOW-001: Add usage test');
-    await page.waitForTimeout(500);
 
     await submitAdjustment(page);
   });
@@ -53,7 +52,6 @@ test.describe('Section 44: Admin -- Data Flow Verification', () => {
 
     await page.getByRole('button', { name: /add usage/i }).click();
     await page.locator('input[placeholder="e.g. 10000"]').fill('999999999');
-    await page.waitForTimeout(500);
 
     // Check for over limit warning (only shows with usage record)
     const overLimit = page.getByText('(over limit!)');
@@ -71,7 +69,6 @@ test.describe('Section 44: Admin -- Data Flow Verification', () => {
     await page.getByRole('button', { name: /credit back/i }).click();
     await page.locator('input[placeholder="e.g. 10000"]').fill('1');
     await page.locator('textarea').fill('E2E DATAFLOW-003: Credit back test');
-    await page.waitForTimeout(500);
 
     await submitAdjustment(page);
   });
@@ -98,7 +95,6 @@ test.describe('Section 44: Admin -- Data Flow Verification', () => {
     await page.getByRole('button', { name: /add usage/i }).click();
     await page.locator('input[placeholder="e.g. 10000"]').fill('1');
     await page.locator('textarea').fill(uniqueReason);
-    await page.waitForTimeout(500);
 
     await submitAdjustment(page);
 
@@ -128,7 +124,6 @@ test.describe('Section 44: Admin -- Data Flow Verification', () => {
     await page.getByRole('button', { name: /credit back/i }).click();
     await page.locator('input[placeholder="e.g. 10000"]').fill('1');
     await page.locator('textarea').fill('E2E DATAFLOW-007: Panel update check');
-    await page.waitForTimeout(500);
 
     await submitAdjustment(page);
   });
@@ -216,7 +211,7 @@ test.describe('Section 44: Admin -- Data Flow Verification', () => {
     const checkbox = page.getByLabel('Show inactive trials');
     if (!(await checkbox.isChecked())) {
       await checkbox.check();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('domcontentloaded');
     }
 
     const inactiveStatus = page.locator('button', { hasText: 'Inactive' });
@@ -272,7 +267,6 @@ test.describe('Section 44: Admin -- Data Flow Verification', () => {
     await expect(page.locator('.animate-pulse').first()).not.toBeVisible({ timeout: 15000 });
 
     await page.locator('select').selectOption('errors');
-    await page.waitForTimeout(500);
 
     const errorsCard = page.getByText('Errors', { exact: true }).locator('..').locator('.text-2xl.font-bold');
     const errorCount = await errorsCard.textContent();
@@ -287,7 +281,7 @@ test.describe('Section 44: Admin -- Data Flow Verification', () => {
     if ((await logEntry.count()) === 0) return;
 
     await logEntry.click();
-    await page.waitForTimeout(500);
+    await expect(page.getByText('Tokens (In/Out/Billed)')).toBeVisible({ timeout: 5000 }).catch(() => {});
 
     const tokensLabel = page.getByText('Tokens (In/Out/Billed)');
     if (await tokensLabel.isVisible()) {

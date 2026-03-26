@@ -110,7 +110,6 @@ test.describe('Section 39: Admin -- API Logs (/admin/logs)', () => {
 
     // Filter to errors only to find entries with error messages
     await page.locator('select').selectOption('errors');
-    await page.waitForTimeout(500);
 
     const errorEntries = page.locator('.cursor-pointer');
     const count = await errorEntries.count();
@@ -133,7 +132,6 @@ test.describe('Section 39: Admin -- API Logs (/admin/logs)', () => {
     if ((await logEntry.count()) === 0) return;
 
     await logEntry.click();
-    await page.waitForTimeout(500);
 
     // Check for Request Body section
     const requestBodyLabel = page.getByText('Request Body');
@@ -153,7 +151,6 @@ test.describe('Section 39: Admin -- API Logs (/admin/logs)', () => {
     if ((await logEntry.count()) === 0) return;
 
     await logEntry.click();
-    await page.waitForTimeout(500);
 
     // Check for Raw AI Prompt section (blue background)
     const promptSection = page.locator('.bg-blue-50, .dark\\:bg-blue-900\\/20');
@@ -170,7 +167,6 @@ test.describe('Section 39: Admin -- API Logs (/admin/logs)', () => {
     if ((await logEntry.count()) === 0) return;
 
     await logEntry.click();
-    await page.waitForTimeout(500);
 
     // Check for Raw AI Response section (green background)
     const responseSection = page.locator('.bg-green-50, .dark\\:bg-green-900\\/20');
@@ -187,7 +183,6 @@ test.describe('Section 39: Admin -- API Logs (/admin/logs)', () => {
     if ((await logEntry.count()) === 0) return;
 
     await logEntry.click();
-    await page.waitForTimeout(500);
 
     // Check for User Agent section
     const userAgentLabel = page.getByText('User Agent');

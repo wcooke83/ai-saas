@@ -11,7 +11,7 @@ test.describe('Chat Advanced Flows', () => {
     const chatRes = await page.request.post(CHAT_URL, {
       data: { message: 'What is your purpose?', stream: false, session_id: session },
     });
-    expect(chatRes.status()).toBeLessThan(500);
+    expect(chatRes.ok()).toBeTruthy();
 
     // Check performance log has an entry
     const perfRes = await page.request.get(`/api/chatbots/${CHATBOT_ID}/performance?days=1`);
@@ -43,7 +43,7 @@ test.describe('Chat Advanced Flows', () => {
         session_id: `e2e-welcome-${Date.now()}`,
       },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const body = await res.json();
       expect(body.success).toBe(true);

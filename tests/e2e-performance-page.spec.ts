@@ -65,14 +65,12 @@ test.describe('Performance Page', () => {
     // Click Live Fetch Only
     const liveFetchBtn = page.getByRole('button', { name: 'Live Fetch Only' });
     await liveFetchBtn.click();
-    await page.waitForTimeout(500);
 
     // Should update URL
     await page.waitForURL(/live_fetch=true/, { timeout: 10000 });
 
     // Click again to deactivate
     await liveFetchBtn.click();
-    await page.waitForTimeout(1000);
     await expect(async () => {
       expect(page.url()).not.toContain('live_fetch=true');
     }).toPass({ timeout: 10000 });
@@ -83,7 +81,6 @@ test.describe('Performance Page', () => {
 
     const slowBtn = page.getByRole('button', { name: 'Slow Only' });
     await slowBtn.click();
-    await page.waitForTimeout(500);
 
     await expect(slowBtn).toHaveClass(/bg-blue-600/);
     expect(page.url()).toContain('slow=true');
@@ -101,7 +98,10 @@ test.describe('Performance Page', () => {
 
   test('shows empty state or data cards', async ({ page }) => {
     // beforeEach already navigated; wait for data fetch to complete
-    await page.waitForTimeout(8000);
+    await Promise.race([
+      page.getByText('No performance data yet').waitFor({ timeout: 15000 }),
+      page.getByText('Total Requests').first().waitFor({ timeout: 15000 }),
+    ]).catch(() => {});
 
     // Either we see the empty state heading or the summary stat cards
     const hasEmpty = await page.getByText('No performance data yet').isVisible().catch(() => false);

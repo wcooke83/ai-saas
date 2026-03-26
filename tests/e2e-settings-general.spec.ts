@@ -21,7 +21,6 @@ test.describe('2. Settings -- General', () => {
 
     // Click Save
     await page.getByRole('button', { name: /Save Changes/i }).first().click();
-    await page.waitForTimeout(1000);
 
     // Should show error toast
     await expect(page.locator('text=Chatbot name is required')).toBeVisible({ timeout: 5000 });
@@ -37,7 +36,6 @@ test.describe('2. Settings -- General', () => {
 
     // Change name
     await nameInput.fill('Test Bot Updated E2E');
-    await page.waitForTimeout(500);
 
     // Click save — scroll into view first
     const saveBtn = page.getByRole('button', { name: /Save Changes/i }).first();
@@ -51,7 +49,7 @@ test.describe('2. Settings -- General', () => {
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
     await page.locator('nav button', { hasText: 'General' }).click();
-    await page.waitForTimeout(500);
+    await expect(page.locator('input[name="name"], input#name').first()).toBeVisible({ timeout: 10000 });
 
     const updatedName = await page.locator('input[name="name"], input#name').first().inputValue();
     expect(updatedName).toBe('Test Bot Updated E2E');
@@ -155,13 +153,13 @@ test.describe('2. Settings -- General', () => {
     });
 
     // Wait for any response — success toast, error toast, or logo preview
-    await page.waitForTimeout(5000);
+    await expect(page.locator('text=/Logo uploaded/i').or(page.locator('text=/upload.*fail|error/i')).or(page.locator('img[alt="Logo"]'))).toBeVisible({ timeout: 10000 }).catch(() => {});
     const hasUploadToast = await page.locator('text=/Logo uploaded/i').isVisible().catch(() => false);
     const hasError = await page.locator('text=/upload.*fail|error/i').isVisible().catch(() => false);
     const hasLogoPreview = await page.locator('img[alt="Logo"]').isVisible().catch(() => false);
 
-    // Any of these outcomes is acceptable — the key is the file input works
-    expect(hasUploadToast || hasError || hasLogoPreview || true).toBeTruthy();
+    // At least one of these outcomes must occur for the file input to be working
+    expect(hasUploadToast || hasError || hasLogoPreview).toBeTruthy();
   });
 
   test('SET-GEN-007: Logo upload size validation', async ({ page }) => {
@@ -195,8 +193,8 @@ test.describe('2. Settings -- General', () => {
         await closeBtns.first().click();
       }
     }
-    // If no logo, test passes (nothing to remove)
-    expect(true).toBe(true);
+    // Verify the settings page is still loaded (Upload Logo label should be visible)
+    await expect(page.locator('text=Upload Logo').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('SET-GEN-009: Welcome message update reflects in widget', async ({ page }) => {
@@ -219,14 +217,14 @@ test.describe('2. Settings -- General', () => {
     // Open widget in new page to verify
     const widgetPage = await page.context().newPage();
     await widgetPage.goto(`/widget/${CHATBOT_ID}`, { waitUntil: 'domcontentloaded' });
-    await widgetPage.waitForTimeout(3000);
+    await widgetPage.waitForLoadState('networkidle');
 
     // Clear any cached session
     await widgetPage.evaluate((id) => {
       localStorage.removeItem(`chatbot_session_${id}`);
     }, CHATBOT_ID);
     await widgetPage.reload({ waitUntil: 'domcontentloaded' });
-    await widgetPage.waitForTimeout(3000);
+    await widgetPage.waitForLoadState('networkidle');
 
     // Welcome message should appear
     await expect(widgetPage.locator('.chat-widget-message-assistant').first()).toBeVisible({ timeout: 15000 });
@@ -236,7 +234,7 @@ test.describe('2. Settings -- General', () => {
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
     await page.locator('nav button', { hasText: 'General' }).click();
-    await page.waitForTimeout(500);
+    await expect(page.locator('input[name="welcome_message"], input#welcome_message').first()).toBeVisible({ timeout: 10000 });
     await page.locator('input[name="welcome_message"], input#welcome_message').first().fill(original);
     await page.getByRole('button', { name: /Save Changes/i }).first().click();
     await expect(page.locator('text=Settings saved successfully')).toBeVisible({ timeout: 30000 });
@@ -251,7 +249,6 @@ test.describe('2. Settings -- General', () => {
 
     // Enter a message with placeholder
     await welcomeInput.fill('Hi {{name}}, welcome!');
-    await page.waitForTimeout(500);
 
     // Warning about pre-chat form should appear
     const warning = page.locator('text=/placeholders require/i');
@@ -308,7 +305,6 @@ test.describe('2. Settings -- General', () => {
 
     // Make a change
     await nameInput.fill('Unsaved Change Test');
-    await page.waitForTimeout(500);
 
     // "Unsaved changes" text should appear
     await expect(page.locator('text=/unsaved/i').first()).toBeVisible({ timeout: 5000 });
@@ -326,11 +322,9 @@ test.describe('2. Settings -- General', () => {
 
     // Make a change
     await nameInput.fill('Should Be Reverted');
-    await page.waitForTimeout(500);
 
     // Click Reset
     await page.getByRole('button', { name: /Reset/i }).first().click();
-    await page.waitForTimeout(500);
 
     // Name should revert
     const reverted = await nameInput.inputValue();
@@ -351,7 +345,7 @@ test.describe('2. Settings -- General', () => {
       // Translation buttons may or may not be visible depending on section state
       expect(typeof hasWarning).toBe('boolean');
     }
-    // If English, no warning expected — test passes
-    expect(true).toBe(true);
+    // Verify the language selector is present and has a value
+    expect(currentLang).toBeTruthy();
   });
 });

@@ -9,7 +9,6 @@ async function waitForLeads(page: Page) {
     page.getByRole('heading', { name: 'Leads & Conversations' }).waitFor({ timeout: 60000 }),
     page.getByText('Failed to fetch').waitFor({ timeout: 60000 }),
   ]).catch(() => {});
-  await page.waitForTimeout(1000);
 }
 
 test.describe('Section 17: Leads Management', () => {
@@ -45,7 +44,6 @@ test.describe('Section 17: Leads Management', () => {
     if (rowCount > 0) {
       // Click on the first lead row
       await tableRows.first().click();
-      await page.waitForTimeout(1000);
 
       // Dialog should open — look for dialog/modal content
       const dialog = page.locator('[role="dialog"], [data-state="open"]');
@@ -62,7 +60,6 @@ test.describe('Section 17: Leads Management', () => {
     // Switch to Conversations tab
     const conversationsTab = page.locator('button').filter({ hasText: /Conversations/ });
     await conversationsTab.click();
-    await page.waitForTimeout(1000);
 
     // Conversations tab should now be active (has bg-white class when selected)
     await expect(conversationsTab).toHaveClass(/bg-white/);
@@ -78,11 +75,9 @@ test.describe('Section 17: Leads Management', () => {
 
     // Select "Today"
     await dateSelect.selectOption('today');
-    await page.waitForTimeout(500);
 
     // Select back to "All Time"
     await dateSelect.selectOption('all');
-    await page.waitForTimeout(500);
   });
 
   test('LEADS-005: Export leads to CSV', async ({ page }) => {
@@ -113,7 +108,7 @@ test.describe('Section 17: Leads Management', () => {
     // Switch to Conversations tab
     const conversationsTab = page.locator('button').filter({ hasText: /Conversations/ });
     await conversationsTab.click();
-    await page.waitForTimeout(1000);
+    await expect(conversationsTab).toHaveClass(/bg-white/);
 
     const exportButton = page.getByRole('button', { name: /Export/ });
     const isDisabled = await exportButton.isDisabled();
@@ -172,11 +167,9 @@ test.describe('Section 32: Leads Dashboard Details', () => {
     const searchInput = page.getByPlaceholder('Search by name, email, or form data...');
     if (await searchInput.isVisible().catch(() => false)) {
       await searchInput.fill('alice');
-      await page.waitForTimeout(500);
 
       // Clear search
       await searchInput.clear();
-      await page.waitForTimeout(500);
     }
   });
 
@@ -201,11 +194,9 @@ test.describe('Section 32: Leads Dashboard Details', () => {
     if (await submittedHeader.isVisible().catch(() => false)) {
       // Click to sort
       await submittedHeader.click();
-      await page.waitForTimeout(500);
 
       // Click again to reverse sort
       await submittedHeader.click();
-      await page.waitForTimeout(500);
     }
   });
 
@@ -215,13 +206,12 @@ test.describe('Section 32: Leads Dashboard Details', () => {
 
     // Switch to Conversations tab
     await page.locator('button').filter({ hasText: /Conversations/ }).click();
-    await page.waitForTimeout(1000);
+    await expect(page.locator('button').filter({ hasText: /Conversations/ })).toHaveClass(/bg-white/);
 
     // Search by session ID or channel
     const searchInput = page.getByPlaceholder('Search by session ID or channel...');
     if (await searchInput.isVisible().catch(() => false)) {
       await searchInput.fill('web');
-      await page.waitForTimeout(500);
       await searchInput.clear();
     }
   });
@@ -300,9 +290,8 @@ test.describe('Section 32: Leads Dashboard Details', () => {
     const clearButton = page.locator('button:has(svg.w-3.h-3)').filter({ has: page.locator('.hover\\:text-red-500') });
     if (await clearButton.isVisible().catch(() => false)) {
       await clearButton.click();
-      await page.waitForTimeout(1000);
       // URL should no longer contain session param
-      expect(page.url()).not.toContain('session=');
+      await expect(page).toHaveURL(/^(?!.*session=)/);
     }
   });
 

@@ -9,7 +9,7 @@ async function openWidget(page: import('@playwright/test').Page) {
   const btn = page.locator('.chat-widget-button');
   if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) {
     await btn.click();
-    await page.waitForTimeout(1000);
+    await expect(page.locator('.chat-widget-container')).toBeVisible({ timeout: 5000 });
   }
 }
 
@@ -17,7 +17,8 @@ async function sendMsg(page: import('@playwright/test').Page, text: string) {
   const input = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
   await input.fill(text);
   await input.press('Enter');
-  await page.waitForTimeout(3000);
+  // Wait for the assistant response to appear (a new message bubble)
+  await page.locator('.chat-widget-messages [class*="message"]').last().waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
 }
 
 test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
@@ -26,38 +27,115 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
   });
 
   test('WIDGET-ADV-001: Abort controller cancels in-flight request on new message', async ({ page }) => {
+    // Intercept chat API — let the welcome message save pass, fail the first user message
+    let userMsgCount = 0;
+    await page.route(`**/api/chat/${CHATBOT_ID}`, async (route) => {
+      const body = route.request().postDataJSON();
+      // Let welcome message saves pass through
+      if (body?.message === '__WELCOME__') {
+        await route.continue();
+        return;
+      }
+      userMsgCount++;
+      if (userMsgCount === 1) {
+        // First user message: simulate network error → "Not delivered" + Retry
+        await route.abort('connectionfailed');
+      } else {
+        // Retry: let it pass through
+        await route.continue();
+      }
+    });
+
+    // Override config to ensure widget loads in chat mode (credits available)
+    await page.route(`**/api/widget/${CHATBOT_ID}/config*`, async (route) => {
+      const response = await route.fetch();
+      const body = await response.json();
+      body.data.creditExhausted = false;
+      body.data.creditLow = false;
+      await route.fulfill({
+        status: response.status(),
+        headers: response.headers(),
+        body: JSON.stringify(body),
+        contentType: 'application/json',
+      });
+    });
+
     await openWidget(page);
     await page.waitForSelector('.chat-widget-messages', { timeout: 15000 });
 
-    // Send first message
+    // Send a message — it will fail due to our route intercept
     const input = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
-    await input.fill('Tell me a very long story about dragons');
+    await input.fill('Test abort controller');
     await input.press('Enter');
 
-    // Immediately send second message while first is still streaming
-    await page.waitForTimeout(500);
-    await input.fill('Actually, tell me about cats instead');
-    await input.press('Enter');
-    await page.waitForTimeout(5000);
+    // Wait for the "Not delivered" / Retry button to appear on the failed message
+    const retryBtn = page.locator('.chat-widget-container button:has-text("Retry")');
+    await expect(retryBtn).toBeVisible({ timeout: 10000 });
 
-    // Verify no error state — widget should still be functional
-    const errorAlert = page.locator('[role="alert"]');
-    const errorCount = await errorAlert.count();
-    // May have 0 errors or graceful error handling
-    await expect(page.locator('.chat-widget-container')).toBeVisible();
+    // Click retry — this triggers retryMessage() which aborts the previous controller
+    // and sends a new request
+    await retryBtn.click();
+
+    // The second request passes through — widget should remain functional with no crash
+    await expect(page.locator('.chat-widget-container')).toBeVisible({ timeout: 10000 });
+
+    // No uncaught error alerts from the abort
+    const errorAlerts = page.locator('.chat-widget-container [role="alert"]');
+    const alertCount = await errorAlerts.count();
+    expect(alertCount).toBe(0);
   });
 
   test('WIDGET-ADV-002: Chat disabled state on message limit error', async ({ page }) => {
-    // This tests the UI for message_limit errors - we verify the error handling code path
+    // Ensure widget loads in chat mode by overriding creditExhausted in config response
+    await page.route(`**/api/widget/${CHATBOT_ID}/config*`, async (route) => {
+      const response = await route.fetch();
+      const body = await response.json();
+      body.data.creditExhausted = false;
+      body.data.creditLow = false;
+      await route.fulfill({
+        status: response.status(),
+        headers: response.headers(),
+        body: JSON.stringify(body),
+        contentType: 'application/json',
+      });
+    });
+
+    // Intercept the chat API to return a 403 USAGE_LIMIT_REACHED
+    await page.route(`**/api/chat/${CHATBOT_ID}`, async (route) => {
+      await route.fulfill({
+        status: 403,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: false,
+          error: {
+            code: 'USAGE_LIMIT_REACHED',
+            message: 'Chatbot has reached its monthly message limit',
+          },
+        }),
+      });
+    });
+
     await openWidget(page);
     await page.waitForSelector('.chat-widget-messages', { timeout: 15000 });
 
-    // Send a normal message to verify chat works
-    await sendMsg(page, 'Test message for limit check');
-
-    // Verify input is still enabled after normal message
+    // Send a message — it will hit our mocked 403
     const input = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
-    await expect(input).toBeVisible();
+    await input.fill('Test message for limit check');
+    await input.press('Enter');
+
+    // The disabled banner should replace the input area
+    const disabledBanner = page.locator('[aria-disabled="true"]');
+    await expect(disabledBanner).toBeVisible({ timeout: 10000 });
+
+    // Banner should show user-friendly message (not "monthly message limit")
+    await expect(disabledBanner).toContainText('temporarily unavailable');
+
+    // The failed message should show "Unable to send message" (not "Message limit reached")
+    const failedAlert = page.locator('.chat-widget-container [role="alert"]');
+    await expect(failedAlert).toContainText('Unable to send message');
+
+    // The textarea should no longer be in the DOM (replaced by disabled banner)
+    await expect(input).not.toBeVisible();
   });
 
   test('WIDGET-ADV-003: Rate limit retry UI with distinct styling', async ({ page }) => {
@@ -97,7 +175,6 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
 
     if (visible) {
       await handoffBtn.click();
-      await page.waitForTimeout(1000);
 
       // Check for handoff confirmation dialog
       const confirmDialog = page.locator('.chat-widget-handoff-confirm');
@@ -140,7 +217,6 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     const handoffBtn = page.locator('[aria-label*="person"], [aria-label*="human"], [aria-label*="handoff"]').first();
     if (await handoffBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await handoffBtn.click();
-      await page.waitForTimeout(1000);
 
       const dialog = page.locator('.chat-widget-handoff-confirm');
       if (await dialog.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -155,7 +231,6 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
 
         // Press Escape to dismiss
         await page.keyboard.press('Escape');
-        await page.waitForTimeout(500);
 
         // Dialog should be closed
         await expect(dialog).not.toBeVisible({ timeout: 3000 }).catch(() => {});
@@ -173,7 +248,6 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     const handoffBtn = page.locator('[aria-label*="person"], [aria-label*="human"], [aria-label*="handoff"]').first();
     if (await handoffBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await handoffBtn.click();
-      await page.waitForTimeout(1000);
 
       // Should show a system message about needing to send a message first
       const systemMsg = page.locator('text=/send a message/i, text=/start a conversation/i');
@@ -221,7 +295,7 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     }
 
     // Wait for potential end-of-chat trigger (inactivity based)
-    await page.waitForTimeout(5000);
+    await expect(page.locator('.chat-widget-container')).toBeVisible({ timeout: 10000 });
 
     // Widget should remain functional
     await expect(page.locator('.chat-widget-container')).toBeVisible();
@@ -235,7 +309,7 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     await sendMsg(page, 'Single message test');
 
     // Wait for inactivity period
-    await page.waitForTimeout(5000);
+    await expect(page.locator('.chat-widget-container')).toBeVisible({ timeout: 10000 });
 
     // No survey or transcript should appear after just 1 message
     const surveyView = page.locator('[class*="survey"]');
@@ -257,7 +331,6 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     // Start typing to potentially dismiss any end-of-chat prompts
     const input = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
     await input.fill('I am still typing...');
-    await page.waitForTimeout(500);
 
     // Input should still be active
     await expect(input).toBeVisible();
@@ -275,14 +348,13 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     const closeBtn = page.locator('.chat-widget-close').first();
     if (await closeBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await closeBtn.click();
-      await page.waitForTimeout(1000);
     }
 
     // Reopen widget
     const openBtn = page.locator('.chat-widget-button');
     if (await openBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await openBtn.click();
-      await page.waitForTimeout(2000);
+      await expect(page.locator('.chat-widget-container')).toBeVisible({ timeout: 5000 });
     }
 
     // Widget should be open with messages preserved
@@ -316,7 +388,7 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
         }
       }
       await page.locator('.chat-widget-form-submit').click();
-      await page.waitForTimeout(2000);
+      await page.waitForSelector('.chat-widget-messages', { timeout: 10000 });
     }
 
     // Check messages for personalized greeting
@@ -335,7 +407,6 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     const transcriptBtn = page.locator('[aria-label*="transcript"], [aria-label*="email"]').first();
     if (await transcriptBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await transcriptBtn.click();
-      await page.waitForTimeout(1000);
 
       // Try invalid email
       const emailInput = page.locator('input[type="email"], input[placeholder*="email"]');
@@ -345,7 +416,6 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
         const submitBtn = page.locator('button:has-text("Send"), button[type="submit"]').first();
         if (await submitBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
           await submitBtn.click();
-          await page.waitForTimeout(1000);
         }
       }
     }
@@ -358,19 +428,16 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     await page.waitForSelector('.chat-widget-messages', { timeout: 15000 });
 
     await sendMsg(page, 'I have an issue with my order');
-    await page.waitForTimeout(2000);
 
     // Look for report button
     const reportBtn = page.locator('.chat-widget-report-btn').first();
     if (await reportBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await reportBtn.click();
-      await page.waitForTimeout(1000);
 
       // Look for "Need Human Help" reason
       const humanHelp = page.locator('text=/human/i, text=/Human Help/i, input[value*="human"]').first();
       if (await humanHelp.isVisible({ timeout: 2000 }).catch(() => false)) {
         await humanHelp.click();
-        await page.waitForTimeout(500);
       }
     }
 
@@ -430,9 +497,6 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     await page.goto(WIDGET_URL);
     await page.waitForSelector('.chat-widget-container, .chat-widget-button', { timeout: 30000 });
 
-    // Wait for potential proactive message
-    await page.waitForTimeout(3000);
-
     // Widget should be accessible
     const container = page.locator('.chat-widget-container, .chat-widget-button');
     await expect(container.first()).toBeVisible();
@@ -445,7 +509,6 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     await page.evaluate(() => {
       window.postMessage({ type: 'clear-proactive-state' }, '*');
     });
-    await page.waitForTimeout(1000);
 
     // Widget should still be functional
     await expect(page.locator('.chat-widget-container')).toBeVisible();
@@ -458,7 +521,6 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     await page.evaluate(() => {
       window.postMessage({ type: 'show-button' }, '*');
     });
-    await page.waitForTimeout(1000);
 
     // Either container or button should be visible
     const container = page.locator('.chat-widget-container, .chat-widget-button');
@@ -472,13 +534,11 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     await page.evaluate(() => {
       window.postMessage({ type: 'widget-id', widgetId: 'test-w1' }, '*');
     });
-    await page.waitForTimeout(500);
 
     // Close widget and verify it doesn't crash
     const closeBtn = page.locator('.chat-widget-close').first();
     if (await closeBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
       await closeBtn.click();
-      await page.waitForTimeout(500);
     }
 
     // Widget should still be functional (button or container visible)
@@ -492,13 +552,11 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     const expandBtn = page.locator('[aria-label*="expand"], [aria-label*="Expand"]').first();
     if (await expandBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await expandBtn.click();
-      await page.waitForTimeout(500);
 
       // Look for shrink button
       const shrinkBtn = page.locator('[aria-label*="shrink"], [aria-label*="Shrink"]').first();
       if (await shrinkBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
         await shrinkBtn.click();
-        await page.waitForTimeout(500);
       }
     }
 
@@ -512,7 +570,6 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     await page.evaluate(() => {
       window.postMessage({ type: 'mobile-mode' }, '*');
     });
-    await page.waitForTimeout(1000);
 
     await expect(page.locator('.chat-widget-container')).toBeVisible();
   });
@@ -527,7 +584,7 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
       headers: { 'Content-Type': 'application/json' },
     });
 
-    expect(resp.status()).toBeLessThan(500);
+    expect(resp.ok()).toBeTruthy();
     if (resp.ok()) {
       const body = await resp.json();
       expect(body.success || body.data).toBeTruthy();
@@ -544,7 +601,6 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     // Reload page to trigger history load
     await page.reload();
     await page.waitForSelector('.chat-widget-container', { timeout: 15000 });
-    await page.waitForTimeout(3000);
 
     // Check no duplicate messages visible
     const messages = page.locator('.chat-widget-messages');
@@ -593,7 +649,6 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
 
     // Request language switch
     await sendMsg(page, 'Please respond in French');
-    await page.waitForTimeout(3000);
 
     // Verify messages area shows responses
     await expect(page.locator('.chat-widget-messages')).toBeVisible();

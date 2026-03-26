@@ -8,7 +8,6 @@ async function gotoFeedbackSection(page: import('@playwright/test').Page) {
   await page.goto(SETTINGS_URL, { waitUntil: 'domcontentloaded' });
   await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
   await page.locator('nav button', { hasText: /Feedback/i }).click();
-  await page.waitForTimeout(500);
 }
 
 test.describe('12. Settings -- Issue Reporting (Escalation)', () => {
@@ -46,7 +45,6 @@ test.describe('12. Settings -- Issue Reporting (Escalation)', () => {
 
     // Hover to reveal report button
     await page.locator('.chat-widget-msg-row').first().hover();
-    await page.waitForTimeout(500);
 
     // Look for per-message report button
     const reportBtn = page.locator('.chat-widget-report-btn');

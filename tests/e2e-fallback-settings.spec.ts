@@ -34,17 +34,14 @@ test.describe('Credit Exhaustion Fallback Settings', () => {
 
     // Switch to Contact Form
     await page.locator('input[value="contact_form"]').click({ force: true });
-    await page.waitForTimeout(500);
     await expect(page.getByText('Contact Form Settings').first()).toBeVisible({ timeout: 5000 });
 
     // Switch to Purchase Credits
     await page.locator('input[value="purchase_credits"]').click({ force: true });
-    await page.waitForTimeout(500);
     await expect(page.getByText('Credit Packages').first()).toBeVisible({ timeout: 5000 });
 
     // Switch to Help Articles
     await page.locator('input[value="help_articles"]').click({ force: true });
-    await page.waitForTimeout(500);
     await expect(page.getByText('Help Articles').first()).toBeVisible({ timeout: 5000 });
   });
 
@@ -66,7 +63,7 @@ test.describe('Credit Exhaustion Fallback Settings', () => {
         },
       },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
 
     // Verify via GET
     const getRes = await page.request.get(`/api/chatbots/${CHATBOT_ID}`);
@@ -92,7 +89,7 @@ test.describe('Credit Exhaustion Fallback Settings', () => {
         },
       },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('FALLBACK-005: Credit packages config saves via API', async ({ page }) => {
@@ -108,7 +105,7 @@ test.describe('Credit Exhaustion Fallback Settings', () => {
         },
       },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('FALLBACK-006: Help articles config saves via API', async ({ page }) => {
@@ -123,7 +120,7 @@ test.describe('Credit Exhaustion Fallback Settings', () => {
         },
       },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('FALLBACK-007: Admin notification email validates format', async ({ page }) => {
@@ -138,7 +135,6 @@ test.describe('Credit Exhaustion Fallback Settings', () => {
     await expect(page.getByRole('heading', { name: 'Credit Exhaustion Fallback' })).toBeVisible({ timeout: 10000 });
     // Select tickets mode to show the email field
     await page.getByText('Open Tickets').first().click();
-    await page.waitForTimeout(500);
     const emailInput = page.locator('input[placeholder="admin@yourcompany.com"]');
     await expect(emailInput.first()).toBeVisible({ timeout: 5000 });
   });
@@ -153,7 +149,6 @@ test.describe('Credit Exhaustion Fallback Settings', () => {
     await page.locator('nav button', { hasText: 'Credit Exhaustion' }).click();
     await expect(page.getByRole('heading', { name: 'Credit Exhaustion Fallback' })).toBeVisible({ timeout: 10000 });
     await page.getByText('Open Tickets').first().click();
-    await page.waitForTimeout(500);
     await expect(page.getByText('{{name}}').first()).toBeVisible();
     await expect(page.getByText('{{ticketId}}').first()).toBeVisible();
   });

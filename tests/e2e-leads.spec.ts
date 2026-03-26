@@ -28,7 +28,7 @@ test.describe('Lead Capture', () => {
 
   test('retrieve leads via authenticated API', async ({ page }) => {
     const res = await page.request.get(`/api/chatbots/${CHATBOT_ID}/leads`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const body = await res.json();
       expect(body.data).toBeDefined();

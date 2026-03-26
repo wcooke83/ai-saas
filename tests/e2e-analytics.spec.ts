@@ -11,7 +11,6 @@ test.describe('Analytics & Export', () => {
   test('analytics page loads', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/analytics`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
   });
 
@@ -19,11 +18,11 @@ test.describe('Analytics & Export', () => {
     const res = await page.request.post(`/api/chatbots/${CHATBOT_ID}/analytics/export`, {
       data: { days: 30 },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('sentiment export endpoint responds', async ({ page }) => {
     const res = await page.request.post(`/api/chatbots/${CHATBOT_ID}/sentiment/export`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 });

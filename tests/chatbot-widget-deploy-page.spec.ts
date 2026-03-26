@@ -9,15 +9,11 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should display chat widget button on deploy page', async ({ page }) => {
-    await page.waitForTimeout(1500);
-    
     const chatButton = page.locator('#chatbot-widget-button');
     await expect(chatButton).toBeVisible();
   });
 
   test('should open chat widget when button clicked on deploy page', async ({ page }) => {
-    await page.waitForTimeout(1500);
-    
     const chatButton = page.locator('#chatbot-widget-button');
     await expect(chatButton).toBeVisible();
     
@@ -32,9 +28,8 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should position widget correctly on deploy page', async ({ page }) => {
-    await page.waitForTimeout(1500);
-    
     const chatButton = page.locator('#chatbot-widget-button');
+    await expect(chatButton).toBeVisible();
     
     const position = await chatButton.evaluate((el) => {
       const styles = window.getComputedStyle(el);
@@ -53,8 +48,7 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should not interfere with deploy page content', async ({ page }) => {
-    await page.waitForTimeout(1000);
-    
+    await expect(page.locator('h1').first()).toBeVisible();
     const pageTitle = await page.locator('h1').first().textContent();
     expect(pageTitle).toContain('Deploy');
     
@@ -67,8 +61,6 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should show widget preview iframe on deploy page', async ({ page }) => {
-    await page.waitForTimeout(1000);
-    
     const previewIframe = page.locator('iframe[title="Chatbot Preview"]');
     await expect(previewIframe).toBeVisible();
     
@@ -77,8 +69,7 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should not show widget inside preview iframe', async ({ page }) => {
-    await page.waitForTimeout(1500);
-    
+    await expect(page.locator('iframe[title="Chatbot Preview"]')).toBeVisible();
     const previewIframe = page.frameLocator('iframe[title="Chatbot Preview"]');
     
     const widgetInPreview = await previewIframe.locator('#chatbot-widget-button').count();
@@ -86,13 +77,12 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should not show widget inside opened chat iframe', async ({ page }) => {
-    await page.waitForTimeout(1500);
-    
     const chatButton = page.locator('#chatbot-widget-button');
+    await expect(chatButton).toBeVisible();
     await chatButton.click();
-    
-    await page.waitForTimeout(1000);
-    
+
+    await expect(page.locator('#chatbot-widget-container iframe')).toBeVisible();
+
     const chatIframe = page.frameLocator('#chatbot-widget-container iframe');
     
     const nestedWidget = await chatIframe.locator('#chatbot-widget-button').count();
@@ -100,8 +90,6 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should display SDK code examples on deploy page', async ({ page }) => {
-    await page.waitForTimeout(1000);
-    
     const sdkCodeBlock = page.locator('pre').filter({ hasText: 'ChatWidget.init' }).first();
     await expect(sdkCodeBlock).toBeVisible();
     
@@ -111,8 +99,6 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should have copy buttons for code examples', async ({ page }) => {
-    await page.waitForTimeout(1000);
-    
     const copyButtons = page.locator('button').filter({ hasText: /Copy|Copied/ });
     const copyButtonCount = await copyButtons.count();
     
@@ -120,8 +106,6 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should show JavaScript SDK section', async ({ page }) => {
-    await page.waitForTimeout(1000);
-    
     const sdkSection = page.locator('text=JavaScript SDK');
     await expect(sdkSection).toBeVisible();
     
@@ -130,8 +114,6 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should show Next.js integration example', async ({ page }) => {
-    await page.waitForTimeout(1000);
-    
     const nextjsSection = page.locator('text=Next.js / TypeScript');
     await expect(nextjsSection).toBeVisible();
     
@@ -140,8 +122,6 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should show iframe embed option', async ({ page }) => {
-    await page.waitForTimeout(1000);
-    
     const iframeSection = page.locator('text=iFrame Embed');
     await expect(iframeSection).toBeVisible();
     
@@ -150,8 +130,6 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should show REST API section', async ({ page }) => {
-    await page.waitForTimeout(1000);
-    
     const apiSection = page.locator('text=REST API');
     await expect(apiSection).toBeVisible();
     
@@ -160,8 +138,6 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should have back to chatbot link', async ({ page }) => {
-    await page.waitForTimeout(1000);
-    
     const backLink = page.locator('a').filter({ hasText: 'Back to Chatbot' });
     await expect(backLink).toBeVisible();
     
@@ -170,8 +146,6 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should have SDK documentation link', async ({ page }) => {
-    await page.waitForTimeout(1000);
-    
     const docsLink = page.locator('a').filter({ hasText: 'SDK Documentation' });
     await expect(docsLink).toBeVisible();
     
@@ -180,9 +154,8 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should widget button be on top of page content', async ({ page }) => {
-    await page.waitForTimeout(1500);
-    
     const chatButton = page.locator('#chatbot-widget-button');
+    await expect(chatButton).toBeVisible();
     const buttonZIndex = await chatButton.evaluate((el) => 
       parseInt(window.getComputedStyle(el).zIndex)
     );
@@ -197,8 +170,6 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should widget not block interaction with copy buttons', async ({ page }) => {
-    await page.waitForTimeout(1000);
-    
     const copyButton = page.locator('button').filter({ hasText: /Copy/ }).first();
     await expect(copyButton).toBeVisible();
     
@@ -208,14 +179,11 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should scroll page with widget visible', async ({ page }) => {
-    await page.waitForTimeout(1500);
-    
     const chatButton = page.locator('#chatbot-widget-button');
     await expect(chatButton).toBeVisible();
-    
+
     await page.evaluate(() => window.scrollTo(0, 500));
-    await page.waitForTimeout(300);
-    
+
     await expect(chatButton).toBeVisible();
     
     const position = await chatButton.evaluate((el) => 
@@ -225,20 +193,16 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should widget persist when navigating between tabs', async ({ page }) => {
-    await page.waitForTimeout(1500);
-    
     const chatButton = page.locator('#chatbot-widget-button');
     await expect(chatButton).toBeVisible();
-    
+
     await page.evaluate(() => window.scrollTo(0, 1000));
-    await page.waitForTimeout(500);
-    
+
     await expect(chatButton).toBeVisible();
   });
 
   test('should only have one widget instance on deploy page', async ({ page }) => {
-    await page.waitForTimeout(1500);
-    
+    await expect(page.locator('#chatbot-widget-button')).toBeVisible();
     const widgetContainers = await page.locator('#chatbot-widget-container').count();
     expect(widgetContainers).toBe(1);
     
@@ -247,9 +211,8 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should widget iframe have correct chatbot ID', async ({ page }) => {
-    await page.waitForTimeout(1500);
-    
     const chatButton = page.locator('#chatbot-widget-button');
+    await expect(chatButton).toBeVisible();
     await chatButton.click();
     
     const iframe = page.locator('#chatbot-widget-container iframe');
@@ -259,8 +222,7 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should preview iframe and widget iframe be different', async ({ page }) => {
-    await page.waitForTimeout(1500);
-    
+    await expect(page.locator('iframe[title="Chatbot Preview"]')).toBeVisible();
     const previewIframe = page.locator('iframe[title="Chatbot Preview"]');
     const previewSrc = await previewIframe.getAttribute('src');
     
@@ -275,9 +237,8 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should widget button have gradient background', async ({ page }) => {
-    await page.waitForTimeout(1500);
-    
     const chatButton = page.locator('#chatbot-widget-button');
+    await expect(chatButton).toBeVisible();
     const background = await chatButton.evaluate((el) => 
       window.getComputedStyle(el).background
     );
@@ -286,9 +247,8 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should widget button be circular', async ({ page }) => {
-    await page.waitForTimeout(1500);
-    
     const chatButton = page.locator('#chatbot-widget-button');
+    await expect(chatButton).toBeVisible();
     
     const shape = await chatButton.evaluate((el) => {
       const styles = window.getComputedStyle(el);
@@ -305,9 +265,8 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should widget button have chat icon', async ({ page }) => {
-    await page.waitForTimeout(1500);
-    
     const chatButton = page.locator('#chatbot-widget-button');
+    await expect(chatButton).toBeVisible();
     const svg = chatButton.locator('svg');
     
     await expect(svg).toBeVisible();
@@ -317,14 +276,11 @@ test.describe('Chatbot Widget on Deploy Page', () => {
   });
 
   test('should close widget when clicking outside (if implemented)', async ({ page }) => {
-    await page.waitForTimeout(1500);
-    
     const chatButton = page.locator('#chatbot-widget-button');
+    await expect(chatButton).toBeVisible();
     await chatButton.click();
-    
+
     const iframe = page.locator('#chatbot-widget-container iframe');
     await expect(iframe).toBeVisible();
-    
-    await page.waitForTimeout(500);
   });
 });

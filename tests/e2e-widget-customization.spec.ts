@@ -7,7 +7,6 @@ const CUSTOMIZE_URL = `${BASE}/customize`;
 async function gotoCustomize(page: import('@playwright/test').Page) {
   await page.goto(CUSTOMIZE_URL, { waitUntil: 'commit' });
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(5000);
   await expect(page.getByText('Customize Widget')).toBeVisible({ timeout: 30000 });
 }
 
@@ -117,7 +116,6 @@ test.describe('22. Widget Customization', () => {
     // Reload and verify persistence
     await page.reload();
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(5000);
 
     const reloadedHex = page.getByLabel('Primary Color hex value');
     await expect(reloadedHex).toHaveValue('#3366ff', { timeout: 15000 });

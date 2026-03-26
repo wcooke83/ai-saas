@@ -7,7 +7,7 @@ test.describe('Chatbot Settings Save', () => {
     const res = await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
       data: { name: 'E2E Bot Renamed' },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
 
     if (res.ok()) {
       const body = await res.json();
@@ -19,34 +19,33 @@ test.describe('Chatbot Settings Save', () => {
     const res = await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
       data: { system_prompt: 'You are an updated test assistant.' },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('update model settings', async ({ page }) => {
     const res = await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
       data: { temperature: 0.5, max_tokens: 500 },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('update language', async ({ page }) => {
     const res = await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
       data: { language: 'en' },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('restore original name', async ({ page }) => {
     const res = await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
       data: { name: 'E2E Test Bot' },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('settings page shows saved values', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/settings`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
   });
 });

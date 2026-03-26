@@ -14,7 +14,7 @@ test.describe('Knowledge Source Advanced', () => {
         content: 'This is content for testing priority toggle and reprocessing. It contains enough text to create at least one chunk for embedding purposes.',
       },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const body = await res.json();
       sourceId = body.data?.id || body.data?.source?.id || null;
@@ -27,7 +27,7 @@ test.describe('Knowledge Source Advanced', () => {
     const res = await page.request.patch(`${KNOWLEDGE_URL}/${sourceId}`, {
       data: { is_priority: true },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('reprocess knowledge source', async ({ page }) => {
@@ -36,14 +36,14 @@ test.describe('Knowledge Source Advanced', () => {
     const res = await page.request.patch(`${KNOWLEDGE_URL}/${sourceId}`, {
       data: { action: 'reprocess' },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('get single knowledge source details', async ({ page }) => {
     test.skip(!sourceId, 'No source created');
 
     const res = await page.request.get(`${KNOWLEDGE_URL}/${sourceId}`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const body = await res.json();
       expect(body.data?.id || body.data?.source?.id).toBe(sourceId);
@@ -53,6 +53,6 @@ test.describe('Knowledge Source Advanced', () => {
   test('cleanup: delete test source', async ({ page }) => {
     test.skip(!sourceId, 'No source to delete');
     const res = await page.request.delete(`${KNOWLEDGE_URL}/${sourceId}`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 });

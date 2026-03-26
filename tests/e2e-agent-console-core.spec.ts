@@ -191,22 +191,18 @@ test.describe('14. Agent Console', () => {
 
     // Click Pending — should show our pending conversation
     await page.getByTestId('filter-pending').click();
-    await page.waitForTimeout(1500);
     await expect(page.getByTestId('conversation-list-body')).toBeVisible();
 
     // Click Active — should show our active conversations
     await page.getByTestId('filter-active').click();
-    await page.waitForTimeout(1500);
     await expect(page.getByTestId('conversation-list-body')).toBeVisible();
 
     // Click Resolved — should show our resolved conversation
     await page.getByTestId('filter-resolved').click();
-    await page.waitForTimeout(1500);
     await expect(page.getByTestId('conversation-list-body')).toBeVisible();
 
     // Click All
     await page.getByTestId('filter-all').click();
-    await page.waitForTimeout(1500);
     await expect(page.getByTestId('conversation-list-body')).toBeVisible();
   });
 
@@ -227,7 +223,6 @@ test.describe('14. Agent Console', () => {
     expect(await items.count()).toBeGreaterThan(0);
 
     await items.first().click();
-    await page.waitForTimeout(1500);
     await expect(items.first()).toHaveAttribute('data-selected', 'true');
     await expect(page.getByText('Select a conversation to view messages')).not.toBeVisible();
     await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
@@ -239,7 +234,6 @@ test.describe('14. Agent Console', () => {
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     await items.first().click();
-    await page.waitForTimeout(2000);
 
     await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId('messages-skeleton')).not.toBeVisible({ timeout: 20000 });
@@ -255,7 +249,7 @@ test.describe('14. Agent Console', () => {
 
     // Filter to active conversations and wait for list to stabilize
     await page.getByTestId('filter-active').click();
-    await page.waitForTimeout(3000);
+    await expect(page.getByTestId('conversation-list-body')).toBeVisible();
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     const count = await items.count();
@@ -273,9 +267,8 @@ test.describe('14. Agent Console', () => {
     const testMessage = `E2E test reply ${Date.now()}`;
     await textarea.fill(testMessage);
     await textarea.press('Enter');
-    await page.waitForTimeout(3000);
 
-    await expect(textarea).toHaveValue('');
+    await expect(textarea).toHaveValue('', { timeout: 10000 });
   });
 
   test('AGENT-008: Reply disabled for pending conversations', async ({ page }) => {
@@ -284,7 +277,6 @@ test.describe('14. Agent Console', () => {
 
     // Filter to pending and wait for filter loading to complete
     await page.getByTestId('filter-pending').click();
-    await page.waitForTimeout(2000);
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 15000 });
 
     const items = page.locator('[data-testid^="conversation-item-"]');
@@ -315,14 +307,14 @@ test.describe('14. Agent Console', () => {
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 20000 });
 
     await page.getByTestId('filter-resolved').click();
-    await page.waitForTimeout(1500);
+    await expect(page.getByTestId('conversation-list-body')).toBeVisible();
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     const count = await items.count();
     if (count === 0) { test.skip(); return; }
 
     await items.first().click();
-    await page.waitForTimeout(2000);
+    await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
 
     // Reply input should NOT be rendered for resolved conversations
     await expect(page.locator('textarea[placeholder="Type a reply..."]')).not.toBeVisible();
@@ -333,20 +325,19 @@ test.describe('14. Agent Console', () => {
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 20000 });
 
     await page.getByTestId('filter-pending').click();
-    await page.waitForTimeout(1500);
+    await expect(page.getByTestId('conversation-list-body')).toBeVisible();
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     const count = await items.count();
     if (count === 0) { test.skip(); return; }
 
     await items.first().click();
-    await page.waitForTimeout(2000);
+    await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
 
     const takeOverBtn = page.getByTestId('action-take-over');
     if (!(await takeOverBtn.isVisible().catch(() => false))) { test.skip(); return; }
 
     await takeOverBtn.click();
-    await page.waitForTimeout(3000);
 
     // After taking over, active-state buttons should appear
     const resolveVisible = await page.getByTestId('action-resolve').isVisible().catch(() => false);
@@ -359,20 +350,19 @@ test.describe('14. Agent Console', () => {
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 20000 });
 
     await page.getByTestId('filter-active').click();
-    await page.waitForTimeout(1500);
+    await expect(page.getByTestId('conversation-list-body')).toBeVisible();
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     const count = await items.count();
     if (count === 0) { test.skip(); return; }
 
     await items.first().click();
-    await page.waitForTimeout(2000);
+    await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
 
     const resolveBtn = page.getByTestId('action-resolve');
     if (!(await resolveBtn.isVisible().catch(() => false))) { test.skip(); return; }
 
     await resolveBtn.click();
-    await page.waitForTimeout(3000);
 
     // After resolving, reply textarea should disappear
     await expect(page.locator('textarea[placeholder="Type a reply..."]')).not.toBeVisible();
@@ -383,20 +373,19 @@ test.describe('14. Agent Console', () => {
     await expect(page.getByTestId('conversation-list-skeleton')).not.toBeVisible({ timeout: 20000 });
 
     await page.getByTestId('filter-active').click();
-    await page.waitForTimeout(1500);
+    await expect(page.getByTestId('conversation-list-body')).toBeVisible();
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     const count = await items.count();
     if (count === 0) { test.skip(); return; }
 
     await items.first().click();
-    await page.waitForTimeout(2000);
+    await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
 
     const returnBtn = page.getByTestId('action-return-to-ai');
     if (!(await returnBtn.isVisible().catch(() => false))) { test.skip(); return; }
 
     await returnBtn.click();
-    await page.waitForTimeout(3000);
 
     await expect(page.getByTestId('conversation-list-body')).toBeVisible();
   });
@@ -407,7 +396,6 @@ test.describe('14. Agent Console', () => {
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     await items.first().click();
-    await page.waitForTimeout(2000);
 
     await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
 
@@ -430,7 +418,7 @@ test.describe('14. Agent Console', () => {
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     await items.first().click();
-    await page.waitForTimeout(2000);
+    await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
 
     // Should show either "Online" or "Offline"
     const hasOnline = await page.getByText('Online').isVisible().catch(() => false);
@@ -444,7 +432,6 @@ test.describe('14. Agent Console', () => {
 
     const items = page.locator('[data-testid^="conversation-item-"]');
     await items.first().click();
-    await page.waitForTimeout(2000);
 
     // Chat messages area should be visible (typing indicator renders within it)
     await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
@@ -486,10 +473,9 @@ test.describe('14. Agent Console', () => {
 
     // Switch back — cached messages should appear without skeleton
     await items.nth(0).click();
-    await page.waitForTimeout(200); // Brief pause to let React render
-    const skeletonVisible = await page.getByTestId('messages-skeleton').isVisible().catch(() => false);
-    expect(skeletonVisible).toBe(false);
-    await expect(page.getByTestId('chat-messages-area')).toBeVisible();
+    await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('messages-skeleton')).not.toBeVisible();
+
   });
 
   test('AGENT-019: Agent presence broadcast', async ({ page }) => {

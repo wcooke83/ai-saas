@@ -110,7 +110,6 @@ test.describe('Ownership Check Fix (403 → 404)', () => {
     // Reload to capture responses
     await page.reload();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
 
     // No 403s should have occurred
     const forbidden = responses.filter(s => s === 403);
@@ -127,7 +126,6 @@ test.describe('Ownership Check Fix (403 → 404)', () => {
 
     await page.goto(`/dashboard/chatbots/${OWN_CHATBOT_ID}/calendar`);
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
 
     // No 403s on any API calls
     const forbidden = responses.filter(r => r.status === 403);

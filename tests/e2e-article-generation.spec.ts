@@ -241,7 +241,7 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
     }
 
     // Wait for fire-and-forget perf logs to land
-    await page.waitForTimeout(5000);
+    await expect(page.locator('body')).toBeVisible({ timeout: 5000 });
 
     // Check the performance API for recent requests
     const perfRes = await page.request.get(
@@ -343,11 +343,9 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
   test('AG-061: Knowledge page shows article generation section', async ({ page }) => {
     await page.goto(`${BASE_URL}/knowledge`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     // Scroll to bottom — Article Generation section is below the sources list
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await page.waitForTimeout(1000);
 
     // Article generation section
     await expect(page.getByText('Article Generation')).toBeVisible({ timeout: 15000 });
@@ -364,7 +362,6 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
 
     // Click to expand — the header is the click target
     await promptsHeader.click();
-    await page.waitForTimeout(3000);
 
     // Should show the "Add" input (always present when expanded, regardless of prompt count)
     const addInput = page.getByPlaceholder(/Add a custom extraction question/);
@@ -373,7 +370,6 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
     if (!isVisible) {
       // Maybe section didn't expand — try clicking again
       await promptsHeader.click();
-      await page.waitForTimeout(2000);
     }
 
     await expect(addInput).toBeVisible({ timeout: 10000 });
@@ -387,7 +383,6 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
 
     // Click to expand schedule
     await page.getByText('Auto-Regeneration Schedule').click();
-    await page.waitForTimeout(1500);
 
     // Should show frequency label and select
     await expect(page.getByText('Regeneration Frequency', { exact: false })).toBeVisible({ timeout: 10000 });
@@ -581,13 +576,11 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
     const promptRows = page.locator('.group').filter({ has: page.locator('button') });
     const firstPromptRow = promptRows.first();
     await firstPromptRow.hover();
-    await page.waitForTimeout(500);
 
     // Click pencil — visible on hover
     const pencilBtn = firstPromptRow.locator('button').filter({ has: page.locator('svg.lucide-pencil') });
     if (await pencilBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await pencilBtn.click();
-      await page.waitForTimeout(500);
 
       const editInput = firstPromptRow.locator('input');
       if (await editInput.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -655,7 +648,6 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
     // Expand schedule section
     const scheduleHeader = page.locator('[class*="cursor-pointer"]').filter({ hasText: 'Auto-Regeneration Schedule' }).first();
     await scheduleHeader.click();
-    await page.waitForTimeout(1500);
 
     // The Select component renders a native <select> inside the schedule section
     // Use a label-based locator to find the right one
@@ -756,7 +748,6 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
 
     // Toggle back
     await firstCheckbox.click();
-    await page.waitForTimeout(1500);
   });
 
   test('AG-092: Deleting prompt requires confirmation click', async ({ page }) => {
@@ -784,13 +775,11 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
     const testRow = page.locator('.group').filter({ hasText: question });
     await expect(testRow).toBeVisible({ timeout: 5000 });
     await testRow.hover();
-    await page.waitForTimeout(500);
 
     const trashBtn = testRow.locator('button').filter({ has: page.locator('svg.lucide-trash-2') });
     if (await trashBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       // First click shows confirmation UI
       await trashBtn.click();
-      await page.waitForTimeout(500);
 
       // The trash button should be replaced by confirm (check) + cancel (X)
       const cancelBtn = testRow.locator('button').filter({ has: page.locator('svg.lucide-x') });
@@ -798,7 +787,6 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
 
       // Click cancel — prompt should survive
       await cancelBtn.click();
-      await page.waitForTimeout(500);
 
       // Verify prompt still exists via API
       const listRes = await page.request.get(`/api/chatbots/${CHATBOT_ID}/articles/prompts`);

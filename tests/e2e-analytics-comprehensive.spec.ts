@@ -25,14 +25,12 @@ async function waitForAnalyticsPage(page: Page) {
     page.getByText('Failed to fetch chatbot').waitFor({ timeout: 60_000 }),
     page.getByText('Chatbot not found').waitFor({ timeout: 60_000 }),
   ]).catch(() => {});
-  await page.waitForTimeout(2000);
 }
 
 async function ensureAuthenticated(page: Page) {
   // Navigate to dashboard to establish session cookies
   await page.goto('/dashboard');
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(1000);
 }
 
 // ---------------------------------------------------------------------------
@@ -310,8 +308,7 @@ test.describe('Comprehensive Analytics: Chat → Dashboard → Export', () => {
     const btn30 = page.locator('button', { hasText: '30d' });
 
     await btn7.click();
-    await page.waitForTimeout(3000);
-    await expect(btn7).toHaveClass(/bg-primary-500/);
+    await expect(btn7).toHaveClass(/bg-primary-500/, { timeout: 10000 });
     await expect(btn30).not.toHaveClass(/bg-primary-500/);
     await expect(page.getByText('Total Conversations').first()).toBeVisible();
   });
@@ -322,7 +319,6 @@ test.describe('Comprehensive Analytics: Chat → Dashboard → Export', () => {
 
     const btn90 = page.locator('button', { hasText: '90d' });
     await btn90.click();
-    await page.waitForTimeout(5000);
     await expect(btn90).toHaveClass(/bg-primary-500/, { timeout: 10_000 });
     await expect(page.getByText('Total Conversations').first()).toBeVisible();
   });
@@ -334,7 +330,7 @@ test.describe('Comprehensive Analytics: Chat → Dashboard → Export', () => {
     const bars30 = await page.locator('.bg-primary-500.rounded-t').count();
 
     await page.locator('button', { hasText: '7d' }).click();
-    await page.waitForTimeout(3000);
+    await expect(page.locator('button', { hasText: '7d' })).toHaveClass(/bg-primary-500/, { timeout: 10000 });
     const bars7 = await page.locator('.bg-primary-500.rounded-t').count();
 
     expect(bars7).toBeLessThan(bars30);
@@ -471,7 +467,6 @@ test.describe('Comprehensive Analytics: Chat → Dashboard → Export', () => {
   test('CANALYTICS-026: Analytics page handles loading state', async ({ page }) => {
     await page.goto(ANALYTICS_PAGE);
     // Should show skeleton loaders initially or content
-    await page.waitForTimeout(500);
     const hasSkeletons = (await page.locator('.animate-pulse').count()) > 0;
     const hasContent = await page.getByText('Total Conversations').isVisible().catch(() => false);
     expect(hasSkeletons || hasContent).toBe(true);
@@ -511,8 +506,6 @@ test.describe('Comprehensive Analytics: Chat → Dashboard → Export', () => {
         data: { message: 'Second message for analytics', stream: false, session_id: sessionId },
       });
 
-      // Wait a moment, then refetch analytics (triggers re-aggregation)
-      await page.waitForTimeout(2000);
       const resAfter = await page.request.get(`${ANALYTICS_API}?days=30`);
       expect(resAfter.ok()).toBeTruthy();
       const msgsAfter = (await resAfter.json()).data.total_messages;
@@ -558,7 +551,7 @@ test.describe('Comprehensive Analytics: Chat → Dashboard → Export', () => {
     const btn = page.locator('.chat-widget-button');
     if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) {
       await btn.click();
-      await page.waitForTimeout(1000);
+      await page.waitForSelector('.chat-widget-messages, .chat-widget-form-view, .chat-widget-container textarea', { timeout: 5000 }).catch(() => {});
     }
 
     // Fill pre-chat form if present
@@ -571,14 +564,14 @@ test.describe('Comprehensive Analytics: Chat → Dashboard → Export', () => {
         await inputs.nth(1).fill(`analytics-${TEST_RUN_ID}@test.com`);
       }
       await page.locator('.chat-widget-form-submit').click();
-      await page.waitForTimeout(1500);
+      await page.waitForSelector('.chat-widget-input, .chat-widget-messages', { timeout: 10000 }).catch(() => {});
     }
 
     const input = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
     if (await input.isVisible({ timeout: 5000 }).catch(() => false)) {
       await input.fill(`Widget analytics test ${TEST_RUN_ID}`);
       await input.press('Enter');
-      await page.waitForTimeout(5000);
+      await page.waitForLoadState('domcontentloaded');
     }
 
     // Now navigate to analytics dashboard and verify it has data

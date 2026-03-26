@@ -12,7 +12,7 @@ test.describe('Fallback Contact Form', () => {
         message: 'This is a test contact message from E2E',
       },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('CONTACT-002: Contact form validation rejects empty fields', async ({ request }) => {
@@ -33,7 +33,7 @@ test.describe('Fallback Contact Form', () => {
 
   test('CONTACT-004: Admin contact submissions endpoint returns list', async ({ page }) => {
     const res = await page.request.get(`/api/chatbots/${CHATBOT_ID}/contact-submissions`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const data = await res.json();
       expect(data.data).toHaveProperty('submissions');

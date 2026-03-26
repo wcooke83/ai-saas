@@ -6,7 +6,6 @@ test.describe('Chat Widget Survey Flow', () => {
   test('widget loads on deploy page', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/deploy`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
 
     // The deploy page should load
     await expect(page.locator('h1').first()).toBeVisible({ timeout: 10000 });
@@ -20,7 +19,6 @@ test.describe('Chat Widget on Deploy Page', () => {
   test('widget script tag is present on deploy page', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/deploy`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     // Deploy page should show embed code or script snippet
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();

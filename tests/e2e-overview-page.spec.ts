@@ -6,7 +6,6 @@ const BASE = `/dashboard/chatbots/${CHATBOT_ID}`;
 async function gotoOverview(page: import('@playwright/test').Page) {
   await page.goto(BASE, { waitUntil: 'commit' });
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(5000);
 }
 
 test.describe('34. Overview Page', () => {
@@ -91,7 +90,6 @@ test.describe('34. Overview Page', () => {
   test('OVERVIEW-006: Overview 404 redirect', async ({ page }) => {
     await page.goto('/dashboard/chatbots/nonexistent-id-12345', { waitUntil: 'commit' });
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(10000);
 
     // Should redirect to chatbot list, show error, show loading, or render blank (all valid)
     const url = page.url();
@@ -113,7 +111,7 @@ test.describe('34. Overview Page', () => {
   test('OVERVIEW-007: Overview error state with back button', async ({ page }) => {
     await page.goto('/dashboard/chatbots/00000000-0000-0000-0000-000000000000', { waitUntil: 'commit' });
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(10000);
+    await page.waitForLoadState('networkidle').catch(() => {});
 
     // Either redirected, or showing error state, or login redirect
     const url = page.url();

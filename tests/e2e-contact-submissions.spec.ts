@@ -679,9 +679,10 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   // ----------------------------------
 
   test('CS-040: Cleanup test emails', async () => {
+    // cleanupEmails swallows errors internally, so just verify it completes without throwing
     await cleanupEmails(SUPPORT_EMAIL, SUPPORT_PASS, UNIQUE_TAG);
     await cleanupEmails(TEST_EMAIL, TEST_PASS, UNIQUE_TAG);
     await cleanupEmails(TEST_EMAIL, TEST_PASS, 'CS-');
-    expect(true).toBe(true);
+    // If we reached here, cleanup completed without uncaught exceptions
   });
 });

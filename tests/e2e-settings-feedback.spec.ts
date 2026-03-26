@@ -7,7 +7,6 @@ async function gotoFeedbackSection(page: import('@playwright/test').Page) {
   await page.goto(SETTINGS_URL, { waitUntil: 'domcontentloaded' });
   await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
   await page.locator('nav button', { hasText: /Feedback/i }).click();
-  await page.waitForTimeout(500);
 }
 
 test.describe('11. Settings -- Feedback Follow-Up', () => {
@@ -31,7 +30,6 @@ test.describe('11. Settings -- Feedback Follow-Up', () => {
 
     // Hover over the assistant message to reveal feedback buttons
     await page.locator('.chat-widget-message-assistant').first().hover();
-    await page.waitForTimeout(500);
 
     // Look for feedback buttons
     const feedbackBtns = page.locator('.chat-widget-feedback-btns, .chat-widget-feedback-btn');
@@ -45,12 +43,13 @@ test.describe('11. Settings -- Feedback Follow-Up', () => {
     await gotoFeedbackSection(page);
     await expect(page.getByRole('heading', { name: 'Feedback Follow-Up' })).toBeVisible({ timeout: 10000 });
 
-    // When enabled, should show info about reason options
+    // When follow-up is enabled, should show info about reason options
     const infoText = page.locator('text=/Incorrect info|Not relevant|Too vague|Other/i');
     if (await infoText.first().isVisible({ timeout: 5000 }).catch(() => false)) {
-      expect(true).toBe(true);
+      await expect(infoText.first()).toBeVisible();
     }
-    expect(true).toBe(true);
+    // The toggle for feedback follow-up should be present
+    await expect(page.locator('button[role="switch"]').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('SET-FEEDBACK-004: Submit feedback reason', async ({ page }) => {

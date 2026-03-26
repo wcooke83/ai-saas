@@ -18,7 +18,6 @@ test.describe('Dashboard Pages Load', () => {
     test(`${label} page loads without errors`, async ({ page }) => {
       await page.goto(path);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
 
       // Should stay on dashboard (not redirected to login)
       expect(page.url()).toContain('/dashboard');

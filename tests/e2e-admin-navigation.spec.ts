@@ -4,11 +4,9 @@ test.describe('Section 43: Admin -- Layout & Navigation', () => {
   test('ADMIN-NAV-001: Admin sidebar shows all navigation items', async ({ page }) => {
     await page.goto('/admin');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     // Set viewport to desktop so sidebar is visible
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.waitForTimeout(1000);
 
     // Admin sub-menu items
     const adminItems = [
@@ -30,7 +28,6 @@ test.describe('Section 43: Admin -- Layout & Navigation', () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto('/admin/credits');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     // The admin sub-menu should be expanded (child items visible)
     const creditsLink = page.locator('a[href="/admin/credits"]').filter({ hasText: 'Credits' });
@@ -44,13 +41,11 @@ test.describe('Section 43: Admin -- Layout & Navigation', () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto('/admin');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     // Find the collapse button
     const collapseBtn = page.locator('button[aria-label="Collapse sidebar"]');
     if (await collapseBtn.isVisible()) {
       await collapseBtn.click({ force: true });
-      await page.waitForTimeout(1000);
 
       // Sidebar should be collapsed (w-16 instead of w-64)
       const sidebar = page.locator('aside');
@@ -62,7 +57,7 @@ test.describe('Section 43: Admin -- Layout & Navigation', () => {
 
       // Reload and verify persistence
       await page.reload();
-      await page.waitForTimeout(3000);
+      await page.waitForLoadState('domcontentloaded');
 
       const sidebarAfterReload = page.locator('aside');
       await expect(sidebarAfterReload).toHaveClass(/w-16/);
@@ -71,7 +66,6 @@ test.describe('Section 43: Admin -- Layout & Navigation', () => {
       const expandBtn = page.locator('button[aria-label="Expand sidebar"]');
       if (await expandBtn.isVisible()) {
         await expandBtn.click({ force: true });
-        await page.waitForTimeout(500);
       }
     }
   });
@@ -81,7 +75,6 @@ test.describe('Section 43: Admin -- Layout & Navigation', () => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/admin');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     // Hamburger button should be visible
     const hamburgerBtn = page.locator('button[aria-label="Open sidebar"]');
@@ -89,7 +82,6 @@ test.describe('Section 43: Admin -- Layout & Navigation', () => {
 
     // Click to open
     await hamburgerBtn.click();
-    await page.waitForTimeout(500);
 
     // Sidebar should be visible (overlay)
     const sidebar = page.locator('aside');
@@ -104,7 +96,6 @@ test.describe('Section 43: Admin -- Layout & Navigation', () => {
 
     // Click close
     await closeBtn.click();
-    await page.waitForTimeout(500);
 
     // Sidebar should be hidden again
     await expect(sidebar).toHaveClass(/-translate-x-full/);

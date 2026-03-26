@@ -6,21 +6,20 @@ const BASE_URL = `/dashboard/chatbots/${CHATBOT_ID}`;
 async function waitForEscalations(page: Page) {
   await page.waitForLoadState('domcontentloaded');
   await Promise.race([
-    page.getByRole('heading', { name: 'Reports' }).waitFor({ timeout: 60000 }),
+    page.getByRole('heading', { name: 'Issues' }).waitFor({ timeout: 60000 }),
     page.getByText('An error occurred').waitFor({ timeout: 60000 }),
   ]).catch(() => {});
-  await page.waitForTimeout(1000);
 }
 
 test.describe('Section 20: Escalations (Reports)', () => {
   test.setTimeout(120_000);
 
   test('ESCALATION-001: Escalations table loads', async ({ page }) => {
-    await page.goto(`${BASE_URL}/escalations`);
+    await page.goto(`${BASE_URL}/issues`);
     await waitForEscalations(page);
 
-    // Page heading (unique subtitle text to avoid matching sidebar nav)
-    await expect(page.getByText('Review and manage issue reports from conversations')).toBeVisible({ timeout: 15000 });
+    // Page heading
+    await expect(page.getByRole('heading', { name: 'Issues' })).toBeVisible({ timeout: 15000 });
 
     // Four stat cards: Total, Open, Acknowledged, Resolved
     await expect(page.getByText('Total').first()).toBeVisible();
@@ -30,7 +29,7 @@ test.describe('Section 20: Escalations (Reports)', () => {
   });
 
   test('ESCALATION-002: Status filter', async ({ page }) => {
-    await page.goto(`${BASE_URL}/escalations`);
+    await page.goto(`${BASE_URL}/issues`);
     await waitForEscalations(page);
 
     // Status filter is the first <select> element on the page
@@ -39,23 +38,22 @@ test.describe('Section 20: Escalations (Reports)', () => {
 
     // Select "Open"
     await statusSelect.selectOption('open');
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('domcontentloaded');
 
     // Select "Acknowledged"
     await statusSelect.selectOption('acknowledged');
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('domcontentloaded');
 
     // Select "Resolved"
     await statusSelect.selectOption('resolved');
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('domcontentloaded');
 
     // Reset to "All"
     await statusSelect.selectOption('all');
-    await page.waitForTimeout(1000);
   });
 
   test('ESCALATION-003: Escalation detail dialog', async ({ page }) => {
-    await page.goto(`${BASE_URL}/escalations`);
+    await page.goto(`${BASE_URL}/issues`);
     await waitForEscalations(page);
 
     // Click the view icon on an escalation row
@@ -63,7 +61,6 @@ test.describe('Section 20: Escalations (Reports)', () => {
     if (await tableRows.count() > 0) {
       // Click on the first escalation row
       await tableRows.first().click();
-      await page.waitForTimeout(1000);
 
       // EscalationDetailDialog should open
       const dialog = page.locator('[role="dialog"], [data-state="open"]');
@@ -74,14 +71,13 @@ test.describe('Section 20: Escalations (Reports)', () => {
   });
 
   test('ESCALATION-004: Change escalation status', async ({ page }) => {
-    await page.goto(`${BASE_URL}/escalations`);
+    await page.goto(`${BASE_URL}/issues`);
     await waitForEscalations(page);
 
     // Open an escalation detail dialog
     const tableRows = page.locator('table tbody tr, [role="row"]');
     if (await tableRows.count() > 0) {
       await tableRows.first().click();
-      await page.waitForTimeout(1000);
 
       const dialog = page.locator('[role="dialog"], [data-state="open"]');
       if (await dialog.isVisible().catch(() => false)) {
@@ -94,7 +90,7 @@ test.describe('Section 20: Escalations (Reports)', () => {
   });
 
   test('ESCALATION-005: Export escalations CSV', async ({ page }) => {
-    await page.goto(`${BASE_URL}/escalations`);
+    await page.goto(`${BASE_URL}/issues`);
     await waitForEscalations(page);
 
     const exportButton = page.getByRole('button', { name: /Export/ });
@@ -107,14 +103,14 @@ test.describe('Section 20: Escalations (Reports)', () => {
 
       if (download) {
         const filename = download.suggestedFilename();
-        expect(filename).toContain('escalations-');
+        expect(filename).toContain('issues-');
         expect(filename).toContain('.csv');
       }
     }
   });
 
   test('ESCALATION-006: Stats counters', async ({ page }) => {
-    await page.goto(`${BASE_URL}/escalations`);
+    await page.goto(`${BASE_URL}/issues`);
     await waitForEscalations(page);
 
     // Stat cards with correct icons:
@@ -147,7 +143,7 @@ test.describe('Section 32: Escalation Dashboard Details', () => {
   test.setTimeout(120_000);
 
   test('DASH-028: Escalation stats card icon verification', async ({ page }) => {
-    await page.goto(`${BASE_URL}/escalations`);
+    await page.goto(`${BASE_URL}/issues`);
     await waitForEscalations(page);
 
     // Verify the correct icons are used for each stat card:
@@ -171,19 +167,17 @@ test.describe('Section 32: Escalation Dashboard Details', () => {
   });
 
   test('DASH-029: Escalation table search', async ({ page }) => {
-    await page.goto(`${BASE_URL}/escalations`);
+    await page.goto(`${BASE_URL}/issues`);
     await waitForEscalations(page);
 
     // Search field from SortableTable (searchPlaceholder="Search escalations...")
-    const searchInput = page.getByPlaceholder('Search escalations...');
+    const searchInput = page.getByPlaceholder('Search issues...');
     if (await searchInput.isVisible().catch(() => false)) {
       await searchInput.fill('wrong');
-      await page.waitForTimeout(500);
 
       // Table should filter results
       // Clear search
       await searchInput.clear();
-      await page.waitForTimeout(500);
     }
   });
 });

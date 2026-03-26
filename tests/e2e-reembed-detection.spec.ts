@@ -68,7 +68,7 @@ async function createMismatch(page: any): Promise<{ sourceId: string; originalPr
 
   // Wait for processing to complete
   for (let i = 0; i < 15; i++) {
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('domcontentloaded');
     const checkRes = await page.request.get(`/api/chatbots/${CHATBOT_ID}/knowledge`);
     const checkData = await checkRes.json();
     const src = (checkData.data?.sources ?? []).find((s: any) => s.id === sourceId);
@@ -190,7 +190,6 @@ test.describe('Re-embed Detection & Notifications', () => {
   test('RD-020: Knowledge page has Re-embed All button in header', async ({ page }) => {
     await page.goto(`${BASE_URL}/knowledge`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     // The Re-embed All button should be in the header when there are completed sources
     const reembedBtn = page.getByText(/Re-embed All|Re-process/);
@@ -211,7 +210,6 @@ test.describe('Re-embed Detection & Notifications', () => {
 
     await page.goto(`${BASE_URL}/knowledge`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     if (needsReembed) {
       // Should show the amber callout card
@@ -235,7 +233,6 @@ test.describe('Re-embed Detection & Notifications', () => {
     // Visit any chatbot sub-page
     await page.goto(`${BASE_URL}/articles`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(5000);
 
     const banner = page.getByText('Your knowledge base needs re-processing');
 
@@ -257,8 +254,7 @@ test.describe('Re-embed Detection & Notifications', () => {
     const needsReembed = apiData.data.needs_reembed;
 
     await page.goto('/dashboard/chatbots');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState('networkidle');
 
     // Look for the Needs Update badge anywhere on the page
     const badge = page.getByText('Needs Update');
@@ -284,8 +280,7 @@ test.describe('Re-embed Detection & Notifications', () => {
     }
 
     await page.goto(`${BASE_URL}/settings`);
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(5000);
+    await page.waitForLoadState('networkidle');
 
     const fixLink = page.getByText('Fix now');
     await expect(fixLink).toBeVisible({ timeout: 10000 });
@@ -328,14 +323,10 @@ test.describe('Re-embed Detection & Notifications', () => {
   // ─────────────────────────────────────────────────────────────
 
   test('RD-040: Batch detection returns consistent results', async ({ page }) => {
-    // Wait a moment for any in-flight reprocessing from prior tests to settle
-    await page.waitForTimeout(3000);
-
     // Get individual result
     const singleRes = await page.request.get(`/api/chatbots/${CHATBOT_ID}`);
     if (!singleRes.ok()) {
       console.log(`[RD-040] Single API returned ${singleRes.status()} — retrying`);
-      await page.waitForTimeout(5000);
     }
     const singleData = await (singleRes.ok() ? singleRes : await page.request.get(`/api/chatbots/${CHATBOT_ID}`)).json();
 

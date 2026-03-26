@@ -7,7 +7,6 @@ async function gotoModelSection(page: import('@playwright/test').Page) {
   await page.goto(SETTINGS_URL, { waitUntil: 'domcontentloaded' });
   await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
   await page.locator('nav button', { hasText: 'AI Model' }).click();
-  await page.waitForTimeout(500);
 }
 
 test.describe('4. Settings -- AI Model', () => {

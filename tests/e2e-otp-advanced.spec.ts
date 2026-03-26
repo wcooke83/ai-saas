@@ -23,6 +23,7 @@ test.describe('OTP Advanced', () => {
     const res = await page.request.post(`/api/widget/${CHATBOT_ID}/memory/verify-otp`, {
       data: { email: 'test@test.local' },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.status()).toBeGreaterThanOrEqual(400);
+        expect(res.status()).toBeLessThan(500);
   });
 });

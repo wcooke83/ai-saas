@@ -53,7 +53,7 @@ test.describe('Edge Cases', () => {
     const res = await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
       data: { system_prompt: longPrompt },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
 
     // Restore
     await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
@@ -78,14 +78,14 @@ test.describe('Edge Cases', () => {
       data: { type: 'text', name, content: 'Second source content' },
     });
     // Both should succeed (names aren't unique constraints)
-    expect(res1.status()).toBeLessThan(500);
-    expect(res2.status()).toBeLessThan(500);
+    expect(res1.ok()).toBeTruthy();
+    expect(res2.ok()).toBeTruthy();
   });
 
   test('widget config with unknown fields is preserved', async ({ page }) => {
     const res = await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
       data: { widget_config: { customField: 'should be kept', primaryColor: '#999999' } },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 });

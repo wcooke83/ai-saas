@@ -13,7 +13,7 @@ const chatbotSubPages = [
   { path: '/analytics', label: 'analytics' },
   { path: '/performance', label: 'performance' },
   { path: '/sentiment', label: 'sentiment' },
-  { path: '/escalations', label: 'escalations' },
+  { path: '/issues', label: 'issues' },
   { path: '/surveys', label: 'surveys' },
   { path: '/leads', label: 'leads' },
 ];
@@ -23,7 +23,6 @@ test.describe('Chatbot Sub-Pages', () => {
     test(`${label} page loads without errors`, async ({ page }) => {
       await page.goto(`/dashboard/chatbots/${CHATBOT_ID}${path}`);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
 
       // No error boundary
       await expect(page.locator('text=Dashboard Error')).not.toBeVisible();

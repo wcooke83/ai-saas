@@ -4,7 +4,6 @@ test.describe('Billing & Plan Limits', () => {
   test('billing page loads', async ({ page }) => {
     await page.goto('/dashboard/billing');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
   });
@@ -26,7 +25,6 @@ test.describe('Billing & Plan Limits', () => {
   test('usage page shows credit info', async ({ page }) => {
     await page.goto('/dashboard/usage');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
   });

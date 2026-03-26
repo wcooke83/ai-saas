@@ -9,7 +9,7 @@ test.describe('Section 42: Admin -- Auth & Security', () => {
 
     await page.goto('http://localhost:3030/admin/logs');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(10000);
+    await page.waitForLoadState('networkidle').catch(() => {});
 
     // Should either redirect to login, show login content, or show blank page
     const url = page.url();
@@ -33,7 +33,7 @@ test.describe('Section 42: Admin -- Auth & Security', () => {
     await page.goto('http://localhost:3030/admin/logs');
     await page.waitForLoadState('domcontentloaded');
     // Wait for client-side redirect (admin layout checks auth and redirects)
-    await page.waitForTimeout(10000);
+    await page.waitForURL(/\/(login|admin)/, { timeout: 15000 }).catch(() => {});
 
     // Should either redirect to /login or show login page content
     const url = page.url();

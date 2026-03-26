@@ -7,7 +7,6 @@ async function gotoMemorySection(page: import('@playwright/test').Page) {
   await page.goto(SETTINGS_URL, { waitUntil: 'domcontentloaded' });
   await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
   await page.locator('nav button', { hasText: 'Memory' }).click();
-  await page.waitForTimeout(500);
 }
 
 test.describe('5. Settings -- Conversation Memory', () => {
@@ -38,7 +37,6 @@ test.describe('5. Settings -- Conversation Memory', () => {
       expect(options.join(' ')).toMatch(/1 year|365/i);
       expect(options.join(' ')).toMatch(/Unlimited/i);
     }
-    expect(true).toBe(true);
   });
 
   test('SET-MEM-003: Memory context carries between conversations', async ({ page }) => {

@@ -41,8 +41,11 @@ async function gotoTicketsPage(page: import('@playwright/test').Page) {
   await page.waitForLoadState('networkidle');
   // Wait for the filter tabs which always render after loading completes
   await page.getByRole('button', { name: 'All', exact: true }).waitFor({ state: 'visible', timeout: 30000 });
-  // Small extra wait for data to render
-  await page.waitForTimeout(2000);
+  // Wait for table data to render
+  await page.waitForFunction(() => {
+    const spinner = document.querySelector('.animate-spin');
+    return !spinner;
+  }, { timeout: 15000 });
 }
 
 /**
@@ -243,7 +246,7 @@ test.describe('Ticketing System - Full Lifecycle', () => {
     test.skip(!createdTicketId, 'No ticket was created');
 
     const res = await page.request.get(`/api/chatbots/${CHATBOT_ID}/tickets/${createdTicketId}`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const body = await res.json();
       expect(body.data.ticket.status).toBe('open');
@@ -277,7 +280,7 @@ test.describe('Ticketing System - Full Lifecycle', () => {
 
     // Click "Open" filter
     await page.getByRole('button', { name: 'Open', exact: true }).click();
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('networkidle');
   });
 
   test('TKT-010: Ticket list shows the created ticket', async ({ page }) => {
@@ -320,7 +323,6 @@ test.describe('Ticketing System - Full Lifecycle', () => {
 
     // Click the ticket row
     await page.locator('tr', { hasText: createdTicketReference }).click();
-    await page.waitForTimeout(2000);
 
     // Detail view should show ticket reference
     await expect(page.getByText(createdTicketReference)).toBeVisible({ timeout: 10000 });
@@ -336,7 +338,6 @@ test.describe('Ticketing System - Full Lifecycle', () => {
     await gotoTicketsPage(page);
 
     await page.locator('tr', { hasText: createdTicketReference }).click();
-    await page.waitForTimeout(2000);
 
     // Sidebar should show visitor details
     await expect(page.getByText('Visitor Details')).toBeVisible({ timeout: 10000 });
@@ -351,7 +352,6 @@ test.describe('Ticketing System - Full Lifecycle', () => {
     await gotoTicketsPage(page);
 
     await page.locator('tr', { hasText: createdTicketReference }).click();
-    await page.waitForTimeout(2000);
 
     // Reply textarea should be visible
     const replyInput = page.getByPlaceholder('Type your reply');
@@ -372,7 +372,7 @@ test.describe('Ticketing System - Full Lifecycle', () => {
       data: { status: 'in_progress' },
     });
 
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const body = await res.json();
       expect(body.data.ticket.status).toBe('in_progress');
@@ -403,7 +403,7 @@ test.describe('Ticketing System - Full Lifecycle', () => {
     await gotoTicketsPage(page);
 
     await page.locator('tr', { hasText: createdTicketReference }).click();
-    await page.waitForTimeout(2000);
+    await expect(page.getByText(createdTicketReference)).toBeVisible({ timeout: 10000 });
 
     // Click "Open" status button to change back to open
     const openBtn = page.locator('button', { hasText: /^Open$/i }).first();
@@ -413,7 +413,6 @@ test.describe('Ticketing System - Full Lifecycle', () => {
       // The "Open" button in the status grid
       const statusButtons = page.locator('.grid-cols-2 button');
       await statusButtons.filter({ hasText: 'Open' }).click();
-      await page.waitForTimeout(2000);
       // Toast should appear
       await expect(page.getByText('Status updated')).toBeVisible({ timeout: 5000 });
     }
@@ -432,7 +431,7 @@ test.describe('Ticketing System - Full Lifecycle', () => {
       },
     });
 
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const body = await res.json();
       expect(body.data.reply).toHaveProperty('id');
@@ -466,7 +465,6 @@ test.describe('Ticketing System - Full Lifecycle', () => {
     await gotoTicketsPage(page);
 
     await page.locator('tr', { hasText: createdTicketReference }).click();
-    await page.waitForTimeout(3000);
 
     // The reply text should be visible in the conversation thread
     await expect(page.getByText('clearing your browser cache')).toBeVisible({ timeout: 10000 });
@@ -480,16 +478,15 @@ test.describe('Ticketing System - Full Lifecycle', () => {
     await gotoTicketsPage(page);
 
     await page.locator('tr', { hasText: createdTicketReference }).click();
-    await page.waitForTimeout(3000);
+    await expect(page.getByText(createdTicketReference)).toBeVisible({ timeout: 10000 });
 
     // Type a reply
     const replyInput = page.getByPlaceholder('Type your reply');
+    await expect(replyInput).toBeVisible({ timeout: 10000 });
     await replyInput.fill('We have deployed a fix for this issue. Please try again now and let us know if you can log in successfully.');
-    await page.waitForTimeout(500);
 
     // Click send
     await page.getByRole('button', { name: 'Send Reply' }).click();
-    await page.waitForTimeout(3000);
 
     // Success toast
     await expect(page.getByText('Reply sent')).toBeVisible({ timeout: 10000 });
@@ -502,7 +499,7 @@ test.describe('Ticketing System - Full Lifecycle', () => {
     test.skip(!createdTicketId, 'No ticket was created');
 
     const res = await page.request.get(`/api/chatbots/${CHATBOT_ID}/tickets/${createdTicketId}/replies`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
 
     if (res.ok()) {
       const body = await res.json();
@@ -526,15 +523,14 @@ test.describe('Ticketing System - Full Lifecycle', () => {
     await gotoTicketsPage(page);
 
     await page.locator('tr', { hasText: createdTicketReference }).click();
-    await page.waitForTimeout(2000);
+    await expect(page.getByText(createdTicketReference)).toBeVisible({ timeout: 10000 });
 
     // Find the internal notes textarea and fill it
     const notesTextarea = page.getByPlaceholder('Add internal notes');
+    await expect(notesTextarea).toBeVisible({ timeout: 10000 });
     await notesTextarea.fill('Customer is a premium tier user. Issue related to recent password policy change. Follow up in 24h if not resolved.');
-    await page.waitForTimeout(500);
 
     await page.getByRole('button', { name: 'Save Notes' }).click();
-    await page.waitForTimeout(2000);
 
     await expect(page.getByText('Notes saved')).toBeVisible({ timeout: 5000 });
   });
@@ -560,7 +556,7 @@ test.describe('Ticketing System - Full Lifecycle', () => {
       data: { status: 'resolved' },
     });
 
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const body = await res.json();
       expect(body.data.ticket.status).toBe('resolved');
@@ -592,7 +588,7 @@ test.describe('Ticketing System - Full Lifecycle', () => {
       data: { status: 'closed' },
     });
 
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const body = await res.json();
       expect(body.data.ticket.status).toBe('closed');
@@ -623,12 +619,12 @@ test.describe('Ticketing System - Full Lifecycle', () => {
 
     // Switch to "Closed" filter to find the ticket
     await page.getByRole('button', { name: 'Closed', exact: true }).click();
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState('networkidle');
 
     const ticketRow = page.locator('tr', { hasText: createdTicketReference });
     if (await ticketRow.isVisible().catch(() => false)) {
       await ticketRow.click();
-      await page.waitForTimeout(2000);
+      await expect(page.getByText(createdTicketReference)).toBeVisible({ timeout: 10000 });
 
       // Reply form should NOT be visible for closed tickets
       await expect(page.getByPlaceholder('Type your reply')).not.toBeVisible({ timeout: 5000 });
@@ -721,15 +717,15 @@ test.describe('Ticketing System - Full Lifecycle', () => {
     // Click into a ticket
     const allBtn = page.getByRole('button', { name: 'All', exact: true });
     await allBtn.click();
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState('networkidle');
 
     const firstRow = page.locator('table tbody tr').first();
+    await expect(firstRow).toBeVisible({ timeout: 10000 });
     await firstRow.click();
-    await page.waitForTimeout(2000);
+    await expect(page.getByText('Back to tickets')).toBeVisible({ timeout: 10000 });
 
     // Click back
     await page.getByText('Back to tickets').click();
-    await page.waitForTimeout(2000);
 
     // Should be back on list view
     await expect(page.locator('table')).toBeVisible({ timeout: 10000 });
@@ -744,7 +740,7 @@ test.describe('Ticketing System - Full Lifecycle', () => {
 
     // Click "Open" filter - should show only open tickets
     await page.getByRole('button', { name: 'Open', exact: true }).click();
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState('networkidle');
 
     const rows = page.locator('table tbody tr');
     const count = await rows.count();
@@ -762,7 +758,7 @@ test.describe('Ticketing System - Full Lifecycle', () => {
     await gotoTicketsPage(page);
 
     await page.getByRole('button', { name: 'Closed', exact: true }).click();
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState('networkidle');
 
     // Our first ticket was closed in TKT-028
     if (createdTicketReference) {

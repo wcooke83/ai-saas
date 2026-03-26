@@ -68,7 +68,8 @@ test.describe('30. API Validation, Error Handling & Security', () => {
     const resp = await request.post(`/api/widget/${CHATBOT_ID}/agent-actions`, {
       data: { action: 'resolve', conversation_id: 'nonexistent-conversation' },
     });
-    // Should fail with 400/401/404, not 500
+    // Should fail with 400/401/404
+    expect(resp.status()).toBeGreaterThanOrEqual(400);
     expect(resp.status()).toBeLessThan(500);
   });
 
@@ -96,8 +97,8 @@ test.describe('30. API Validation, Error Handling & Security', () => {
 
   test('API-007: Agent conversations limit clamped to max 100', async ({ request }) => {
     const resp = await request.get(`/api/widget/${CHATBOT_ID}/agent-conversations?limit=999`);
-    // May require auth — just verify it doesn't 500
-    expect(resp.status()).toBeLessThan(500);
+    // May require auth — accept 200 or 401
+    expect([200, 401]).toContain(resp.status());
 
     if (resp.ok()) {
       const body = await resp.json();
@@ -140,7 +141,8 @@ test.describe('30. API Validation, Error Handling & Security', () => {
         session_id: 'test-session',
       },
     });
-    // Should not cause 500
+    // Path traversal should be rejected or sanitized
+    expect(resp.status()).toBeGreaterThanOrEqual(400);
     expect(resp.status()).toBeLessThan(500);
   });
 
@@ -156,15 +158,15 @@ test.describe('30. API Validation, Error Handling & Security', () => {
         session_id: 'test-session',
       },
     });
-    // Should respond without server error
-    expect(resp.status()).toBeLessThan(500);
+    // Should respond without server error (may be 200 or 400/403 depending on config)
+    expect(resp.ok() || (resp.status() >= 400 && resp.status() < 500)).toBeTruthy();
   });
 
   test('API-011: History API pagination cursor and has_more flag', async ({ request }) => {
     const resp = await request.get(
       `/api/widget/${CHATBOT_ID}/history?visitor_id=test-visitor&limit=5`
     );
-    expect(resp.status()).toBeLessThan(500);
+    expect(resp.ok()).toBeTruthy();
 
     if (resp.ok()) {
       const body = await resp.json();
@@ -180,13 +182,13 @@ test.describe('30. API Validation, Error Handling & Security', () => {
     const resp1 = await request.get(
       `/api/widget/${CHATBOT_ID}/history?visitor_id=test-visitor&limit=0`
     );
-    expect(resp1.status()).toBeLessThan(500);
+    expect(resp1.ok()).toBeTruthy();
 
     // Test with limit=100
     const resp2 = await request.get(
       `/api/widget/${CHATBOT_ID}/history?visitor_id=test-visitor&limit=100`
     );
-    expect(resp2.status()).toBeLessThan(500);
+    expect(resp2.ok()).toBeTruthy();
 
     if (resp2.ok()) {
       const body = await resp2.json();
@@ -197,7 +199,7 @@ test.describe('30. API Validation, Error Handling & Security', () => {
 
   test('API-013: Config API Cache-Control headers', async ({ request }) => {
     const resp = await request.get(`/api/widget/${CHATBOT_ID}/config`);
-    expect(resp.status()).toBeLessThan(500);
+    expect(resp.ok()).toBeTruthy();
 
     if (resp.ok()) {
       const cacheControl = resp.headers()['cache-control'];
@@ -209,7 +211,7 @@ test.describe('30. API Validation, Error Handling & Security', () => {
 
   test('API-014: Config API agentsAvailable includes Telegram check', async ({ request }) => {
     const resp = await request.get(`/api/widget/${CHATBOT_ID}/config`);
-    expect(resp.status()).toBeLessThan(500);
+    expect(resp.ok()).toBeTruthy();
 
     if (resp.ok()) {
       const body = await resp.json();
@@ -220,7 +222,7 @@ test.describe('30. API Validation, Error Handling & Security', () => {
 
   test('API-015: Config API default sessionTtlHours fallback', async ({ request }) => {
     const resp = await request.get(`/api/widget/${CHATBOT_ID}/config`);
-    expect(resp.status()).toBeLessThan(500);
+    expect(resp.ok()).toBeTruthy();
 
     if (resp.ok()) {
       const body = await resp.json();
@@ -237,8 +239,8 @@ test.describe('30. API Validation, Error Handling & Security', () => {
         thumbs_up: true,
       },
     });
-    // Should return 404 for nonexistent message, not 500
-    expect(resp.status()).toBeLessThan(500);
+    // Should return 404 for nonexistent message
+    expect(resp.status()).toBe(404);
   });
 
   test('API-017: Feedback API message ownership verification', async ({ request }) => {
@@ -263,13 +265,14 @@ test.describe('30. API Validation, Error Handling & Security', () => {
       },
     });
     // Should fail gracefully for nonexistent conversation
+    expect(resp.status()).toBeGreaterThanOrEqual(400);
     expect(resp.status()).toBeLessThan(500);
   });
 
   test('API-019: Escalation cross-chatbot protection', async ({ request }) => {
     const fakeChatbotId = '00000000-0000-0000-0000-000000000001';
     const resp = await request.patch(
-      `/api/chatbots/${fakeChatbotId}/escalations/fake-escalation-id`,
+      `/api/chatbots/${fakeChatbotId}/issues/fake-escalation-id`,
       { data: { status: 'resolved' } }
     );
     // Should be 404 or 403
@@ -279,8 +282,8 @@ test.describe('30. API Validation, Error Handling & Security', () => {
 
   test('API-020: Escalation page/limit clamping', async ({ request }) => {
     // page=0 should be clamped to 1
-    const resp1 = await request.get(`/api/chatbots/${CHATBOT_ID}/escalations?page=0&limit=100`);
-    expect(resp1.status()).toBeLessThan(500);
+    const resp1 = await request.get(`/api/chatbots/${CHATBOT_ID}/issues?page=0&limit=100`);
+    expect(resp1.ok()).toBeTruthy();
 
     if (resp1.ok()) {
       const body = await resp1.json();
@@ -295,8 +298,8 @@ test.describe('30. API Validation, Error Handling & Security', () => {
     const resp = await request.get(
       `/api/chatbots/${CHATBOT_ID}/sentiment/export?format=csv`
     );
-    // May return CSV or error depending on data
-    expect(resp.status()).toBeLessThan(500);
+    // Should return CSV data or empty result
+    expect(resp.ok()).toBeTruthy();
   });
 
   test('API-022: CORS per-chatbot allowed origins on config endpoint', async ({ request }) => {
@@ -304,7 +307,7 @@ test.describe('30. API Validation, Error Handling & Security', () => {
     const resp1 = await request.get(`/api/widget/${CHATBOT_ID}/config`, {
       headers: { Origin: 'https://example.com' },
     });
-    expect(resp1.status()).toBeLessThan(500);
+    expect(resp1.ok()).toBeTruthy();
 
     const headers1 = resp1.headers();
     expect(headers1['access-control-allow-origin']).toBeDefined();
@@ -313,14 +316,14 @@ test.describe('30. API Validation, Error Handling & Security', () => {
     const resp2 = await request.get(`/api/widget/${CHATBOT_ID}/config`, {
       headers: { Origin: 'https://evil.com' },
     });
-    expect(resp2.status()).toBeLessThan(500);
+    expect(resp2.ok()).toBeTruthy();
   });
 
   test('API-023: CORS Vary: Origin header for correct caching', async ({ request }) => {
     const resp = await request.get(`/api/widget/${CHATBOT_ID}/config`, {
       headers: { Origin: 'https://example.com' },
     });
-    expect(resp.status()).toBeLessThan(500);
+    expect(resp.ok()).toBeTruthy();
 
     // Check for Vary header
     const headers = resp.headers();
@@ -331,7 +334,7 @@ test.describe('30. API Validation, Error Handling & Security', () => {
   test('API-024: Chatbot PATCH slug regeneration on name change', async ({ request }) => {
     // Read current chatbot first
     const getResp = await request.get(`/api/chatbots/${CHATBOT_ID}`);
-    expect(getResp.status()).toBeLessThan(500);
+    expect(getResp.ok()).toBeTruthy();
 
     if (getResp.ok()) {
       const body = await getResp.json();
@@ -363,7 +366,7 @@ test.describe('30. API Validation, Error Handling & Security', () => {
   test('API-025: Chatbot PATCH widget config deep merge', async ({ request }) => {
     // Get current config
     const getResp = await request.get(`/api/chatbots/${CHATBOT_ID}`);
-    expect(getResp.status()).toBeLessThan(500);
+    expect(getResp.ok()).toBeTruthy();
 
     if (getResp.ok()) {
       const body = await getResp.json();
@@ -396,7 +399,7 @@ test.describe('30. API Validation, Error Handling & Security', () => {
         data: { welcome_message: `Test welcome ${Date.now()}` },
         timeout: 30000,
       });
-      expect(resp.status()).toBeLessThan(500);
+      expect(resp.ok()).toBeTruthy();
 
       if (resp.ok()) {
         const body = await resp.json();
@@ -410,7 +413,7 @@ test.describe('30. API Validation, Error Handling & Security', () => {
     } catch (e) {
       // Socket hang up can happen under load; verify endpoint exists
       const getResp = await request.get(`/api/chatbots/${CHATBOT_ID}`);
-      expect(getResp.status()).toBeLessThan(500);
+      expect(getResp.ok()).toBeTruthy();
     }
   });
 

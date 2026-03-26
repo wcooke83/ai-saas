@@ -6,7 +6,6 @@ test.describe('Tooltip Component', () => {
   test('tooltips appear on hover without crashing the page', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/performance`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
     await expect(page.locator('h1', { hasText: 'Performance' })).toBeVisible({ timeout: 10000 });
 
     // Check no errors on the page
@@ -19,7 +18,6 @@ test.describe('Tooltip Component', () => {
     if (isVisible) {
       // Hover to trigger tooltip
       await infoIcon.hover();
-      await page.waitForTimeout(400); // wait for delay + position calc
 
       // Tooltip should appear (role="tooltip" in the portal)
       const tooltip = page.locator('[role="tooltip"]');
@@ -34,8 +32,7 @@ test.describe('Tooltip Component', () => {
 
       // Move mouse away — tooltip should disappear
       await page.mouse.move(0, 0);
-      await page.waitForTimeout(300);
-      await expect(tooltip).not.toBeVisible();
+      await expect(tooltip).not.toBeVisible({ timeout: 5000 });
     }
 
     // Page should still be intact

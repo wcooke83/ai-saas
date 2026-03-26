@@ -7,7 +7,7 @@ test.describe('Email Memory & OTP', () => {
     const res = await page.request.post(`/api/widget/${CHATBOT_ID}/memory/check`, {
       data: { email: 'nonexistent@test.local' },
     });
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       const body = await res.json();
       expect(typeof body.exists === 'boolean' || body.success !== undefined).toBeTruthy();
@@ -19,7 +19,8 @@ test.describe('Email Memory & OTP', () => {
       data: { email: 'test@test.local', otp: '000000' },
     });
     // Should reject — either 400 or 401 or specific error
-    expect(res.status()).toBeLessThan(500);
+    expect(res.status()).toBeGreaterThanOrEqual(400);
+        expect(res.status()).toBeLessThan(500);
     if (res.ok()) {
       const body = await res.json();
       expect(body.success).toBe(false);

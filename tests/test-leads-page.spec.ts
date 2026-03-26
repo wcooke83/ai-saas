@@ -60,7 +60,6 @@ test('test leads page interactivity', async ({ page }) => {
   });
   
   // Wait a moment and check errors
-  await page.waitForTimeout(1000);
   console.log('Console errors:', errors);
   
   // Try clicking on a tab if present

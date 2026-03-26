@@ -30,7 +30,7 @@ test.describe('Data Integrity — Create → Verify', () => {
     const patchRes = await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
       data: { name: 'Integrity Verify Name', system_prompt: 'Integrity verify prompt' },
     });
-    expect(patchRes.status()).toBeLessThan(500);
+    expect(patchRes.ok()).toBeTruthy();
 
     // GET and verify
     const getRes = await page.request.get(`/api/chatbots/${CHATBOT_ID}`);

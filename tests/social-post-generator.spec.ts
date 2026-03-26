@@ -123,7 +123,6 @@ test.describe('AI Social Post Generator', () => {
         console.log('Step 5: Clicked copy button');
 
         // Wait briefly for the icon to change to checkmark
-        await page.waitForTimeout(500);
 
         // Check if aria-label changed to "Copied!"
         const copiedButton = page.locator('button[aria-label="Copied!"]');
@@ -149,7 +148,6 @@ test.describe('AI Social Post Generator', () => {
         // Click LinkedIn filter
         if (await linkedinFilterButton.count() > 0) {
           await linkedinFilterButton.click();
-          await page.waitForTimeout(300);
           console.log('Step 6a: Clicked LinkedIn filter');
           await page.screenshot({ path: 'tests/screenshots/social-post-05-linkedin-filter.png', fullPage: true });
         }
@@ -157,14 +155,12 @@ test.describe('AI Social Post Generator', () => {
         // Click Twitter/X filter
         if (await twitterFilterButton.count() > 0) {
           await twitterFilterButton.click();
-          await page.waitForTimeout(300);
           console.log('Step 6b: Clicked Twitter filter');
           await page.screenshot({ path: 'tests/screenshots/social-post-06-twitter-filter.png', fullPage: true });
         }
 
         // Click All filter
         await allFilterButton.click();
-        await page.waitForTimeout(300);
         console.log('Step 6c: Clicked All filter');
       } else {
         console.log('Step 6: No filter tabs found');

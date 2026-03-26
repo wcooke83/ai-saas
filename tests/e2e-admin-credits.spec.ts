@@ -4,7 +4,6 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
   test('ADMIN-CREDITS-001: Credits page loads with two-column layout', async ({ page }) => {
     await page.goto('/admin/credits');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
 
     // Header
     await expect(page.locator('h1', { hasText: 'Credit Adjustments' })).toBeVisible({ timeout: 15000 });
@@ -31,7 +30,6 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
     // Type in the search input
     const searchInput = page.locator('input[placeholder="Search by email..."]');
     await searchInput.fill('e2e');
-    await page.waitForTimeout(500);
 
     // Dropdown should appear with results
     const dropdown = page.locator('.absolute.z-10');
@@ -44,7 +42,6 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
 
     const searchInput = page.locator('input[placeholder="Search by email..."]');
     await searchInput.fill('e2e');
-    await page.waitForTimeout(500);
 
     // Click on the first user in dropdown
     const dropdown = page.locator('.absolute.z-10');
@@ -52,7 +49,6 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
       const firstUser = dropdown.locator('button').first();
       if ((await firstUser.count()) > 0) {
         await firstUser.click();
-        await page.waitForTimeout(1000);
 
         // Dropdown should close
         await expect(dropdown).not.toBeVisible({ timeout: 3000 });
@@ -70,7 +66,6 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
 
     const searchInput = page.locator('input[placeholder="Search by email..."]');
     await searchInput.fill('zzzzznonexistent');
-    await page.waitForTimeout(500);
 
     await expect(page.getByText('No users found')).toBeVisible({ timeout: 5000 });
   });
@@ -82,12 +77,10 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
     // Select the e2e test user
     const searchInput = page.locator('input[placeholder="Search by email..."]');
     await searchInput.fill('e2e');
-    await page.waitForTimeout(500);
 
     const dropdown = page.locator('.absolute.z-10');
     if (await dropdown.isVisible()) {
       await dropdown.locator('button').first().click();
-      await page.waitForTimeout(2000);
 
       // Usage info panel should show
       const usageText = page.getByText('Current Usage');
@@ -107,12 +100,11 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
     // Select a user
     const searchInput = page.locator('input[placeholder="Search by email..."]');
     await searchInput.fill('e2e');
-    await page.waitForTimeout(500);
 
     const dropdown = page.locator('.absolute.z-10');
     if (await dropdown.isVisible()) {
       await dropdown.locator('button').first().click();
-      await page.waitForTimeout(2000);
+      await expect(dropdown).not.toBeVisible({ timeout: 3000 });
 
       // Check for progress bar (if usage exists)
       const progressBar = page.locator('.rounded-full.h-2').last();
@@ -131,14 +123,12 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
     // Select a user and check for loading state
     const searchInput = page.locator('input[placeholder="Search by email..."]');
     await searchInput.fill('e2e');
-    await page.waitForTimeout(500);
 
     const dropdown = page.locator('.absolute.z-10');
     if (await dropdown.isVisible()) {
       await dropdown.locator('button').first().click();
-      // May briefly show "Loading usage..."
-      // Eventually resolves
-      await page.waitForTimeout(3000);
+      // May briefly show "Loading usage..." — wait for it to resolve
+      await expect(dropdown).not.toBeVisible({ timeout: 3000 });
     }
   });
 
@@ -150,12 +140,11 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
     // We search for the user and check what shows up
     const searchInput = page.locator('input[placeholder="Search by email..."]');
     await searchInput.fill('e2e');
-    await page.waitForTimeout(500);
 
     const dropdown = page.locator('.absolute.z-10');
     if (await dropdown.isVisible()) {
       await dropdown.locator('button').first().click();
-      await page.waitForTimeout(2000);
+      await expect(dropdown).not.toBeVisible({ timeout: 3000 });
 
       // Either shows usage info or "No usage record found"
       const usagePanel = page.locator('.bg-secondary-50, .dark\\:bg-secondary-800\\/50');
@@ -197,12 +186,11 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
     // Select user first
     const searchInput = page.locator('input[placeholder="Search by email..."]');
     await searchInput.fill('e2e');
-    await page.waitForTimeout(500);
 
     const dropdown = page.locator('.absolute.z-10');
     if (await dropdown.isVisible()) {
       await dropdown.locator('button').first().click();
-      await page.waitForTimeout(2000);
+      await expect(dropdown).not.toBeVisible({ timeout: 3000 });
     }
 
     // Select Add Usage
@@ -211,7 +199,6 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
     // Enter amount
     const amountInput = page.locator('input[placeholder="e.g. 10000"]');
     await amountInput.fill('10000');
-    await page.waitForTimeout(500);
 
     // Check for preview text
     const preview = page.getByText(/New usage will be/);
@@ -227,19 +214,17 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
     // Select user
     const searchInput = page.locator('input[placeholder="Search by email..."]');
     await searchInput.fill('e2e');
-    await page.waitForTimeout(500);
 
     const dropdown = page.locator('.absolute.z-10');
     if (await dropdown.isVisible()) {
       await dropdown.locator('button').first().click();
-      await page.waitForTimeout(2000);
+      await expect(dropdown).not.toBeVisible({ timeout: 3000 });
     }
 
     // Select Add Usage and enter a very large amount
     await page.getByRole('button', { name: /add usage/i }).click();
     const amountInput = page.locator('input[placeholder="e.g. 10000"]');
     await amountInput.fill('999999999');
-    await page.waitForTimeout(500);
 
     // Should show "(over limit!)" warning if user has a usage record
     const overLimit = page.getByText('(over limit!)');
@@ -256,12 +241,11 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
     // Select user
     const searchInput = page.locator('input[placeholder="Search by email..."]');
     await searchInput.fill('e2e');
-    await page.waitForTimeout(500);
 
     const dropdown = page.locator('.absolute.z-10');
     if (await dropdown.isVisible()) {
       await dropdown.locator('button').first().click();
-      await page.waitForTimeout(2000);
+      await expect(dropdown).not.toBeVisible({ timeout: 3000 });
     }
 
     // Select Credit Back
@@ -269,7 +253,6 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
 
     const amountInput = page.locator('input[placeholder="e.g. 10000"]');
     await amountInput.fill('5000');
-    await page.waitForTimeout(500);
 
     // Preview text only shows for 'add' type in the current implementation
     // but verify amount input works with credit back
@@ -304,18 +287,16 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
     // Select user
     const searchInput = page.locator('input[placeholder="Search by email..."]');
     await searchInput.fill('e2e');
-    await page.waitForTimeout(500);
 
     const dropdown = page.locator('.absolute.z-10');
     if (await dropdown.isVisible()) {
       await dropdown.locator('button').first().click();
-      await page.waitForTimeout(2000);
+      await expect(dropdown).not.toBeVisible({ timeout: 3000 });
     }
 
     // Fill amount and reason
     await page.locator('input[placeholder="e.g. 10000"]').fill('5000');
     await page.locator('textarea').fill('E2E test reason');
-    await page.waitForTimeout(500);
 
     // Preview box should appear (yellow background)
     await expect(page.getByText('Confirm Adjustment')).toBeVisible({ timeout: 5000 });
@@ -329,18 +310,16 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
     const searchInput = page.locator('input[placeholder="Search by email..."]');
     await searchInput.click();
     await searchInput.fill('e2e');
-    await page.waitForTimeout(1000);
 
     const dropdown = page.locator('.absolute.z-10');
     await expect(dropdown).toBeVisible({ timeout: 5000 });
     await dropdown.locator('button').first().click();
-    await page.waitForTimeout(2000);
+    await expect(dropdown).not.toBeVisible({ timeout: 3000 });
 
     // Fill form: Add Usage
     await page.getByRole('button', { name: /add usage/i }).click();
     await page.locator('input[placeholder="e.g. 10000"]').fill('1');
     await page.locator('textarea').fill('E2E test: add usage');
-    await page.waitForTimeout(500);
 
     // Submit
     const submitBtn = page.getByRole('button', { name: /apply adjustment/i });
@@ -361,18 +340,16 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
     const searchInput = page.locator('input[placeholder="Search by email..."]');
     await searchInput.click();
     await searchInput.fill('e2e');
-    await page.waitForTimeout(1000);
 
     const dropdown = page.locator('.absolute.z-10');
     await expect(dropdown).toBeVisible({ timeout: 5000 });
     await dropdown.locator('button').first().click();
-    await page.waitForTimeout(2000);
+    await expect(dropdown).not.toBeVisible({ timeout: 3000 });
 
     // Fill form: Credit Back
     await page.getByRole('button', { name: /credit back/i }).click();
     await page.locator('input[placeholder="e.g. 10000"]').fill('1');
     await page.locator('textarea').fill('E2E test: credit back');
-    await page.waitForTimeout(500);
 
     // Submit
     const submitBtn = page.getByRole('button', { name: /apply adjustment/i });
@@ -397,12 +374,11 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
     // Select user
     const searchInput = page.locator('input[placeholder="Search by email..."]');
     await searchInput.fill('e2e');
-    await page.waitForTimeout(500);
 
     const dropdown = page.locator('.absolute.z-10');
     if (await dropdown.isVisible()) {
       await dropdown.locator('button').first().click();
-      await page.waitForTimeout(2000);
+      await expect(dropdown).not.toBeVisible({ timeout: 3000 });
     }
 
     // Still disabled (no amount, no reason)
@@ -415,7 +391,6 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
 
     // Add reason
     await page.locator('textarea').fill('Test reason');
-    await page.waitForTimeout(500);
 
     // Now should be enabled
     await expect(submitBtn).toBeEnabled();
@@ -506,18 +481,16 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
     const searchInput = page.locator('input[placeholder="Search by email..."]');
     await searchInput.click();
     await searchInput.fill('e2e');
-    await page.waitForTimeout(1000);
 
     const dropdown = page.locator('.absolute.z-10');
     await expect(dropdown).toBeVisible({ timeout: 5000 });
     await dropdown.locator('button').first().click();
-    await page.waitForTimeout(2000);
+    await expect(dropdown).not.toBeVisible({ timeout: 3000 });
 
     // Fill form
     await page.getByRole('button', { name: /add usage/i }).click();
     await page.locator('input[placeholder="e.g. 10000"]').fill('1');
     await page.locator('textarea').fill('E2E test: form reset check');
-    await page.waitForTimeout(500);
 
     // Submit
     const submitBtn = page.getByRole('button', { name: /apply adjustment/i });

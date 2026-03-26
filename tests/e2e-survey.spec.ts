@@ -53,7 +53,6 @@ test.describe('Post-Chat Survey', () => {
   test('survey responses page loads', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/surveys`);
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
   });
 });

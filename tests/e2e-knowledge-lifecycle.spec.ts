@@ -15,12 +15,10 @@ test.describe('Knowledge Source Lifecycle', () => {
       },
     });
 
-    expect(res.status()).toBeLessThan(500);
-    if (res.ok()) {
-      const body = await res.json();
-      createdSourceId = body.data?.id || body.data?.source?.id || null;
-      expect(createdSourceId).toBeTruthy();
-    }
+    expect(res.ok()).toBeTruthy();
+    const body = await res.json();
+    createdSourceId = body.data?.id || body.data?.source?.id || null;
+    expect(createdSourceId).toBeTruthy();
   });
 
   test('list knowledge sources includes new source', async ({ page }) => {
@@ -40,14 +38,14 @@ test.describe('Knowledge Source Lifecycle', () => {
       },
     });
     // URL sources may fail to process (no actual content) but creation should succeed
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
   });
 
   test('delete knowledge source', async ({ page }) => {
     test.skip(!createdSourceId, 'No source to delete');
 
     const res = await page.request.delete(`${KNOWLEDGE_URL}/${createdSourceId}`);
-    expect(res.status()).toBeLessThan(500);
+    expect(res.ok()).toBeTruthy();
     if (res.ok()) {
       createdSourceId = null;
     }
