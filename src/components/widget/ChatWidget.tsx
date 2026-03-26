@@ -2717,7 +2717,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                             }}>
                               <ShieldOff size={12} style={{ color: '#dc2626', flexShrink: 0 }} />
                               <span style={{ fontSize: '11px', color: '#dc2626', fontWeight: 500 }}>
-                                Message limit reached
+                                Unable to send message
                               </span>
                             </div>
                           ) : message.errorType === 'unavailable' ? (
@@ -3173,7 +3173,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                     fontSize: '13px', color: config.botBubbleTextColor || '#0f172a', opacity: 0.8,
                   }}>
                     {chatDisabled === 'message_limit'
-                      ? 'This chatbot has reached its monthly message limit. Please try again next month.'
+                      ? 'Our chat assistant is temporarily unavailable. Please try again later or use one of the options below.'
                       : 'This chatbot is currently unavailable. Please check back later.'}
                   </span>
                 </div>
