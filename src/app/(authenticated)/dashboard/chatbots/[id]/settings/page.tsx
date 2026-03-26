@@ -37,6 +37,17 @@ import {
   Undo2,
   AlertTriangle,
   ThumbsDown,
+  MessageCircle,
+  HelpCircle,
+  TrendingUp,
+  UserPlus,
+  Calendar,
+  ShoppingCart,
+  Wrench,
+  Rocket,
+  RefreshCw,
+  Check,
+  type LucideIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -48,6 +59,7 @@ import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import {
   SYSTEM_PROMPT_TEMPLATES,
+  SYSTEM_PROMPT_TEMPLATE_CATEGORIES,
   DEFAULT_PRE_CHAT_FORM_CONFIG,
   DEFAULT_POST_CHAT_SURVEY_CONFIG,
   DEFAULT_FILE_UPLOAD_CONFIG,
@@ -71,7 +83,7 @@ import type {
   SurveyQuestion,
   SurveyQuestionType,
 } from '@/lib/chatbots/types';
-import type { FileUploadConfig, ProactiveMessagesConfig, ProactiveMessageRule, ProactiveTriggerType, ProactiveDisplayMode, ProactiveBubblePosition, ProactiveBubbleStyle, TranscriptConfig, EscalationConfig, FeedbackConfig, LiveHandoffConfig, TelegramConfig, CreditExhaustionMode, CreditExhaustionConfig } from '@/lib/chatbots/types';
+import type { FileUploadConfig, ProactiveMessagesConfig, ProactiveMessageRule, ProactiveTriggerType, ProactiveDisplayMode, ProactiveBubblePosition, ProactiveBubbleStyle, TranscriptConfig, EscalationConfig, FeedbackConfig, LiveHandoffConfig, TelegramConfig, CreditExhaustionMode, CreditExhaustionConfig, TemplateCategory } from '@/lib/chatbots/types';
 import { DEFAULT_BUBBLE_STYLE } from '@/lib/chatbots/types';
 import { H1 } from '@/components/ui/heading';
 
@@ -82,6 +94,26 @@ function computeWarningsFromBot(bot: Chatbot): boolean {
   if (!bot.language_updated_at) return false;
   if (!bot.custom_text_updated_at) return true;
   return new Date(bot.custom_text_updated_at) < new Date(bot.language_updated_at);
+}
+
+// Template icon mapping
+const TEMPLATE_ICON_MAP: Record<string, LucideIcon> = {
+  MessageCircle, HelpCircle, TrendingUp, UserPlus,
+  Calendar, ShoppingCart, Headphones, Wrench, Rocket, RefreshCw,
+};
+
+// Smart recommendation based on chatbot name
+function getRecommendedTemplateId(chatbotName: string): string | null {
+  const n = chatbotName.toLowerCase();
+  if (n.includes('support') || n.includes('help desk')) return 'customer-support';
+  if (n.includes('sales') || n.includes('shop')) return 'sales-assistant';
+  if (n.includes('faq') || n.includes('knowledge')) return 'faq-bot';
+  if (n.includes('tech') || n.includes('debug') || n.includes('troubleshoot')) return 'technical-support';
+  if (n.includes('lead') || n.includes('capture')) return 'lead-generation';
+  if (n.includes('book') || n.includes('schedule') || n.includes('demo')) return 'appointment-booking';
+  if (n.includes('store') || n.includes('ecommerce') || n.includes('product')) return 'ecommerce-sales';
+  if (n.includes('onboard') || n.includes('welcome') || n.includes('setup')) return 'onboarding';
+  return null;
 }
 
 // Form data type for react-hook-form
@@ -217,6 +249,11 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
 
   // Ref to carry translated values from onApply to handleSave (avoids stale closure)
   const saveOverridesRef = useRef<Record<string, unknown> | null>(null);
+
+  // Template UI state
+  const [templateFilter, setTemplateFilter] = useState<TemplateCategory | 'all'>('all');
+  const previousPromptRef = useRef<string | null>(null);
+  const [appliedTemplateName, setAppliedTemplateName] = useState<string | null>(null);
 
   // Non-form UI state
   const [telegramWebhookStatus, setTelegramWebhookStatus] = useState<string | null>(null);
@@ -802,27 +839,140 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label className="mb-3 block">Quick Templates</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                  {SYSTEM_PROMPT_TEMPLATES.map((template) => (
+                <Label className="mb-1 block">Quick Templates</Label>
+                <p className="text-sm text-secondary-500 mb-3">Start with a proven prompt and customize it to your needs.</p>
+
+                {/* Category filter pills */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {[{ key: 'all' as const, label: 'All' }, ...Object.entries(SYSTEM_PROMPT_TEMPLATE_CATEGORIES).map(([key, meta]) => ({ key: key as TemplateCategory, label: meta.label }))].map(({ key, label }) => (
                     <button
-                      key={template.id}
-                      onClick={() => setValue('systemPrompt', template.prompt, { shouldDirty: true })}
+                      key={key}
+                      onClick={() => setTemplateFilter(key)}
                       className={cn(
-                        'p-3 text-left rounded-lg border transition-colors',
-                        systemPrompt === template.prompt
-                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                          : 'border-secondary-200 dark:border-secondary-700 hover:border-secondary-300 dark:hover:border-secondary-600'
+                        'px-3 py-1.5 text-xs font-medium rounded-full border transition-colors',
+                        templateFilter === key
+                          ? 'bg-primary-500 text-white border-primary-500'
+                          : 'bg-white dark:bg-secondary-800 text-secondary-600 dark:text-secondary-400 border-secondary-200 dark:border-secondary-700 hover:border-secondary-300 dark:hover:border-secondary-600'
                       )}
                     >
-                      <p className="font-medium text-sm text-secondary-900 dark:text-secondary-100">
-                        {template.name}
-                      </p>
-                      <p className="text-xs text-secondary-500 mt-1">
-                        {template.description}
-                      </p>
+                      {label}
                     </button>
                   ))}
+                </div>
+
+                {/* Undo bar */}
+                {appliedTemplateName && (
+                  <div className="flex items-center justify-between gap-3 p-3 mb-4 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg">
+                    <div className="flex items-center gap-2 text-sm text-primary-700 dark:text-primary-300">
+                      <Info className="w-4 h-4 shrink-0" />
+                      <span>Template &ldquo;{appliedTemplateName}&rdquo; applied.{previousPromptRef.current ? ' Your previous prompt was replaced.' : ''}</span>
+                    </div>
+                    {previousPromptRef.current !== null && (
+                      <button
+                        onClick={() => {
+                          setValue('systemPrompt', previousPromptRef.current || '', { shouldDirty: true });
+                          setAppliedTemplateName(null);
+                          previousPromptRef.current = null;
+                        }}
+                        className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-primary-600 dark:text-primary-400 bg-white dark:bg-secondary-800 border border-primary-200 dark:border-primary-700 rounded-md hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors shrink-0"
+                      >
+                        <Undo2 className="w-3.5 h-3.5" />
+                        Undo
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Template grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                  {(() => {
+                    const recommendedId = getRecommendedTemplateId(name || '');
+                    const filtered = SYSTEM_PROMPT_TEMPLATES.filter(
+                      (t) => templateFilter === 'all' || (t.category || 'general') === templateFilter
+                    );
+                    // Sort: recommended first, then popular, then rest
+                    const sorted = [...filtered].sort((a, b) => {
+                      if (a.id === recommendedId) return -1;
+                      if (b.id === recommendedId) return 1;
+                      const aPopular = a.tags?.includes('popular') ? 1 : 0;
+                      const bPopular = b.tags?.includes('popular') ? 1 : 0;
+                      return bPopular - aPopular;
+                    });
+                    return sorted.map((template) => {
+                      const isSelected = systemPrompt === template.prompt;
+                      const isRecommended = template.id === recommendedId;
+                      const IconComponent = template.icon ? TEMPLATE_ICON_MAP[template.icon] : null;
+                      const firstLine = template.prompt.split('\n')[0].slice(0, 60);
+                      const previewParagraph = template.prompt.split('\n\n').slice(0, 2).join('\n\n');
+                      return (
+                        <Tooltip
+                          key={template.id}
+                          content={
+                            <div className="max-w-sm font-mono text-xs whitespace-pre-wrap">{previewParagraph}</div>
+                          }
+                          side="bottom"
+                          delayDuration={500}
+                          wrapperClassName="relative"
+                        >
+                          <button
+                            onClick={() => {
+                              previousPromptRef.current = systemPrompt;
+                              setValue('systemPrompt', template.prompt, { shouldDirty: true });
+                              setAppliedTemplateName(template.name);
+                            }}
+                            className={cn(
+                              'p-4 text-left rounded-lg border transition-all duration-150 group relative',
+                              isSelected
+                                ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 ring-1 ring-primary-500'
+                                : isRecommended
+                                  ? 'border-primary-200 dark:border-primary-800 ring-1 ring-primary-200 dark:ring-primary-800 hover:shadow-sm hover:-translate-y-px'
+                                  : 'border-secondary-200 dark:border-secondary-700 hover:border-secondary-300 dark:hover:border-secondary-600 hover:shadow-sm hover:-translate-y-px'
+                            )}
+                          >
+                            {/* Selected checkmark */}
+                            {isSelected && (
+                              <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center">
+                                <Check className="w-3 h-3 text-white" />
+                              </div>
+                            )}
+
+                            {/* Header: icon + name + badges */}
+                            <div className="flex items-start gap-2 pr-6">
+                              {IconComponent && (
+                                <IconComponent className="w-4 h-4 mt-0.5 text-secondary-400 dark:text-secondary-500 shrink-0" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-medium text-sm text-secondary-900 dark:text-secondary-100">
+                                    {template.name}
+                                  </span>
+                                  {isRecommended && (
+                                    <Badge variant="default" className="text-[10px] px-1.5 py-0">Recommended</Badge>
+                                  )}
+                                  {!isRecommended && template.tags?.includes('popular') && (
+                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Popular</Badge>
+                                  )}
+                                  {template.tags?.includes('new') && (
+                                    <Badge className="text-[10px] px-1.5 py-0 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800">New</Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Description */}
+                            <p className="text-xs text-secondary-500 mt-1.5 ml-6">
+                              {template.description}
+                            </p>
+
+                            {/* Preview snippet */}
+                            <p className="text-xs text-secondary-400 dark:text-secondary-600 mt-2 ml-6 font-mono truncate">
+                              {firstLine}...
+                            </p>
+                          </button>
+                        </Tooltip>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
 
@@ -830,7 +980,9 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 <Label htmlFor="system_prompt">System Prompt *</Label>
                 <textarea
                   id="system_prompt"
-                  {...register('systemPrompt')}
+                  {...register('systemPrompt', {
+                    onChange: () => setAppliedTemplateName(null),
+                  })}
                   className="w-full min-h-[250px] px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 placeholder-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono text-sm resize-y"
                   style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
                   placeholder="You are a helpful AI assistant..."

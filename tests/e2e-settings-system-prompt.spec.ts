@@ -7,7 +7,6 @@ async function gotoPromptSection(page: import('@playwright/test').Page) {
   await page.goto(SETTINGS_URL, { waitUntil: 'domcontentloaded' });
   await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
   await page.locator('nav button', { hasText: 'System Prompt' }).click();
-  await page.waitForTimeout(500);
 }
 
 test.describe('3. Settings -- System Prompt', () => {
@@ -20,7 +19,6 @@ test.describe('3. Settings -- System Prompt', () => {
     // Enter short text
     await promptField.fill('Short');
     await page.locator('button', { hasText: 'Save Changes' }).first().click();
-    await page.waitForTimeout(1000);
 
     // Should show validation error
     await expect(page.locator('text=/at least 10 characters/i')).toBeVisible({ timeout: 5000 });
@@ -36,17 +34,21 @@ test.describe('3. Settings -- System Prompt', () => {
     const templateBtn = page.locator('button', { hasText: 'Customer Support' }).first();
     await expect(templateBtn).toBeVisible({ timeout: 5000 });
     await templateBtn.click();
-    await page.waitForTimeout(500);
 
     // Textarea should be populated
     const promptVal = await promptField.inputValue();
     expect(promptVal.length).toBeGreaterThan(10);
   });
 
-  test('SET-PROMPT-003: All five templates are available', async ({ page }) => {
+  test('SET-PROMPT-003: All templates are available', async ({ page }) => {
     await gotoPromptSection(page);
 
-    const templates = ['Helpful Assistant', 'Customer Support', 'Sales Assistant', 'Technical Support', 'FAQ Bot'];
+    const templates = [
+      'Helpful Assistant', 'FAQ Bot',
+      'Sales Assistant', 'Lead Generation', 'Appointment Booking', 'E-Commerce',
+      'Customer Support', 'Technical Support',
+      'Onboarding Guide', 'Re-Engagement',
+    ];
     for (const name of templates) {
       await expect(page.locator('button', { hasText: name }).first()).toBeVisible({ timeout: 5000 });
     }
@@ -61,7 +63,6 @@ test.describe('3. Settings -- System Prompt', () => {
     // Toggle it
     const wasChecked = await checkbox.isChecked();
     await checkbox.click({ force: true });
-    await page.waitForTimeout(300);
 
     const isNowChecked = await checkbox.isChecked();
     expect(isNowChecked).toBe(!wasChecked);
@@ -80,7 +81,6 @@ test.describe('3. Settings -- System Prompt', () => {
 
     // Clear and type some text
     await promptField.fill('This is a test prompt for counting characters.');
-    await page.waitForTimeout(300);
 
     // Counter should show current length/5000
     const counter = page.locator('text=/\\/5000 characters/i');

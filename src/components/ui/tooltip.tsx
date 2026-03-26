@@ -10,6 +10,7 @@ interface TooltipProps {
   side?: 'top' | 'bottom' | 'left' | 'right';
   align?: 'start' | 'center' | 'end';
   className?: string;
+  wrapperClassName?: string;
   delayDuration?: number;
 }
 
@@ -19,6 +20,7 @@ export function Tooltip({
   side = 'top',
   align = 'center',
   className,
+  wrapperClassName,
   delayDuration = 200,
 }: TooltipProps) {
   const [isVisible, setIsVisible] = React.useState(false);
@@ -155,7 +157,7 @@ export function Tooltip({
   return (
     <div
       ref={triggerRef}
-      className="relative inline-flex"
+      className={wrapperClassName || "relative inline-flex"}
       onMouseEnter={showTooltip}
       onMouseLeave={hideTooltip}
       onFocus={showTooltip}
