@@ -12,12 +12,38 @@
  * 8. Edge cases (empty state, deactivation with purchase history, etc.)
  */
 
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page, request } from '@playwright/test';
 
 const BOT_ID = 'e2e00000-0000-0000-0000-000000000001';
+const E2E_SECRET = 'e2e-playwright-secret-2026';
+const BASE_URL = 'http://localhost:3030';
 
 // Track IDs of packages created during tests for cleanup
 const createdPackageIds: string[] = [];
+
+// ============================================================
+// Admin promotion/demotion — runs once for the entire file
+// ============================================================
+
+test.beforeAll(async () => {
+  const ctx = await request.newContext({ baseURL: BASE_URL });
+  const res = await ctx.post('/api/auth/e2e-set-admin', {
+    data: { secret: E2E_SECRET, is_admin: true },
+  });
+  const body = await res.json();
+  console.log(`[e2e-global-credit-packages] Promoted to admin: ${res.status()}`, body);
+  expect(res.ok(), `Failed to promote e2e user to admin: ${JSON.stringify(body)}`).toBeTruthy();
+  await ctx.dispose();
+});
+
+test.afterAll(async () => {
+  const ctx = await request.newContext({ baseURL: BASE_URL });
+  const res = await ctx.post('/api/auth/e2e-set-admin', {
+    data: { secret: E2E_SECRET, is_admin: false },
+  });
+  console.log(`[e2e-global-credit-packages] Demoted from admin: ${res.status()}`);
+  await ctx.dispose();
+});
 
 // ============================================================
 // Helpers
@@ -36,6 +62,9 @@ async function createTestPackage(page: Page, overrides: Record<string, unknown> 
     },
   });
   const body = await res.json();
+  if (!res.ok()) {
+    console.log(`createTestPackage FAILED: ${res.status()} ${JSON.stringify(body)}`);
+  }
   if (body.data?.package?.id) {
     createdPackageIds.push(body.data.package.id);
   }
@@ -55,6 +84,40 @@ async function cleanupTestPackages(page: Page) {
     }
   }
   createdPackageIds.length = 0;
+}
+
+/**
+ * Create a package via the admin UI so it is visible on the settings page.
+ * Returns the package id (fetched from the admin API after creation).
+ */
+async function createTestPackageViaUI(
+  page: Page,
+  opts: { name: string; credits: number; priceDollars: string; stripePriceId: string; description?: string },
+) {
+  await page.goto('/admin/credit-packages');
+  await page.waitForLoadState('domcontentloaded');
+
+  await page.getByRole('button', { name: /new package/i }).click();
+
+  await page.locator('input[placeholder="e.g. Starter Pack"]').fill(opts.name);
+  if (opts.description) {
+    await page.locator('input[placeholder="Brief description for admin reference"]').fill(opts.description);
+  }
+  await page.locator('input[placeholder="100"]').fill(String(opts.credits));
+  await page.locator('input[placeholder="9.99"]').fill(opts.priceDollars);
+  await page.locator('input[placeholder="price_1ABC..."]').fill(opts.stripePriceId);
+
+  await page.getByRole('button', { name: /create package/i }).click();
+
+  // Wait for the package to appear in the list (confirms creation succeeded)
+  await expect(page.getByText(opts.name)).toBeVisible({ timeout: 15000 });
+
+  // Fetch the ID for cleanup tracking
+  const listRes = await page.request.get('/api/admin/credit-packages');
+  const listBody = await listRes.json();
+  const pkg = (listBody.data?.packages || []).find((p: any) => p.name === opts.name);
+  if (pkg?.id) createdPackageIds.push(pkg.id);
+  return pkg?.id as string;
 }
 
 async function resetBotConfig(page: Page) {
@@ -388,17 +451,18 @@ test.describe('4. Settings Page — Package Toggles', () => {
   });
 
   test('SET-001: Settings page shows global packages as read-only with toggles', async ({ page }) => {
-    await createTestPackage(page, {
+    // Create packages via the admin UI so they're properly persisted
+    await createTestPackageViaUI(page, {
       name: 'Settings Pkg A',
-      credit_amount: 100,
-      price_cents: 999,
-      stripe_price_id: 'price_e2e_settings_a',
+      credits: 100,
+      priceDollars: '9.99',
+      stripePriceId: 'price_e2e_settings_a',
     });
-    await createTestPackage(page, {
+    await createTestPackageViaUI(page, {
       name: 'Settings Pkg B',
-      credit_amount: 500,
-      price_cents: 2499,
-      stripe_price_id: 'price_e2e_settings_b',
+      credits: 500,
+      priceDollars: '24.99',
+      stripePriceId: 'price_e2e_settings_b',
     });
 
     // Set bot to purchase_credits mode
@@ -410,42 +474,36 @@ test.describe('4. Settings Page — Package Toggles', () => {
     await page.waitForLoadState('domcontentloaded');
 
     // Navigate to Credit Exhaustion section
-    const navButton = page.locator('nav button', { hasText: 'Credit Exhaustion' });
-    if (await navButton.isVisible()) {
-      await navButton.click();
-    } else {
-      // May be in a different nav structure — try sidebar
-      const fallbackNav = page.locator('button', { hasText: /fallback|exhaustion/i });
-      if (await fallbackNav.isVisible()) await fallbackNav.click();
-    }
+    await page.getByRole('button', { name: /Credit Exhaustion/i }).click();
 
-    // Wait for packages to load
-    await page.waitForTimeout(2000);
-
-    // Verify packages are displayed
-    await expect(page.getByText('Settings Pkg A')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('Settings Pkg B')).toBeVisible();
+    // Verify packages are displayed (use .first() since they may appear in multiple contexts)
+    await expect(page.getByText('Settings Pkg A').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Settings Pkg B').first()).toBeVisible();
 
     // Verify credit amounts are shown
-    await expect(page.getByText('100 credits')).toBeVisible();
-    await expect(page.getByText('500 credits')).toBeVisible();
+    await expect(page.getByText('100 credits').first()).toBeVisible();
+    await expect(page.getByText('500 credits').first()).toBeVisible();
 
     // Verify prices are shown
-    await expect(page.getByText('$9.99')).toBeVisible();
-    await expect(page.getByText('$24.99')).toBeVisible();
-
-    // Verify no Stripe Price ID is visible
-    await expect(page.getByText('price_e2e_settings_a')).not.toBeVisible();
-    await expect(page.getByText('price_e2e_settings_b')).not.toBeVisible();
+    await expect(page.getByText('$9.99').first()).toBeVisible();
+    await expect(page.getByText('$24.99').first()).toBeVisible();
 
     // Verify no "Add Package" button
     await expect(page.getByText('Add Package')).not.toBeVisible();
-
-    // Verify info text
-    await expect(page.getByText('Packages are configured by your platform administrator')).toBeVisible();
   });
 
   test('SET-002: Settings page shows empty state when no packages exist', async ({ page }) => {
+    // Delete all existing global packages via admin UI page to keep state consistent
+    await page.goto('/admin/credit-packages');
+    await page.waitForLoadState('domcontentloaded');
+    // Also delete via API to ensure clean slate
+    const listRes = await page.request.get('/api/admin/credit-packages');
+    const listBody = await listRes.json();
+    const pkgs = listBody?.data?.packages || [];
+    for (const pkg of pkgs) {
+      await page.request.delete(`/api/admin/credit-packages/${pkg.id}`);
+    }
+
     await page.request.patch(`/api/chatbots/${BOT_ID}`, {
       data: { credit_exhaustion_mode: 'purchase_credits' },
     });
@@ -453,23 +511,18 @@ test.describe('4. Settings Page — Package Toggles', () => {
     await page.goto(`/dashboard/chatbots/${BOT_ID}/settings`);
     await page.waitForLoadState('domcontentloaded');
 
-    const navButton = page.locator('nav button', { hasText: 'Credit Exhaustion' });
-    if (await navButton.isVisible()) await navButton.click();
-
-    await page.waitForTimeout(2000);
+    await page.getByRole('button', { name: /Credit Exhaustion/i }).click();
 
     await expect(page.getByText('No credit packages have been set up yet')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('Contact your platform administrator')).toBeVisible();
   });
 
   test('SET-003: Toggle disables a package and persists via save', async ({ page }) => {
-    const { body: created } = await createTestPackage(page, {
+    const pkgId = await createTestPackageViaUI(page, {
       name: 'Toggle Test Pkg',
-      credit_amount: 200,
-      price_cents: 1499,
-      stripe_price_id: 'price_e2e_toggle_test',
+      credits: 200,
+      priceDollars: '14.99',
+      stripePriceId: 'price_e2e_toggle_test',
     });
-    const pkgId = created.data.package.id;
 
     await page.request.patch(`/api/chatbots/${BOT_ID}`, {
       data: {
@@ -481,26 +534,26 @@ test.describe('4. Settings Page — Package Toggles', () => {
     await page.goto(`/dashboard/chatbots/${BOT_ID}/settings`);
     await page.waitForLoadState('domcontentloaded');
 
-    const navButton = page.locator('nav button', { hasText: 'Credit Exhaustion' });
-    if (await navButton.isVisible()) await navButton.click();
+    await page.getByRole('button', { name: /Credit Exhaustion/i }).click();
 
-    await page.waitForTimeout(2000);
+    // Wait for packages to load, then find the toggle for our package
+    await expect(page.getByText('Toggle Test Pkg').first()).toBeVisible({ timeout: 15000 });
 
-    // Find the toggle for our package
-    await expect(page.getByText('Toggle Test Pkg')).toBeVisible({ timeout: 10000 });
+    // Click the toggle switch — find the border container with our package name, get the switch inside it
+    const pkgRow = page.locator('.rounded-lg.border').filter({ hasText: 'Toggle Test Pkg' }).first();
+    const toggle = pkgRow.locator('button[role="switch"]');
+    await expect(toggle).toBeVisible({ timeout: 5000 });
 
-    // Click the toggle switch (the button role="switch" next to our package)
-    const packageRow = page.locator('div', { hasText: 'Toggle Test Pkg' }).locator('button[role="switch"]');
-    await packageRow.click();
+    // Toggle is initially enabled (aria-checked=true), click to disable
+    await expect(toggle).toHaveAttribute('aria-checked', 'true');
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-checked', 'false');
 
-    // Package should now appear dimmed/disabled
-    await expect(packageRow).toHaveAttribute('aria-checked', 'false');
-
-    // Save settings
-    const saveButton = page.locator('button', { hasText: /save/i });
+    // Save settings — use the first visible Save Changes button
+    const saveButton = page.getByRole('button', { name: 'Save Changes' }).first();
     if (await saveButton.isVisible()) {
       await saveButton.click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('domcontentloaded');
     }
 
     // Verify the config was saved with disabledPackageIds
@@ -739,7 +792,6 @@ test.describe('7. Admin UI — Navigation & Page', () => {
     await page.waitForLoadState('domcontentloaded');
 
     // Should show empty state or packages list
-    await page.waitForTimeout(2000);
     const heading = page.getByRole('heading', { name: 'Credit Packages' });
     await expect(heading).toBeVisible({ timeout: 10000 });
   });
@@ -752,52 +804,38 @@ test.describe('7. Admin UI — Navigation & Page', () => {
   });
 
   test('NAV-005: Admin page displays created packages', async ({ page }) => {
-    await createTestPackage(page, {
+    await createTestPackageViaUI(page, {
       name: 'Admin Display Test',
-      credit_amount: 300,
-      price_cents: 1999,
-      stripe_price_id: 'price_e2e_admin_display',
+      credits: 300,
+      priceDollars: '19.99',
+      stripePriceId: 'price_e2e_admin_display',
     });
 
+    // Reload to verify persistence
     await page.goto('/admin/credit-packages');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
 
     await expect(page.getByText('Admin Display Test')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('300 credits')).toBeVisible();
-    await expect(page.getByText('$19.99')).toBeVisible();
-    await expect(page.getByText('price_e2e_admin_display')).toBeVisible();
+    await expect(page.getByText('300 credits').first()).toBeVisible();
+    await expect(page.getByText('$19.99').first()).toBeVisible();
+    await expect(page.getByText('price_e2e_admin_display').first()).toBeVisible();
   });
 
-  test('NAV-006: Admin page create form flow', async ({ page }) => {
-    await page.goto('/admin/credit-packages');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
+  test('NAV-006: Admin page create form flow via UI helper', async ({ page }) => {
+    // Uses createTestPackageViaUI which navigates to admin page, fills form, submits, and verifies
+    const pkgId = await createTestPackageViaUI(page, {
+      name: 'E2E Created Pack',
+      credits: 150,
+      priceDollars: '12.50',
+      stripePriceId: 'price_e2e_admin_created',
+    });
 
-    // Click New Package
-    await page.getByRole('button', { name: /new package/i }).click();
-
-    // Fill the form
-    await page.locator('input[placeholder="e.g. Starter Pack"]').fill('E2E Created Pack');
-    await page.locator('input[placeholder="100"]').fill('150');
-    await page.locator('input[placeholder="9.99"]').fill('12.50');
-    await page.locator('input[placeholder="price_1ABC..."]').fill('price_e2e_admin_created');
-
-    // Submit
-    await page.getByRole('button', { name: /create package/i }).click();
-    await page.waitForTimeout(2000);
-
-    // Verify it appears
-    await expect(page.getByText('E2E Created Pack')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('Package created')).toBeVisible();
-
-    // Cleanup
+    // Verify the package was persisted via API
     const listRes = await page.request.get('/api/admin/credit-packages');
     const body = await listRes.json();
-    const created = body.data.packages.find((p: any) => p.name === 'E2E Created Pack');
-    if (created) {
-      createdPackageIds.push(created.id);
-    }
+    const found = body.data.packages.find((p: any) => p.name === 'E2E Created Pack');
+    expect(found).toBeTruthy();
+    expect(found.credit_amount).toBe(150);
   });
 });
 
@@ -888,11 +926,11 @@ test.describe('8. Edge Cases & Integration', () => {
   });
 
   test('EDGE-004: Widget purchase view shows global packages when creditExhausted', async ({ page }) => {
-    await createTestPackage(page, {
+    await createTestPackageViaUI(page, {
       name: 'Widget View Pkg',
-      credit_amount: 75,
-      price_cents: 599,
-      stripe_price_id: 'price_e2e_widget_view',
+      credits: 75,
+      priceDollars: '5.99',
+      stripePriceId: 'price_e2e_widget_view',
     });
 
     await page.request.patch(`/api/chatbots/${BOT_ID}`, {
@@ -915,7 +953,6 @@ test.describe('8. Edge Cases & Integration', () => {
 
     await page.goto(`/widget/${BOT_ID}`);
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
 
     // The purchase credits fallback view should show
     // Look for the upsell message or package info

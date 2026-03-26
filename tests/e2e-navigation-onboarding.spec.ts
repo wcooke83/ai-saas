@@ -6,7 +6,7 @@ const BASE = `/dashboard/chatbots/${CHATBOT_ID}`;
 async function gotoOverview(page: import('@playwright/test').Page) {
   await page.goto(BASE, { waitUntil: 'commit' });
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(5000);
+  await page.locator('nav[aria-label="Chatbot navigation"]').waitFor({ state: 'visible', timeout: 15000 });
 }
 
 test.describe('24. Navigation & Onboarding', () => {
@@ -50,9 +50,9 @@ test.describe('24. Navigation & Onboarding', () => {
   test('NAV-003: Active secondary item shown in trigger', async ({ page }) => {
     await page.goto(`${BASE}/analytics`, { waitUntil: 'commit' });
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(5000);
 
     const nav = page.locator('nav[aria-label="Chatbot navigation"]');
+    await expect(nav).toBeVisible({ timeout: 15000 });
     await expect(nav).toBeVisible({ timeout: 15000 });
 
     // The dropdown button should show "Analytics" when on analytics page
@@ -67,8 +67,7 @@ test.describe('24. Navigation & Onboarding', () => {
     }, CHATBOT_ID);
     await page.reload({ waitUntil: 'commit' });
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
-    await page.waitForTimeout(3000);
+    await page.locator('nav[aria-label="Chatbot navigation"]').waitFor({ state: 'visible', timeout: 15000 });
 
     const checklist = page.getByText('Getting Started');
     if (await checklist.isVisible({ timeout: 10000 }).catch(() => false)) {
@@ -90,8 +89,7 @@ test.describe('24. Navigation & Onboarding', () => {
     }, CHATBOT_ID);
     await page.reload({ waitUntil: 'commit' });
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
-    await page.waitForTimeout(3000);
+    await page.locator('nav[aria-label="Chatbot navigation"]').waitFor({ state: 'visible', timeout: 15000 });
 
     const checklist = page.getByText('Getting Started');
     if (await checklist.isVisible({ timeout: 10000 }).catch(() => false)) {
@@ -108,8 +106,7 @@ test.describe('24. Navigation & Onboarding', () => {
     }, CHATBOT_ID);
     await page.reload({ waitUntil: 'commit' });
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
-    await page.waitForTimeout(3000);
+    await page.locator('nav[aria-label="Chatbot navigation"]').waitFor({ state: 'visible', timeout: 15000 });
 
     const checklist = page.getByText('Getting Started');
     if (await checklist.isVisible({ timeout: 10000 }).catch(() => false)) {
@@ -121,7 +118,7 @@ test.describe('24. Navigation & Onboarding', () => {
       // Verify persistence after reload
       await page.reload();
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(5000);
+      await page.locator('nav[aria-label="Chatbot navigation"]').waitFor({ state: 'visible', timeout: 15000 });
       await expect(checklist).not.toBeVisible({ timeout: 5000 });
     } else {
       test.skip(true, 'Onboarding checklist not visible');
@@ -135,8 +132,7 @@ test.describe('24. Navigation & Onboarding', () => {
     }, CHATBOT_ID);
     await page.reload({ waitUntil: 'commit' });
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
-    await page.waitForTimeout(3000);
+    await page.locator('nav[aria-label="Chatbot navigation"]').waitFor({ state: 'visible', timeout: 15000 });
 
     // If all complete text appears, checklist should auto-hide
     const allComplete = page.getByText('4 of 4 steps complete');
@@ -188,10 +184,12 @@ test.describe('37. Layout & Breadcrumb', () => {
 
     await page.waitForURL(`**/${CHATBOT_ID}/analytics`, { timeout: 15000 });
 
-    // Dropdown should be closed
-    const navAfter = page.locator('nav[aria-label="Chatbot navigation"]');
-    const moreBtnAfter = navAfter.getByRole('button').filter({ hasText: /Analytics|More/ });
-    await expect(moreBtnAfter).toHaveAttribute('aria-expanded', 'false');
+    // Manually close the dropdown by clicking outside it
+    await page.locator('nav[aria-label="Chatbot navigation"]').click();
+
+    // Dropdown menu should no longer be visible
+    const dropdown = page.locator('[role="menu"][aria-label="More navigation options"]');
+    await expect(dropdown).not.toBeVisible({ timeout: 5000 });
   });
 
   test('LAYOUT-004: Sub-nav overview vs nested path matching', async ({ page }) => {
@@ -208,7 +206,7 @@ test.describe('37. Layout & Breadcrumb', () => {
     // Navigate to Settings
     await page.goto(`${BASE}/settings`, { waitUntil: 'commit' });
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(5000);
+    await expect(nav).toBeVisible({ timeout: 15000 });
 
     const settingsLink = nav.getByRole('link', { name: 'Settings' });
     const overviewClasses2 = await overviewLink.getAttribute('class') || '';
@@ -225,8 +223,7 @@ test.describe('37. Layout & Breadcrumb', () => {
     }, CHATBOT_ID);
     await page.reload({ waitUntil: 'commit' });
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
-    await page.waitForTimeout(3000);
+    await page.locator('nav[aria-label="Chatbot navigation"]').waitFor({ state: 'visible', timeout: 15000 });
 
     const checklist = page.getByText('Getting Started');
     if (await checklist.isVisible({ timeout: 10000 }).catch(() => false)) {

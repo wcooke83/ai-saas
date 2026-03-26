@@ -1,10 +1,21 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
 const CHATBOT_ID = '10df2440-6aac-441a-855d-715c0ea8e506';
 const WIDGET_URL = `/widget/${CHATBOT_ID}`;
 const SETTINGS_URL = `/dashboard/chatbots/${CHATBOT_ID}/settings`;
 
+/** Reset credits to a healthy state so the widget isn't blocked */
+async function resetCredits(page: Page) {
+  await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
+    data: { monthly_message_limit: 1000, messages_this_month: 0 },
+  });
+}
+
 test.describe('1. Widget Core Functionality', () => {
+  test.beforeEach(async ({ page }) => {
+    await resetCredits(page);
+  });
+
   test('WIDGET-001: Widget loads with valid chatbot ID', async ({ page }) => {
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
@@ -109,7 +120,11 @@ test.describe('1. Widget Core Functionality', () => {
     await expect(page.locator('.chat-widget-typing')).not.toBeVisible({ timeout: 30000 });
 
     // Wait for session to be persisted to localStorage
-    await page.waitForTimeout(2000);
+    await expect.poll(async () => {
+      return await page.evaluate((id) => {
+        return Object.keys(localStorage).some(k => k.includes('session') && k.includes(id));
+      }, CHATBOT_ID);
+    }).toBe(true);
 
     // Check localStorage has session (try both key formats)
     const hasSession = await page.evaluate((id) => {
@@ -123,11 +138,9 @@ test.describe('1. Widget Core Functionality', () => {
 
     // Wait for history loading to finish
     await expect(page.locator('.chat-widget-history-loading')).not.toBeVisible({ timeout: 20000 });
-    await page.waitForTimeout(1000);
 
     // Messages should be present (welcome + user + assistant from history)
-    const msgCount = await page.locator('.chat-widget-message').count();
-    expect(msgCount).toBeGreaterThanOrEqual(1);
+    await expect.poll(async () => await page.locator('.chat-widget-message').count()).toBeGreaterThanOrEqual(1);
   });
 
   test('WIDGET-008: Session expires after TTL', async ({ page }) => {
@@ -275,7 +288,7 @@ test.describe('1. Widget Core Functionality', () => {
       // Click it and verify no user message appears beyond welcome
       const msgCountBefore = await page.locator('.chat-widget-message-user').count();
       await sendBtn.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
       const msgCountAfter = await page.locator('.chat-widget-message-user').count();
       expect(msgCountAfter).toBe(msgCountBefore);
     } else {
@@ -405,7 +418,7 @@ test.describe('1. Widget Core Functionality', () => {
     // No script should execute - check for alert dialog
     let alertFired = false;
     page.on('dialog', () => { alertFired = true; });
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('domcontentloaded');
     expect(alertFired).toBe(false);
 
     // The text should be escaped (shown as text, not as HTML)
@@ -442,13 +455,12 @@ test.describe('1. Widget Core Functionality', () => {
       return links.length;
     });
     // This is a soft check - font may or may not be configured
-    // Just verify the widget loaded without issues
-    expect(true).toBe(true);
+    // fontLinks >= 0 is always true; the real assertion is .chat-widget-container visibility above
+    expect(fontLinks).toBeGreaterThanOrEqual(0);
   });
 
   test('WIDGET-029: Chat history loading for returning visitors', async ({ page }) => {
     await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(3000);
     await expect(page.locator('.chat-widget-input')).toBeVisible({ timeout: 20000 });
 
     // Send a message to create history
@@ -460,17 +472,19 @@ test.describe('1. Widget Core Functionality', () => {
     await expect(page.locator('.chat-widget-typing')).not.toBeVisible({ timeout: 30000 });
 
     // Wait for session to persist to localStorage
-    await page.waitForTimeout(2000);
+    await expect.poll(async () => {
+      return await page.evaluate((id) => {
+        return Object.keys(localStorage).some(k => k.includes('session') && k.includes(id));
+      }, CHATBOT_ID);
+    }).toBe(true);
 
     // Navigate away and back instead of reload (avoids load event hang from SSE)
     await page.goto('about:blank');
     await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(3000);
     await expect(page.locator('.chat-widget-input')).toBeVisible({ timeout: 20000 });
 
     // Wait for history loading to finish
     await expect(page.locator('.chat-widget-history-loading')).not.toBeVisible({ timeout: 20000 });
-    await page.waitForTimeout(1000);
 
     // Previous messages should appear from session persistence
     const msgCount = await page.locator('.chat-widget-message').count();
@@ -493,7 +507,6 @@ test.describe('1. Widget Core Functionality', () => {
     // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(3000);
     // Widget should render in mobile viewport
     const container = page.locator('.chat-widget-container');
     await expect(container).toBeVisible({ timeout: 20000 });
@@ -501,7 +514,6 @@ test.describe('1. Widget Core Functionality', () => {
 
   test('WIDGET-030: Lazy loading more history on scroll to top', async ({ page }) => {
     await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(3000);
 
     // Wait for widget to be ready (messages area or form)
     const container = page.locator('.chat-widget-container');
@@ -512,7 +524,6 @@ test.describe('1. Widget Core Functionality', () => {
     if (await messagesArea.isVisible({ timeout: 10000 }).catch(() => false)) {
       // Scroll to top
       await messagesArea.evaluate((el) => { el.scrollTop = 0; });
-      await page.waitForTimeout(1000);
       await expect(messagesArea).toBeVisible();
     }
   });
