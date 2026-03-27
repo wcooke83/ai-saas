@@ -335,7 +335,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
       const viewMap: Record<string, WidgetView> = {
         tickets: 'ticket-form',
         contact_form: 'contact-form',
-        purchase_credits: 'purchase-credits',
+        purchase_credits: 'ticket-form', // Auto-purchase is server-side; if exhausted, fall back to ticket form
         help_articles: 'help-articles',
       };
       const fallbackView = viewMap[creditExhaustionMode];
@@ -1087,7 +1087,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
             const viewMap: Record<string, WidgetView> = {
               tickets: 'ticket-form',
               contact_form: 'contact-form',
-              purchase_credits: 'purchase-credits',
+              purchase_credits: 'ticket-form', // Auto-purchase failed — graceful degradation to ticket form
               help_articles: 'help-articles',
             };
             const fallbackView = viewMap[creditExhaustionMode];
@@ -3524,7 +3524,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
           {/* Branding */}
           {config.showBranding && (
             <div className="chat-widget-branding">
-              {t.poweredBy} <a href="/" target="_blank" rel="noopener noreferrer">AI SaaS</a>
+              {t.poweredBy} <a href="/" target="_blank" rel="noopener noreferrer">VocUI</a>
             </div>
           )}
           </div>{/* close body-wrapper */}

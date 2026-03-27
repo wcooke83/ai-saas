@@ -1,6 +1,6 @@
 ---
 title: API Integration Guide
-description: Learn how to integrate with the AI SaaS API programmatically for custom implementations and server-side integrations
+description: Learn how to integrate with the VocUI API programmatically for custom implementations and server-side integrations
 category: api-integration
 order: 1
 ---

@@ -76,7 +76,7 @@ export default function PublicWikiIndexPage() {
             </H1>
           </div>
           <p className="text-lg text-secondary-600 dark:text-secondary-400">
-            Guides and tutorials to help you get the most out of our AI tools, chatbots, and integrations.
+            Guides and tutorials to help you get the most out of VocUI, chatbots, and integrations.
           </p>
         </div>
       </section>

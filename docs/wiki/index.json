@@ -144,7 +144,7 @@
     },
     {
       "id": "ai-tools",
-      "title": "AI Tools",
+      "title": "Tools",
       "icon": "Sparkles",
       "description": "Guides for each AI content generation tool",
       "pages": [
@@ -203,13 +203,13 @@
       "id": "api-integration",
       "title": "API Integration",
       "icon": "Code",
-      "description": "Integrate with the AI SaaS API",
+      "description": "Integrate with the VocUI API",
       "pages": [
         {
           "id": "api-integration-guide",
           "file": "api-integration-guide.md",
           "title": "API Integration Guide",
-          "description": "Learn how to integrate with the AI SaaS API programmatically for custom implementations and server-side integrations",
+          "description": "Learn how to integrate with the VocUI API programmatically for custom implementations and server-side integrations",
           "order": 1
         }
       ]

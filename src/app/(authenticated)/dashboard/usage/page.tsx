@@ -805,7 +805,7 @@ export default function UsagePage() {
                     <BarChart3 className="w-6 h-6 text-secondary-400" aria-hidden="true" />
                   </div>
                   <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">No generations yet</p>
-                  <p className="text-sm text-secondary-500 dark:text-secondary-400 mb-4">Start using our AI tools to see your history</p>
+                  <p className="text-sm text-secondary-500 dark:text-secondary-400 mb-4">Start using VocUI to see your history</p>
                   <Button asChild>
                     <a href="/tools/email-writer">
                       <Sparkles className="w-4 h-4 mr-2" aria-hidden="true" />

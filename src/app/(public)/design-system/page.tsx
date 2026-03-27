@@ -7,7 +7,7 @@ import { Code } from 'lucide-react';
 import { SDKTabs } from './sdk-tabs';
 
 export const metadata = {
-  title: 'SDK & Design System | AI SaaS Tools',
+  title: 'SDK & Design System | VocUI',
   description: 'Design system documentation, UI components, and development standards.',
 };
 

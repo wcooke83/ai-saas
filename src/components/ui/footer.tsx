@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { Sparkles } from 'lucide-react';
+import { VocUILogo } from '@/components/ui/vocui-logo';
 import { getFooterGradientEnabledFromCookie } from '@/lib/ui-settings-cookies';
 
 const footerLinks = {
@@ -115,10 +115,11 @@ export function Footer() {
               href="/"
               className="flex items-center gap-2 mb-4 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-md w-fit"
             >
-              <Sparkles className="h-6 w-6 text-primary-500" aria-hidden="true" />
+              <VocUILogo />
               <span className="font-bold text-xl text-secondary-900 dark:text-secondary-100">
-                AI SaaS Tools
+                VocUI
               </span>
+              <span className="text-xs font-normal text-secondary-500 dark:text-secondary-400 ml-1.5">Voice User Interface</span>
             </Link>
             <p className="text-sm text-secondary-600 dark:text-secondary-400 mb-4 max-w-xs">
               Supercharge your productivity with our suite of AI-powered tools for professionals.
@@ -224,7 +225,7 @@ export function Footer() {
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-secondary-500 dark:text-secondary-400">
-              &copy; {currentYear} AI SaaS Tools. All rights reserved.
+              &copy; {currentYear} VocUI. All rights reserved.
             </p>
             <p className="text-sm text-secondary-400 dark:text-secondary-500">
               Built with Next.js, Tailwind CSS, and AI

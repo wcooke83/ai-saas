@@ -215,6 +215,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
 
       if (!response.ok) throw new Error('Failed to save configuration');
 
+      localStorage.setItem(`chatbot-widget-reviewed-${id}`, 'true');
       toast.success('Widget configuration saved');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save');
@@ -755,7 +756,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                 />
                 <Label htmlFor="showBranding" className="flex items-center gap-1">
                   Show &quot;Powered by&quot; branding
-                  <Tooltip content="Displays a small 'Powered by AI SaaS' link at the bottom of the widget.">
+                  <Tooltip content="Displays a small 'Powered by VocUI' link at the bottom of the widget.">
                     <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
                   </Tooltip>
                 </Label>
@@ -1147,7 +1148,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                       </div>
                       {config.showBranding && (
                         <div className="text-center text-xs pt-2 pb-2" style={{ color: '#9ca3af', borderTop: '1px solid #e5e7eb' }}>
-                          {t.poweredBy} AI SaaS
+                          {t.poweredBy} VocUI
                         </div>
                       )}
                     </div>
@@ -1199,7 +1200,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                       </div>
                       {config.showBranding && (
                         <div className="text-center text-xs pt-2 pb-2" style={{ color: '#9ca3af', borderTop: '1px solid #e5e7eb' }}>
-                          {t.poweredBy} AI SaaS
+                          {t.poweredBy} VocUI
                         </div>
                       )}
                     </div>
@@ -1279,7 +1280,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                       </button>
                       {config.showBranding && (
                         <div className="text-center text-xs pt-2 pb-2" style={{ color: '#9ca3af', borderTop: '1px solid #e5e7eb' }}>
-                          {t.poweredBy} AI SaaS
+                          {t.poweredBy} VocUI
                         </div>
                       )}
                     </div>
@@ -1445,7 +1446,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                         </button>
                         {config.showBranding && (
                           <div className="text-center text-xs pt-2 pb-2" style={{ color: '#9ca3af', borderTop: '1px solid #e5e7eb' }}>
-                            {t.poweredBy} AI SaaS
+                            {t.poweredBy} VocUI
                           </div>
                         )}
                       </div>
@@ -1520,7 +1521,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                       </div>
                       {config.showBranding && (
                         <div className="text-center text-xs pt-2 pb-2" style={{ color: '#9ca3af', borderTop: '1px solid #e5e7eb' }}>
-                          {t.poweredBy} AI SaaS
+                          {t.poweredBy} VocUI
                         </div>
                       )}
                     </div>
@@ -1597,7 +1598,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                         </div>
                         {config.showBranding && (
                           <div className="text-center text-xs pt-2 pb-2" style={{ color: '#9ca3af', borderTop: '1px solid #e5e7eb' }}>
-                            {t.poweredBy} AI SaaS
+                            {t.poweredBy} VocUI
                           </div>
                         )}
                       </div>

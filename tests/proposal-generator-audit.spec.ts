@@ -60,7 +60,7 @@ test.describe('AI Proposal Generator Audit', () => {
     await expect(header).toBeVisible();
 
     const logo = page.locator('header a').first();
-    await expect(logo).toContainText('AI SaaS Tools');
+    await expect(logo).toContainText('VocUI');
 
     const allToolsLink = page.locator('header').getByText('All Tools');
     await expect(allToolsLink).toBeVisible();

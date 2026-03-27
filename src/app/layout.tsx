@@ -10,7 +10,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'AI SaaS Tools - AI-Powered Productivity Tools',
+  title: 'VocUI - Voice User Interface',
   description:
     'AI-powered tools to supercharge your workflow. Email writer, report generator, and more.',
 };

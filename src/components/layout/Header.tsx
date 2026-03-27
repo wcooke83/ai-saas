@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ThemeToggleSimple } from '@/components/ui/theme-toggle';
-import { Sparkles, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import { VocUILogo } from '@/components/ui/vocui-logo';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import { useUISettings } from '@/contexts/ui-settings-context';
@@ -300,7 +301,7 @@ export function Header({
                 href="/"
                 className="flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-md"
               >
-                <Sparkles className="h-6 w-6 text-primary-500" aria-hidden="true" />
+                <VocUILogo />
                 <span className="font-bold text-xl text-secondary-900 dark:text-secondary-100">
                   VocUI
                 </span>

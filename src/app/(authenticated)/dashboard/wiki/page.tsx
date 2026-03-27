@@ -79,7 +79,7 @@ export default function WikiIndexPage() {
         <div>
           <H1 variant="dashboard">Documentation Wiki</H1>
           <p className="text-secondary-600 dark:text-secondary-400">
-            Learn how to use AI SaaS Tools features and integrate them into your applications
+            Learn how to use VocUI features and integrate them into your applications
           </p>
         </div>
       </div>

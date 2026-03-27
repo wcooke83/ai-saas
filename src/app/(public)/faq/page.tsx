@@ -5,8 +5,8 @@ import { PageBackground } from '@/components/ui/page-background';
 import { FaqContent } from './faq-content';
 
 export const metadata: Metadata = {
-  title: 'FAQ | AI SaaS Tools',
-  description: 'Frequently asked questions about AI SaaS Tools - credits, billing, API, and more.',
+  title: 'FAQ | VocUI',
+  description: 'Frequently asked questions about VocUI - credits, billing, API, and more.',
 };
 
 export default function FaqPage() {

@@ -109,7 +109,7 @@ const defaultPlanStyle = {
 
 const testimonials = [
   {
-    quote: "AI SaaS Tools has transformed how I write proposals. What used to take me 2-3 hours now takes 15 minutes. The Pro plan paid for itself in the first week.",
+    quote: "VocUI has transformed how I write proposals. What used to take me 2-3 hours now takes 15 minutes. The Pro plan paid for itself in the first week.",
     author: "James Davidson",
     role: "Marketing Consultant",
     company: "Davidson Marketing Co.",
@@ -125,7 +125,7 @@ const testimonials = [
     gradient: "from-emerald-400 to-emerald-600",
   },
   {
-    quote: "The email writer alone saves me 5 hours a week. I've tried other AI tools but this one actually understands business context.",
+    quote: "The email writer alone saves me 5 hours a week. I've tried other tools but VocUI actually understands business context.",
     author: "Michael Torres",
     role: "Founder & CEO",
     company: "Nexus Digital",
@@ -220,7 +220,7 @@ function buildComparisonFeatures(plans: SubscriptionPlan[]) {
 const faqs = [
   {
     question: 'What are credits?',
-    answer: 'Credits are used each time you generate content with our AI tools. One email generation uses 1 credit, and one proposal generation uses 2-5 credits depending on length.',
+    answer: 'Credits are used each time you generate content with VocUI. One email generation uses 1 credit, and one proposal generation uses 2-5 credits depending on length.',
   },
   {
     question: 'Can I change plans anytime?',
@@ -318,7 +318,7 @@ export default function PricingPage() {
         <ToolsHero
           badge="Pricing"
           title="Simple, transparent pricing"
-          description="Choose the plan that's right for you. All plans include access to our core AI tools. Upgrade or downgrade anytime."
+          description="Choose the plan that's right for you. All plans include access to our core tools. Upgrade or downgrade anytime."
           breadcrumbs={[
             { label: 'Pricing' },
           ]}
@@ -737,7 +737,7 @@ export default function PricingPage() {
             <div className="rounded-3xl bg-gradient-to-br from-primary-700 to-primary-800 p-12 text-white shadow-xl">
               <h2 className="text-3xl font-bold mb-4">Ready to boost your productivity?</h2>
               <p className="text-lg text-white/80 mb-8 max-w-xl mx-auto">
-                Start using our AI tools today. Free tier available with no credit card required.
+                Start using VocUI today. Free tier available with no credit card required.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button

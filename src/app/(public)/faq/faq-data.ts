@@ -31,7 +31,7 @@ export const faqCategories: FaqCategory[] = [
       {
         id: 'credits-what',
         question: 'What are credits?',
-        answer: 'Credits are the currency used to generate content with our AI tools. Each generation consumes a certain number of credits depending on the tool and output length. For example, generating an email uses 1 credit, while a full proposal may use 2-5 credits.',
+        answer: 'Credits are the currency used to generate content with VocUI. Each generation consumes a certain number of credits depending on the tool and output length. For example, generating an email uses 1 credit, while a full proposal may use 2-5 credits.',
         popular: true,
       },
       {
@@ -136,7 +136,7 @@ export const faqCategories: FaqCategory[] = [
   },
   {
     id: 'tools',
-    title: 'AI Tools',
+    title: 'Tools',
     icon: RefreshCw,
     questions: [
       {
@@ -180,7 +180,7 @@ export const faqCategories: FaqCategory[] = [
       {
         id: 'account-support',
         question: 'How do I contact support?',
-        answer: 'You can reach our support team through the Help page, by emailing support@aisaastools.com, or using the in-app chat (Pro and Enterprise only).',
+        answer: 'You can reach our support team through the Help page, by emailing support@vocui.com, or using the in-app chat (Pro and Enterprise only).',
       },
       {
         id: 'account-hours',

@@ -17,8 +17,8 @@ import {
 import { HelpForm } from './help-form';
 
 export const metadata = {
-  title: 'Help & Support | AI SaaS Tools',
-  description: 'Get help with AI SaaS Tools. Contact support, browse documentation, or submit a request.',
+  title: 'Help & Support | VocUI',
+  description: 'Get help with VocUI. Contact support, browse documentation, or submit a request.',
 };
 
 const supportOptions = [
@@ -40,7 +40,7 @@ const supportOptions = [
     title: 'Email Support',
     description: 'Get help from our support team',
     icon: Mail,
-    href: 'mailto:support@aisaastools.com',
+    href: 'mailto:support@vocui.com',
     badge: 'Response within 24h',
   },
 ];

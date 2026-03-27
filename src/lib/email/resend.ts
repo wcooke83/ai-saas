@@ -2,17 +2,17 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = 'AI SaaS Tools <noreply@gosaas.com>';
+const FROM_EMAIL = 'VocUI <noreply@vocui.com>';
 
 export async function sendWelcomeEmail(to: string, name?: string) {
   const { data, error } = await resend.emails.send({
     from: FROM_EMAIL,
     to,
-    subject: 'Welcome to AI SaaS Tools!',
+    subject: 'Welcome to VocUI!',
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #6366f1;">Welcome${name ? `, ${name}` : ''}!</h1>
-        <p>Thanks for signing up for AI SaaS Tools. You now have access to:</p>
+        <p>Thanks for signing up for VocUI. You now have access to:</p>
         <ul>
           <li>AI Email Writer</li>
           <li>Proposal Generator</li>
@@ -43,7 +43,7 @@ export async function sendPasswordResetEmail(to: string, resetLink: string) {
   const { data, error } = await resend.emails.send({
     from: FROM_EMAIL,
     to,
-    subject: 'Reset your password - AI SaaS Tools',
+    subject: 'Reset your password - VocUI',
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Password Reset Request</h2>
@@ -350,7 +350,7 @@ export async function sendApiKeyCreatedEmail(to: string, keyName: string, keyPre
   const { data, error } = await resend.emails.send({
     from: FROM_EMAIL,
     to,
-    subject: 'New API Key Created - AI SaaS Tools',
+    subject: 'New API Key Created - VocUI',
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>New API Key Created</h2>

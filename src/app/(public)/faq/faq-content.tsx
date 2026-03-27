@@ -32,7 +32,7 @@ const tocItems = [
   { id: 'billing', title: 'Billing & Subscriptions' },
   { id: 'api', title: 'API & Integration' },
   { id: 'security', title: 'Security & Privacy' },
-  { id: 'tools', title: 'AI Tools' },
+  { id: 'tools', title: 'Tools' },
   { id: 'account', title: 'Account & Support' },
 ];
 
@@ -136,7 +136,7 @@ export function FaqContent() {
               How can we help you?
             </H1>
             <p className="text-lg text-secondary-600 dark:text-secondary-400">
-              Find answers to common questions about AI SaaS Tools
+              Find answers to common questions about VocUI
             </p>
           </div>
 

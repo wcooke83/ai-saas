@@ -53,6 +53,7 @@ export default function HomePage() {
           <H1 className="text-4xl sm:text-5xl md:text-6xl mb-6">
             Build Intelligent Chatbots with{' '}
             <span className="text-primary-500">VocUI</span>
+            <span className="block text-lg sm:text-xl font-normal tracking-normal text-secondary-500 dark:text-secondary-400 mt-2">Giving Voice to the User Interface</span>
           </H1>
           <p className="mx-auto max-w-2xl text-lg text-secondary-600 dark:text-secondary-400 mb-8">
             Create AI chatbots trained on your own knowledge base. Deploy on your website,
