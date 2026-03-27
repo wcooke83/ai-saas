@@ -53,13 +53,6 @@ import { ModelSelector } from '@/components/settings/ModelSelector';
 
 // Tool display configuration
 const toolConfig: Record<string, { name: string; icon: typeof Mail }> = {
-  email_writer: { name: 'Email Writer', icon: Mail },
-  proposal_generator: { name: 'Proposal Generator', icon: FileText },
-  social_post: { name: 'Social Post Generator', icon: MessageSquare },
-  ad_copy: { name: 'Ad Copy Generator', icon: Megaphone },
-  blog_writer: { name: 'Blog Writer', icon: PenTool },
-  meeting_notes: { name: 'Meeting Notes', icon: ClipboardList },
-  email_sequence: { name: 'Email Sequence Builder', icon: Send },
   custom_chatbots: { name: 'Custom Chatbots', icon: Bot },
 };
 

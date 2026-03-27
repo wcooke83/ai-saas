@@ -245,7 +245,7 @@ export default async function DashboardPage() {
             <div className="flex items-center justify-between">
               <CardDescription className="flex items-center gap-1">
                 API Keys
-                <Tooltip content="Number of active API keys. Use these to integrate AI tools into your own applications.">
+                <Tooltip content="Number of active API keys. Use these to integrate VocUI into your own applications.">
                   <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
                 </Tooltip>
               </CardDescription>
@@ -298,10 +298,10 @@ export default async function DashboardPage() {
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">
-                Add AI Tools to Your Website
+                Add VocUI to Your Website
               </h3>
               <p className="text-sm text-secondary-600 dark:text-secondary-400 mt-1">
-                Embed our AI tools on your site with a simple code snippet, or integrate via REST API.
+                Embed VocUI on your site with a simple code snippet, or integrate via REST API.
               </p>
             </div>
             <Button asChild>
@@ -322,60 +322,20 @@ export default async function DashboardPage() {
               <Sparkles className="w-5 h-5 text-primary-500" aria-hidden="true" />
               Quick Actions
             </CardTitle>
-            <CardDescription>Get started with our AI tools</CardDescription>
+            <CardDescription>Get started with VocUI</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-2">
               <Button asChild size="sm">
-                <Link href="/tools/email-writer">
-                  <Mail className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Email Writer
-                </Link>
-              </Button>
-              <Button asChild size="sm" variant="outline">
-                <Link href="/tools/proposal-generator">
-                  <ClipboardList className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Proposal
-                </Link>
-              </Button>
-              <Button asChild size="sm" variant="outline">
-                <Link href="/tools/social-post">
-                  <Share2 className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Social Post
-                </Link>
-              </Button>
-              <Button asChild size="sm" variant="outline">
                 <Link href="/dashboard/chatbots">
                   <Bot className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Chatbots
-                </Link>
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button asChild size="sm" variant="outline">
-                <Link href="/tools/ad-copy">
-                  <Megaphone className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Ad Copy
+                  Manage Chatbots
                 </Link>
               </Button>
               <Button asChild size="sm" variant="outline">
-                <Link href="/tools/blog-writer">
-                  <PenTool className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Blog Post
-                </Link>
-              </Button>
-              <Button asChild size="sm" variant="outline">
-                <Link href="/tools/meeting-notes">
-                  <MessageSquare className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Meeting Notes
-                </Link>
-              </Button>
-            </div>
-            <div className="pt-2 border-t border-secondary-100 dark:border-secondary-800">
-              <Button asChild size="sm" variant="ghost" className="w-full justify-start text-secondary-600 dark:text-secondary-400">
-                <Link href="/tools">
-                  View all tools
-                  <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
+                <Link href="/dashboard/api-keys">
+                  <Key className="w-4 h-4 mr-2" aria-hidden="true" />
+                  API Keys
                 </Link>
               </Button>
             </div>
@@ -504,11 +464,11 @@ export default async function DashboardPage() {
                   <BarChart3 className="w-6 h-6 text-secondary-400" aria-hidden="true" />
                 </div>
                 <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">No generations yet</p>
-                <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-4">Try one of our AI tools to get started</p>
+                <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-4">Create a chatbot to get started</p>
                 <Button asChild size="sm" variant="outline">
-                  <Link href="/tools/email-writer">
+                  <Link href="/dashboard/chatbots">
                     <Sparkles className="w-3.5 h-3.5 mr-1.5" aria-hidden="true" />
-                    Try Email Writer
+                    Create Chatbot
                   </Link>
                 </Button>
               </div>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Menu, X, Home, Key, BarChart3, Settings, LogOut, User, CreditCard, Bot, Plug, Shield, ChevronDown, ChevronLeft, ChevronRight, Cpu, FileText, Mail, PenTool, MessageSquare, Megaphone, Share2, Package, Gift, Coins, ShoppingBag } from 'lucide-react';
+import { Menu, X, Home, Key, BarChart3, Settings, LogOut, User, CreditCard, Bot, Shield, ChevronDown, ChevronLeft, ChevronRight, Cpu, FileText, Package, Gift, Coins, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggleSimple } from '@/components/ui/theme-toggle';
 import { useFocusTrap } from '@/hooks/use-focus-trap';
@@ -20,19 +20,6 @@ interface NavItem {
 const baseNavItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
   { href: '/dashboard/chatbots', label: 'Chatbots', icon: Bot },
-  {
-    href: '/dashboard/integrations',
-    label: 'Integrations',
-    icon: Plug,
-    children: [
-      { href: '/dashboard/integrations/email-writer', label: 'Email Writer', icon: Mail },
-      { href: '/dashboard/integrations/proposal-generator', label: 'Proposal Generator', icon: FileText },
-      { href: '/dashboard/integrations/blog-writer', label: 'Blog Writer', icon: PenTool },
-      { href: '/dashboard/integrations/meeting-notes', label: 'Meeting Summarizer', icon: MessageSquare },
-      { href: '/dashboard/integrations/ad-copy', label: 'Ad Copy', icon: Megaphone },
-      { href: '/dashboard/integrations/social-post', label: 'Social Post', icon: Share2 },
-    ],
-  },
   { href: '/dashboard/api-keys', label: 'API Keys', icon: Key },
   { href: '/dashboard/usage', label: 'Usage', icon: BarChart3 },
   { href: '/dashboard/profile', label: 'Profile', icon: User },
@@ -166,7 +153,7 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: 'rgb(var(--page-bg))' }}>
+    <div className="min-h-screen [overflow-x:clip]" style={{ backgroundColor: 'rgb(var(--page-bg))' }}>
       {/* Skip to main content link */}
       <a
         href="#main-content"
@@ -186,7 +173,7 @@ export default function AdminLayout({
           <Menu className="w-6 h-6" />
         </button>
         <Link href="/" className="ml-4 text-xl font-bold text-primary-600 dark:text-primary-400">
-          AI SaaS
+          VocUI
         </Link>
       </header>
 
@@ -221,7 +208,7 @@ export default function AdminLayout({
               href="/"
               className="text-xl font-bold text-primary-600 dark:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
             >
-              {sidebarCollapsed ? 'AI' : 'AI SaaS'}
+              {sidebarCollapsed ? 'V' : 'VocUI'}
             </Link>
             <button
               type="button"
@@ -437,7 +424,7 @@ export default function AdminLayout({
       <main
         id="main-content"
         className={cn(
-          "pt-16 lg:pt-0 transition-all duration-200 overflow-x-hidden",
+          "pt-16 lg:pt-0 transition-all duration-200 [overflow-x:clip]",
           sidebarCollapsed ? "lg:pl-16" : "lg:pl-64"
         )}
         tabIndex={-1}

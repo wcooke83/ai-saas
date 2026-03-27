@@ -24,13 +24,6 @@ export interface AuthenticatedUser {
 
 // Tool slug to feature key mapping
 const TOOL_FEATURE_MAP: Record<string, string> = {
-  'email-writer': 'email_writer',
-  'proposal-generator': 'proposal_generator',
-  'social-post': 'social_post',
-  'ad-copy': 'ad_copy',
-  'blog-writer': 'blog_writer',
-  'meeting-notes': 'meeting_notes',
-  'email-sequence': 'email_sequence',
   'chatbots': 'custom_chatbots',
   'custom-chatbots': 'custom_chatbots',
 };

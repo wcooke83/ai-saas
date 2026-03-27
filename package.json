@@ -1,5 +1,5 @@
 {
-  "name": "ai-saas-tools",
+  "name": "vocui",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -23,7 +23,6 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-slot": "^1.2.4",
-    "@react-pdf/renderer": "^4.1.5",
     "@slack/web-api": "^7.13.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.10",
@@ -33,7 +32,6 @@
     "cheerio": "^1.1.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "docx": "^9.5.1",
     "framer-motion": "^11.15.0",
     "gray-matter": "^4.0.3",
     "lucide-react": "^0.468.0",

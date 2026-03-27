@@ -1,87 +1,43 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { H1 } from '@/components/ui/heading';
 import { Header } from '@/components/layout';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
-import { ArrowRight, Mail, FileText, Zap, Sparkles, ClipboardList, Share2, Layers, Megaphone, MessageSquare, PenTool } from 'lucide-react';
+import { ArrowRight, Bot, MessageSquare, Globe, Zap, Shield, BarChart3 } from 'lucide-react';
 
-const tools = [
+const features = [
   {
-    name: 'AI Email Writer',
-    description: 'Generate professional emails in seconds. Cold outreach, follow-ups, and more.',
-    icon: Mail,
-    href: '/tools/email-writer',
-    badge: 'Popular',
-    category: 'Communication',
+    name: 'Custom Knowledge Base',
+    description: 'Train your chatbot on your own content — URLs, PDFs, documents. RAG-powered answers grounded in your data.',
+    icon: Globe,
   },
   {
-    name: 'AI Proposal Generator',
-    description: 'Create winning business proposals with AI. Sales, RFP responses, project proposals.',
-    icon: ClipboardList,
-    href: '/tools/proposal-generator',
-    badge: 'Popular',
-    category: 'Sales',
-  },
-  {
-    name: 'AI Social Post Generator',
-    description: 'Create viral social media posts for LinkedIn, Twitter/X, Instagram, and TikTok.',
-    icon: Share2,
-    href: '/tools/social-post',
-    badge: 'New',
-    category: 'Marketing',
-  },
-  {
-    name: 'AI Ad Copy Generator',
-    description: 'Generate high-converting ad copy for Google, Meta, LinkedIn, TikTok, and more.',
-    icon: Megaphone,
-    href: '/tools/ad-copy',
-    badge: 'New',
-    category: 'Advertising',
-  },
-  {
-    name: 'AI Blog Post Writer',
-    description: 'Create SEO-optimized blog posts. Listicles, how-tos, tutorials, and case studies.',
-    icon: PenTool,
-    href: '/tools/blog-writer',
-    badge: 'New',
-    category: 'Content',
-  },
-  {
-    name: 'Meeting Notes Summarizer',
-    description: 'Transform meeting transcripts into structured summaries with action items.',
+    name: 'Embeddable Widget',
+    description: 'Deploy on any website with a simple embed code. Fully customizable appearance and behavior.',
     icon: MessageSquare,
-    href: '/tools/meeting-notes',
-    badge: 'New',
-    category: 'Productivity',
   },
   {
-    name: 'Email Sequence Builder',
-    description: 'Generate complete email sequences for cold outreach, onboarding, and sales nurture.',
-    icon: Layers,
-    href: '/tools/email-sequence',
-    badge: 'Pro',
-    category: 'Marketing',
-  },
-  {
-    name: 'Report Generator',
-    description: 'Create detailed reports from your data with AI-powered insights.',
-    icon: FileText,
-    href: '#',
-    badge: 'Coming Soon',
-    category: 'Analytics',
-    disabled: true,
-  },
-  {
-    name: 'Workflow Automator',
-    description: 'Automate repetitive tasks with intelligent AI workflows.',
+    name: 'Multi-Channel',
+    description: 'Reach customers on your website, Slack, and Telegram. One chatbot, every channel.',
     icon: Zap,
-    href: '#',
-    badge: 'Coming Soon',
-    category: 'Automation',
-    disabled: true,
+  },
+  {
+    name: 'Agent Console',
+    description: 'Live agent handoff when conversations need a human touch. Real-time escalation workflows.',
+    icon: Shield,
+  },
+  {
+    name: 'Analytics & Insights',
+    description: 'Sentiment analysis, conversation memory, loyalty scoring, and performance dashboards.',
+    icon: BarChart3,
+  },
+  {
+    name: 'Calendar Booking',
+    description: 'Let your chatbot book appointments directly. Integrated scheduling with availability management.',
+    icon: Bot,
   },
 ];
 
@@ -93,70 +49,46 @@ export default function HomePage() {
       <main id="main-content">
         {/* Hero */}
         <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center container mx-auto px-4 py-12 text-center">
-          <Badge className="mb-4">AI-Powered Tools</Badge>
+          <Badge className="mb-4">AI-Powered Chatbots</Badge>
           <H1 className="text-4xl sm:text-5xl md:text-6xl mb-6">
-            Work Smarter with{' '}
-            <span className="text-primary-500">AI Tools</span>
+            Build Intelligent Chatbots with{' '}
+            <span className="text-primary-500">VocUI</span>
           </H1>
           <p className="mx-auto max-w-2xl text-lg text-secondary-600 dark:text-secondary-400 mb-8">
-            Supercharge your productivity with our suite of AI-powered tools.
-            Generate emails, create reports, and automate workflows in seconds.
+            Create AI chatbots trained on your own knowledge base. Deploy on your website,
+            Slack, or Telegram in minutes. No coding required.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="xl" asChild>
-              <Link href="/tools/email-writer">
-                Try Email Writer Free
+              <Link href="/signup">
+                Get Started Free
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
             <Button size="xl" variant="outline" asChild>
-              <Link href="#tools">View All Tools</Link>
+              <Link href="/pricing">View Pricing</Link>
             </Button>
           </div>
         </section>
 
-        {/* Tools Grid */}
-        <section id="tools" className="container mx-auto px-4 py-16">
-          <h2 className="text-2xl font-bold text-center mb-8 text-secondary-900 dark:text-secondary-100">Our Tools</h2>
+        {/* Features Grid */}
+        <section id="features" className="container mx-auto px-4 py-16">
+          <h2 className="text-2xl font-bold text-center mb-8 text-secondary-900 dark:text-secondary-100">
+            Everything you need to deploy AI chatbots
+          </h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
-            {tools.map((tool) => (
+            {features.map((feature) => (
               <Card
-                key={tool.name}
-                className={`transition-all duration-200 flex flex-col ${
-                  tool.disabled
-                    ? 'opacity-60'
-                    : 'hover:shadow-lg hover:scale-[1.02] hover:border-primary-200 dark:hover:border-primary-700'
-                }`}
+                key={feature.name}
+                className="transition-all duration-200 hover:shadow-lg hover:scale-[1.02] hover:border-primary-200 dark:hover:border-primary-700"
               >
-                <CardHeader className="flex-grow">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/50">
-                      <tool.icon className="h-5 w-5 text-primary-500" aria-hidden="true" />
-                    </div>
-                    <Badge variant={tool.disabled ? 'outline' : 'default'}>
-                      {tool.badge}
-                    </Badge>
+                <CardHeader>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/50 mb-2">
+                    <feature.icon className="h-5 w-5 text-primary-500" aria-hidden="true" />
                   </div>
-                  <CardTitle>{tool.name}</CardTitle>
-                  <CardDescription>{tool.description}</CardDescription>
+                  <CardTitle>{feature.name}</CardTitle>
+                  <CardDescription>{feature.description}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <Button
-                    variant={tool.disabled ? 'outline' : 'default'}
-                    className="w-full"
-                    disabled={tool.disabled}
-                    asChild={!tool.disabled}
-                  >
-                    {tool.disabled ? (
-                      'Coming Soon'
-                    ) : (
-                      <Link href={tool.href}>
-                        Try Now
-                        <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-                      </Link>
-                    )}
-                  </Button>
-                </CardContent>
               </Card>
             ))}
           </div>
@@ -167,10 +99,10 @@ export default function HomePage() {
           <div className="max-w-5xl mx-auto">
             <div className="rounded-2xl bg-primary-500 p-8 md:p-12 text-center text-white">
               <h2 className="text-2xl md:text-3xl font-bold mb-4">
-                Ready to boost your productivity?
+                Ready to deploy your AI chatbot?
               </h2>
               <p className="text-primary-100 mb-6 max-w-xl mx-auto">
-                Start using our AI tools for free. No credit card required.
+                Start building for free. No credit card required.
               </p>
               <Button
                 size="xl"
@@ -178,7 +110,7 @@ export default function HomePage() {
                 className="bg-white text-primary-600 hover:bg-primary-50"
                 asChild
               >
-                <Link href="/tools/email-writer">
+                <Link href="/signup">
                   Get Started Free
                   <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                 </Link>

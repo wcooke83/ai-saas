@@ -183,24 +183,13 @@ async function handleChatbotCreditPurchase(
       .eq('stripe_session_id', session.id);
   }
 
-  // Increase monthly_message_limit to expand the quota
-  const { data: chatbot } = await supabase
-    .from('chatbots')
-    .select('monthly_message_limit')
-    .eq('id', chatbotId)
-    .single();
+  // Add to purchased credits pool (never expires, carries over)
+  const { data: newBalance } = await supabase.rpc('add_chatbot_purchased_credits', {
+    p_chatbot_id: chatbotId,
+    p_amount: creditAmount,
+  });
 
-  if (chatbot) {
-    const currentLimit = (chatbot as any).monthly_message_limit || 0;
-    const newLimit = currentLimit + creditAmount;
-
-    await supabase
-      .from('chatbots')
-      .update({ monthly_message_limit: newLimit })
-      .eq('id', chatbotId);
-
-    console.log(`[CreditPurchase] Chatbot ${chatbotId}: increased monthly_message_limit from ${currentLimit} to ${newLimit} (+${creditAmount} purchased)`);
-  }
+  console.log(`[CreditPurchase] Chatbot ${chatbotId}: added ${creditAmount} purchased credits (new balance: ${newBalance})`);
 }
 
 /**

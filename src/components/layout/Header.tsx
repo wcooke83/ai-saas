@@ -18,7 +18,6 @@ export interface NavItem {
 }
 
 const defaultNavItems: NavItem[] = [
-  { label: 'Tools', href: '/tools' },
   { label: 'Docs', href: '/wiki' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'SDK', href: '/sdk' },
@@ -27,7 +26,6 @@ const defaultNavItems: NavItem[] = [
 
 const menuLinks = {
   product: [
-    { label: 'Tools', href: '/tools' },
     { label: 'Pricing', href: '/pricing' },
     { label: 'SDK', href: '/sdk' },
     { label: 'Dashboard', href: '/dashboard' },
@@ -304,7 +302,7 @@ export function Header({
               >
                 <Sparkles className="h-6 w-6 text-primary-500" aria-hidden="true" />
                 <span className="font-bold text-xl text-secondary-900 dark:text-secondary-100">
-                  AI SaaS Tools
+                  VocUI
                 </span>
               </Link>
             )}
