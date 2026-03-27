@@ -3,43 +3,81 @@ import { test, expect } from '@playwright/test';
 const CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
 
 test.describe('Chatbot Publish/Unpublish', () => {
-  test('publish chatbot returns embed codes', async ({ page }) => {
-    const res = await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
-    expect(res.ok()).toBeTruthy();
+  test('publish chatbot via overview page button', async ({ page }) => {
+    // First ensure unpublished state via API (setup)
+    await page.request.delete(`/api/chatbots/${CHATBOT_ID}/publish`);
 
-    if (res.ok()) {
-      const body = await res.json();
-      expect(body.data?.published).toBe(true);
-      expect(body.data?.embed?.iframe).toContain(CHATBOT_ID);
-      expect(body.data?.embed?.sdk).toContain(CHATBOT_ID);
-      expect(body.data?.embed?.widgetUrl).toBeTruthy();
-      expect(body.data?.embed?.apiEndpoint).toBeTruthy();
-    }
+    await page.goto(`/dashboard/chatbots/${CHATBOT_ID}`);
+    await page.waitForLoadState('domcontentloaded');
+
+    // Click the Publish button on the overview page
+    const publishButton = page.getByRole('button', { name: 'Publish' });
+    await expect(publishButton).toBeVisible({ timeout: 10000 });
+
+    const publishPromise = page.waitForResponse(
+      (res) => res.url().includes(`/api/chatbots/${CHATBOT_ID}/publish`) && res.request().method() === 'POST'
+    );
+    await publishButton.click();
+    const publishResponse = await publishPromise;
+    expect(publishResponse.ok()).toBeTruthy();
+
+    // Verify Published badge appears
+    await expect(page.getByText('Published')).toBeVisible({ timeout: 5000 });
   });
 
   test('published chatbot widget config is accessible', async ({ page }) => {
-    // Widget config endpoint is public
-    const res = await page.request.get(`/api/widget/${CHATBOT_ID}/config`);
-    expect(res.ok()).toBeTruthy();
-    if (res.ok()) {
-      const body = await res.json();
-      expect(body.data || body.config).toBeTruthy();
-    }
+    // Navigate to deploy page and verify widget preview is accessible
+    await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/deploy`);
+    await page.waitForLoadState('domcontentloaded');
+
+    // The deploy page should NOT show the "Chatbot not published" banner
+    await expect(page.getByText('Chatbot not published')).not.toBeVisible();
+
+    // Widget embed tab should be visible with embed codes
+    await expect(page.getByText('Widget Embed')).toBeVisible();
+    await expect(page.getByText('Script Tag')).toBeVisible();
   });
 
-  test('unpublish chatbot', async ({ page }) => {
-    const res = await page.request.delete(`/api/chatbots/${CHATBOT_ID}/publish`);
-    expect(res.ok()).toBeTruthy();
+  test('unpublish chatbot via overview page button', async ({ page }) => {
+    await page.goto(`/dashboard/chatbots/${CHATBOT_ID}`);
+    await page.waitForLoadState('domcontentloaded');
 
-    if (res.ok()) {
-      const body = await res.json();
-      expect(body.data?.published).toBe(false);
-    }
+    // Click the Unpublish button
+    const unpublishButton = page.getByRole('button', { name: 'Unpublish' });
+    await expect(unpublishButton).toBeVisible({ timeout: 10000 });
+
+    const unpublishPromise = page.waitForResponse(
+      (res) => res.url().includes(`/api/chatbots/${CHATBOT_ID}/publish`) && res.request().method() === 'DELETE'
+    );
+    await unpublishButton.click();
+    const unpublishResponse = await unpublishPromise;
+    expect(unpublishResponse.ok()).toBeTruthy();
+
+    // Verify Published badge is no longer visible
+    await expect(page.getByText('Published').first()).not.toBeVisible({ timeout: 5000 });
+  });
+
+  test('deploy page shows unpublished warning', async ({ page }) => {
+    await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/deploy`);
+    await page.waitForLoadState('domcontentloaded');
+
+    // Should show the unpublished warning banner
+    await expect(page.getByText('Chatbot not published')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Publish now')).toBeVisible();
   });
 
   test('re-publish for other tests', async ({ page }) => {
-    // Re-publish so chat tests work
-    const res = await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
-    expect(res.ok()).toBeTruthy();
+    await page.goto(`/dashboard/chatbots/${CHATBOT_ID}`);
+    await page.waitForLoadState('domcontentloaded');
+
+    const publishButton = page.getByRole('button', { name: 'Publish' });
+    await expect(publishButton).toBeVisible({ timeout: 10000 });
+
+    const publishPromise = page.waitForResponse(
+      (res) => res.url().includes(`/api/chatbots/${CHATBOT_ID}/publish`) && res.request().method() === 'POST'
+    );
+    await publishButton.click();
+    const publishResponse = await publishPromise;
+    expect(publishResponse.ok()).toBeTruthy();
   });
 });

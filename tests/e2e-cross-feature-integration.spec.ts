@@ -729,19 +729,7 @@ test.describe('26. Credit Exhaustion Auto-Purchase Flow', () => {
     const chatInput = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
     await expect(chatInput).toBeVisible({ timeout: 15000 });
 
-    // Mock chat API to return a response
-    await page.route(`**/api/chat/${CHATBOT_ID}`, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          success: true,
-          data: { message: 'Welcome back! How can I help you today?' },
-        }),
-      });
-    });
-
-    // Send a message
+    // Send a message — real chat API should respond since credits were restored
     await chatInput.fill('Hello after top-up');
     await chatInput.press('Enter');
     await page.waitForLoadState('networkidle');

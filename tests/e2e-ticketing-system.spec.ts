@@ -22,11 +22,11 @@ const CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
 // Also test widget submission against the real chatbot (kept for reference)
 const WIDGET_CHATBOT_ID = '10df2440-6aac-441a-855d-715c0ea8e506';
 
-// Test email accounts
-const VISITOR_EMAIL = 'test@vocui.com';
-const VISITOR_PASSWORD = 'wJO7yxmEQdO00F9T';
+// Test email accounts (from environment)
+const VISITOR_EMAIL = process.env.E2E_VISITOR_EMAIL!;
+const VISITOR_PASSWORD = process.env.E2E_VISITOR_PASSWORD!;
 
-const IMAP_HOST = 'mail.cholds.com';
+const IMAP_HOST = process.env.SMTP_HOST || 'mail.cholds.com';
 const IMAP_PORT = 993;
 
 // Store created ticket data across tests
@@ -167,7 +167,7 @@ test.describe('Ticketing System - Full Lifecycle', () => {
   test('TKT-001: Create ticket via widget API with valid data', async ({ request }) => {
     // Clear rate limits from previous test runs
     await request.post('/api/e2e/reset-rate-limits', {
-      data: { secret: 'e2e-playwright-secret-2026', prefix: 'ticket:' },
+      data: { secret: process.env.E2E_TEST_SECRET!, prefix: 'ticket:' },
     });
 
     const res = await request.post(`/api/widget/${CHATBOT_ID}/tickets`, {
@@ -670,7 +670,7 @@ test.describe('Ticketing System - Full Lifecycle', () => {
   test('TKT-035: Create second ticket with different priority', async ({ request }) => {
     // Clear rate limits before creating second ticket
     await request.post('/api/e2e/reset-rate-limits', {
-      data: { secret: 'e2e-playwright-secret-2026', prefix: 'ticket:' },
+      data: { secret: process.env.E2E_TEST_SECRET!, prefix: 'ticket:' },
     });
 
     const res = await request.post(`/api/widget/${CHATBOT_ID}/tickets`, {

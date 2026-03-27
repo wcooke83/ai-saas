@@ -29,28 +29,36 @@ async function setFallbackConfig(page: Page, mode: string, config: Record<string
   });
 }
 
-async function mockCreditExhausted(page: Page) {
-  await page.route(`**/api/chat/${BOT_ID}`, (route) =>
-    route.fulfill({
-      status: 403,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        success: false,
-        error: { message: 'Chatbot has reached its monthly message limit', code: 'USAGE_LIMIT_REACHED' },
-      }),
-    })
-  );
+/**
+ * Exhaust credits via the real API so widget config returns creditExhausted=true
+ * and the chat API returns 403 USAGE_LIMIT_REACHED.
+ * Only works for non-purchase modes (tickets, contact_form, help_articles).
+ */
+async function exhaustCredits(page: Page) {
+  await page.request.patch(`/api/chatbots/${BOT_ID}`, {
+    data: { monthly_message_limit: 1, messages_this_month: 1 },
+  });
 }
 
-/** Mock the widget config to report credits already exhausted */
-async function mockWidgetConfigExhausted(page: Page, mode: string, extraConfig: Record<string, unknown> = {}) {
+/** Reset credits to a healthy state */
+async function resetCredits(page: Page) {
+  await page.request.patch(`/api/chatbots/${BOT_ID}`, {
+    data: { monthly_message_limit: 1000, messages_this_month: 0 },
+  });
+}
+
+/**
+ * Mock widget config for purchase_credits mode where creditExhausted=true.
+ * This MUST be mocked because the real API deliberately returns creditExhausted=false
+ * for purchase_credits mode (server handles exhaustion via auto-topup).
+ */
+async function mockWidgetConfigExhaustedPurchaseMode(page: Page, extraConfig: Record<string, unknown> = {}) {
   await page.route(`**/api/widget/${BOT_ID}/config*`, async (route) => {
-    // Fetch real config first, then override credit fields
     const response = await route.fetch();
     const data = await response.json();
     if (data.data) {
       data.data.creditExhausted = true;
-      data.data.creditExhaustionMode = mode;
+      data.data.creditExhaustionMode = 'purchase_credits';
       if (Object.keys(extraConfig).length > 0) {
         data.data.creditExhaustionConfig = { ...data.data.creditExhaustionConfig, ...extraConfig };
       }
@@ -70,32 +78,7 @@ async function mockFullWidgetConfig(page: Page, config: Record<string, unknown>)
   );
 }
 
-/** Mock widget config with overrides merged on top of a realistic base */
-async function mockWidgetConfig(page: Page, overrides: Record<string, unknown>) {
-  await page.route(`**/api/widget/${BOT_ID}/config*`, async (route) => {
-    let base: Record<string, unknown> = {};
-    try {
-      const response = await route.fetch();
-      const json = await response.json();
-      base = json.data || {};
-    } catch {
-      // If real API fails, use an empty base
-    }
-    const merged = { ...base, ...overrides };
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ success: true, data: merged }),
-    });
-  });
-}
 
-async function triggerFallbackViaMessage(page: Page) {
-  await expect(page.locator('.chat-widget-input')).toBeVisible({ timeout: 15000 });
-  await page.locator('.chat-widget-input').fill('Test message');
-  await page.locator('.chat-widget-send').click();
-  await expect(page.locator('.chat-widget-ticket-form, .chat-widget-contact-form, .chat-widget-purchase-view, .chat-widget-articles-view, .chat-widget-message-error')).toBeVisible({ timeout: 10000 });
-}
 
 /** Default base config for full mocking when real API is not needed */
 function baseWidgetConfig(overrides: Record<string, unknown> = {}): Record<string, unknown> {
@@ -156,7 +139,7 @@ test.describe('1. Immediate Fallback on Mount', () => {
 
   test('MOUNT-001: Widget shows ticket form immediately when creditExhausted=true', async ({ page }) => {
     await setFallbackConfig(page, 'tickets');
-    await mockWidgetConfigExhausted(page, 'tickets');
+    await exhaustCredits(page);
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
@@ -169,7 +152,7 @@ test.describe('1. Immediate Fallback on Mount', () => {
 
   test('MOUNT-002: Widget shows contact form immediately when creditExhausted=true', async ({ page }) => {
     await setFallbackConfig(page, 'contact_form');
-    await mockWidgetConfigExhausted(page, 'contact_form');
+    await exhaustCredits(page);
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
@@ -179,7 +162,8 @@ test.describe('1. Immediate Fallback on Mount', () => {
 
   test('MOUNT-003: Widget shows purchase view immediately when creditExhausted=true', async ({ page }) => {
     await setFallbackConfig(page, 'purchase_credits');
-    await mockWidgetConfigExhausted(page, 'purchase_credits');
+    // Must mock: real API returns creditExhausted=false for purchase_credits mode (server-side handling)
+    await mockWidgetConfigExhaustedPurchaseMode(page);
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
@@ -189,14 +173,7 @@ test.describe('1. Immediate Fallback on Mount', () => {
 
   test('MOUNT-004: Widget shows articles view immediately when creditExhausted=true', async ({ page }) => {
     await setFallbackConfig(page, 'help_articles');
-    await mockWidgetConfigExhausted(page, 'help_articles');
-
-    await page.route(`**/api/widget/${BOT_ID}/articles*`, (route) =>
-      route.fulfill({
-        status: 200, contentType: 'application/json',
-        body: JSON.stringify({ success: true, data: { articles: [] } }),
-      })
-    );
+    await exhaustCredits(page);
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
@@ -205,7 +182,7 @@ test.describe('1. Immediate Fallback on Mount', () => {
   });
 
   test('MOUNT-005: Widget shows normal chat when creditExhausted=false', async ({ page }) => {
-    // Don't mock config — use real config where credits are NOT exhausted
+    await resetCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
 
@@ -226,11 +203,11 @@ test.describe('2. Per-Field Validation', () => {
 
   test('VAL-001: Ticket form shows per-field errors when fields are empty', async ({ page }) => {
     await setFallbackConfig(page, 'tickets');
-    await mockCreditExhausted(page);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallbackViaMessage(page);
 
+    // Widget shows ticket form immediately since credits are exhausted
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
 
     // Submit empty form
@@ -247,10 +224,9 @@ test.describe('2. Per-Field Validation', () => {
 
   test('VAL-002: Ticket form shows email format error for invalid email', async ({ page }) => {
     await setFallbackConfig(page, 'tickets');
-    await mockCreditExhausted(page);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallbackViaMessage(page);
 
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
 
@@ -270,10 +246,9 @@ test.describe('2. Per-Field Validation', () => {
 
   test('VAL-003: Ticket form clears field error when user starts typing', async ({ page }) => {
     await setFallbackConfig(page, 'tickets');
-    await mockCreditExhausted(page);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallbackViaMessage(page);
 
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
 
@@ -288,10 +263,9 @@ test.describe('2. Per-Field Validation', () => {
 
   test('VAL-004: Contact form shows per-field errors', async ({ page }) => {
     await setFallbackConfig(page, 'contact_form');
-    await mockCreditExhausted(page);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallbackViaMessage(page);
 
     await expect(page.locator('.chat-widget-contact-form')).toBeVisible({ timeout: 10000 });
 
@@ -305,10 +279,9 @@ test.describe('2. Per-Field Validation', () => {
 
   test('VAL-005: Contact form validates email format', async ({ page }) => {
     await setFallbackConfig(page, 'contact_form');
-    await mockCreditExhausted(page);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallbackViaMessage(page);
 
     await expect(page.locator('.chat-widget-contact-form')).toBeVisible({ timeout: 10000 });
 
@@ -329,10 +302,9 @@ test.describe('3. Accessibility', () => {
 
   test('A11Y-001: Ticket form inputs have id and labels have htmlFor', async ({ page }) => {
     await setFallbackConfig(page, 'tickets');
-    await mockCreditExhausted(page);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallbackViaMessage(page);
 
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
 
@@ -349,10 +321,9 @@ test.describe('3. Accessibility', () => {
 
   test('A11Y-002: Contact form inputs have id and labels have htmlFor', async ({ page }) => {
     await setFallbackConfig(page, 'contact_form');
-    await mockCreditExhausted(page);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallbackViaMessage(page);
 
     await expect(page.locator('.chat-widget-contact-form')).toBeVisible({ timeout: 10000 });
 
@@ -366,10 +337,9 @@ test.describe('3. Accessibility', () => {
 
   test('A11Y-003: Error messages have role=alert', async ({ page }) => {
     await setFallbackConfig(page, 'tickets');
-    await mockCreditExhausted(page);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallbackViaMessage(page);
 
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
 
@@ -383,8 +353,9 @@ test.describe('3. Accessibility', () => {
 
   test('A11Y-004: Article cards are keyboard focusable', async ({ page }) => {
     await setFallbackConfig(page, 'help_articles');
-    await mockCreditExhausted(page);
+    await exhaustCredits(page);
 
+    // Mock articles endpoint for specific test article content
     await page.route(`**/api/widget/${BOT_ID}/articles*`, (route) =>
       route.fulfill({
         status: 200, contentType: 'application/json',
@@ -399,7 +370,6 @@ test.describe('3. Accessibility', () => {
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallbackViaMessage(page);
 
     await expect(page.locator('.chat-widget-articles-view')).toBeVisible({ timeout: 10000 });
 
@@ -417,8 +387,9 @@ test.describe('3. Accessibility', () => {
 
   test('A11Y-005: Article list has list role', async ({ page }) => {
     await setFallbackConfig(page, 'help_articles');
-    await mockCreditExhausted(page);
+    await exhaustCredits(page);
 
+    // Mock articles endpoint for specific test article content
     await page.route(`**/api/widget/${BOT_ID}/articles*`, (route) =>
       route.fulfill({
         status: 200, contentType: 'application/json',
@@ -433,7 +404,6 @@ test.describe('3. Accessibility', () => {
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallbackViaMessage(page);
 
     await expect(page.locator('.chat-widget-articles-view')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('[role="list"][aria-label="Help articles"]')).toBeVisible();
@@ -449,9 +419,8 @@ test.describe('4. Purchase Error Display', () => {
 
   test('ERR-001: Purchase API failure shows error message to visitor', async ({ page }) => {
     await setFallbackConfig(page, 'purchase_credits');
-    await mockCreditExhausted(page);
 
-    // Mock purchase endpoint to fail
+    // Mock purchase endpoint to fail (testing error display)
     await page.route(`**/api/widget/${BOT_ID}/purchase`, (route) =>
       route.fulfill({
         status: 500, contentType: 'application/json',
@@ -459,8 +428,8 @@ test.describe('4. Purchase Error Display', () => {
       })
     );
 
-    // Mock config to include packages
-    await mockWidgetConfigExhausted(page, 'purchase_credits', {
+    // Must mock: real API returns creditExhausted=false and creditPackages=[] for purchase mode
+    await mockWidgetConfigExhaustedPurchaseMode(page, {
       purchase_credits: {
         upsellMessage: 'Buy more credits',
         packages: [
@@ -484,9 +453,8 @@ test.describe('4. Purchase Error Display', () => {
 
   test('ERR-002: Purchase buy button shows Loading... while in progress', async ({ page }) => {
     await setFallbackConfig(page, 'purchase_credits');
-    await mockCreditExhausted(page);
 
-    // Mock purchase with a delay
+    // Mock purchase with a delay (testing loading state)
     await page.route(`**/api/widget/${BOT_ID}/purchase`, async (route) => {
       await new Promise(r => setTimeout(r, 2000));
       await route.fulfill({
@@ -495,7 +463,8 @@ test.describe('4. Purchase Error Display', () => {
       });
     });
 
-    await mockWidgetConfigExhausted(page, 'purchase_credits', {
+    // Must mock: real API returns creditExhausted=false and creditPackages=[] for purchase mode
+    await mockWidgetConfigExhaustedPurchaseMode(page, {
       purchase_credits: {
         upsellMessage: 'Buy more',
         packages: [
@@ -517,7 +486,8 @@ test.describe('4. Purchase Error Display', () => {
   test('ERR-003: Purchase buy button has aria-label', async ({ page }) => {
     await setFallbackConfig(page, 'purchase_credits');
 
-    await mockWidgetConfigExhausted(page, 'purchase_credits', {
+    // Must mock: real API returns creditExhausted=false and creditPackages=[] for purchase mode
+    await mockWidgetConfigExhaustedPurchaseMode(page, {
       purchase_credits: {
         upsellMessage: 'Buy more',
         packages: [
@@ -546,23 +516,14 @@ test.describe('5. Back to Chat Navigation', () => {
 
   test('BACK-001: Ticket success state shows Back to chat button', async ({ page }) => {
     await setFallbackConfig(page, 'tickets');
-    await mockCreditExhausted(page);
-
-    // Mock successful ticket submission
-    await page.route(`**/api/widget/${BOT_ID}/tickets`, (route) =>
-      route.fulfill({
-        status: 201, contentType: 'application/json',
-        body: JSON.stringify({ success: true, data: { ticketId: 'mock', reference: 'BACK-001' } }),
-      })
-    );
+    await exhaustCredits(page);
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallbackViaMessage(page);
 
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
 
-    // Fill and submit
+    // Fill and submit via real ticket API
     await page.locator('#ticket-name').fill('Back Test');
     await page.locator('#ticket-email').fill('back@test.com');
     await page.locator('#ticket-message').fill('Testing back button');
@@ -575,18 +536,10 @@ test.describe('5. Back to Chat Navigation', () => {
 
   test('BACK-002: Clicking Back to chat returns to chat view', async ({ page }) => {
     await setFallbackConfig(page, 'tickets');
-    await mockCreditExhausted(page);
-
-    await page.route(`**/api/widget/${BOT_ID}/tickets`, (route) =>
-      route.fulfill({
-        status: 201, contentType: 'application/json',
-        body: JSON.stringify({ success: true, data: { ticketId: 'mock', reference: 'BACK-002' } }),
-      })
-    );
+    await exhaustCredits(page);
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallbackViaMessage(page);
 
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
 
@@ -605,18 +558,10 @@ test.describe('5. Back to Chat Navigation', () => {
 
   test('BACK-003: Contact success state shows Back to chat button', async ({ page }) => {
     await setFallbackConfig(page, 'contact_form');
-    await mockCreditExhausted(page);
-
-    await page.route(`**/api/widget/${BOT_ID}/contact`, (route) =>
-      route.fulfill({
-        status: 201, contentType: 'application/json',
-        body: JSON.stringify({ success: true, data: { id: 'mock-contact' } }),
-      })
-    );
+    await exhaustCredits(page);
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallbackViaMessage(page);
 
     await expect(page.locator('.chat-widget-contact-form')).toBeVisible({ timeout: 10000 });
 
@@ -731,11 +676,12 @@ test.describe('6. Credit Packages from DB', () => {
   });
 
   // Cleanup
-  test('PKG-DB-CLEANUP: Remove test packages', async ({ page }) => {
+  test('PKG-DB-CLEANUP: Remove test packages and reset credits', async ({ page }) => {
     await page.request.put(`/api/chatbots/${BOT_ID}/credit-packages`, {
       data: { packages: [] },
     });
     await setFallbackConfig(page, 'tickets');
+    await resetCredits(page);
   });
 });
 
@@ -1170,7 +1116,8 @@ test.describe('9. Settings Credit Exhaustion UI', () => {
   });
 
   // Cleanup
-  test('SETT-CLEANUP: Reset mode', async ({ page }) => {
+  test('SETT-CLEANUP: Reset mode and credits', async ({ page }) => {
     await setFallbackConfig(page, 'tickets');
+    await resetCredits(page);
   });
 });

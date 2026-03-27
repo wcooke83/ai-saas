@@ -2,10 +2,12 @@ import { test, expect } from '@playwright/test';
 
 const CHATBOT_ID = '10df2440-6aac-441a-855d-715c0ea8e506';
 
+// Telegram integration tests are inherently webhook/API tests.
+// External services (Telegram) POST to our webhook endpoint — no UI equivalent.
+// The settings UI for Telegram config is tested via e2e-settings-save and e2e-fallback-settings.
+
 test.describe('31. Telegram & Slack Integration — Telegram', () => {
-  test('TELEGRAM-001: Webhook secret verification -- valid secret', async ({ request }) => {
-    // POST to telegram webhook with a valid update payload
-    // Without a valid secret configured, the webhook should still accept the request
+  test('TELEGRAM-001: Webhook accepts valid update payload', async ({ request }) => {
     const response = await request.post('/api/telegram/webhook', {
       headers: { 'Content-Type': 'application/json' },
       data: {
@@ -18,12 +20,10 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
         },
       },
     });
-
-    // Should return 200 or 401 (depending on webhook_secret config)
     expect([200, 401]).toContain(response.status());
   });
 
-  test('TELEGRAM-002: Webhook secret verification -- invalid secret', async ({ request }) => {
+  test('TELEGRAM-002: Invalid secret rejected', async ({ request }) => {
     const response = await request.post('/api/telegram/webhook', {
       headers: {
         'Content-Type': 'application/json',
@@ -39,14 +39,10 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
         },
       },
     });
-
-    // If a webhook secret is configured, invalid should return 401
-    // If no secret configured, it passes through (200)
     expect([200, 401]).toContain(response.status());
   });
 
-  test('TELEGRAM-003: Webhook secret verification -- no secret configured', async ({ request }) => {
-    // POST without any secret header
+  test('TELEGRAM-003: Webhook without secret header', async ({ request }) => {
     const response = await request.post('/api/telegram/webhook', {
       headers: { 'Content-Type': 'application/json' },
       data: {
@@ -59,13 +55,10 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
         },
       },
     });
-
-    // Without secret configured, should pass verification
     expect([200, 401]).toContain(response.status());
   });
 
-  test('TELEGRAM-004: Chatbot identification via reply-to message mapping', async ({ request }) => {
-    // Send a message that references a reply_to_message
+  test('TELEGRAM-004: Reply-to message mapping', async ({ request }) => {
     const response = await request.post('/api/telegram/webhook', {
       headers: { 'Content-Type': 'application/json' },
       data: {
@@ -82,7 +75,6 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
         },
       },
     });
-
     expect([200, 401]).toContain(response.status());
     if (response.status() === 200) {
       const body = await response.json();
@@ -90,8 +82,7 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
     }
   });
 
-  test('TELEGRAM-005: Chatbot identification fallback chain', async ({ request }) => {
-    // Send a message with a conversation ID in the text
+  test('TELEGRAM-005: Fallback chain identification', async ({ request }) => {
     const response = await request.post('/api/telegram/webhook', {
       headers: { 'Content-Type': 'application/json' },
       data: {
@@ -104,12 +95,10 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
         },
       },
     });
-
     expect([200, 401]).toContain(response.status());
   });
 
   test('TELEGRAM-006: /start and /help commands', async ({ request }) => {
-    // Send /start command
     const startResponse = await request.post('/api/telegram/webhook', {
       headers: { 'Content-Type': 'application/json' },
       data: {
@@ -122,10 +111,8 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
         },
       },
     });
-
     expect([200, 401]).toContain(startResponse.status());
 
-    // Send /help command
     const helpResponse = await request.post('/api/telegram/webhook', {
       headers: { 'Content-Type': 'application/json' },
       data: {
@@ -138,7 +125,6 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
         },
       },
     });
-
     expect([200, 401]).toContain(helpResponse.status());
   });
 
@@ -155,11 +141,10 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
         },
       },
     });
-
     expect([200, 401]).toContain(response.status());
   });
 
-  test('TELEGRAM-008: /resolve command via reply-to message', async ({ request }) => {
+  test('TELEGRAM-008: /resolve command via reply-to', async ({ request }) => {
     const response = await request.post('/api/telegram/webhook', {
       headers: { 'Content-Type': 'application/json' },
       data: {
@@ -176,11 +161,10 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
         },
       },
     });
-
     expect([200, 401]).toContain(response.status());
   });
 
-  test('TELEGRAM-009: /active command lists active handoffs', async ({ request }) => {
+  test('TELEGRAM-009: /active command', async ({ request }) => {
     const response = await request.post('/api/telegram/webhook', {
       headers: { 'Content-Type': 'application/json' },
       data: {
@@ -193,11 +177,10 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
         },
       },
     });
-
     expect([200, 401]).toContain(response.status());
   });
 
-  test('TELEGRAM-010: Unknown Telegram command response', async ({ request }) => {
+  test('TELEGRAM-010: Unknown command response', async ({ request }) => {
     const response = await request.post('/api/telegram/webhook', {
       headers: { 'Content-Type': 'application/json' },
       data: {
@@ -210,12 +193,10 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
         },
       },
     });
-
     expect([200, 401]).toContain(response.status());
   });
 
-  test('TELEGRAM-011: Telegram command logging', async ({ request }) => {
-    // Send a command and verify webhook processes it
+  test('TELEGRAM-011: Command logging', async ({ request }) => {
     const response = await request.post('/api/telegram/webhook', {
       headers: { 'Content-Type': 'application/json' },
       data: {
@@ -228,13 +209,10 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
         },
       },
     });
-
     expect([200, 401]).toContain(response.status());
   });
 
-  test('TELEGRAM-012: Visitor message forwarding to Telegram during handoff', async ({ request }) => {
-    // This tests the chat API path when a handoff is active
-    // The chat route should detect the handoff and forward to Telegram
+  test('TELEGRAM-012: Visitor message forwarding during handoff', async ({ request }) => {
     const response = await request.post(`/api/chat/${CHATBOT_ID}`, {
       headers: { 'Content-Type': 'application/json' },
       data: {
@@ -243,13 +221,10 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
         session_id: 'e2e-test-session',
       },
     });
-
-    // The chat API should accept or handle the message (403 = usage limit)
     expect([200, 400, 403, 404]).toContain(response.status());
   });
 
-  test('TELEGRAM-013: Platform agent reply forwarded to Telegram', async ({ request }) => {
-    // When an agent replies from the platform, it should be forwarded to Telegram
+  test('TELEGRAM-013: Platform agent reply forwarded', async ({ request }) => {
     const response = await request.post(`/api/widget/${CHATBOT_ID}/agent-reply`, {
       headers: { 'Content-Type': 'application/json' },
       data: {
@@ -258,13 +233,10 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
         agent_name: 'E2E Agent',
       },
     });
-
-    // May fail with 401 (auth required) or 404 (conversation not found)
     expect([200, 401, 404, 409]).toContain(response.status());
   });
 
-  test('TELEGRAM-014: Telegram agent reply transitions handoff from pending to active', async ({ request }) => {
-    // Simulates a Telegram reply to a pending handoff notification
+  test('TELEGRAM-014: Agent reply transitions handoff', async ({ request }) => {
     const response = await request.post('/api/telegram/webhook', {
       headers: { 'Content-Type': 'application/json' },
       data: {
@@ -281,12 +253,10 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
         },
       },
     });
-
     expect([200, 401]).toContain(response.status());
   });
 
-  test('TELEGRAM-015: Handoff notification includes message context', async ({ request }) => {
-    // Initiate a handoff and verify the response
+  test('TELEGRAM-015: Handoff notification context', async ({ request }) => {
     const response = await request.post(`/api/widget/${CHATBOT_ID}/handoff`, {
       headers: { 'Content-Type': 'application/json' },
       data: {
@@ -296,13 +266,10 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
         details: 'E2E test for handoff notification context',
       },
     });
-
-    // May return 200 (success) or 400/500 (no conversation/config)
     expect([200, 400, 500]).toContain(response.status());
   });
 
-  test('TELEGRAM-016: Telegram send failure graceful handling', async ({ request }) => {
-    // Handoff with potentially invalid Telegram config should still succeed
+  test('TELEGRAM-016: Send failure graceful handling', async ({ request }) => {
     const response = await request.post(`/api/widget/${CHATBOT_ID}/handoff`, {
       headers: { 'Content-Type': 'application/json' },
       data: {
@@ -311,21 +278,17 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
         reason: 'need_human_help',
       },
     });
-
-    // Handoff should still be created even if Telegram notification fails
     expect([200, 400, 500]).toContain(response.status());
   });
 
-  test('TELEGRAM-017: Webhook health check GET endpoint', async ({ request }) => {
+  test('TELEGRAM-017: Webhook health check GET', async ({ request }) => {
     const response = await request.get('/api/telegram/webhook');
-
     expect(response.status()).toBe(200);
     const body = await response.json();
     expect(body.status).toBe('ok');
   });
 
-  test('TELEGRAM-018: No-op for messages without text or from field', async ({ request }) => {
-    // Message with no text field
+  test('TELEGRAM-018: No-op for messages without text or from', async ({ request }) => {
     const noTextResponse = await request.post('/api/telegram/webhook', {
       headers: { 'Content-Type': 'application/json' },
       data: {
@@ -334,18 +297,15 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
           message_id: 14,
           chat: { id: 12345, type: 'private' },
           from: { id: 12345, first_name: 'E2E', username: 'e2etest' },
-          // No text field
         },
       },
     });
-
     expect([200, 401]).toContain(noTextResponse.status());
     if (noTextResponse.status() === 200) {
       const body = await noTextResponse.json();
       expect(body.ok).toBe(true);
     }
 
-    // Message with no from field
     const noFromResponse = await request.post('/api/telegram/webhook', {
       headers: { 'Content-Type': 'application/json' },
       data: {
@@ -354,11 +314,9 @@ test.describe('31. Telegram & Slack Integration — Telegram', () => {
           message_id: 15,
           chat: { id: 12345, type: 'private' },
           text: 'Hello',
-          // No from field
         },
       },
     });
-
     expect([200, 401]).toContain(noFromResponse.status());
     if (noFromResponse.status() === 200) {
       const body = await noFromResponse.json();

@@ -5,12 +5,12 @@ import { ImapFlow } from 'imapflow';
 const CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
 const UNIQUE_TAG = `e2e-${Date.now()}`;
 
-// Email config
-const SMTP_HOST = 'mail.cholds.com';
-const SUPPORT_EMAIL = 'support@vocui.com';
-const SUPPORT_PASS = 'Bt6uKm9cL3jH7nZx';
-const TEST_EMAIL = 'test@vocui.com';
-const TEST_PASS = 'wJO7yxmEQdO00F9T';
+// Email config (from environment)
+const SMTP_HOST = process.env.SMTP_HOST || 'mail.cholds.com';
+const SUPPORT_EMAIL = process.env.SMTP_USER!;
+const SUPPORT_PASS = process.env.SMTP_PASS!;
+const TEST_EMAIL = process.env.E2E_VISITOR_EMAIL!;
+const TEST_PASS = process.env.E2E_VISITOR_PASSWORD!;
 
 // Helper: navigate to contact page and wait for it to be ready
 async function gotoContactPage(page: Page) {

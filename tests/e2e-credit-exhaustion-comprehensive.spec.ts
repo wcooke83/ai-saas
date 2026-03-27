@@ -31,34 +31,34 @@ async function goToFallbackSettings(page: Page) {
 }
 
 // ============================================================
-// Helper: mock the chat API to return 403 USAGE_LIMIT_REACHED
+// Helper: exhaust credits via real API so chat returns 403 and widget config shows exhausted
 // ============================================================
-async function mockCreditExhausted(page: Page, chatbotId: string) {
-  await page.route(`**/api/chat/${chatbotId}`, (route) =>
-    route.fulfill({
-      status: 403,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        success: false,
-        error: {
-          message: 'Chatbot has reached its monthly message limit',
-          code: 'USAGE_LIMIT_REACHED',
-        },
-      }),
-    })
-  );
+async function exhaustCredits(page: Page) {
+  await page.request.patch(`/api/chatbots/${BOT_ID}`, {
+    data: { monthly_message_limit: 1, messages_this_month: 1 },
+  });
 }
 
-// ============================================================
-// Helper: send a chat message in the widget and wait for fallback transition
-// ============================================================
-async function triggerFallback(page: Page) {
+/** Reset credits to healthy state */
+async function resetCreditState(page: Page) {
+  await page.request.patch(`/api/chatbots/${BOT_ID}`, {
+    data: { monthly_message_limit: 1000, messages_this_month: 0 },
+  });
+}
+
+/**
+ * For purchase_credits mode: widget config returns creditExhausted=false (server handles it),
+ * so we need to send a message that triggers the real 403 USAGE_LIMIT_REACHED, causing the widget
+ * to transition to the purchase fallback view.
+ */
+async function triggerPurchaseFallbackViaMessage(page: Page) {
   await expect(page.locator('.chat-widget-input')).toBeVisible({ timeout: 15000 });
   await page.locator('.chat-widget-input').fill('Hello, I need help');
   await page.locator('.chat-widget-send').click();
-  // The widget shows the error, then transitions after 1.5s
-  await expect(page.locator('.chat-widget-ticket-form, .chat-widget-contact-form, .chat-widget-purchase-view, .chat-widget-articles-view, .chat-widget-message-error')).toBeVisible({ timeout: 10000 });
+  // Widget detects 403 USAGE_LIMIT_REACHED → transitions to purchase view
+  await expect(page.locator('.chat-widget-purchase-view, .chat-widget-message-error')).toBeVisible({ timeout: 15000 });
 }
+
 
 // ============================================================
 // Helper: set credit exhaustion config on the bot (via authenticated page.request)
@@ -74,7 +74,7 @@ async function setFallbackConfig(page: Page, mode: string, config: Record<string
 // ============================================================
 async function resetBot(page: Page) {
   await page.request.patch(`/api/chatbots/${BOT_ID}`, {
-    data: { credit_exhaustion_mode: 'tickets', credit_exhaustion_config: {}, language: 'en' },
+    data: { credit_exhaustion_mode: 'tickets', credit_exhaustion_config: {}, language: 'en', monthly_message_limit: 1000, messages_this_month: 0 },
   });
 }
 
@@ -215,10 +215,9 @@ test.describe('2. Widget Fallback: Tickets Mode', () => {
         ticketReferencePrefix: 'E2E-',
       },
     });
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('text=Submit a Ticket').first()).toBeVisible();
@@ -226,10 +225,9 @@ test.describe('2. Widget Fallback: Tickets Mode', () => {
   });
 
   test('TKT-W-002: Ticket form shows configured optional fields', async ({ page }) => {
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
     // Required fields always present
@@ -243,10 +241,9 @@ test.describe('2. Widget Fallback: Tickets Mode', () => {
   });
 
   test('TKT-W-003: Ticket form validates required fields', async ({ page }) => {
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
     // Fill only partial data — name but not email or message
@@ -259,27 +256,14 @@ test.describe('2. Widget Fallback: Tickets Mode', () => {
   });
 
   test('TKT-W-004: Ticket form submits successfully and shows reference', async ({ page }) => {
-    await mockCreditExhausted(page, BOT_ID);
-
-    // Also mock the ticket submission endpoint for reliable test
-    await page.route(`**/api/widget/${BOT_ID}/tickets`, (route) =>
-      route.fulfill({
-        status: 201,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          success: true,
-          data: { ticketId: 'mock-uuid', reference: 'E2E-0001' },
-        }),
-      })
-    );
+    await exhaustCredits(page);
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
 
-    // Fill form
+    // Fill form and submit via real ticket API
     await page.locator('input[placeholder="Your name"]').fill('E2E Test User');
     await page.locator('input[placeholder="your@email.com"]').fill('e2e@test.com');
     await page.locator('input[placeholder="Subject"]').fill('Test Subject');
@@ -289,7 +273,8 @@ test.describe('2. Widget Fallback: Tickets Mode', () => {
     // Should show success with reference number
     await expect(page.locator('.chat-widget-ticket-success')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('text=Ticket submitted!').first()).toBeVisible();
-    await expect(page.locator('text=E2E-0001').first()).toBeVisible();
+    // Reference number format depends on real API response
+    await expect(page.locator('.chat-widget-ticket-success')).toContainText(/[A-Z]+-\d+/);
   });
 
   test('cleanup: reset to tickets mode', async ({ page }) => {
@@ -311,10 +296,9 @@ test.describe('3. Widget Fallback: Contact Form Mode', () => {
         autoReplyEnabled: true,
       },
     });
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     await expect(page.locator('.chat-widget-contact-form')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('text=Leave a Message').first()).toBeVisible();
@@ -322,10 +306,9 @@ test.describe('3. Widget Fallback: Contact Form Mode', () => {
   });
 
   test('CTF-W-002: Contact form shows name, email, message fields', async ({ page }) => {
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     await expect(page.locator('.chat-widget-contact-form')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('input[placeholder="Your name"]')).toBeVisible();
@@ -334,10 +317,9 @@ test.describe('3. Widget Fallback: Contact Form Mode', () => {
   });
 
   test('CTF-W-003: Contact form validates required fields', async ({ page }) => {
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     await expect(page.locator('.chat-widget-contact-form')).toBeVisible({ timeout: 10000 });
     // Fill only name, skip email and message
@@ -349,19 +331,10 @@ test.describe('3. Widget Fallback: Contact Form Mode', () => {
   });
 
   test('CTF-W-004: Contact form submits and shows success', async ({ page }) => {
-    await mockCreditExhausted(page, BOT_ID);
-
-    await page.route(`**/api/widget/${BOT_ID}/contact`, (route) =>
-      route.fulfill({
-        status: 201,
-        contentType: 'application/json',
-        body: JSON.stringify({ success: true, data: { id: 'mock-contact-id' } }),
-      })
-    );
+    await exhaustCredits(page);
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     await expect(page.locator('.chat-widget-contact-form')).toBeVisible({ timeout: 10000 });
 
@@ -396,20 +369,21 @@ test.describe('4. Widget Fallback: Purchase Credits Mode', () => {
         ],
       },
     });
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
+    // Purchase mode: widget config says creditExhausted=false, send message to trigger real 403
+    await triggerPurchaseFallbackViaMessage(page);
 
     await expect(page.locator('.chat-widget-purchase-view')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('text=Credits depleted').first()).toBeVisible();
   });
 
   test('PUR-W-002: Purchase view renders package cards from config', async ({ page }) => {
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
+    await triggerPurchaseFallbackViaMessage(page);
 
     await expect(page.locator('.chat-widget-purchase-view')).toBeVisible({ timeout: 10000 });
     // Two package cards
@@ -423,32 +397,27 @@ test.describe('4. Widget Fallback: Purchase Credits Mode', () => {
   });
 
   test('PUR-W-003: Buy button triggers purchase API call', async ({ page }) => {
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
 
-    // Intercept purchase API to verify it's called with correct data
+    // Track purchase API calls via request listener (no mocking)
     let purchaseCalled = false;
     let purchaseBody: any = null;
-    await page.route(`**/api/widget/${BOT_ID}/purchase`, async (route) => {
-      purchaseCalled = true;
-      purchaseBody = route.request().postDataJSON();
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          success: true,
-          data: { checkoutUrl: 'https://checkout.stripe.com/mock-session' },
-        }),
-      });
+    page.on('request', (request) => {
+      if (request.url().includes(`/api/widget/${BOT_ID}/purchase`) && request.method() === 'POST') {
+        purchaseCalled = true;
+        try { purchaseBody = request.postDataJSON(); } catch { /* ignore */ }
+      }
     });
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
+    await triggerPurchaseFallbackViaMessage(page);
 
     await expect(page.locator('.chat-widget-purchase-view')).toBeVisible({ timeout: 10000 });
 
     // Click the first package buy button
     await page.locator('.chat-widget-package-buy').first().click();
+    await page.waitForLoadState('networkidle');
     await expect.poll(() => purchaseCalled).toBeTruthy();
     expect(purchaseCalled).toBeTruthy();
     expect(purchaseBody).toHaveProperty('packageId');
@@ -467,10 +436,10 @@ test.describe('4. Widget Fallback: Purchase Credits Mode', () => {
       },
     });
 
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
+    await triggerPurchaseFallbackViaMessage(page);
 
     await expect(page.locator('.chat-widget-purchase-view')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('text=No credit packages available').first()).toBeVisible();
@@ -494,19 +463,17 @@ test.describe('5. Widget Fallback: Help Articles Mode', () => {
         emptyStateMessage: 'No articles available at this time.',
       },
     });
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     await expect(page.locator('.chat-widget-articles-view')).toBeVisible({ timeout: 10000 });
   });
 
   test('ART-W-002: Help articles view shows search bar with custom placeholder', async ({ page }) => {
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     await expect(page.locator('.chat-widget-articles-view')).toBeVisible({ timeout: 10000 });
     const searchInput = page.locator('.chat-widget-articles-search input');
@@ -515,7 +482,7 @@ test.describe('5. Widget Fallback: Help Articles Mode', () => {
   });
 
   test('ART-W-003: Help articles view shows articles when available', async ({ page }) => {
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
 
     // Mock articles endpoint to return test articles
     await page.route(`**/api/widget/${BOT_ID}/articles*`, (route) =>
@@ -536,7 +503,6 @@ test.describe('5. Widget Fallback: Help Articles Mode', () => {
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     await expect(page.locator('.chat-widget-articles-view')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('.chat-widget-article-card')).toHaveCount(2);
@@ -545,7 +511,7 @@ test.describe('5. Widget Fallback: Help Articles Mode', () => {
   });
 
   test('ART-W-004: Clicking an article expands it to detail view', async ({ page }) => {
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
 
     await page.route(`**/api/widget/${BOT_ID}/articles*`, (route) =>
       route.fulfill({
@@ -564,7 +530,6 @@ test.describe('5. Widget Fallback: Help Articles Mode', () => {
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     await expect(page.locator('.chat-widget-articles-view')).toBeVisible({ timeout: 10000 });
     // Click the article card
@@ -576,7 +541,7 @@ test.describe('5. Widget Fallback: Help Articles Mode', () => {
   });
 
   test('ART-W-005: Back button returns from article detail to list', async ({ page }) => {
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
 
     await page.route(`**/api/widget/${BOT_ID}/articles*`, (route) =>
       route.fulfill({
@@ -595,7 +560,6 @@ test.describe('5. Widget Fallback: Help Articles Mode', () => {
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     await expect(page.locator('.chat-widget-articles-view')).toBeVisible({ timeout: 10000 });
     await page.locator('.chat-widget-article-card').first().click();
@@ -609,7 +573,7 @@ test.describe('5. Widget Fallback: Help Articles Mode', () => {
   });
 
   test('ART-W-006: Empty state shown when no articles exist', async ({ page }) => {
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
 
     await page.route(`**/api/widget/${BOT_ID}/articles*`, (route) =>
       route.fulfill({
@@ -621,7 +585,6 @@ test.describe('5. Widget Fallback: Help Articles Mode', () => {
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     await expect(page.locator('.chat-widget-articles-view')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('text=No articles available at this time').first()).toBeVisible({ timeout: 5000 });
@@ -631,7 +594,7 @@ test.describe('5. Widget Fallback: Help Articles Mode', () => {
     await setFallbackConfig(page, 'help_articles', {
       help_articles: { searchPlaceholder: 'Search...', emptyStateMessage: 'None' },
     });
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
 
     const requestUrls: string[] = [];
     await page.route(`**/api/widget/${BOT_ID}/articles*`, async (route) => {
@@ -645,7 +608,6 @@ test.describe('5. Widget Fallback: Help Articles Mode', () => {
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     await expect(page.locator('.chat-widget-articles-view')).toBeVisible({ timeout: 10000 });
 
@@ -894,10 +856,9 @@ test.describe('9. Language Consistency', () => {
       data: { language: 'es', credit_exhaustion_mode: 'tickets' },
     });
 
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     // Ticket form should still render (fallback text is config-driven, not translation-driven)
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
@@ -912,10 +873,9 @@ test.describe('9. Language Consistency', () => {
     });
     await page.request.patch(`/api/chatbots/${BOT_ID}`, { data: { language: 'fr' } });
 
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     await expect(page.locator('.chat-widget-contact-form')).toBeVisible({ timeout: 10000 });
   });
@@ -926,10 +886,10 @@ test.describe('9. Language Consistency', () => {
     });
     await page.request.patch(`/api/chatbots/${BOT_ID}`, { data: { language: 'ar' } });
 
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
+    await triggerPurchaseFallbackViaMessage(page);
 
     await expect(page.locator('.chat-widget-purchase-view')).toBeVisible({ timeout: 10000 });
   });
@@ -940,7 +900,7 @@ test.describe('9. Language Consistency', () => {
     });
     await page.request.patch(`/api/chatbots/${BOT_ID}`, { data: { language: 'ja' } });
 
-    await mockCreditExhausted(page, BOT_ID);
+    await exhaustCredits(page);
 
     await page.route(`**/api/widget/${BOT_ID}/articles*`, (route) =>
       route.fulfill({
@@ -952,7 +912,6 @@ test.describe('9. Language Consistency', () => {
 
     await page.goto(WIDGET_URL);
     await page.waitForLoadState('networkidle');
-    await triggerFallback(page);
 
     await expect(page.locator('.chat-widget-articles-view')).toBeVisible({ timeout: 10000 });
   });
@@ -1044,7 +1003,9 @@ test.describe('10. Edge Cases & Validation', () => {
   });
 
   test('EDGE-008: Widget does NOT transition to fallback on normal 403 (non-limit)', async ({ page }) => {
-    // Mock a non-limit 403 (e.g., chatbot unpublished)
+    // Ensure credits are healthy so widget starts in chat mode
+    await resetCreditState(page);
+    // Mock a non-limit 403 (testing error code discrimination — must mock specific error code)
     await page.route(`**/api/chat/${BOT_ID}`, (route) =>
       route.fulfill({
         status: 403,

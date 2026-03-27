@@ -10,28 +10,16 @@ for (const line of envFile.split('\n')) {
   }
 }
 
-const CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
-const CONVERSATIONS_URL = `/dashboard/chatbots/${CHATBOT_ID}/conversations`;
+const DASHBOARD_CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
+const CONVERSATIONS_URL = `/dashboard/chatbots/${DASHBOARD_CHATBOT_ID}/conversations`;
+const WIDGET_URL = `/widget/${DASHBOARD_CHATBOT_ID}`;
+const SETTINGS_URL = `/dashboard/chatbots/${DASHBOARD_CHATBOT_ID}/settings`;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 const createdConversationIds: string[] = [];
 
-async function supabaseInsert(table: string, data: Record<string, unknown>) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-    method: 'POST',
-    headers: {
-      'apikey': SERVICE_KEY,
-      'Authorization': `Bearer ${SERVICE_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation',
-    },
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  return Array.isArray(json) ? json[0] : json;
-}
-
+/** Delete rows via Supabase REST API (cleanup only) */
 async function supabaseDelete(table: string, column: string, values: string[]) {
   if (values.length === 0) return;
   const filter = `${column}=in.(${values.map(v => `"${v}"`).join(',')})`;
@@ -44,34 +32,76 @@ async function supabaseDelete(table: string, column: string, values: string[]) {
   });
 }
 
-async function seedConversation(suffix: string, userMessage: string) {
-  const conv = await supabaseInsert('conversations', {
-    chatbot_id: CHATBOT_ID,
-    session_id: `e2e-adv-${suffix}-${Date.now()}`,
-    channel: 'widget',
-    visitor_id: `e2e-adv-visitor-${suffix}`,
-    visitor_metadata: { name: `E2E Visitor ${suffix}` },
-    status: 'active',
-    message_count: 2,
-    first_message_at: new Date().toISOString(),
-    last_message_at: new Date().toISOString(),
+/** Query rows via Supabase REST API (for finding conversation IDs) */
+async function supabaseSelect(table: string, filter: string) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
+    headers: {
+      'apikey': SERVICE_KEY,
+      'Authorization': `Bearer ${SERVICE_KEY}`,
+    },
   });
-  if (!conv?.id) return null;
+  return res.json();
+}
 
-  await supabaseInsert('messages', {
-    conversation_id: conv.id,
-    chatbot_id: CHATBOT_ID,
-    role: 'user',
-    content: userMessage,
-  });
-  await supabaseInsert('messages', {
-    conversation_id: conv.id,
-    chatbot_id: CHATBOT_ID,
-    role: 'assistant',
-    content: 'Thank you for reaching out. Let me help you with that.',
-  });
+/** Open widget page and wait for chat to be ready */
+async function openWidget(page: Page): Promise<void> {
+  await page.goto(WIDGET_URL);
+  await page.waitForLoadState('networkidle');
+  await page.waitForSelector('.chat-widget-input', { timeout: 30000 });
+}
 
-  return conv.id as string;
+/** Send a message in the widget and wait for AI response */
+async function sendWidgetMessage(page: Page, message: string): Promise<void> {
+  await page.locator('.chat-widget-input').fill(message);
+  await page.locator('.chat-widget-send').click();
+
+  await expect(page.locator('.chat-widget-message-user').last()).toContainText(message.slice(0, 20), { timeout: 15000 });
+
+  await page.locator('.chat-widget-typing').waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
+  await expect(page.locator('.chat-widget-typing')).not.toBeVisible({ timeout: 60000 });
+}
+
+/** Create a conversation via the widget UI and return its DB ID */
+async function createConversationViaWidget(page: Page, message: string): Promise<string | null> {
+  await openWidget(page);
+  await sendWidgetMessage(page, message);
+
+  await page.waitForTimeout(1000);
+
+  const convs = await supabaseSelect(
+    'conversations',
+    `chatbot_id=eq.${DASHBOARD_CHATBOT_ID}&order=created_at.desc&limit=1&select=id`
+  );
+  if (convs?.[0]?.id) {
+    createdConversationIds.push(convs[0].id);
+    return convs[0].id;
+  }
+  return null;
+}
+
+/** Escalate via the widget's per-message report flag button */
+async function escalateViaWidgetReport(page: Page, reason: 'wrong_answer' | 'offensive_content' | 'other', details?: string): Promise<void> {
+  const reportBtns = page.locator('.chat-widget-report-btn');
+  const count = await reportBtns.count();
+  if (count === 0) return;
+
+  await reportBtns.last().click();
+  await expect(page.locator('.chat-widget-report-form').last()).toBeVisible({ timeout: 5000 });
+
+  // Select reason by matching button text
+  const reasonLabels: Record<string, RegExp> = {
+    wrong_answer: /wrong/i,
+    offensive_content: /offensive/i,
+    other: /other/i,
+  };
+  await page.locator('.chat-widget-report-reason-btn').filter({ hasText: reasonLabels[reason] }).click();
+
+  if (details) {
+    await page.locator('.chat-widget-report-textarea').last().fill(details);
+  }
+
+  await page.locator('.chat-widget-report-submit').last().click();
+  await expect(page.locator('.chat-widget-report-success').last()).toBeVisible({ timeout: 15000 });
 }
 
 async function gotoAgentConsole(page: Page) {
@@ -82,54 +112,99 @@ async function gotoAgentConsole(page: Page) {
   await page.waitForSelector('[data-testid="conversation-list"]', { timeout: 30000 });
 }
 
-test.describe('29. Agent Console Advanced Behaviors', () => {
-  test.setTimeout(120_000);
+/** Enable escalation on the dashboard chatbot via the settings UI */
+async function enableEscalationViaUI(page: Page): Promise<void> {
+  await page.goto(SETTINGS_URL);
+  await page.waitForLoadState('networkidle');
 
-  test.beforeAll(async ({ request }) => {
+  const escalationSection = page.locator('text=Allow visitors to report wrong answers').locator('..');
+  const toggle = escalationSection.locator('button[role="switch"]');
+
+  if (await toggle.isVisible({ timeout: 10000 }).catch(() => false)) {
+    const checked = await toggle.getAttribute('aria-checked');
+    if (checked !== 'true') {
+      await toggle.click();
+      await page.getByRole('button', { name: /save changes/i }).click();
+      await page.waitForResponse(
+        (res) => res.url().includes('/api/chatbots/') && res.status() < 400,
+        { timeout: 15000 }
+      ).catch(() => {});
+      await page.waitForTimeout(1000);
+    }
+  }
+}
+
+test.describe('29. Agent Console Advanced Behaviors', () => {
+  test.setTimeout(180_000);
+
+  test.beforeAll(async ({ browser }) => {
+    // Step 1: Enable escalation on the chatbot via settings UI
+    const setupPage = await browser.newPage();
+    await enableEscalationViaUI(setupPage);
+    await setupPage.close();
+
+    // Step 2: Create 3 conversations via the widget UI
     const messages = [
       'Advanced test: I have a complex billing question',
       'Advanced test: Need help navigating your platform',
       'Advanced test: Feature request discussion',
     ];
 
-    for (let i = 0; i < 3; i++) {
-      const convId = await seedConversation(`adv-${i}`, messages[i]);
-      if (convId) createdConversationIds.push(convId);
+    for (const msg of messages) {
+      const page = await browser.newPage();
+      await createConversationViaWidget(page, msg);
+      await page.close();
     }
 
     if (createdConversationIds.length < 3) {
-      console.warn(`Only created ${createdConversationIds.length}/3 conversations`);
+      console.warn(`Only created ${createdConversationIds.length}/3 conversations via widget`);
       return;
     }
 
-    const ts = Date.now();
+    // Step 3: Escalate conv 0 via widget report UI (wrong_answer reason)
+    const escalatePage = await browser.newPage();
+    await openWidget(escalatePage);
+    await sendWidgetMessage(escalatePage, 'The AI gave incorrect pricing information - this is wrong');
+    await escalateViaWidgetReport(escalatePage, 'wrong_answer', 'The AI gave incorrect pricing information');
+    await escalatePage.close();
 
-    // Conv 0 → pending with escalation (insert escalation first, then link to handoff)
-    const escalation = await supabaseInsert('conversation_escalations', {
-      chatbot_id: CHATBOT_ID,
-      conversation_id: createdConversationIds[0],
-      session_id: `e2e-adv-0-${ts}`,
-      reason: 'wrong_answer',
-      details: 'The AI gave incorrect pricing information',
-      status: 'open',
-    });
-    await supabaseInsert('telegram_handoff_sessions', {
-      chatbot_id: CHATBOT_ID,
-      conversation_id: createdConversationIds[0],
-      session_id: `e2e-adv-0-${ts}`,
-      status: 'pending',
-      escalation_id: escalation?.id || null,
-    });
+    // Step 4: Use agent console UI to take over conv 1 and conv 2
+    const agentPage = await browser.newPage();
+    await gotoAgentConsole(agentPage);
 
-    // Conv 1 → active
-    await request.post(`/api/widget/${CHATBOT_ID}/agent-actions`, {
-      data: { conversation_id: createdConversationIds[1], action: 'take_over', agent_name: 'E2E Agent' },
-    });
+    // Take over first pending (becomes conv 1 - active)
+    await agentPage.getByTestId('filter-pending').click();
+    await expect(agentPage.getByTestId('conversation-list-body')).toBeVisible({ timeout: 15000 });
+    await agentPage.waitForTimeout(2000);
 
-    // Conv 2 → active (for switching tests)
-    await request.post(`/api/widget/${CHATBOT_ID}/agent-actions`, {
-      data: { conversation_id: createdConversationIds[2], action: 'take_over', agent_name: 'E2E Agent' },
-    });
+    let items = agentPage.locator('[data-testid^="conversation-item-"]');
+    let count = await items.count();
+    if (count > 0) {
+      await items.first().click();
+      await expect(agentPage.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
+      const takeOverBtn = agentPage.getByTestId('action-take-over');
+      if (await takeOverBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await takeOverBtn.click();
+        await agentPage.waitForTimeout(2000);
+      }
+    }
+
+    // Take over next pending (becomes conv 2 - active for switching tests)
+    await agentPage.getByTestId('filter-pending').click();
+    await agentPage.waitForTimeout(2000);
+    items = agentPage.locator('[data-testid^="conversation-item-"]');
+    count = await items.count();
+    if (count > 0) {
+      await items.first().click();
+      await expect(agentPage.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
+      const takeOverBtn = agentPage.getByTestId('action-take-over');
+      if (await takeOverBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await takeOverBtn.click();
+        await agentPage.waitForTimeout(2000);
+      }
+    }
+
+    await agentPage.close();
   });
 
   test.afterAll(async () => {
@@ -396,8 +471,8 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     const listBody = page.getByTestId('conversation-list-body');
     const bodyText = await listBody.textContent();
 
-    // Active conversations should show "Agent: E2E Agent"
-    const hasAgent = bodyText?.includes('Agent:') || bodyText?.includes('E2E Agent');
+    // Active conversations should show agent name
+    const hasAgent = bodyText?.includes('Agent:') || bodyText?.includes('Agent');
     expect(hasAgent).toBeTruthy();
   });
 

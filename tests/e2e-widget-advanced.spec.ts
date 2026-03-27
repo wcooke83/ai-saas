@@ -24,18 +24,9 @@ async function sendMsg(page: import('@playwright/test').Page, text: string) {
 test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     testInfo.setTimeout(90000);
-    // This chatbot has exhausted credits — override config so widget loads in chat mode
-    await page.route(`**/api/widget/${CHATBOT_ID}/config*`, async (route) => {
-      const response = await route.fetch();
-      const body = await response.json();
-      body.data.creditExhausted = false;
-      body.data.creditLow = false;
-      await route.fulfill({
-        status: response.status(),
-        headers: response.headers(),
-        body: JSON.stringify(body),
-        contentType: 'application/json',
-      });
+    // Ensure chatbot has available credits so widget loads in chat mode
+    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
+      data: { monthly_message_limit: 1000, messages_this_month: 0 },
     });
   });
 
@@ -85,19 +76,9 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
   });
 
   test('WIDGET-ADV-002: Chat disabled state on message limit error', async ({ page }) => {
-    // Intercept the chat API to return a 403 USAGE_LIMIT_REACHED
-    await page.route(`**/api/chat/${CHATBOT_ID}`, async (route) => {
-      await route.fulfill({
-        status: 403,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          success: false,
-          error: {
-            code: 'USAGE_LIMIT_REACHED',
-            message: 'Chatbot has reached its monthly message limit',
-          },
-        }),
-      });
+    // Exhaust credits so the real chat API returns 403 USAGE_LIMIT_REACHED
+    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
+      data: { monthly_message_limit: 1, messages_this_month: 1 },
     });
 
     await openWidget(page);

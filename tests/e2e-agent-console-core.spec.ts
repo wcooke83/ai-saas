@@ -11,31 +11,17 @@ for (const line of envFile.split('\n')) {
   }
 }
 
-const CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
-const CONVERSATIONS_URL = `/dashboard/chatbots/${CHATBOT_ID}/conversations`;
+const DASHBOARD_CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
+const CONVERSATIONS_URL = `/dashboard/chatbots/${DASHBOARD_CHATBOT_ID}/conversations`;
+const WIDGET_URL = `/widget/${DASHBOARD_CHATBOT_ID}`;
+const SETTINGS_URL = `/dashboard/chatbots/${DASHBOARD_CHATBOT_ID}/settings`;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-// Track created resources for cleanup
+// Track created conversation IDs for cleanup
 const createdConversationIds: string[] = [];
 
-/** Insert a row via Supabase REST API (bypasses RLS), returns inserted row */
-async function supabaseInsert(table: string, data: Record<string, unknown>) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-    method: 'POST',
-    headers: {
-      'apikey': SERVICE_KEY,
-      'Authorization': `Bearer ${SERVICE_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation',
-    },
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  return Array.isArray(json) ? json[0] : json;
-}
-
-/** Delete rows via Supabase REST API */
+/** Delete rows via Supabase REST API (cleanup only) */
 async function supabaseDelete(table: string, column: string, values: string[]) {
   if (values.length === 0) return;
   const filter = `${column}=in.(${values.map(v => `"${v}"`).join(',')})`;
@@ -48,53 +34,152 @@ async function supabaseDelete(table: string, column: string, values: string[]) {
   });
 }
 
-/** Create a conversation + messages directly via Supabase */
-async function seedConversation(suffix: string, userMessage: string) {
-  const conv = await supabaseInsert('conversations', {
-    chatbot_id: CHATBOT_ID,
-    session_id: `e2e-handoff-${suffix}-${Date.now()}`,
-    channel: 'widget',
-    visitor_id: `e2e-visitor-${suffix}`,
-    visitor_metadata: { name: `E2E Visitor ${suffix}` },
-    status: 'active',
-    message_count: 2,
-    first_message_at: new Date().toISOString(),
-    last_message_at: new Date().toISOString(),
+/** Query rows via Supabase REST API (for finding conversation IDs after widget chat) */
+async function supabaseSelect(table: string, filter: string) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
+    headers: {
+      'apikey': SERVICE_KEY,
+      'Authorization': `Bearer ${SERVICE_KEY}`,
+    },
   });
-  if (!conv?.id) return null;
+  return res.json();
+}
 
-  // Insert user + assistant messages
-  await supabaseInsert('messages', {
-    conversation_id: conv.id,
-    chatbot_id: CHATBOT_ID,
-    role: 'user',
-    content: userMessage,
-  });
-  await supabaseInsert('messages', {
-    conversation_id: conv.id,
-    chatbot_id: CHATBOT_ID,
-    role: 'assistant',
-    content: 'Thank you for reaching out. Let me help you with that.',
-  });
+/** Open widget page and wait for chat to be ready */
+async function openWidget(page: Page): Promise<void> {
+  await page.goto(WIDGET_URL);
+  await page.waitForLoadState('networkidle');
+  // Wait for the chat input to appear (widget fully loaded)
+  await page.waitForSelector('.chat-widget-input', { timeout: 30000 });
+}
 
-  return conv.id as string;
+/** Send a message in the widget and wait for AI response */
+async function sendWidgetMessage(page: Page, message: string): Promise<void> {
+  await page.locator('.chat-widget-input').fill(message);
+  await page.locator('.chat-widget-send').click();
+
+  // Wait for user message to appear
+  await expect(page.locator('.chat-widget-message-user').last()).toContainText(message.slice(0, 20), { timeout: 15000 });
+
+  // Wait for AI response (typing indicator appears then disappears)
+  await page.locator('.chat-widget-typing').waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
+  await expect(page.locator('.chat-widget-typing')).not.toBeVisible({ timeout: 60000 });
+}
+
+/** Create a conversation via the widget UI and return its DB ID */
+async function createConversationViaWidget(page: Page, message: string): Promise<string | null> {
+  await openWidget(page);
+  await sendWidgetMessage(page, message);
+
+  // Wait a moment for DB to sync
+  await page.waitForTimeout(1000);
+
+  // Find the most recent conversation for this chatbot
+  const convs = await supabaseSelect(
+    'conversations',
+    `chatbot_id=eq.${DASHBOARD_CHATBOT_ID}&order=created_at.desc&limit=1&select=id`
+  );
+  if (convs?.[0]?.id) {
+    createdConversationIds.push(convs[0].id);
+    return convs[0].id;
+  }
+  return null;
+}
+
+/** Escalate a conversation via the widget report/flag UI.
+ *  The page must already be on the widget with an active conversation.
+ *  Uses the per-message flag button on the last assistant message. */
+async function escalateViaWidgetReport(page: Page, reason: 'wrong_answer' | 'offensive_content' | 'need_human_help' | 'other', details?: string): Promise<void> {
+  // Click the flag button on the last assistant message
+  const reportBtns = page.locator('.chat-widget-report-btn');
+  const count = await reportBtns.count();
+  if (count > 0) {
+    await reportBtns.last().click();
+
+    // Wait for the inline report form to appear
+    await expect(page.locator('.chat-widget-report-form').last()).toBeVisible({ timeout: 5000 });
+
+    // Select reason
+    await page.locator(`.chat-widget-report-reason-btn`).filter({ hasText: getReasonLabel(reason) }).click();
+
+    // Fill details if provided
+    if (details) {
+      await page.locator('.chat-widget-report-textarea').last().fill(details);
+    }
+
+    // Submit
+    await page.locator('.chat-widget-report-submit').last().click();
+
+    // Wait for success state
+    await expect(page.locator('.chat-widget-report-success').last()).toBeVisible({ timeout: 15000 });
+  } else {
+    // Fallback: use the header flag icon for conversation-level report
+    const flagBtn = page.locator('button[aria-label]').filter({ hasText: '' }).locator('svg path[d*="M4 15s1-1"]').first();
+    if (await flagBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await flagBtn.locator('..').click();
+    }
+  }
+}
+
+function getReasonLabel(reason: string): RegExp {
+  switch (reason) {
+    case 'wrong_answer': return /wrong/i;
+    case 'offensive_content': return /offensive/i;
+    case 'need_human_help': return /human|person/i;
+    case 'other': return /other/i;
+    default: return new RegExp(reason, 'i');
+  }
 }
 
 /** Navigate to agent console and wait for it to fully render */
 async function gotoAgentConsole(page: Page) {
   await page.goto(CONVERSATIONS_URL);
   await page.waitForLoadState('domcontentloaded');
-  // Wait for page-level spinner to disappear then AgentConsoleLayout to mount
   await page.waitForSelector('.animate-spin', { timeout: 30000 }).catch(() => {});
   await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 60000 }).catch(() => {});
   await page.waitForSelector('[data-testid="conversation-list"]', { timeout: 30000 });
 }
 
-test.describe('14. Agent Console', () => {
-  test.setTimeout(120_000);
+/** Enable escalation on the dashboard chatbot via the settings UI */
+async function enableEscalationViaUI(page: Page): Promise<void> {
+  await page.goto(SETTINGS_URL);
+  await page.waitForLoadState('networkidle');
 
-  test.beforeAll(async ({ request }) => {
-    // Create 4 conversations directly via Supabase
+  // Scroll to and find the escalation toggle (role="switch" near "Escalation" text)
+  const escalationToggle = page.locator('button[role="switch"][aria-checked]').filter({
+    has: page.locator('xpath=ancestor::div[contains(., "Escalation")]'),
+  }).first();
+
+  // If the toggle exists and is not checked, enable it
+  // Find the escalation section by looking for the card with "Escalation" title
+  const escalationSection = page.locator('text=Allow visitors to report wrong answers').locator('..');
+  const toggle = escalationSection.locator('button[role="switch"]');
+
+  if (await toggle.isVisible({ timeout: 10000 }).catch(() => false)) {
+    const checked = await toggle.getAttribute('aria-checked');
+    if (checked !== 'true') {
+      await toggle.click();
+      // Save settings
+      await page.getByRole('button', { name: /save changes/i }).click();
+      await page.waitForResponse(
+        (res) => res.url().includes('/api/chatbots/') && res.status() < 400,
+        { timeout: 15000 }
+      ).catch(() => {});
+      await page.waitForTimeout(1000);
+    }
+  }
+}
+
+test.describe('14. Agent Console', () => {
+  test.setTimeout(180_000);
+
+  test.beforeAll(async ({ browser }) => {
+    // Step 1: Enable escalation on the chatbot via the settings UI
+    const setupPage = await browser.newPage();
+    await enableEscalationViaUI(setupPage);
+    await setupPage.close();
+
+    // Step 2: Create 4 conversations via the widget UI
     const messages = [
       'I need help with my subscription billing',
       'The product page is not loading correctly',
@@ -102,52 +187,89 @@ test.describe('14. Agent Console', () => {
       'I have a question about your return policy',
     ];
 
-    for (let i = 0; i < 4; i++) {
-      const convId = await seedConversation(`core-${i}`, messages[i]);
-      if (convId) createdConversationIds.push(convId);
+    for (const msg of messages) {
+      const page = await browser.newPage();
+      await createConversationViaWidget(page, msg);
+      await page.close();
     }
 
     if (createdConversationIds.length < 4) {
-      console.warn(`Only created ${createdConversationIds.length}/4 conversations`);
+      console.warn(`Only created ${createdConversationIds.length}/4 conversations via widget`);
       return;
     }
 
-    const ts = Date.now();
+    // Step 3: Escalate conv 0 via the widget report UI
+    // Open a new widget page for the same session as conv 0
+    const escalatePage = await browser.newPage();
+    await openWidget(escalatePage);
+    // Send a message to reconnect to the conversation (widget uses session persistence)
+    // Instead, we need to create escalation on the existing conversation.
+    // The simplest approach: open the widget, send a follow-up, then use report button.
+    // But we already have the conversation created. Let's open a fresh widget and
+    // send the same message to get an assistant reply, then escalate.
+    await sendWidgetMessage(escalatePage, 'I need help with my subscription billing - please escalate');
+    await escalateViaWidgetReport(escalatePage, 'wrong_answer', 'E2E test escalation — user needs billing support');
+    await escalatePage.close();
 
-    // Conv 0 → pending handoff + escalation (insert escalation first, then link to handoff)
-    const escalation = await supabaseInsert('conversation_escalations', {
-      chatbot_id: CHATBOT_ID,
-      conversation_id: createdConversationIds[0],
-      session_id: `e2e-handoff-core-0-${ts}`,
-      reason: 'need_human_help',
-      details: 'E2E test escalation — user needs billing support',
-      status: 'open',
-    });
-    await supabaseInsert('telegram_handoff_sessions', {
-      chatbot_id: CHATBOT_ID,
-      conversation_id: createdConversationIds[0],
-      session_id: `e2e-handoff-core-0-${ts}`,
-      status: 'pending',
-      escalation_id: escalation?.id || null,
-    });
+    // Step 4: Use agent console UI to take over conv 1 and conv 2
+    const agentPage = await browser.newPage();
+    await gotoAgentConsole(agentPage);
 
-    // Conv 1 → active handoff (via agent-actions take_over)
-    await request.post(`/api/widget/${CHATBOT_ID}/agent-actions`, {
-      data: { conversation_id: createdConversationIds[1], action: 'take_over', agent_name: 'E2E Agent' },
-    });
+    // Filter to pending — find and take over conversations
+    await agentPage.getByTestId('filter-pending').click();
+    await expect(agentPage.getByTestId('conversation-list-body')).toBeVisible({ timeout: 15000 });
+    await agentPage.waitForTimeout(2000);
 
-    // Conv 2 → active handoff (second active, for resolve/return tests)
-    await request.post(`/api/widget/${CHATBOT_ID}/agent-actions`, {
-      data: { conversation_id: createdConversationIds[2], action: 'take_over', agent_name: 'E2E Agent' },
-    });
+    // Take over the first pending conversation (will be used as conv 1 - active)
+    let items = agentPage.locator('[data-testid^="conversation-item-"]');
+    let count = await items.count();
+    if (count > 0) {
+      await items.first().click();
+      await expect(agentPage.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
+      const takeOverBtn = agentPage.getByTestId('action-take-over');
+      if (await takeOverBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await takeOverBtn.click();
+        await agentPage.waitForTimeout(2000);
+      }
+    }
 
-    // Conv 3 → resolved handoff
-    await request.post(`/api/widget/${CHATBOT_ID}/agent-actions`, {
-      data: { conversation_id: createdConversationIds[3], action: 'take_over', agent_name: 'E2E Agent' },
-    });
-    await request.post(`/api/widget/${CHATBOT_ID}/agent-actions`, {
-      data: { conversation_id: createdConversationIds[3], action: 'resolve' },
-    });
+    // Take over the next pending conversation (conv 2 - active for resolve/return tests)
+    await agentPage.getByTestId('filter-pending').click();
+    await agentPage.waitForTimeout(2000);
+    items = agentPage.locator('[data-testid^="conversation-item-"]');
+    count = await items.count();
+    if (count > 0) {
+      await items.first().click();
+      await expect(agentPage.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
+      const takeOverBtn = agentPage.getByTestId('action-take-over');
+      if (await takeOverBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await takeOverBtn.click();
+        await agentPage.waitForTimeout(2000);
+      }
+    }
+
+    // Take over another pending and then resolve it (conv 3 - resolved)
+    await agentPage.getByTestId('filter-pending').click();
+    await agentPage.waitForTimeout(2000);
+    items = agentPage.locator('[data-testid^="conversation-item-"]');
+    count = await items.count();
+    if (count > 0) {
+      await items.first().click();
+      await expect(agentPage.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
+      const takeOverBtn = agentPage.getByTestId('action-take-over');
+      if (await takeOverBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await takeOverBtn.click();
+        await agentPage.waitForTimeout(2000);
+        // Now resolve it
+        const resolveBtn = agentPage.getByTestId('action-resolve');
+        if (await resolveBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+          await resolveBtn.click();
+          await agentPage.waitForTimeout(2000);
+        }
+      }
+    }
+
+    await agentPage.close();
   });
 
   test.afterAll(async () => {
@@ -238,7 +360,7 @@ test.describe('14. Agent Console', () => {
     await expect(page.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId('messages-skeleton')).not.toBeVisible({ timeout: 20000 });
 
-    // Should have the messages from our chat API calls
+    // Should have the messages from our widget conversations
     const bodyText = await page.getByTestId('chat-messages-area').textContent();
     expect(bodyText!.length).toBeGreaterThan(0);
   });

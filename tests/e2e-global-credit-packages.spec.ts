@@ -15,7 +15,7 @@
 import { test, expect, Page, request } from '@playwright/test';
 
 const BOT_ID = 'e2e00000-0000-0000-0000-000000000001';
-const E2E_SECRET = 'e2e-playwright-secret-2026';
+const E2E_SECRET = process.env.E2E_TEST_SECRET!;
 const BASE_URL = 'http://localhost:3030';
 
 // Track IDs of packages created during tests for cleanup

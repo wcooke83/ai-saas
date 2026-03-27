@@ -23,20 +23,26 @@ test.describe('Fallback Help Articles', () => {
     }
   });
 
-  test('ARTICLE-003: Admin articles endpoint returns list with sources count', async ({ page }) => {
-    const res = await page.request.get(`/api/chatbots/${CHATBOT_ID}/articles`);
-    expect(res.ok()).toBeTruthy();
-    if (res.ok()) {
-      const data = await res.json();
-      expect(data.data).toHaveProperty('articles');
-      expect(data.data).toHaveProperty('knowledgeSourcesCount');
-    }
-  });
-
-  test('ARTICLE-004: Articles dashboard page loads', async ({ page }) => {
+  test('ARTICLE-003: Articles dashboard page loads with heading', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/articles`);
     await page.waitForLoadState('domcontentloaded');
     await expect(page.getByRole('heading', { name: 'Help Articles' })).toBeVisible({ timeout: 15000 });
+  });
+
+  test('ARTICLE-004: Articles page shows admin content and source count', async ({ page }) => {
+    await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/articles`);
+    await page.waitForLoadState('domcontentloaded');
+
+    // Verify API call returns articles data
+    const apiPromise = page.waitForResponse(
+      (res) => res.url().includes(`/api/chatbots/${CHATBOT_ID}/articles`) && res.request().method() === 'GET'
+    );
+    await page.reload();
+    const apiResponse = await apiPromise;
+    expect(apiResponse.ok()).toBeTruthy();
+    const data = await apiResponse.json();
+    expect(data.data).toHaveProperty('articles');
+    expect(data.data).toHaveProperty('knowledgeSourcesCount');
   });
 
   test('ARTICLE-005: Generate button is visible on articles page', async ({ page }) => {
@@ -45,29 +51,32 @@ test.describe('Fallback Help Articles', () => {
     await expect(page.getByText('Generate from Knowledge')).toBeVisible({ timeout: 15000 });
   });
 
-  test('ARTICLE-006: Credit exhaustion mode can be set to help_articles', async ({ page }) => {
-    const res = await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
-      data: {
-        credit_exhaustion_mode: 'help_articles',
-        credit_exhaustion_config: {
-          help_articles: {
-            searchPlaceholder: 'Search...',
-            emptyStateMessage: 'Nothing here',
-          },
-        },
-      },
-    });
-    expect(res.ok()).toBeTruthy();
+  test('ARTICLE-006: Credit exhaustion mode can be set to help_articles via settings', async ({ page }) => {
+    await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/settings`);
+    await page.waitForLoadState('domcontentloaded');
+
+    // Navigate to Credit Exhaustion section
+    await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
+    await page.locator('nav button', { hasText: 'Credit Exhaustion' }).click();
+    await expect(page.getByRole('heading', { name: 'Credit Exhaustion Fallback' })).toBeVisible({ timeout: 10000 });
+
+    // Select Help Articles mode
+    await page.locator('input[value="help_articles"]').click({ force: true });
+    await expect(page.getByText('Help Articles').first()).toBeVisible({ timeout: 5000 });
+
+    // Save
+    const savePromise = page.waitForResponse(
+      (res) => res.url().includes(`/api/chatbots/${CHATBOT_ID}`) && res.request().method() === 'PATCH'
+    );
+    await page.getByRole('button', { name: 'Save Changes' }).first().click();
+    const saveRes = await savePromise;
+    expect(saveRes.ok()).toBeTruthy();
   });
 
-  test('ARTICLE-007: Empty articles shows empty state', async ({ page }) => {
+  test('ARTICLE-007: Empty articles shows empty state or generate option', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/articles`);
     await page.waitForLoadState('domcontentloaded');
     await expect(page.getByText('Generate from Knowledge').or(page.getByText('No help articles generated yet'))).toBeVisible({ timeout: 15000 });
-    // Either articles are listed or empty state shown
-    const emptyVisible = await page.getByText('No help articles generated yet').isVisible().catch(() => false);
-    const generateVisible = await page.getByText('Generate from Knowledge').isVisible().catch(() => false);
-    expect(emptyVisible || generateVisible).toBeTruthy();
   });
 
   test('ARTICLE-008: Widget config includes creditExhausted field', async ({ request }) => {
@@ -78,10 +87,9 @@ test.describe('Fallback Help Articles', () => {
     }
   });
 
-  test('ARTICLE-009: Articles subnav link visible', async ({ page }) => {
+  test('ARTICLE-009: Articles page loads without errors', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/articles`);
     await page.waitForLoadState('domcontentloaded');
-    // The Articles link should be in the subnav
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible({ timeout: 5000 });
   });
 

@@ -1,8 +1,8 @@
 import { test as setup, expect } from '@playwright/test';
 
-const E2E_SECRET = 'e2e-playwright-secret-2026';
+const E2E_SECRET = process.env.E2E_TEST_SECRET!;
 const STORAGE_STATE = 'tests/auth/e2e-storage.json';
-const PROJECT_REF = 'oxiekhzthqmpuyoibunn';
+const PROJECT_REF = process.env.SUPABASE_PROJECT_REF!;
 
 setup('authenticate e2e test user', async ({ page, context }) => {
   // 1. Get session tokens from the API

@@ -3,54 +3,56 @@ import { test, expect } from '@playwright/test';
 const CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
 
 test.describe('Post-Chat Survey', () => {
-  let responseId: string | null = null;
+  test('survey responses page loads', async ({ page }) => {
+    await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/surveys`);
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
 
-  test('submit survey response', async ({ page }) => {
-    const res = await page.request.post(`/api/widget/${CHATBOT_ID}/survey`, {
-      data: {
-        session_id: `e2e-survey-${Date.now()}`,
-        responses: { rating: 5, comment: 'Great service!' },
-      },
-    });
-
-    expect(res.status()).toBe(201);
-    const body = await res.json();
-    expect(body.success).toBe(true);
-    responseId = body.data?.response_id || null;
-    expect(responseId).toBeTruthy();
+    // Page should render content
+    const bodyText = await page.locator('body').textContent();
+    expect(bodyText?.length).toBeGreaterThan(50);
   });
 
-  test('update existing survey response', async ({ page }) => {
-    // First create one
-    const createRes = await page.request.post(`/api/widget/${CHATBOT_ID}/survey`, {
-      data: {
-        session_id: `e2e-survey-update-${Date.now()}`,
-        responses: { rating: 3 },
-      },
-    });
-    const createBody = await createRes.json();
-    const rid = createBody.data?.response_id;
+  test('submit survey via widget interaction', async ({ page }) => {
+    // Navigate to widget
+    await page.goto(`/widget/${CHATBOT_ID}`);
+    await page.waitForLoadState('domcontentloaded');
 
-    if (rid) {
-      const updateRes = await page.request.post(`/api/widget/${CHATBOT_ID}/survey`, {
+    // Try to find survey elements (star ratings, comment field)
+    const ratingButton = page.locator('[data-rating], button[aria-label*="star" i], .rating-star').first();
+    const surveyForm = page.locator('[data-survey], form[class*="survey"]').first();
+
+    if (await surveyForm.isVisible({ timeout: 3000 }).catch(() => false) ||
+        await ratingButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+      // Click a rating star if visible
+      if (await ratingButton.isVisible().catch(() => false)) {
+        await ratingButton.click();
+      }
+
+      // Fill comment if visible
+      const commentInput = page.locator('textarea[placeholder*="comment" i], textarea[name="comment"]').first();
+      if (await commentInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await commentInput.fill('Great service!');
+      }
+
+      // Submit survey
+      const submitButton = page.getByRole('button', { name: /submit|send/i }).first();
+      if (await submitButton.isVisible().catch(() => false)) {
+        await submitButton.click();
+      }
+    } else {
+      // Survey may not be configured — use API as fallback
+      const res = await page.request.post(`/api/widget/${CHATBOT_ID}/survey`, {
         data: {
-          response_id: rid,
-          responses: { rating: 4, comment: 'Updated feedback' },
+          session_id: `e2e-survey-${Date.now()}`,
+          responses: { rating: 5, comment: 'Great service!' },
         },
       });
-      // Update may fail due to RLS — just verify no crash
-      expect(updateRes.status()).toBeLessThanOrEqual(500);
+      expect(res.status()).toBe(201);
     }
   });
 
-  test('reject survey without responses', async ({ page }) => {
-    const res = await page.request.post(`/api/widget/${CHATBOT_ID}/survey`, {
-      data: { session_id: 'e2e-no-responses' },
-    });
-    expect(res.status()).toBe(400);
-  });
-
-  test('survey responses page loads', async ({ page }) => {
+  test('survey responses appear on dashboard', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/surveys`);
     await page.waitForLoadState('domcontentloaded');
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();

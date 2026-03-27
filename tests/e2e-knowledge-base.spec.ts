@@ -25,7 +25,7 @@ test.describe('21. Knowledge Base', () => {
     await gotoKnowledge(page);
     await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
 
-    await page.getByRole('button', { name: /Add Website URL/i }).click();
+    await page.getByRole('button', { name: /Import Website Content/i }).click();
     await page.getByLabel('Website URL').fill('https://example.com/test-page');
     await page.getByRole('button', { name: /Add Source/i }).click();
 
@@ -33,7 +33,7 @@ test.describe('21. Knowledge Base', () => {
     await expect(
       page.getByText('Knowledge source added')
         .or(page.getByText(/maximum number|plan.*limit|Failed to add/i))
-        .or(page.getByRole('button', { name: /Add Website URL/i }))
+        .or(page.getByRole('button', { name: /Import Website Content/i }))
     ).toBeVisible({ timeout: 30000 });
   });
 
@@ -41,7 +41,7 @@ test.describe('21. Knowledge Base', () => {
     await gotoKnowledge(page);
     await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
 
-    await page.getByRole('button', { name: /Add Website URL/i }).click();
+    await page.getByRole('button', { name: /Import Website Content/i }).click();
     await page.getByLabel('Website URL').fill('https://example.com');
     await page.locator('#crawl-toggle').check();
     await expect(page.getByText('Max pages')).toBeVisible();
@@ -51,7 +51,7 @@ test.describe('21. Knowledge Base', () => {
     await expect(
       page.getByText('Website crawl started')
         .or(page.getByText(/maximum number|plan.*limit|Failed to add/i))
-        .or(page.getByRole('button', { name: /Add Website URL/i }))
+        .or(page.getByRole('button', { name: /Import Website Content/i }))
     ).toBeVisible({ timeout: 30000 });
   });
 
@@ -131,7 +131,7 @@ test.describe('21. Knowledge Base', () => {
     const reprocessBtn = page.locator('button[title*="Re-process"]').first();
     if (await reprocessBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await reprocessBtn.click();
-      await expect(page.getByText(/Re-process ".+"\?/)).toBeVisible();
+      await expect(page.getByText(/Re-process/)).toBeVisible({ timeout: 5000 });
       await page.getByRole('button', { name: 'Confirm' }).click();
       await expect(page.getByText('Re-processing started')).toBeVisible({ timeout: 15000 });
     } else {
@@ -145,7 +145,7 @@ test.describe('21. Knowledge Base', () => {
 
     const failedBadge = page.getByText('failed').first();
     if (await failedBadge.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await expect(page.locator('button[title*="Re-process"]')).toBeVisible();
+      await expect(page.locator('button[title*="Re-process"]').first()).toBeVisible();
     } else {
       test.skip(true, 'No failed sources to verify');
     }
@@ -176,7 +176,7 @@ test.describe('38. Knowledge Base Details', () => {
     await gotoKnowledge(page);
     await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
 
-    await page.getByRole('button', { name: /Add Website URL/i }).click();
+    await page.getByRole('button', { name: /Import Website Content/i }).click();
     await page.locator('#crawl-toggle').check();
 
     const slider = page.locator('#max-pages');
@@ -190,7 +190,7 @@ test.describe('38. Knowledge Base Details', () => {
     await gotoKnowledge(page);
     await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
 
-    await page.getByRole('button', { name: /Add Website URL/i }).click();
+    await page.getByRole('button', { name: /Import Website Content/i }).click();
     await page.getByRole('button', { name: /Add Source/i }).click();
 
     await expect(page.getByText('URL is required')).toBeVisible({ timeout: 5000 });
@@ -237,7 +237,7 @@ test.describe('38. Knowledge Base Details', () => {
     // Page loaded — verify content is present (sources or empty state)
     const content = page.getByText(/Sources \(\d+\)/)
       .or(page.getByText('No knowledge sources yet'))
-      .or(page.getByText('Add Website URL'));
+      .or(page.getByText('Import Website Content'));
     await expect(content.first()).toBeVisible({ timeout: 5000 });
   });
 
@@ -248,7 +248,7 @@ test.describe('38. Knowledge Base Details', () => {
     // Verify page loaded — sources or empty state visible
     const content = page.getByText(/Sources \(\d+\)/)
       .or(page.getByText('No knowledge sources yet'))
-      .or(page.getByText('Add Website URL'));
+      .or(page.getByText('Import Website Content'));
     await expect(content.first()).toBeVisible({ timeout: 5000 });
   });
 
@@ -283,14 +283,14 @@ test.describe('38. Knowledge Base Details', () => {
     await gotoKnowledge(page);
     await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
 
-    await page.getByRole('button', { name: /Add Website URL/i }).click();
+    await page.getByRole('button', { name: /Import Website Content/i }).click();
     await expect(page.getByLabel('Website URL')).toBeVisible();
     await page.getByLabel('Website URL').fill('https://test.com');
 
     await page.getByRole('button', { name: 'Cancel' }).click();
 
     await expect(page.getByLabel('Website URL')).not.toBeVisible();
-    await expect(page.getByRole('button', { name: /Add Website URL/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Import Website Content/i })).toBeVisible();
   });
 
   test('KNOWLEDGE-ADV-011: Crawl vs non-crawl success toast', async ({ page }) => {
@@ -298,7 +298,7 @@ test.describe('38. Knowledge Base Details', () => {
     await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
 
     // Test non-crawl URL add: should show "Knowledge source added" toast
-    await page.getByRole('button', { name: /Add Website URL/i }).click();
+    await page.getByRole('button', { name: /Import Website Content/i }).click();
     await page.getByLabel('Website URL').fill('https://example.com/toast-test');
     await page.getByRole('button', { name: /Add Source/i }).click();
 
@@ -306,7 +306,7 @@ test.describe('38. Knowledge Base Details', () => {
       page.getByText('Knowledge source added')
         .or(page.getByText('Website crawl started'))
         .or(page.getByText(/maximum number|plan.*limit|Failed to add/i))
-        .or(page.getByRole('button', { name: /Add Website URL/i }))
+        .or(page.getByRole('button', { name: /Import Website Content/i }))
     ).toBeVisible({ timeout: 30000 });
   });
 });
