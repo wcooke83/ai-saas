@@ -20,6 +20,7 @@ export interface AppSettings {
   multiplier_local: number;
   embedding_model_id: string | null; // Preferred model for embeddings
   sentiment_model_id: string | null; // Preferred model for sentiment analysis
+  article_generation_model_id: string | null; // Preferred model for article generation from URL
   chat_debug_mode: boolean; // When true, logs full prompt sources for every chat message
   updated_at: string;
   updated_by: string | null;
@@ -431,6 +432,31 @@ export async function getSentimentModel(): Promise<AIModelWithProvider | null> {
     return model;
   } catch (error) {
     console.error('Failed to fetch sentiment model:', error);
+    return null;
+  }
+}
+
+/**
+ * Get the preferred article generation model from app settings
+ * Returns null when not set (falls back to system default chat model)
+ */
+export async function getArticleGenerationModel(): Promise<AIModelWithProvider | null> {
+  try {
+    const settings = await getAppSettings();
+
+    if (!settings?.article_generation_model_id) {
+      return null;
+    }
+
+    const model = await getModelById(settings.article_generation_model_id);
+
+    if (!model || !model.is_enabled || !model.provider?.is_enabled) {
+      return null;
+    }
+
+    return model;
+  } catch (error) {
+    console.error('Failed to fetch article generation model:', error);
     return null;
   }
 }

@@ -171,8 +171,10 @@ export default function AIConfigPage() {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [embeddingModelId, setEmbeddingModelId] = useState<string | null>(null);
   const [sentimentModelId, setSentimentModelId] = useState<string | null>(null);
+  const [articleGenerationModelId, setArticleGenerationModelId] = useState<string | null>(null);
   const [savingEmbeddingModel, setSavingEmbeddingModel] = useState(false);
   const [savingSentimentModel, setSavingSentimentModel] = useState(false);
+  const [savingArticleGenerationModel, setSavingArticleGenerationModel] = useState(false);
 
   // Loading states for individual operations
   const [togglingProvider, setTogglingProvider] = useState<string | null>(null);
@@ -241,6 +243,7 @@ export default function AIConfigPage() {
       if (data.success && data.data) {
         setEmbeddingModelId(data.data.embedding_model_id || null);
         setSentimentModelId(data.data.sentiment_model_id || null);
+        setArticleGenerationModelId(data.data.article_generation_model_id || null);
       }
     } catch (err) {
       console.error('Failed to load settings:', err);
@@ -650,6 +653,35 @@ export default function AIConfigPage() {
     }
   };
 
+  const handleSetArticleGenerationModel = async (modelId: string | null) => {
+    setSavingArticleGenerationModel(true);
+    const previousValue = articleGenerationModelId;
+    setArticleGenerationModelId(modelId);
+
+    try {
+      const response = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ article_generation_model_id: modelId }),
+      });
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error?.message || 'Failed to update article generation model');
+      }
+
+      const modelName = modelId
+        ? models.find((m) => m.id === modelId)?.name || 'Model'
+        : 'Chat default';
+      toast.success(`Article generation model set to ${modelName}`);
+    } catch (err) {
+      setArticleGenerationModelId(previousValue);
+      toast.error(err instanceof Error ? err.message : 'Failed to update article generation model');
+    } finally {
+      setSavingArticleGenerationModel(false);
+    }
+  };
+
   // Get non-embedding models (for chat default and sentiment dropdowns)
   const chatCapableModels = useMemo(() => {
     return models.filter((m) => {
@@ -766,6 +798,138 @@ export default function AIConfigPage() {
         </div>
       </div>
 
+      {/* Active Model Assignments */}
+      <div className="sticky top-0 z-20 pt-20 lg:pt-4 -mt-20 lg:-mt-4">
+        {/* Solid background covers from top of viewport to bottom of card — hides content scrolling above */}
+        <div className="absolute inset-x-0 top-0 bottom-8 bg-[rgb(var(--page-bg))]" aria-hidden="true" />
+        <div className="relative pb-4">
+        <Card className="shadow-lg ring-1 ring-secondary-900/5 dark:ring-white/10">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="w-5 h-5 text-primary-500" aria-hidden="true" />
+            Active Model Assignments
+          </CardTitle>
+          <CardDescription>
+            Which AI model is used for each task. Changes take effect immediately.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Chat Default */}
+            <div className="flex items-center gap-4">
+              <Label className="text-sm font-medium w-40 shrink-0">Chat (default)</Label>
+              <div className="flex-1">
+                <select
+                  value={models.find((m) => m.is_default)?.id || ''}
+                  onChange={(e) => e.target.value && handleSetDefault(e.target.value)}
+                  disabled={settingDefault !== null}
+                  className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {chatCapableModels.map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {model.provider_name} - {model.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <p className="text-xs text-secondary-500 dark:text-secondary-400 w-36 shrink-0">
+                Users can override
+              </p>
+            </div>
+
+            {/* Embeddings */}
+            <div className="flex items-center gap-4">
+              <Label htmlFor="embedding-model" className="text-sm font-medium w-40 shrink-0">Embeddings</Label>
+              <div className="flex-1 flex items-center gap-2">
+                <select
+                  id="embedding-model"
+                  value={embeddingModelId || ''}
+                  onChange={(e) => handleSetEmbeddingModel(e.target.value || null)}
+                  disabled={savingEmbeddingModel}
+                  className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="">Auto-select (Gemini → OpenAI)</option>
+                  {embeddingCapableModels.length > 0 &&
+                    embeddingCapableModels.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.provider_name} - {model.name}
+                        {model.pricing.cost_in === 0 && model.pricing.cost_out === 0 ? ' (FREE)' : ''}
+                      </option>
+                    ))
+                  }
+                </select>
+                {savingEmbeddingModel && (
+                  <Loader2 className="w-5 h-5 animate-spin text-primary-500 shrink-0" />
+                )}
+              </div>
+              <p className="text-xs text-secondary-500 dark:text-secondary-400 w-36 shrink-0">
+                Knowledge base vectors
+              </p>
+            </div>
+
+            {/* Sentiment Analysis */}
+            <div className="flex items-center gap-4">
+              <Label htmlFor="sentiment-model" className="text-sm font-medium w-40 shrink-0">
+                Sentiment Analysis
+              </Label>
+              <div className="flex-1 flex items-center gap-2">
+                <select
+                  id="sentiment-model"
+                  value={sentimentModelId || ''}
+                  onChange={(e) => handleSetSentimentModel(e.target.value || null)}
+                  disabled={savingSentimentModel}
+                  className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {chatCapableModels.map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {model.provider_name} - {model.name}
+                    </option>
+                  ))}
+                </select>
+                {savingSentimentModel && (
+                  <Loader2 className="w-5 h-5 animate-spin text-primary-500 shrink-0" />
+                )}
+              </div>
+              <p className="text-xs text-secondary-500 dark:text-secondary-400 w-36 shrink-0">
+                Conversation scoring
+              </p>
+            </div>
+
+            {/* Article Generation */}
+            <div className="flex items-center gap-4">
+              <Label htmlFor="article-generation-model" className="text-sm font-medium w-40 shrink-0">
+                Article Generation
+              </Label>
+              <div className="flex-1 flex items-center gap-2">
+                <select
+                  id="article-generation-model"
+                  value={articleGenerationModelId || ''}
+                  onChange={(e) => handleSetArticleGenerationModel(e.target.value || null)}
+                  disabled={savingArticleGenerationModel}
+                  className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {chatCapableModels.map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {model.provider_name} - {model.name}
+                    </option>
+                  ))}
+                </select>
+                {savingArticleGenerationModel && (
+                  <Loader2 className="w-5 h-5 animate-spin text-primary-500 shrink-0" />
+                )}
+              </div>
+              <p className="text-xs text-secondary-500 dark:text-secondary-400 w-36 shrink-0">
+                Generate from URL
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+        </div>
+        {/* Fade-out gradient — uses mask to punch through the wrapper's solid background */}
+        <div className="h-8 -mb-2 pointer-events-none" style={{ background: `linear-gradient(to bottom, rgb(var(--page-bg)), transparent)` }} aria-hidden="true" />
+      </div>
+
       {/* Providers Section */}
       <Card>
         <CardHeader>
@@ -873,102 +1037,6 @@ export default function AIConfigPage() {
         </CardContent>
       </Card>
 
-      {/* Active Model Assignments */}
-      <Card className="sticky top-16 z-10 shadow-md">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-primary-500" aria-hidden="true" />
-            Active Model Assignments
-          </CardTitle>
-          <CardDescription>
-            Which AI model is used for each task. Changes take effect immediately.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Chat Default */}
-            <div className="flex items-center gap-4">
-              <Label className="text-sm font-medium w-40 shrink-0">Chat (default)</Label>
-              <div className="flex-1">
-                <select
-                  value={models.find((m) => m.is_default)?.id || ''}
-                  onChange={(e) => e.target.value && handleSetDefault(e.target.value)}
-                  disabled={settingDefault !== null}
-                  className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {chatCapableModels.map((model) => (
-                    <option key={model.id} value={model.id}>
-                      {model.provider_name} - {model.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <p className="text-xs text-secondary-500 dark:text-secondary-400 w-36 shrink-0">
-                Users can override
-              </p>
-            </div>
-
-            {/* Embeddings */}
-            <div className="flex items-center gap-4">
-              <Label htmlFor="embedding-model" className="text-sm font-medium w-40 shrink-0">Embeddings</Label>
-              <div className="flex-1 flex items-center gap-2">
-                <select
-                  id="embedding-model"
-                  value={embeddingModelId || ''}
-                  onChange={(e) => handleSetEmbeddingModel(e.target.value || null)}
-                  disabled={savingEmbeddingModel}
-                  className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="">Auto-select (Gemini → OpenAI)</option>
-                  {embeddingCapableModels.length > 0 &&
-                    embeddingCapableModels.map((model) => (
-                      <option key={model.id} value={model.id}>
-                        {model.provider_name} - {model.name}
-                        {model.pricing.cost_in === 0 && model.pricing.cost_out === 0 ? ' (FREE)' : ''}
-                      </option>
-                    ))
-                  }
-                </select>
-                {savingEmbeddingModel && (
-                  <Loader2 className="w-5 h-5 animate-spin text-primary-500 shrink-0" />
-                )}
-              </div>
-              <p className="text-xs text-secondary-500 dark:text-secondary-400 w-36 shrink-0">
-                Knowledge base vectors
-              </p>
-            </div>
-
-            {/* Sentiment Analysis */}
-            <div className="flex items-center gap-4">
-              <Label htmlFor="sentiment-model" className="text-sm font-medium w-40 shrink-0">
-                Sentiment Analysis
-              </Label>
-              <div className="flex-1 flex items-center gap-2">
-                <select
-                  id="sentiment-model"
-                  value={sentimentModelId || ''}
-                  onChange={(e) => handleSetSentimentModel(e.target.value || null)}
-                  disabled={savingSentimentModel}
-                  className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {chatCapableModels.map((model) => (
-                    <option key={model.id} value={model.id}>
-                      {model.provider_name} - {model.name}
-                    </option>
-                  ))}
-                </select>
-                {savingSentimentModel && (
-                  <Loader2 className="w-5 h-5 animate-spin text-primary-500 shrink-0" />
-                )}
-              </div>
-              <p className="text-xs text-secondary-500 dark:text-secondary-400 w-36 shrink-0">
-                Conversation scoring
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Models Section */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -1033,17 +1101,6 @@ export default function AIConfigPage() {
                     </Tooltip>
                   </th>
                   <th className="text-center py-3 px-4 text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                    <Tooltip content="Default chat model — users can override in their settings" side="bottom">
-                      <button
-                        onClick={() => handleSort('default')}
-                        className="flex items-center justify-center w-full hover:text-secondary-900 dark:hover:text-secondary-200 transition-colors"
-                      >
-                        Chat Default
-                        {getSortIcon('default')}
-                      </button>
-                    </Tooltip>
-                  </th>
-                  <th className="text-center py-3 px-4 text-sm font-medium text-secondary-600 dark:text-secondary-400">
                     <Tooltip content="Available for users to select" side="bottom">
                       <button
                         onClick={() => handleSort('enabled')}
@@ -1102,29 +1159,6 @@ export default function AIConfigPage() {
                           <Badge variant={tierColors[model.tier]}>
                             {model.tier}
                           </Badge>
-                        </Tooltip>
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <Tooltip
-                          content={model.is_default ? 'Current chat default' : 'Set as chat default'}
-                          side="top"
-                        >
-                          <div className="relative inline-flex items-center justify-center">
-                            {settingDefault === model.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin text-primary-500" />
-                            ) : (
-                              <input
-                                type="radio"
-                                name="default_model"
-                                checked={model.is_default}
-                                disabled={settingDefault !== null}
-                                onChange={() => handleSetDefault(model.id)}
-                                className={`h-4 w-4 text-primary-500 focus:ring-primary-500 border-secondary-300 dark:border-secondary-600 ${
-                                  settingDefault !== null ? 'opacity-50 cursor-wait' : ''
-                                }`}
-                              />
-                            )}
-                          </div>
                         </Tooltip>
                       </td>
                       <td className="py-3 px-4 text-center">
@@ -1202,7 +1236,7 @@ export default function AIConfigPage() {
                     {/* Expanded pricing row */}
                     {expandedRows.has(model.id) && (
                       <tr className="bg-secondary-50 dark:bg-secondary-800/30">
-                        <td colSpan={6} className="py-4 px-4">
+                        <td colSpan={5} className="py-4 px-4">
                           <div className="pl-10 grid gap-4 sm:grid-cols-3">
                             <div className="p-3 bg-white dark:bg-secondary-800 rounded-lg border border-secondary-200 dark:border-secondary-700">
                               <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wide mb-2">

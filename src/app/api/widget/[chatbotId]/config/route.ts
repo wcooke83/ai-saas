@@ -32,6 +32,7 @@ interface ChatbotConfig {
   credit_exhaustion_config: Record<string, unknown> | null;
   monthly_message_limit: number;
   messages_this_month: number;
+  purchased_credits_remaining: number;
   memory_enabled: boolean;
   session_ttl_hours: number | null;
   is_published: boolean;
@@ -51,7 +52,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     // Filter to only published+active chatbots manually
     const { data: chatbotData, error } = await (supabase as any)
       .from('chatbots')
-      .select('id, name, welcome_message, placeholder_text, logo_url, widget_config, pre_chat_form_config, post_chat_survey_config, file_upload_config, proactive_messages_config, transcript_config, escalation_config, feedback_config, live_handoff_config, telegram_config, credit_exhaustion_mode, credit_exhaustion_config, monthly_message_limit, messages_this_month, memory_enabled, session_ttl_hours, is_published, status, language, allowed_origins')
+      .select('id, name, welcome_message, placeholder_text, logo_url, widget_config, pre_chat_form_config, post_chat_survey_config, file_upload_config, proactive_messages_config, transcript_config, escalation_config, feedback_config, live_handoff_config, telegram_config, credit_exhaustion_mode, credit_exhaustion_config, monthly_message_limit, messages_this_month, purchased_credits_remaining, memory_enabled, session_ttl_hours, is_published, status, language, allowed_origins')
       .eq('id', chatbotId)
       .eq('is_published', true)
       .eq('status', 'active')
@@ -136,39 +137,39 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
             // on the `agent-presence:${chatbotId}` channel — no server query needed
             return false;
           })(),
-          creditExhausted: chatbot.monthly_message_limit > 0 && chatbot.messages_this_month >= chatbot.monthly_message_limit,
-          creditLow: (() => {
-            const creditExhausted = chatbot.monthly_message_limit > 0 && chatbot.messages_this_month >= chatbot.monthly_message_limit;
-            const usageRatio = chatbot.monthly_message_limit > 0 ? chatbot.messages_this_month / chatbot.monthly_message_limit : 0;
-            return chatbot.monthly_message_limit > 0 && usageRatio >= 0.8 && !creditExhausted;
+          // Dual credit pool: exhausted only when BOTH monthly AND purchased are depleted
+          creditExhausted: (() => {
+            if (!chatbot.monthly_message_limit || chatbot.monthly_message_limit <= 0) return false;
+            const monthlyRemaining = Math.max(0, chatbot.monthly_message_limit - (chatbot.messages_this_month || 0));
+            const purchasedRemaining = chatbot.purchased_credits_remaining || 0;
+            // For auto-purchase mode, the server handles topup — widget should not show exhaustion
+            if ((chatbot.credit_exhaustion_mode || 'tickets') === 'purchase_credits') return false;
+            return (monthlyRemaining + purchasedRemaining) <= 0;
           })(),
-          creditRemaining: chatbot.monthly_message_limit > 0 ? Math.max(0, chatbot.monthly_message_limit - chatbot.messages_this_month) : null,
+          // For non-purchase modes: low credit warning when monthly is 80%+ used and no purchased credits
+          creditLow: (() => {
+            if ((chatbot.credit_exhaustion_mode || 'tickets') === 'purchase_credits') return false;
+            if (!chatbot.monthly_message_limit || chatbot.monthly_message_limit <= 0) return false;
+            const monthlyRemaining = Math.max(0, chatbot.monthly_message_limit - (chatbot.messages_this_month || 0));
+            const purchasedRemaining = chatbot.purchased_credits_remaining || 0;
+            const totalRemaining = monthlyRemaining + purchasedRemaining;
+            const totalExhausted = totalRemaining <= 0;
+            const usageRatio = (chatbot.messages_this_month || 0) / chatbot.monthly_message_limit;
+            return usageRatio >= 0.8 && !totalExhausted;
+          })(),
+          creditRemaining: (() => {
+            if ((chatbot.credit_exhaustion_mode || 'tickets') === 'purchase_credits') return null;
+            if (!chatbot.monthly_message_limit || chatbot.monthly_message_limit <= 0) return null;
+            const monthlyRemaining = Math.max(0, chatbot.monthly_message_limit - (chatbot.messages_this_month || 0));
+            return monthlyRemaining + (chatbot.purchased_credits_remaining || 0);
+          })(),
           creditExhaustionMode: chatbot.credit_exhaustion_mode || 'tickets',
           creditExhaustionConfig: {
             ...DEFAULT_CREDIT_EXHAUSTION_CONFIG,
             ...(chatbot.credit_exhaustion_config || {}),
           },
-          creditPackages: await (async () => {
-            if ((chatbot.credit_exhaustion_mode || 'tickets') !== 'purchase_credits') return [];
-            const creditExhausted = chatbot.monthly_message_limit > 0 && chatbot.messages_this_month >= chatbot.monthly_message_limit;
-            const usageRatio = chatbot.monthly_message_limit > 0 ? chatbot.messages_this_month / chatbot.monthly_message_limit : 0;
-            const creditLow = chatbot.monthly_message_limit > 0 && usageRatio >= 0.8 && !creditExhausted;
-            if (!creditExhausted && !creditLow) return [];
-            // Fetch global packages, filter out any disabled by this chatbot
-            const { data: pkgs } = await supabase
-              .from('credit_packages')
-              .select('id, name, credit_amount, price_cents, stripe_price_id')
-              .eq('is_global', true)
-              .eq('active', true)
-              .order('sort_order', { ascending: true });
-            const disabledIds: string[] = (chatbot.credit_exhaustion_config as any)?.purchase_credits?.disabledPackageIds || [];
-            return (pkgs || [])
-              .filter((p: any) => !disabledIds.includes(p.id))
-              .map((p: any) => ({
-                id: p.id, name: p.name, creditAmount: p.credit_amount,
-                priceCents: p.price_cents, stripePriceId: p.stripe_price_id,
-              }));
-          })(),
+          // No creditPackages sent to widget — auto-purchase is server-side only
+          creditPackages: [],
           memoryEnabled: chatbot.memory_enabled === true,
           sessionTtlHours: chatbot.session_ttl_hours ?? 24,
         },

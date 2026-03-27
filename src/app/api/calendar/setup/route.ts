@@ -69,7 +69,16 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
 
     if (!integration) {
-      return successResponse({ eventType: null, businessHours: null, services: [], providers: [] });
+      // No integration yet — still fetch EA services/providers so the user can create one
+      let services: Array<{ id: number; name: string; duration: number }> = [];
+      let providers: Array<{ id: number; firstName: string; lastName: string }> = [];
+      try {
+        const ea = new EasyAppointmentsAdapter({});
+        [services, providers] = await Promise.all([ea.getServices(), ea.getProviders()]);
+      } catch {
+        // EA might not be configured
+      }
+      return successResponse({ eventType: null, businessHours: null, services, providers });
     }
 
     // Get event type and business hours

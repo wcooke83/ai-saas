@@ -229,6 +229,8 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<string>('general');
+  const [sectionErrors, setSectionErrors] = useState<Record<string, string>>({});
+  const [highlightField, setHighlightField] = useState<string | null>(null);
   const [isTranslateModalOpen, setIsTranslateModalOpen] = useState(false);
 
   // Per-section translation warning state
@@ -253,6 +255,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
   // Template UI state
   const [templateFilter, setTemplateFilter] = useState<TemplateCategory | 'all'>('all');
   const previousPromptRef = useRef<string | null>(null);
+  const replacedCustomPromptRef = useRef(false);
   const [appliedTemplateName, setAppliedTemplateName] = useState<string | null>(null);
 
   // Non-form UI state
@@ -353,16 +356,101 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
     }
   }, [activeSection, creditPackagesLoaded]);
 
+  // Clear section errors reactively as user fixes issues
+  const watchedName = watch('name');
+  const watchedSystemPrompt = watch('systemPrompt');
+  const watchedCreditExhaustionMode = watch('creditExhaustionMode');
+  const watchedSelectedPackageId = watch('creditExhaustionConfig')?.purchase_credits?.selectedPackageId;
+
+  useEffect(() => {
+    if (Object.keys(sectionErrors).length === 0) return;
+    setSectionErrors(prev => {
+      const next = { ...prev };
+      if (prev.general && watchedName.trim()) delete next.general;
+      if (prev.prompt && watchedSystemPrompt.trim().length >= 10) delete next.prompt;
+      if (prev.fallback && (watchedCreditExhaustionMode !== 'purchase_credits' || watchedSelectedPackageId)) delete next.fallback;
+      return Object.keys(next).length === Object.keys(prev).length ? prev : next;
+    });
+  }, [watchedName, watchedSystemPrompt, watchedCreditExhaustionMode, watchedSelectedPackageId, sectionErrors]);
+
+  // Highlight effect: scroll to validation error target after tab switch
+  useEffect(() => {
+    if (!highlightField) return;
+    const timer = setTimeout(() => {
+      const el = document.querySelector(`[data-field="${highlightField}"]`) as HTMLElement | null;
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 150);
+    const clearTimer = setTimeout(() => setHighlightField(null), 5000);
+    return () => { clearTimeout(timer); clearTimeout(clearTimer); };
+  }, [highlightField, activeSection]);
+
   const handleSave = useCallback(async (formData?: SettingsFormData) => {
     const values = formData ?? getValues();
+    // Centralized cross-tab validation
+    const validationErrors: Array<{ section: string; field: string; message: string }> = [];
     if (!values.name.trim()) {
-      toast.error('Chatbot name is required');
-      return;
+      validationErrors.push({ section: 'general', field: 'name', message: 'Chatbot name is required' });
     }
     if (values.systemPrompt.trim().length < 10) {
-      toast.error('System prompt must be at least 10 characters');
+      validationErrors.push({ section: 'prompt', field: 'systemPrompt', message: 'System prompt must be at least 10 characters' });
+    }
+    if (values.creditExhaustionMode === 'purchase_credits' && !values.creditExhaustionConfig?.purchase_credits?.selectedPackageId) {
+      validationErrors.push({ section: 'fallback', field: 'autoTopupPackage', message: 'Please select a credit package for auto-purchase' });
+    }
+
+    if (validationErrors.length > 0) {
+      const errorMap: Record<string, string> = {};
+      validationErrors.forEach(e => { errorMap[e.section] = e.message; });
+      setSectionErrors(errorMap);
+
+      const sectionLabels: Record<string, string> = {
+        general: 'General', prompt: 'System Prompt', 'ai-model': 'AI Model',
+        memory: 'Memory', 'pre-chat': 'Pre-Chat Form', 'post-chat': 'Post-Chat Survey',
+        'file-uploads': 'File Uploads', proactive: 'Proactive', transcripts: 'Transcripts',
+        feedback: 'Feedback & Reports', handoff: 'Live Handoff', fallback: 'Credit Exhaustion',
+      };
+
+      const first = validationErrors[0];
+      const errorTabCount = new Set(validationErrors.map(e => e.section)).size;
+
+      const goToSection = (section: string, field: string) => {
+        setActiveSection(section);
+        setTimeout(() => setHighlightField(field), 150);
+      };
+
+      if (errorTabCount > 1) {
+        toast.error(
+          <span>
+            {errorTabCount} tabs have issues that need attention.{' '}
+            <span
+              className="underline cursor-pointer hover:text-red-200"
+              onClick={() => goToSection(first.section, first.field)}
+            >
+              Go to {sectionLabels[first.section] || first.section}
+            </span>
+          </span>,
+          { duration: 8000 },
+        );
+      } else if (activeSection === first.section) {
+        toast.error(first.message);
+        setHighlightField(first.field);
+      } else {
+        toast.error(
+          <span>
+            {first.message}.{' '}
+            <span
+              className="underline cursor-pointer hover:text-red-200"
+              onClick={() => goToSection(first.section, first.field)}
+            >
+              Go to {sectionLabels[first.section] || first.section}
+            </span>
+          </span>,
+          { duration: 8000 },
+        );
+      }
       return;
     }
+    setSectionErrors({});
 
     setSaving(true);
     try {
@@ -422,7 +510,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
     } finally {
       setSaving(false);
     }
-  }, [id, getValues, reset]);
+  }, [id, getValues, reset, activeSection]);
 
   const onSubmit = handleSubmit((data) => handleSave(data));
 
@@ -553,9 +641,11 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
             >
               <section.icon className="w-4 h-4" />
               {section.label}
-              {'warning' in section && section.warning && (
+              {sectionErrors[section.id] ? (
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-[pulse_0.6s_ease-in-out_3]" />
+              ) : 'warning' in section && section.warning ? (
                 <span className="w-2 h-2 rounded-full bg-amber-500" />
-              )}
+              ) : null}
             </button>
           ))}
         </div>
@@ -579,9 +669,11 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               >
                 <section.icon className="w-4 h-4 flex-shrink-0" />
                 {section.label}
-                {'warning' in section && section.warning && (
+                {sectionErrors[section.id] ? (
+                  <span className="w-2 h-2 rounded-full bg-red-500 ml-auto animate-pulse" />
+                ) : 'warning' in section && section.warning ? (
                   <span className="w-2 h-2 rounded-full bg-amber-500 ml-auto" />
-                )}
+                ) : null}
               </button>
             ))}
           </div>
@@ -624,7 +716,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-2">
+              <div className={cn("space-y-2", highlightField === 'name' && "ring-2 ring-red-500 rounded-lg p-2 transition-all")} data-field="name">
                 <Label htmlFor="name">Chatbot Name *</Label>
                 <Input
                   id="name"
@@ -746,7 +838,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Label htmlFor="welcome_message">Welcome Message</Label>
@@ -765,21 +857,6 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   The first message visitors see when they open the chat.
                   Use {'{{name}}'}, {'{{email}}'}, or {'{{company_name}}'} to personalize.
                 </p>
-                {!preChatConfig.enabled && /\{\{\w+\}\}/.test(welcomeMessage) && (
-                  <div className="flex gap-1 text-xs text-amber-600 dark:text-amber-400 mt-1">
-                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                    <p>
-                      Placeholders require the{' '}
-                      <span
-                        className="underline whitespace-nowrap cursor-pointer hover:text-amber-700 dark:hover:text-amber-300"
-                        onClick={() => setActiveSection('pre-chat')}
-                      >
-                        pre-chat form
-                      </span>{' '}
-                      to be enabled.
-                    </p>
-                  </div>
-                )}
               </div>
 
               <div className="space-y-2">
@@ -800,6 +877,21 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   Placeholder text shown in the message input field
                 </p>
               </div>
+              {!preChatConfig.enabled && /\{\{\w+\}\}/.test(welcomeMessage) && (
+                <div className="col-span-1 lg:col-span-2 flex gap-1 text-xs text-amber-600 dark:text-amber-400">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                  <p>
+                    Placeholders require the{' '}
+                    <span
+                      className="underline whitespace-nowrap cursor-pointer hover:text-amber-700 dark:hover:text-amber-300"
+                      onClick={() => setActiveSection('pre-chat')}
+                    >
+                      pre-chat form
+                    </span>{' '}
+                    to be enabled.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Allowed Origins (CORS) */}
@@ -865,7 +957,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   <div className="flex items-center justify-between gap-3 p-3 mb-4 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg">
                     <div className="flex items-center gap-2 text-sm text-primary-700 dark:text-primary-300">
                       <Info className="w-4 h-4 shrink-0" />
-                      <span>Template &ldquo;{appliedTemplateName}&rdquo; applied.{previousPromptRef.current ? ' Your previous prompt was replaced.' : ''}</span>
+                      <span>Template &ldquo;{appliedTemplateName}&rdquo; applied.{previousPromptRef.current ? (replacedCustomPromptRef.current ? ' Your custom prompt was replaced.' : ' Your previous prompt was replaced.') : ''}</span>
                     </div>
                     {previousPromptRef.current !== null && (
                       <button
@@ -873,6 +965,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                           setValue('systemPrompt', previousPromptRef.current || '', { shouldDirty: true });
                           setAppliedTemplateName(null);
                           previousPromptRef.current = null;
+                          replacedCustomPromptRef.current = false;
                         }}
                         className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-primary-600 dark:text-primary-400 bg-white dark:bg-secondary-800 border border-primary-200 dark:border-primary-700 rounded-md hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors shrink-0"
                       >
@@ -908,20 +1001,22 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                         <Tooltip
                           key={template.id}
                           content={
-                            <div className="max-w-sm font-mono text-xs whitespace-pre-wrap">{previewParagraph}</div>
+                            <div className="font-mono text-xs whitespace-pre-wrap">{previewParagraph}</div>
                           }
                           side="bottom"
                           delayDuration={500}
-                          wrapperClassName="relative"
+                          className="!min-w-[24rem] !max-w-[36rem]"
+                          wrapperClassName="relative min-w-0"
                         >
                           <button
                             onClick={() => {
                               previousPromptRef.current = systemPrompt;
+                              replacedCustomPromptRef.current = !SYSTEM_PROMPT_TEMPLATES.some(t => t.prompt === systemPrompt);
                               setValue('systemPrompt', template.prompt, { shouldDirty: true });
                               setAppliedTemplateName(template.name);
                             }}
                             className={cn(
-                              'p-4 text-left rounded-lg border transition-all duration-150 group relative',
+                              'w-full h-full p-4 text-left rounded-lg border transition-all duration-150 group relative',
                               isSelected
                                 ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 ring-1 ring-primary-500'
                                 : isRecommended
@@ -976,7 +1071,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className={cn("space-y-2", highlightField === 'systemPrompt' && "ring-2 ring-red-500 rounded-lg p-2 transition-all")} data-field="systemPrompt">
                 <Label htmlFor="system_prompt">System Prompt *</Label>
                 <textarea
                   id="system_prompt"
@@ -1262,6 +1357,8 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
           onOpenTranslate={() => {
             setIsTranslateModalOpen(true);
           }}
+          welcomeMessage={welcomeMessage}
+          onNavigateToGeneral={() => setActiveSection('general')}
         />
       )}
 
@@ -1970,7 +2067,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               {([
                 { value: 'tickets' as const, label: 'Open Tickets', desc: 'Show a ticket form for visitors to submit support requests' },
                 { value: 'contact_form' as const, label: 'Simple Contact Form', desc: 'Show a basic contact form with name, email, and message' },
-                { value: 'purchase_credits' as const, label: 'Purchase Additional Quota', desc: 'Allow visitors to purchase more credits via Stripe' },
+                { value: 'purchase_credits' as const, label: 'Auto-Purchase Additional Credits', desc: 'Automatically purchase more credits using your saved payment method when your chatbot runs out' },
                 { value: 'help_articles' as const, label: 'Help Articles', desc: 'Display searchable help articles from your knowledge sources' },
               ]).map((mode) => (
                 <label key={mode.value} className={cn(
@@ -1995,14 +2092,20 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               ))}
             </div>
 
-            {/* Pre-emptive warning info callout for purchase_credits mode */}
+            {/* Auto-purchase info callout */}
             {watch('creditExhaustionMode') === 'purchase_credits' && (
               <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
                 <div className="flex items-start gap-2">
                   <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                  <p className="text-xs text-blue-700 dark:text-blue-400">
-                    When this mode is active, visitors will see a non-blocking purchase banner when credits reach 80% usage, allowing them to buy more before running out. Once credits are fully exhausted, the chat will switch to a purchase-only view.
-                  </p>
+                  <div className="text-xs text-blue-700 dark:text-blue-400 space-y-1">
+                    <p className="font-medium">How credits are consumed:</p>
+                    <ol className="list-decimal list-inside space-y-0.5">
+                      <li>Monthly plan credits are used first</li>
+                      <li>When monthly credits run out, purchased credits kick in automatically</li>
+                      <li>Purchased credits never expire and carry over each month</li>
+                    </ol>
+                    <p className="mt-2">When all credits are exhausted, the selected package below will be automatically charged to your payment method on file. Your visitors&apos; conversations will continue without interruption.</p>
+                  </div>
                 </div>
               </div>
             )}
@@ -2170,116 +2273,116 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               </div>
             )}
 
-            {/* Purchase Credits Config */}
+            {/* Auto-Purchase Credits Config */}
             {watch('creditExhaustionMode') === 'purchase_credits' && (
-              <div className="space-y-4 pt-4 border-t border-secondary-200 dark:border-secondary-700">
-                <h4 className="text-sm font-medium">Credit Packages</h4>
-                <div>
-                  <Label className="text-xs">Upsell Message</Label>
-                  <Input
-                    value={watch('creditExhaustionConfig')?.purchase_credits?.upsellMessage || ''}
-                    onChange={(e) => {
-                      const cfg = { ...watch('creditExhaustionConfig') };
-                      cfg.purchase_credits = { ...cfg.purchase_credits, upsellMessage: e.target.value };
-                      setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
-                    }}
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Purchase Success Message</Label>
-                  <Input
-                    value={watch('creditExhaustionConfig')?.purchase_credits?.purchaseSuccessMessage || ''}
-                    onChange={(e) => {
-                      const cfg = { ...watch('creditExhaustionConfig') };
-                      cfg.purchase_credits = { ...cfg.purchase_credits, purchaseSuccessMessage: e.target.value };
-                      setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
-                    }}
-                  />
-                </div>
+              <div className={cn("space-y-4 pt-4 border-t border-secondary-200 dark:border-secondary-700", highlightField === 'autoTopupPackage' && "ring-2 ring-red-500 rounded-lg p-4 transition-all")} data-field="autoTopupPackage">
+                <h4 className="text-sm font-medium">Select Auto-Purchase Package</h4>
+                <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                  Choose the package that will be automatically purchased when your chatbot runs out of credits.
+                </p>
 
-                {/* Available packages — read-only, managed by admin */}
-                <div className="space-y-3">
-                  <Label className="text-xs">Available Packages</Label>
+                {!creditPackagesLoaded && (
+                  <div className="p-3 text-center">
+                    <Loader2 className="w-4 h-4 animate-spin mx-auto text-secondary-400" />
+                  </div>
+                )}
 
-                  {!creditPackagesLoaded && (
-                    <div className="p-3 text-center">
-                      <Loader2 className="w-4 h-4 animate-spin mx-auto text-secondary-400" />
-                    </div>
-                  )}
+                {creditPackagesLoaded && creditPackages.length === 0 && (
+                  <div className="p-4 bg-secondary-50 dark:bg-secondary-800 rounded-lg text-center">
+                    <p className="text-sm text-secondary-500 dark:text-secondary-400">
+                      No credit packages have been set up yet.
+                    </p>
+                    <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-1">
+                      Contact your platform administrator to configure credit packages.
+                    </p>
+                  </div>
+                )}
 
-                  {creditPackagesLoaded && creditPackages.length === 0 && (
-                    <div className="p-4 bg-secondary-50 dark:bg-secondary-800 rounded-lg text-center">
-                      <p className="text-sm text-secondary-500 dark:text-secondary-400">
-                        No credit packages have been set up yet.
-                      </p>
-                      <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-1">
-                        Contact your platform administrator to configure purchasable credit packages.
-                      </p>
-                      <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-2 italic">
-                        Packages are managed by the platform administrator in the Admin Panel.
-                      </p>
-                    </div>
-                  )}
-
+                {/* Radio card package selector (single-select) */}
+                <div className="space-y-2">
                   {creditPackages.map((pkg) => {
-                    const disabledIds: string[] = watch('creditExhaustionConfig')?.purchase_credits?.disabledPackageIds || [];
-                    const isEnabled = !disabledIds.includes(pkg.id!);
+                    const selectedId = watch('creditExhaustionConfig')?.purchase_credits?.selectedPackageId;
+                    const isSelected = selectedId === pkg.id;
                     return (
-                      <div
+                      <label
                         key={pkg.id}
                         className={cn(
-                          'flex items-center justify-between rounded-lg border p-3 transition-colors',
-                          isEnabled
-                            ? 'border-secondary-200 dark:border-secondary-700'
-                            : 'border-secondary-100 dark:border-secondary-800 opacity-60'
+                          'flex items-center justify-between rounded-lg border p-4 cursor-pointer transition-colors',
+                          isSelected
+                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 ring-1 ring-primary-500'
+                            : 'border-secondary-200 dark:border-secondary-700 hover:border-secondary-300 dark:hover:border-secondary-600'
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            role="switch"
-                            aria-checked={isEnabled}
-                            onClick={() => {
+                          <input
+                            type="radio"
+                            name="autoTopupPackage"
+                            value={pkg.id}
+                            checked={isSelected}
+                            onChange={() => {
                               const cfg = { ...watch('creditExhaustionConfig') };
-                              const pc = { ...cfg.purchase_credits };
-                              const current: string[] = pc.disabledPackageIds || [];
-                              if (isEnabled) {
-                                pc.disabledPackageIds = [...current, pkg.id!];
-                              } else {
-                                pc.disabledPackageIds = current.filter((id: string) => id !== pkg.id);
-                              }
-                              cfg.purchase_credits = pc;
+                              cfg.purchase_credits = {
+                                ...cfg.purchase_credits,
+                                selectedPackageId: pkg.id ?? null,
+                              };
                               setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
                             }}
-                            className={cn(
-                              'relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                              isEnabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
-                            )}
-                          >
-                            <span
-                              className={cn(
-                                'inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform',
-                                isEnabled ? 'translate-x-4' : 'translate-x-1'
-                              )}
-                            />
-                          </button>
+                            className="text-primary-600 focus:ring-primary-500"
+                          />
                           <div>
                             <span className="text-sm font-medium">{pkg.name}</span>
-                            <div className="flex items-center gap-2 text-xs text-secondary-500 dark:text-secondary-400">
-                              <span>{pkg.credit_amount} credits</span>
-                              <span>${(pkg.price_cents / 100).toFixed(2)}</span>
+                            <div className="text-xs text-secondary-500 dark:text-secondary-400">
+                              {pkg.credit_amount} additional messages
                             </div>
                           </div>
                         </div>
-                      </div>
+                        <span className="text-sm font-semibold text-secondary-900 dark:text-secondary-100">
+                          ${(pkg.price_cents / 100).toFixed(2)}
+                        </span>
+                      </label>
                     );
                   })}
                 </div>
 
+                {/* Monthly spend cap */}
                 {creditPackagesLoaded && creditPackages.length > 0 && (
-                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <p className="text-xs text-blue-700 dark:text-blue-300">
-                      Packages are configured by your platform administrator. Toggle off any packages you don&apos;t want visitors to see.
+                  <div className="space-y-2 pt-2">
+                    <Label className="text-xs">Maximum auto-purchases per month</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={50}
+                      value={watch('creditExhaustionConfig')?.purchase_credits?.maxAutoTopupsPerMonth ?? 3}
+                      onChange={(e) => {
+                        const cfg = { ...watch('creditExhaustionConfig') };
+                        cfg.purchase_credits = {
+                          ...cfg.purchase_credits,
+                          maxAutoTopupsPerMonth: Math.max(1, Math.min(50, parseInt(e.target.value) || 3)),
+                        };
+                        setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
+                      }}
+                      className="w-24"
+                    />
+                    {(() => {
+                      const selectedId = watch('creditExhaustionConfig')?.purchase_credits?.selectedPackageId;
+                      const selectedPkg = creditPackages.find(p => p.id === selectedId);
+                      const maxPerMonth = watch('creditExhaustionConfig')?.purchase_credits?.maxAutoTopupsPerMonth ?? 3;
+                      if (selectedPkg) {
+                        return (
+                          <p className="text-xs text-secondary-400 dark:text-secondary-500">
+                            Up to ${((selectedPkg.price_cents / 100) * maxPerMonth).toFixed(2)}/month in auto-purchases
+                          </p>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
+                )}
+
+                {creditPackagesLoaded && creditPackages.length > 0 && (
+                  <div className="p-3 bg-secondary-50 dark:bg-secondary-800 rounded-lg">
+                    <p className="text-xs text-secondary-500 dark:text-secondary-400 italic">
+                      Packages are managed by the platform administrator in the Admin Panel.
                     </p>
                   </div>
                 )}
@@ -2551,9 +2654,11 @@ interface PreChatFormEditorProps {
   language: string;
   shouldShowWarning: boolean;
   onOpenTranslate: () => void;
+  welcomeMessage: string;
+  onNavigateToGeneral: () => void;
 }
 
-function PreChatFormEditor({ config, onChange, language, shouldShowWarning, onOpenTranslate }: PreChatFormEditorProps) {
+function PreChatFormEditor({ config, onChange, language, shouldShowWarning, onOpenTranslate, welcomeMessage, onNavigateToGeneral }: PreChatFormEditorProps) {
   const updateConfig = <K extends keyof PreChatFormConfig>(key: K, value: PreChatFormConfig[K]) => {
     onChange({ ...config, [key]: value });
   };
@@ -2608,6 +2713,22 @@ function PreChatFormEditor({ config, onChange, language, shouldShowWarning, onOp
             </span>
           </label>
         </div>
+        {/* Placeholder Warning */}
+        {!config.enabled && /\{\{\w+\}\}/.test(welcomeMessage) && (
+          <div className="mt-2 flex gap-1 text-xs text-amber-600 dark:text-amber-400">
+            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+            <p>
+              Your{' '}
+              <span
+                className="underline whitespace-nowrap cursor-pointer hover:text-amber-700 dark:hover:text-amber-300"
+                onClick={onNavigateToGeneral}
+              >
+                welcome message
+              </span>{' '}
+              contains placeholders that won&apos;t work until the pre-chat form is enabled.
+            </p>
+          </div>
+        )}
         {/* Translation Warning */}
         {shouldShowWarning && language !== 'en' && (
           <div className="mt-2 flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm">

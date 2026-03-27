@@ -47,6 +47,7 @@ import { analyzeConversationSentiment, updateVisitorLoyalty } from '@/lib/chatbo
 import type { AIModelWithProvider } from '@/types/ai-models';
 import { CalendarService } from '@/lib/calendar/service';
 import { handleCalendarToolCall } from '@/lib/chatbots/tools/calendar-handler';
+import { attemptAutoTopup, triggerPreemptiveTopup } from '@/lib/chatbots/auto-topup';
 
 // ── Per-stage timing helper ──────────────────────────────────────────
 function createStageTracker(t0: number) {
@@ -255,7 +256,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     _stages.start('chatbot_loaded');
     const { data: chatbotData, error: chatbotError } = await supabase
       .from('chatbots')
-      .select('id, name, user_id, is_published, status, monthly_message_limit, messages_this_month, language, file_upload_config, memory_enabled, memory_days, model, temperature, max_tokens, system_prompt, enable_prompt_protection, live_fetch_threshold, allowed_origins')
+      .select('id, name, user_id, is_published, status, monthly_message_limit, messages_this_month, purchased_credits_remaining, credit_exhaustion_mode, language, file_upload_config, memory_enabled, memory_days, model, temperature, max_tokens, system_prompt, enable_prompt_protection, live_fetch_threshold, allowed_origins')
       .eq('id', chatbotId)
       .single();
 
@@ -278,14 +279,38 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       throw APIError.forbidden('Chatbot is not available');
     }
 
-    // Atomic message limit check + increment (prevents TOCTOU race condition)
+    // Atomic message limit check + increment (dual pool: monthly first, then purchased)
     if (chatbot.monthly_message_limit > 0) {
-      const { data: allowed } = await supabase.rpc('increment_chatbot_messages', {
+      const { data: creditResult } = await supabase.rpc('increment_chatbot_messages', {
         p_chatbot_id: chatbotId,
       });
-      if (allowed === false) {
-        console.warn(`[Chat:Limit] Chatbot "${chatbot.name || chatbotId}" hit monthly message limit — model: ${chatbot.model || 'default'}, limit: ${chatbot.monthly_message_limit}`);
-        throw APIError.usageLimitReached('Chatbot has reached its monthly message limit');
+
+      const result = creditResult as { allowed: boolean; monthly_remaining?: number; purchased_remaining?: number; reason?: string; source?: string } | null;
+
+      if (!result?.allowed) {
+        // Credits exhausted — attempt auto-topup if configured
+        if ((chatbot as any).credit_exhaustion_mode === 'purchase_credits') {
+          const topupResult = await attemptAutoTopup(chatbotId, chatbot.user_id);
+          if (topupResult.success) {
+            // Re-try the increment now that purchased credits were added
+            const { data: retryResult } = await supabase.rpc('increment_chatbot_messages', {
+              p_chatbot_id: chatbotId,
+            });
+            const retry = retryResult as { allowed: boolean } | null;
+            if (!retry?.allowed) {
+              throw APIError.usageLimitReached('Chatbot has reached its monthly message limit');
+            }
+          } else {
+            console.warn(`[Chat:AutoTopup] Failed for "${chatbot.name || chatbotId}": ${topupResult.error}`);
+            throw APIError.usageLimitReached('Chatbot has reached its monthly message limit');
+          }
+        } else {
+          console.warn(`[Chat:Limit] Chatbot "${chatbot.name || chatbotId}" hit monthly message limit — model: ${chatbot.model || 'default'}, limit: ${chatbot.monthly_message_limit}`);
+          throw APIError.usageLimitReached('Chatbot has reached its monthly message limit');
+        }
+      } else if (result.monthly_remaining === 0 && (result.purchased_remaining ?? 0) >= 0) {
+        // Monthly depleted, consuming purchased credits — fire pre-emptive topup async
+        triggerPreemptiveTopup(chatbotId, chatbot.user_id, result.purchased_remaining ?? 0).catch(() => {});
       }
     }
 

@@ -22,8 +22,7 @@ import { Tooltip } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
 import { H1 } from '@/components/ui/heading';
 import { OnboardingChecklist } from '@/components/chatbots/OnboardingChecklist';
-import { DEFAULT_WIDGET_CONFIG } from '@/lib/chatbots/types';
-import type { Chatbot, WidgetConfig } from '@/lib/chatbots/types';
+import type { Chatbot } from '@/lib/chatbots/types';
 
 interface ChatbotDetailProps {
   params: Promise<{ id: string }>;
@@ -42,7 +41,6 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasKnowledgeSources, setHasKnowledgeSources] = useState(false);
-  const [hasCustomWidget, setHasCustomWidget] = useState(false);
 
   useEffect(() => {
     async function fetchChatbot() {
@@ -58,19 +56,6 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
         const data = await response.json();
         const bot = data.data.chatbot as Chatbot;
         setChatbot(bot);
-
-        // Check if widget has been customized from defaults
-        const wc = bot.widget_config as WidgetConfig | undefined;
-        if (wc) {
-          const colorKeys = [
-            'primaryColor', 'secondaryColor', 'backgroundColor', 'textColor',
-            'userBubbleColor', 'userBubbleTextColor', 'botBubbleColor', 'botBubbleTextColor',
-          ] as const;
-          const isCustomized = colorKeys.some(
-            (key) => wc[key] !== DEFAULT_WIDGET_CONFIG[key]
-          );
-          setHasCustomWidget(isCustomized);
-        }
 
         // Fetch analytics stats
         try {
@@ -312,7 +297,6 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
       <OnboardingChecklist
         chatbotId={id}
         hasKnowledgeSources={hasKnowledgeSources}
-        hasCustomWidget={hasCustomWidget}
         isPublished={chatbot.is_published}
       />
 

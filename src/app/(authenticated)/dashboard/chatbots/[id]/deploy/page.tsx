@@ -96,6 +96,7 @@ export default function DeployPage({ params }: DeployPageProps) {
     }
 
     fetchChatbot();
+    localStorage.setItem(`chatbot-tested-${id}`, 'true');
   }, [id]);
 
   // Handle expand/shrink messages from the widget iframe

@@ -26,23 +26,27 @@ interface OnboardingStep {
 interface OnboardingChecklistProps {
   chatbotId: string;
   hasKnowledgeSources: boolean;
-  hasCustomWidget: boolean;
   isPublished: boolean;
 }
 
 const DISMISS_KEY_PREFIX = 'chatbot-onboarding-dismissed-';
+export const WIDGET_REVIEWED_KEY_PREFIX = 'chatbot-widget-reviewed-';
+export const CHATBOT_TESTED_KEY_PREFIX = 'chatbot-tested-';
 
 export function OnboardingChecklist({
   chatbotId,
   hasKnowledgeSources,
-  hasCustomWidget,
   isPublished,
 }: OnboardingChecklistProps) {
   const [dismissed, setDismissed] = useState(true); // start hidden to avoid flash
+  const [widgetReviewed, setWidgetReviewed] = useState(false);
+  const [chatbotTested, setChatbotTested] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem(`${DISMISS_KEY_PREFIX}${chatbotId}`);
     setDismissed(stored === 'true');
+    setWidgetReviewed(localStorage.getItem(`${WIDGET_REVIEWED_KEY_PREFIX}${chatbotId}`) === 'true');
+    setChatbotTested(localStorage.getItem(`${CHATBOT_TESTED_KEY_PREFIX}${chatbotId}`) === 'true');
   }, [chatbotId]);
 
   const steps: OnboardingStep[] = [
@@ -58,7 +62,7 @@ export function OnboardingChecklist({
       id: 'widget',
       label: 'Customize Widget',
       description: 'Match colors and branding to your website',
-      completed: hasCustomWidget,
+      completed: widgetReviewed,
       href: `/dashboard/chatbots/${chatbotId}/customize`,
       icon: Palette,
     },
@@ -66,7 +70,7 @@ export function OnboardingChecklist({
       id: 'test',
       label: 'Test Your Chatbot',
       description: 'Preview how visitors will interact with it',
-      completed: false, // always an action link
+      completed: chatbotTested,
       href: `/dashboard/chatbots/${chatbotId}/deploy`,
       icon: Play,
     },

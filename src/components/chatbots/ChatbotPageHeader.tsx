@@ -38,9 +38,15 @@ export function ChatbotPageHeader({ chatbotId, title, badges, actions }: Chatbot
         if (data?.data?.chatbot) {
           const { name, status, is_published, logo_url } = data.data.chatbot;
           setChatbot({ name, status, is_published, logo_url });
+        } else {
+          // API returned non-200 or no chatbot data — show header without chatbot details
+          setChatbot({ name: '', status: 'draft', is_published: false, logo_url: null });
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        // Network error — show header without chatbot details rather than skeleton forever
+        setChatbot({ name: '', status: 'draft', is_published: false, logo_url: null });
+      });
   }, [chatbotId]);
 
   if (!chatbot) {

@@ -1,0 +1,1 @@
+- [audit_2026-03-24.md](audit_2026-03-24.md) - Key security patterns and findings from the full application audit on 2026-03-24 (2 critical, 5 high, 5 medium, 5 low)

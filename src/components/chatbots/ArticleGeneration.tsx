@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
+import { validateUrl } from '@/lib/utils';
 
 interface ExtractionPrompt {
   id: string;
@@ -51,6 +52,7 @@ export function ArticleGeneration({
 }: ArticleGenerationProps) {
   // URL generation state
   const [urlInput, setUrlInput] = useState('');
+  const [urlError, setUrlError] = useState<string | null>(null);
   const [savedUrls, setSavedUrls] = useState<string[]>([]);
   const [generatingFromUrl, setGeneratingFromUrl] = useState(false);
   const [generatingFromKnowledge, setGeneratingFromKnowledge] = useState(false);
@@ -132,17 +134,23 @@ export function ArticleGeneration({
 
   const generateFromUrl = async () => {
     if (!urlInput.trim()) return;
+    const result = validateUrl(urlInput);
+    if (!result.valid) {
+      setUrlError(result.error);
+      return;
+    }
     setGeneratingFromUrl(true);
     try {
       const res = await fetch(`/api/chatbots/${chatbotId}/articles/generate-from-url`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: urlInput.trim() }),
+        body: JSON.stringify({ url: result.url }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error?.message || 'Failed');
       toast.success(data.data?.message || 'Articles generated from URL');
       setUrlInput('');
+      setUrlError(null);
       fetchSchedule();
       onGenerated?.();
     } catch (err) {
@@ -295,7 +303,10 @@ export function ArticleGeneration({
   };
 
   const enabledPromptsCount = prompts.filter(p => p.enabled).length;
-  const hasCustomSchedules = prompts.some(p => p.schedule !== 'inherit');
+  const promptsWithActiveSchedule = prompts.filter(p => {
+    if (p.schedule === 'inherit') return schedule !== 'manual';
+    return p.schedule !== 'manual';
+  }).length;
 
   return (
     <div className="space-y-4">
@@ -327,25 +338,106 @@ export function ArticleGeneration({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2">
-            <Input
-              placeholder="https://example.com"
-              value={urlInput}
-              onChange={e => setUrlInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && generateFromUrl()}
-              disabled={isGenerating}
-              className="flex-1"
-            />
-            <Button
-              size="sm"
-              onClick={generateFromUrl}
-              disabled={isGenerating || !urlInput.trim()}
-            >
-              {generatingFromUrl ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Link2 className="w-4 h-4 mr-2" />}
-              {generatingFromUrl ? 'Scraping...' : 'Generate'}
-            </Button>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Input
+                placeholder="example.com or https://example.com"
+                value={urlInput}
+                onChange={e => { setUrlInput(e.target.value); setUrlError(null); }}
+                onKeyDown={e => e.key === 'Enter' && generateFromUrl()}
+                disabled={isGenerating}
+                className={`flex-1 ${urlError ? 'border-red-500 focus:ring-red-500' : ''}`}
+              />
+              <Button
+                size="sm"
+                onClick={generateFromUrl}
+                disabled={isGenerating || !urlInput.trim()}
+              >
+                {generatingFromUrl ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Link2 className="w-4 h-4 mr-2" />}
+                {generatingFromUrl ? 'Scraping...' : 'Generate'}
+              </Button>
+            </div>
+            {urlError && (
+              <p className="text-sm text-red-500">{urlError}</p>
+            )}
           </div>
         </CardContent>
+      </Card>
+
+      {/* Schedule Settings */}
+      <Card>
+        <CardHeader
+          className="pb-3 cursor-pointer select-none"
+          onClick={() => setShowSchedule(!showSchedule)}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Auto-Regeneration Schedule
+                <Badge variant="outline" className={`text-xs ml-1 ${
+                  schedule === 'manual' && promptsWithActiveSchedule > 0
+                    ? 'text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-700'
+                    : ''
+                }`}>
+                  {schedule === 'manual'
+                    ? promptsWithActiveSchedule > 0
+                      ? `${promptsWithActiveSchedule} prompt${promptsWithActiveSchedule !== 1 ? 's' : ''} scheduled`
+                      : 'Off'
+                    : schedule.charAt(0).toUpperCase() + schedule.slice(1)
+                  }
+                </Badge>
+              </CardTitle>
+              <CardDescription className="text-xs mt-1">
+                Default schedule for all prompts. Individual prompts can override this with their own schedule.
+              </CardDescription>
+            </div>
+            {showSchedule ? <ChevronUp className="w-4 h-4 text-secondary-400" /> : <ChevronDown className="w-4 h-4 text-secondary-400" />}
+          </div>
+        </CardHeader>
+        {showSchedule && (
+          <CardContent className="pt-0">
+            <div className="space-y-3">
+              <div>
+                <Label className="text-xs mb-1.5 block">Default Regeneration Frequency</Label>
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={schedule}
+                    onChange={e => updateSchedule(e.target.value as Schedule)}
+                    disabled={updatingSchedule}
+                    options={[
+                      { value: 'manual', label: 'Manual only' },
+                      { value: 'daily', label: 'Daily' },
+                      { value: 'weekly', label: 'Weekly' },
+                      { value: 'monthly', label: 'Monthly' },
+                    ]}
+                  />
+                  {updatingSchedule && <Loader2 className="w-4 h-4 animate-spin text-secondary-400" />}
+                </div>
+              </div>
+              {lastGeneratedAt && (
+                <p className="text-xs text-secondary-500">
+                  Last generated: {new Date(lastGeneratedAt).toLocaleString()}
+                </p>
+              )}
+              {schedule !== 'manual' ? (
+                <p className="text-xs text-secondary-400">
+                  All prompts set to &ldquo;Use default&rdquo; will regenerate on a {schedule} basis.
+                  Individual prompts can override this in their schedule dropdown.
+                </p>
+              ) : (
+                <p className="text-xs text-secondary-400">
+                  Prompts set to &ldquo;Use default&rdquo; will not regenerate automatically.
+                  {promptsWithActiveSchedule > 0 && (
+                    <span className="text-blue-500 dark:text-blue-400">
+                      {' '}{promptsWithActiveSchedule} prompt{promptsWithActiveSchedule !== 1 ? 's have' : ' has'} {promptsWithActiveSchedule !== 1 ? 'their' : 'its'} own schedule and will still run.
+                    </span>
+                  )}
+                </p>
+              )}
+            </div>
+          </CardContent>
+        )}
       </Card>
 
       {/* Extraction Prompts */}
@@ -366,11 +458,6 @@ export function ArticleGeneration({
                 <Badge variant="outline" className="text-xs ml-1">
                   {enabledPromptsCount}/{prompts.length} active
                 </Badge>
-                {hasCustomSchedules && (
-                  <Badge variant="outline" className="text-xs ml-1 text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-700">
-                    Custom schedules
-                  </Badge>
-                )}
               </CardTitle>
               <CardDescription className="text-xs mt-1">
                 Questions to extract targeted articles from your content. Each prompt generates one focused article.
@@ -442,8 +529,8 @@ export function ArticleGeneration({
                           {prompt.question}
                         </span>
 
-                        {/* Per-prompt schedule badge */}
-                        {prompt.schedule !== 'inherit' && (
+                        {/* Per-prompt schedule indicator */}
+                        {prompt.schedule !== 'inherit' ? (
                           <Badge
                             variant="outline"
                             className="text-[10px] px-1.5 py-0 h-5 text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-700"
@@ -451,6 +538,11 @@ export function ArticleGeneration({
                             <Clock className="w-2.5 h-2.5 mr-0.5" />
                             {SCHEDULE_LABELS[prompt.schedule]}
                           </Badge>
+                        ) : (
+                          <span className="text-[10px] text-secondary-400 flex items-center gap-0.5">
+                            <Clock className="w-2.5 h-2.5" />
+                            {schedule === 'manual' ? 'Manual' : schedule.charAt(0).toUpperCase() + schedule.slice(1)}
+                          </span>
                         )}
 
                         <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -462,7 +554,7 @@ export function ArticleGeneration({
                             className="h-7 text-[10px] rounded border border-secondary-200 dark:border-secondary-700 bg-transparent px-1 text-secondary-500 hover:text-secondary-700 dark:hover:text-secondary-300 cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-500"
                             title="Set schedule for this prompt"
                           >
-                            <option value="inherit">Inherit default</option>
+                            <option value="inherit">{`Use default (${schedule === 'manual' ? 'Manual' : schedule.charAt(0).toUpperCase() + schedule.slice(1)})`}</option>
                             <option value="manual">Manual only</option>
                             <option value="daily">Daily</option>
                             <option value="weekly">Weekly</option>
@@ -546,69 +638,6 @@ export function ArticleGeneration({
                 </div>
               </div>
             )}
-          </CardContent>
-        )}
-      </Card>
-
-      {/* Schedule Settings */}
-      <Card>
-        <CardHeader
-          className="pb-3 cursor-pointer select-none"
-          onClick={() => setShowSchedule(!showSchedule)}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Auto-Regeneration Schedule
-                <Badge variant="outline" className="text-xs ml-1">
-                  {schedule === 'manual' ? 'Off' : schedule}
-                </Badge>
-              </CardTitle>
-              <CardDescription className="text-xs mt-1">
-                Automatically regenerate articles from your knowledge base to keep content up to date
-              </CardDescription>
-            </div>
-            {showSchedule ? <ChevronUp className="w-4 h-4 text-secondary-400" /> : <ChevronDown className="w-4 h-4 text-secondary-400" />}
-          </div>
-        </CardHeader>
-        {showSchedule && (
-          <CardContent className="pt-0">
-            <div className="space-y-3">
-              <div>
-                <Label className="text-xs mb-1.5 block">Default Regeneration Frequency</Label>
-                <div className="flex items-center gap-2">
-                  <Select
-                    value={schedule}
-                    onChange={e => updateSchedule(e.target.value as Schedule)}
-                    disabled={updatingSchedule}
-                    options={[
-                      { value: 'manual', label: 'Manual only' },
-                      { value: 'daily', label: 'Daily' },
-                      { value: 'weekly', label: 'Weekly' },
-                      { value: 'monthly', label: 'Monthly' },
-                    ]}
-                  />
-                  {updatingSchedule && <Loader2 className="w-4 h-4 animate-spin text-secondary-400" />}
-                </div>
-              </div>
-              {lastGeneratedAt && (
-                <p className="text-xs text-secondary-500">
-                  Last generated: {new Date(lastGeneratedAt).toLocaleString()}
-                </p>
-              )}
-              {schedule !== 'manual' && (
-                <p className="text-xs text-secondary-400">
-                  Articles will be regenerated from your existing knowledge sources on a {schedule} basis.
-                  Individual prompts can override this schedule via the clock icon in the prompts list above.
-                </p>
-              )}
-              {hasCustomSchedules && (
-                <p className="text-xs text-blue-500 dark:text-blue-400">
-                  Some prompts have custom schedules that override this default.
-                </p>
-              )}
-            </div>
           </CardContent>
         )}
       </Card>

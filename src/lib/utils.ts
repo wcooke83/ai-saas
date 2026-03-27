@@ -225,3 +225,53 @@ export function omit<T extends object, K extends keyof T>(
   keys.forEach((key) => delete result[key]);
   return result;
 }
+
+/**
+ * Normalize a URL string: auto-prepend https:// if no protocol is present.
+ */
+export function normalizeUrl(input: string): string {
+  const trimmed = input.trim();
+  if (!trimmed) return trimmed;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
+/**
+ * Validate a URL string for use as a knowledge source.
+ * Accepts input with or without https:// prefix.
+ * Returns { valid, url, error } where url is the normalized form.
+ */
+export function validateUrl(input: string): { valid: boolean; url: string; error: string | null } {
+  const trimmed = input.trim();
+  if (!trimmed) {
+    return { valid: false, url: '', error: 'URL is required' };
+  }
+
+  const normalized = normalizeUrl(trimmed);
+
+  // Use the URL constructor for structural validation
+  let parsed: URL;
+  try {
+    parsed = new URL(normalized);
+  } catch {
+    return { valid: false, url: normalized, error: 'Enter a valid URL (e.g. example.com or https://example.com)' };
+  }
+
+  // Must be http or https
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    return { valid: false, url: normalized, error: 'Only http and https URLs are supported' };
+  }
+
+  // Hostname must have at least one dot (require a TLD)
+  if (!parsed.hostname.includes('.')) {
+    return { valid: false, url: normalized, error: 'Enter a complete domain with a TLD (e.g. example.com)' };
+  }
+
+  // TLD must be at least 2 characters
+  const tld = parsed.hostname.split('.').pop() || '';
+  if (tld.length < 2) {
+    return { valid: false, url: normalized, error: 'Enter a valid domain (e.g. example.com)' };
+  }
+
+  return { valid: true, url: normalized, error: null };
+}

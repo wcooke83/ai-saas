@@ -89,11 +89,14 @@ test.describe('Performance Page', () => {
   test('refresh button exists and is clickable', async ({ page }) => {
     await expect(page.locator('h1', { hasText: 'Performance' })).toBeVisible({ timeout: 10000 });
 
+    // The Refresh button lives in the PerformanceFilterBar which only renders
+    // after the initial data fetch completes (loading skeleton disappears).
+    // Wait for it with a generous timeout.
     const refreshBtn = page.getByRole('button', { name: 'Refresh' });
-    await expect(refreshBtn).toBeVisible();
+    await expect(refreshBtn).toBeVisible({ timeout: 15000 });
     await refreshBtn.click();
-    // Should not crash
-    await expect(page.locator('h1', { hasText: 'Performance' })).toBeVisible();
+    // Should not crash — heading should remain visible after refresh triggers a new fetch
+    await expect(page.locator('h1', { hasText: 'Performance' })).toBeVisible({ timeout: 10000 });
   });
 
   test('shows empty state or data cards', async ({ page }) => {

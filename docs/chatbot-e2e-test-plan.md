@@ -464,12 +464,12 @@ Priority levels:
 - **Expected**: Textarea fills with the Customer Support template text. Template card shows as selected (highlighted border).
 - **Priority**: P1-High
 
-### SET-PROMPT-003: All five templates are available
-- **Description**: Verify all system prompt templates render.
+### SET-PROMPT-003: All templates are available
+- **Description**: Verify all system prompt templates render grouped by category.
 - **Pre-conditions**: Settings page on System Prompt section.
 - **Steps**:
-  1. Count the template cards.
-- **Expected**: Five templates visible: Helpful Assistant, Customer Support, Sales Assistant, Technical Support, FAQ Bot.
+  1. Count the template cards across all category groups.
+- **Expected**: Ten templates visible across four categories: General (Helpful Assistant, FAQ Bot), Sales & Revenue (Sales Assistant, Lead Generation, Appointment Booking, E-Commerce), Support (Customer Support, Technical Support), Engagement (Onboarding Guide, Re-Engagement).
 - **Priority**: P2-Medium
 
 ### SET-PROMPT-004: Prompt injection protection toggle

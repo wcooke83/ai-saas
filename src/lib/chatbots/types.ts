@@ -536,10 +536,8 @@ export interface CreditPackageConfig {
 }
 
 export interface PurchaseCreditsFallbackConfig {
-  upsellMessage: string;
-  purchaseSuccessMessage: string;
-  packages: CreditPackageConfig[];
-  disabledPackageIds: string[];
+  selectedPackageId: string | null;
+  maxAutoTopupsPerMonth: number;
 }
 
 export interface HelpArticlesFallbackConfig {
@@ -574,10 +572,8 @@ export const DEFAULT_CREDIT_EXHAUSTION_CONFIG: CreditExhaustionConfig = {
     autoReplyText: 'Thank you for reaching out. We\'ll get back to you soon.',
   },
   purchase_credits: {
-    upsellMessage: 'You\'ve used all your credits this month. Purchase more to continue chatting.',
-    purchaseSuccessMessage: 'Thank you for your purchase! Your credits have been added. You can now continue chatting.',
-    packages: [],
-    disabledPackageIds: [],
+    selectedPackageId: null,
+    maxAutoTopupsPerMonth: 3,
   },
   help_articles: {
     searchPlaceholder: 'Search help articles...',

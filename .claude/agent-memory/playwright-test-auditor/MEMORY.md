@@ -1,0 +1,3 @@
+- [Test Suite Overview](test_suite_overview.md) -- 133 specs, 1292 tests, health score 4/10, core patterns and IDs
+- [Auth Setup Pattern](auth_setup_pattern.md) -- E2E auth via /api/auth/e2e-login, hardcoded project ref in cookie
+- [Route Rename Issue](route_rename_escalations_issues.md) -- /escalations was renamed to /issues, tests lag behind

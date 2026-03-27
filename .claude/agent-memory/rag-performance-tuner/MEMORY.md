@@ -1,1 +1,1 @@
-- [project_rag_state.md](project_rag_state.md) - Comprehensive RAG system state as of 2026-03-21: embedding mismatch bug, DB indexes, thresholds, live fetch architecture, chunking params
+- [project_rag_state.md](project_rag_state.md) - RAG performance baselines and non-obvious architectural constraints

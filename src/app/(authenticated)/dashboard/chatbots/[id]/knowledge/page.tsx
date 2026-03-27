@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getClient } from '@/lib/supabase/client';
+import { validateUrl } from '@/lib/utils';
 import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
 import { ArticleGeneration } from '@/components/chatbots/ArticleGeneration';
 import type { KnowledgeSource } from '@/lib/chatbots/types';
@@ -45,6 +46,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
 
   // Form states
   const [urlInput, setUrlInput] = useState('');
+  const [urlError, setUrlError] = useState<string | null>(null);
   const [crawlEnabled, setCrawlEnabled] = useState(false);
   const [maxPages, setMaxPages] = useState(25);
   const [textInput, setTextInput] = useState('');
@@ -109,10 +111,16 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
       let body: Record<string, unknown> = {};
 
       switch (addMode) {
-        case 'url':
-          if (!urlInput.trim()) throw new Error('URL is required');
-          body = { type: 'url', url: urlInput.trim(), crawl: crawlEnabled, maxPages };
+        case 'url': {
+          const result = validateUrl(urlInput);
+          if (!result.valid) {
+            setUrlError(result.error);
+            setSubmitting(false);
+            return;
+          }
+          body = { type: 'url', url: result.url, crawl: crawlEnabled, maxPages };
           break;
+        }
         case 'text':
           if (!textInput.trim()) throw new Error('Content is required');
           body = { type: 'text', content: textInput.trim(), name: textName.trim() || undefined };
@@ -137,6 +145,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
       // Reset form and refresh
       setAddMode(null);
       setUrlInput('');
+      setUrlError(null);
       setCrawlEnabled(false);
       setMaxPages(25);
       setTextInput('');
@@ -429,11 +438,18 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
                   <Label htmlFor="url">Website URL</Label>
                   <Input
                     id="url"
-                    type="url"
-                    placeholder="https://example.com"
+                    type="text"
+                    placeholder="example.com or https://example.com"
                     value={urlInput}
-                    onChange={(e) => setUrlInput(e.target.value)}
+                    onChange={(e) => { setUrlInput(e.target.value); setUrlError(null); }}
+                    className={urlError ? 'border-red-500 focus:ring-red-500' : ''}
                   />
+                  {urlError && (
+                    <p className="text-sm text-red-500">{urlError}</p>
+                  )}
+                  <p className="text-xs text-secondary-500">
+                    https:// will be added automatically if not included
+                  </p>
                 </div>
 
                 <div className="flex items-start gap-3 p-3 rounded-lg border border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-800/50">

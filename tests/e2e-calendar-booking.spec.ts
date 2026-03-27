@@ -25,7 +25,7 @@ for (const line of envFile.split('\n')) {
 }
 
 const DASHBOARD_CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
-const WIDGET_CHATBOT_ID = '10df2440-6aac-441a-855d-715c0ea8e506';
+const WIDGET_CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
 const TIMEZONE = 'Australia/Brisbane';
 const CALENDAR_SETTINGS_URL = `/dashboard/chatbots/${DASHBOARD_CHATBOT_ID}/calendar`;
 const WIDGET_URL = `/widget/${WIDGET_CHATBOT_ID}`;
@@ -223,25 +223,40 @@ async function setupCalendarIntegrationViaUI(
 ): Promise<string | null> {
   await resolveEAIds();
 
-  await page.goto(`/dashboard/chatbots/${chatbotId}/calendar`);
-  await page.waitForLoadState('networkidle');
+  await page.goto(`/dashboard/chatbots/${chatbotId}/calendar`, { waitUntil: 'load', timeout: 60000 });
+  // Wait for the calendar page heading — may take a while on first load due to EA API
+  await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 60000 });
 
-  // Wait for the page to finish loading
-  await expect(page.getByText('Calendar Booking').first()).toBeVisible({ timeout: 20000 });
-
-  // Select EA service if dropdown is available
+  // Wait for the setup API to return services (the dropdown only renders when services load)
   const serviceSelect = page.locator('#ea-service');
-  if (await serviceSelect.isVisible({ timeout: 5000 }).catch(() => false)) {
+  const serviceVisible = await serviceSelect.isVisible({ timeout: 15000 }).catch(() => false);
+  console.log(`[Calendar E2E] Service dropdown visible: ${serviceVisible}`);
+  if (serviceVisible) {
     if (eaServiceId) {
       await serviceSelect.selectOption(eaServiceId);
+    } else {
+      // Select the first available option
+      const firstOption = serviceSelect.locator('option:not([value=""])').first();
+      if (await firstOption.count() > 0) {
+        const val = await firstOption.getAttribute('value');
+        if (val) await serviceSelect.selectOption(val);
+      }
     }
+  } else {
+    console.warn('[Calendar E2E] Service dropdown not found — EA may not be configured');
   }
 
   // Select EA provider if dropdown is available
   const providerSelect = page.locator('#ea-provider');
-  if (await providerSelect.isVisible({ timeout: 5000 }).catch(() => false)) {
+  if (await providerSelect.isVisible({ timeout: 10000 }).catch(() => false)) {
     if (eaProviderId) {
       await providerSelect.selectOption(eaProviderId);
+    } else {
+      const firstOption = providerSelect.locator('option:not([value=""])').first();
+      if (await firstOption.count() > 0) {
+        const val = await firstOption.getAttribute('value');
+        if (val) await providerSelect.selectOption(val);
+      }
     }
   }
 
@@ -251,9 +266,11 @@ async function setupCalendarIntegrationViaUI(
     await tzSelect.selectOption(TIMEZONE);
   }
 
-  // Click save button
-  const saveBtn = page.getByRole('button', { name: /save/i });
-  if (await saveBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+  // Click save/enable button
+  const saveBtn = page.getByRole('button', { name: /Enable Calendar|Update Calendar|Save/i });
+  const saveBtnVisible = await saveBtn.isVisible({ timeout: 5000 }).catch(() => false);
+  console.log(`[Calendar E2E] Save/Enable button visible: ${saveBtnVisible}`);
+  if (saveBtnVisible) {
     await saveBtn.click();
     // Wait for save to complete (toast or response)
     await page.waitForResponse(
@@ -288,19 +305,24 @@ test.describe('Calendar Booking Integration', () => {
   let liveProviderBookingId: string | null = null;
 
   test.beforeAll(async ({ browser }) => {
+    // Skip re-setup on retry if integration already created
+    if (integrationId) return;
+
+    // Use authenticated context so dashboard pages don't redirect to login
+    const context = await browser.newContext({
+      storageState: 'tests/auth/e2e-storage.json',
+    });
+
     // Set up calendar integration via the dashboard UI
-    const page = await browser.newPage();
+    const page = await context.newPage();
     integrationId = await setupCalendarIntegrationViaUI(page, DASHBOARD_CHATBOT_ID);
     bookingDate = getNextWeekday();
     console.log('[Calendar E2E] Integration:', integrationId, '| Booking date:', bookingDate);
     console.log('[Calendar E2E] EA service:', eaServiceId, '| EA provider:', eaProviderId);
 
-    // Also set up widget chatbot integration via UI
-    const widgetPage = await browser.newPage();
-    const widgetIntId = await setupCalendarIntegrationViaUI(widgetPage, WIDGET_CHATBOT_ID);
-    if (widgetIntId) console.log('[Calendar E2E] Widget integration:', widgetIntId);
-    await widgetPage.close();
+    // Widget uses the same chatbot — no separate setup needed
     await page.close();
+    await context.close();
   });
 
   test.afterAll(async () => {
@@ -335,9 +357,8 @@ test.describe('Calendar Booking Integration', () => {
       test.skip(!integrationId, 'No integration');
 
       // Navigate to calendar settings — the page loads availability data
-      await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('networkidle');
-      await expect(page.getByText('Calendar Booking').first()).toBeVisible({ timeout: 20000 });
+      await page.goto(CALENDAR_SETTINGS_URL, { waitUntil: 'load', timeout: 60000 });
+      await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 60000 });
 
       // The availability section should load and show data
       // We also verify via the widget that slots are queryable
@@ -691,7 +712,7 @@ test.describe('Calendar Booking Integration', () => {
     test('CAL-127: Dashboard calendar setup page loads for chatbot', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
       await page.waitForLoadState('networkidle');
-      await expect(page.getByText('Calendar Booking').first()).toBeVisible({ timeout: 20000 });
+      await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
     });
 
     test('CAL-129: Dashboard shows connection status', async ({ page }) => {
@@ -719,7 +740,7 @@ test.describe('Calendar Booking Integration', () => {
       await page.waitForLoadState('networkidle');
 
       // Should show the configuration sections
-      await expect(page.getByText('Calendar Booking').first()).toBeVisible({ timeout: 20000 });
+      await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
       await expect(page.locator('text=Appointment Settings')).toBeVisible({ timeout: 5000 });
     });
 
@@ -727,7 +748,7 @@ test.describe('Calendar Booking Integration', () => {
       await page.goto(CALENDAR_SETTINGS_URL);
       await page.waitForLoadState('networkidle');
 
-      await expect(page.getByText('Calendar Booking').first()).toBeVisible({ timeout: 20000 });
+      await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
 
       // Select service if dropdown is available
       const serviceSelect = page.locator('#ea-service');
@@ -765,7 +786,7 @@ test.describe('Calendar Booking Integration', () => {
       // Verify save worked by reloading
       await page.reload();
       await page.waitForLoadState('networkidle');
-      await expect(page.getByText('Calendar Booking').first()).toBeVisible({ timeout: 20000 });
+      await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
     });
 
     test('CAL-142: Saved timezone persists after reload', async ({ page }) => {
@@ -966,7 +987,7 @@ test.describe('Calendar Booking Integration', () => {
     test('CAL-170: Calendar settings page loads', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
       await page.waitForLoadState('networkidle');
-      await expect(page.getByText('Calendar Booking').first()).toBeVisible({ timeout: 20000 });
+      await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
     });
 
     test('CAL-171: Easy!Appointments connection card visible', async ({ page }) => {

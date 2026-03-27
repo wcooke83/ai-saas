@@ -23,6 +23,7 @@ const updateSettingsSchema = z.object({
   multiplier_local: z.number().min(0.01).max(100).optional(),
   embedding_model_id: z.string().uuid().optional().nullable(),
   sentiment_model_id: z.string().uuid().optional().nullable(),
+  article_generation_model_id: z.string().uuid().optional().nullable(),
   chat_debug_mode: z.boolean().optional(),
 });
 
@@ -48,6 +49,7 @@ export async function GET(req: NextRequest) {
       multiplier_local: settings.multiplier_local ?? settings.token_multiplier ?? 1,
       embedding_model_id: settings.embedding_model_id,
       sentiment_model_id: settings.sentiment_model_id ?? null,
+      article_generation_model_id: settings.article_generation_model_id ?? null,
       chat_debug_mode: settings.chat_debug_mode ?? false,
       updated_at: settings.updated_at,
     });
@@ -79,6 +81,7 @@ export async function PUT(req: NextRequest) {
       multiplier_local: updated.multiplier_local ?? updated.token_multiplier ?? 1,
       embedding_model_id: updated.embedding_model_id,
       sentiment_model_id: updated.sentiment_model_id ?? null,
+      article_generation_model_id: updated.article_generation_model_id ?? null,
       chat_debug_mode: updated.chat_debug_mode ?? false,
       updated_at: updated.updated_at,
     });

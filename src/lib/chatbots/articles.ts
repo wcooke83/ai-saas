@@ -8,6 +8,7 @@
 import { createHash } from 'crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generate } from '@/lib/ai/provider';
+import { getArticleGenerationModel } from '@/lib/settings';
 import { extractURL } from '@/lib/chatbots/knowledge/extractors/url';
 import { chunkText } from '@/lib/chatbots/knowledge/chunker';
 import { generateEmbeddings, resolveEmbeddingConfig } from '@/lib/chatbots/knowledge/embeddings';
@@ -247,6 +248,7 @@ async function embedArticlesAsKnowledge(
  */
 export async function generateHelpArticles(chatbotId: string, promptIds?: string[]): Promise<GenerateResult> {
   const supabase = createAdminClient();
+  const articleModel = await getArticleGenerationModel() || undefined;
 
   // Fetch extraction prompts (optionally filtered)
   const prompts = await fetchEnabledPrompts(supabase, chatbotId, promptIds);
@@ -307,7 +309,7 @@ export async function generateHelpArticles(chatbotId: string, promptIds?: string
       try {
         const result = await generate(
           `Question: ${prompt.question}\n\nKnowledge source content:\n${combinedContent}`,
-          { maxTokens: 2048, temperature: 0.3, systemPrompt: TARGETED_PROMPT }
+          { maxTokens: 2048, temperature: 0.3, systemPrompt: TARGETED_PROMPT, specificModel: articleModel }
         );
 
         const article = parseArticleJson(result.content);
@@ -350,6 +352,7 @@ export async function generateHelpArticles(chatbotId: string, promptIds?: string
           maxTokens: 2048,
           temperature: 0.3,
           systemPrompt: 'You are a help article generator. Always respond with valid JSON only, no markdown code blocks.',
+          specificModel: articleModel,
         });
 
         const article = parseArticleJson(result.content) || {
@@ -413,6 +416,7 @@ export async function generateHelpArticles(chatbotId: string, promptIds?: string
  */
 export async function generateArticlesFromUrl(chatbotId: string, url: string): Promise<GenerateResult> {
   const supabase = createAdminClient();
+  const articleModel = await getArticleGenerationModel() || undefined;
 
   // Scrape the URL
   const content = await extractURL(url);
@@ -433,6 +437,7 @@ export async function generateArticlesFromUrl(chatbotId: string, url: string): P
       maxTokens: 2048,
       temperature: 0.3,
       systemPrompt: 'You are a help article generator. Always respond with valid JSON only, no markdown code blocks.',
+      specificModel: articleModel,
     });
 
     const article = parseArticleJson(result.content) || {
@@ -470,7 +475,7 @@ export async function generateArticlesFromUrl(chatbotId: string, url: string): P
       try {
         const result = await generate(
           `Question: ${prompt.question}\n\nWebsite content from ${url}:\n${truncated}`,
-          { maxTokens: 2048, temperature: 0.3, systemPrompt: TARGETED_PROMPT }
+          { maxTokens: 2048, temperature: 0.3, systemPrompt: TARGETED_PROMPT, specificModel: articleModel }
         );
 
         const article = parseArticleJson(result.content);

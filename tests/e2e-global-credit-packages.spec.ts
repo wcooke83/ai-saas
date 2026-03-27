@@ -5,11 +5,11 @@
  * 1. Admin CRUD operations (create, read, update, delete, reorder)
  * 2. Admin API validation and error handling
  * 3. Public API serves only active global packages
- * 4. Settings page shows read-only packages with toggle controls
- * 5. Widget config serves global packages filtered by disabledPackageIds
- * 6. Widget purchase flow validates against global packages
+ * 4. Settings page shows radio card package selector for auto-purchase
+ * 5. Widget config returns empty creditPackages (auto-purchase is server-side)
+ * 6. Widget purchase API validates against global packages
  * 7. Admin nav includes Credit Packages link
- * 8. Edge cases (empty state, deactivation with purchase history, etc.)
+ * 8. Edge cases (config persistence, deactivation, auto-purchase mode)
  */
 
 import { test, expect, Page, request } from '@playwright/test';
@@ -435,17 +435,17 @@ test.describe('3. Public Credit Packages API', () => {
 
 
 // ============================================================
-// 4. SETTINGS PAGE — READ-ONLY PACKAGE TOGGLES
+// 4. SETTINGS PAGE — RADIO CARD PACKAGE SELECTOR
 // ============================================================
-test.describe('4. Settings Page — Package Toggles', () => {
+test.describe('4. Settings Page — Auto-Purchase Package Selection', () => {
 
   test.afterEach(async ({ page }) => {
     await cleanupTestPackages(page);
     await resetBotConfig(page);
   });
 
-  test('SET-001: Settings page shows global packages as read-only with toggles', async ({ page }) => {
-    // Create packages via the admin UI so they're properly persisted
+  test('SET-001: Settings page shows radio cards for package selection with details and spend cap', async ({ page }) => {
+    // Create packages via admin API (no admin UI for packages in settings)
     await createTestPackageViaUI(page, {
       name: 'Settings Pkg A',
       credits: 100,
@@ -459,38 +459,45 @@ test.describe('4. Settings Page — Package Toggles', () => {
       stripePriceId: 'price_e2e_settings_b',
     });
 
-    // Set bot to purchase_credits mode
-    await page.request.patch(`/api/chatbots/${BOT_ID}`, {
-      data: { credit_exhaustion_mode: 'purchase_credits' },
-    });
-
+    // Navigate to settings and select purchase_credits mode via UI
     await page.goto(`/dashboard/chatbots/${BOT_ID}/settings`);
     await page.waitForLoadState('domcontentloaded');
 
     // Navigate to Credit Exhaustion section
     await page.getByRole('button', { name: /Credit Exhaustion/i }).click();
 
-    // Verify packages are displayed (use .first() since they may appear in multiple contexts)
-    await expect(page.getByText('Settings Pkg A').first()).toBeVisible({ timeout: 10000 });
+    // Select Auto-Purchase mode via radio
+    const autoPurchaseLabel = page.locator('label').filter({ hasText: 'Auto-Purchase Additional Credits' });
+    await autoPurchaseLabel.click();
+
+    // Verify radio cards exist with correct name attribute
+    const radioCards = page.locator('input[type="radio"][name="autoTopupPackage"]');
+    await expect(radioCards.first()).toBeVisible({ timeout: 10000 });
+    const radioCount = await radioCards.count();
+    expect(radioCount).toBeGreaterThanOrEqual(2);
+
+    // Verify package names and details are displayed
+    await expect(page.getByText('Settings Pkg A').first()).toBeVisible();
     await expect(page.getByText('Settings Pkg B').first()).toBeVisible();
 
-    // Verify credit amounts are shown
-    await expect(page.getByText('100 credits').first()).toBeVisible();
-    await expect(page.getByText('500 credits').first()).toBeVisible();
+    // Verify credit amounts ("additional messages" text per UI)
+    await expect(page.getByText('100 additional messages').first()).toBeVisible();
+    await expect(page.getByText('500 additional messages').first()).toBeVisible();
 
-    // Verify prices are shown
+    // Verify prices
     await expect(page.getByText('$9.99').first()).toBeVisible();
     await expect(page.getByText('$24.99').first()).toBeVisible();
 
-    // Verify no "Add Package" button
+    // Verify spend cap input is visible
+    const spendCapInput = page.locator('input[type="number"]').last();
+    await expect(spendCapInput).toBeVisible();
+
+    // Verify no "Add Package" button (packages managed by admin)
     await expect(page.getByText('Add Package')).not.toBeVisible();
   });
 
   test('SET-002: Settings page shows empty state when no packages exist', async ({ page }) => {
-    // Delete all existing global packages via admin UI page to keep state consistent
-    await page.goto('/admin/credit-packages');
-    await page.waitForLoadState('domcontentloaded');
-    // Also delete via API to ensure clean slate
+    // Delete all existing global packages via admin API to ensure clean slate
     const listRes = await page.request.get('/api/admin/credit-packages');
     const listBody = await listRes.json();
     const pkgs = listBody?.data?.packages || [];
@@ -498,26 +505,27 @@ test.describe('4. Settings Page — Package Toggles', () => {
       await page.request.delete(`/api/admin/credit-packages/${pkg.id}`);
     }
 
-    await page.request.patch(`/api/chatbots/${BOT_ID}`, {
-      data: { credit_exhaustion_mode: 'purchase_credits' },
-    });
-
     await page.goto(`/dashboard/chatbots/${BOT_ID}/settings`);
     await page.waitForLoadState('domcontentloaded');
 
     await page.getByRole('button', { name: /Credit Exhaustion/i }).click();
 
+    // Select Auto-Purchase mode via UI
+    const autoPurchaseLabel = page.locator('label').filter({ hasText: 'Auto-Purchase Additional Credits' });
+    await autoPurchaseLabel.click();
+
     await expect(page.getByText('No credit packages have been set up yet')).toBeVisible({ timeout: 10000 });
   });
 
-  test('SET-003: Toggle disables a package and persists via save', async ({ page }) => {
+  test('SET-003: Selecting a radio card package persists after save', async ({ page }) => {
     const pkgId = await createTestPackageViaUI(page, {
-      name: 'Toggle Test Pkg',
+      name: 'Radio Test Pkg',
       credits: 200,
       priceDollars: '14.99',
-      stripePriceId: 'price_e2e_toggle_test',
+      stripePriceId: 'price_e2e_radio_test',
     });
 
+    // Reset config so no package is pre-selected
     await page.request.patch(`/api/chatbots/${BOT_ID}`, {
       data: {
         credit_exhaustion_mode: 'purchase_credits',
@@ -530,60 +538,60 @@ test.describe('4. Settings Page — Package Toggles', () => {
 
     await page.getByRole('button', { name: /Credit Exhaustion/i }).click();
 
-    // Wait for packages to load, then find the toggle for our package
-    await expect(page.getByText('Toggle Test Pkg').first()).toBeVisible({ timeout: 15000 });
+    // Wait for radio cards to load
+    await expect(page.getByText('Radio Test Pkg').first()).toBeVisible({ timeout: 15000 });
 
-    // Click the toggle switch — find the border container with our package name, get the switch inside it
-    const pkgRow = page.locator('.rounded-lg.border').filter({ hasText: 'Toggle Test Pkg' }).first();
-    const toggle = pkgRow.locator('button[role="switch"]');
-    await expect(toggle).toBeVisible({ timeout: 5000 });
+    // Click the label wrapper that contains the radio card for our package
+    const pkgLabel = page.locator('label').filter({ hasText: 'Radio Test Pkg' }).first();
+    await pkgLabel.click();
 
-    // Toggle is initially enabled (aria-checked=true), click to disable
-    await expect(toggle).toHaveAttribute('aria-checked', 'true');
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-checked', 'false');
+    // Verify radio is checked
+    const radio = pkgLabel.locator('input[type="radio"]');
+    await expect(radio).toBeChecked();
 
-    // Save settings — click the save button that's within the settings content area (not header)
+    // Save settings
     const saveButtons = page.getByRole('button', { name: 'Save Changes' });
-    // The last Save Changes button is typically the one in the content area
     const saveCount = await saveButtons.count();
     await saveButtons.nth(saveCount - 1).click();
-    await page.waitForTimeout(3000);
 
-    // Also save via API as backup to ensure disabledPackageIds persists
-    await page.request.patch(`/api/chatbots/${BOT_ID}`, {
-      data: {
-        credit_exhaustion_config: {
-          purchase_credits: { disabledPackageIds: [pkgId] },
-        },
-      },
-    });
+    // Wait for save to complete (toast or network response)
+    await page.waitForResponse(
+      (res) => res.url().includes(`/api/chatbots/${BOT_ID}`) && res.request().method() === 'PATCH',
+      { timeout: 10000 },
+    ).catch(() => {});
+    await page.waitForTimeout(1000);
 
-    // Verify the widget config excludes the disabled package
-    const configRes = await page.request.get(`/api/widget/${BOT_ID}/config`);
-    const config = await configRes.json();
-    const widgetPackageIds = (config.data.creditPackages || []).map((p: any) => p.id);
-    expect(widgetPackageIds).not.toContain(pkgId);
+    // Reload and verify persistence
+    await page.reload();
+    await page.waitForLoadState('domcontentloaded');
+    await page.getByRole('button', { name: /Credit Exhaustion/i }).click();
+    await expect(page.getByText('Radio Test Pkg').first()).toBeVisible({ timeout: 15000 });
+
+    // The radio for our package should still be checked
+    const reloadedLabel = page.locator('label').filter({ hasText: 'Radio Test Pkg' }).first();
+    const reloadedRadio = reloadedLabel.locator('input[type="radio"]');
+    await expect(reloadedRadio).toBeChecked();
   });
 });
 
 
 // ============================================================
-// 5. WIDGET CONFIG — GLOBAL PACKAGES WITH FILTERING
+// 5. WIDGET CONFIG — AUTO-PURCHASE (SERVER-SIDE)
 // ============================================================
-test.describe('5. Widget Config — Global Package Filtering', () => {
+test.describe('5. Widget Config — Auto-Purchase Behavior', () => {
 
   test.afterEach(async ({ page }) => {
     await cleanupTestPackages(page);
     await resetBotConfig(page);
   });
 
-  test('WIDGET-001: Widget config includes active global packages when mode is purchase_credits', async ({ page }) => {
-    const { body: created } = await createTestPackage(page, {
-      name: 'Widget Visible Pkg',
+  test('WIDGET-001: Widget config returns empty creditPackages for purchase_credits mode', async ({ page }) => {
+    // Auto-purchase is server-side — widget never gets package data
+    await createTestPackage(page, {
+      name: 'Server-Side Pkg',
       credit_amount: 100,
       price_cents: 999,
-      stripe_price_id: 'price_e2e_widget_vis',
+      stripe_price_id: 'price_e2e_widget_empty',
     });
 
     await page.request.patch(`/api/chatbots/${BOT_ID}`, {
@@ -594,40 +602,39 @@ test.describe('5. Widget Config — Global Package Filtering', () => {
     const config = await configRes.json();
 
     expect(config.data.creditExhaustionMode).toBe('purchase_credits');
-    const pkgNames = (config.data.creditPackages || []).map((p: any) => p.name);
-    expect(pkgNames).toContain('Widget Visible Pkg');
+    // creditPackages is always empty — auto-purchase is handled server-side
+    expect(config.data.creditPackages).toEqual([]);
   });
 
-  test('WIDGET-002: Widget config excludes disabled packages', async ({ page }) => {
-    const { body: a } = await createTestPackage(page, {
-      name: 'Widget Enabled',
-      stripe_price_id: 'price_e2e_widget_en',
-    });
-    const { body: b } = await createTestPackage(page, {
-      name: 'Widget Disabled',
-      stripe_price_id: 'price_e2e_widget_dis',
+  test('WIDGET-002: Widget config returns creditExhausted=false for purchase_credits mode', async ({ page }) => {
+    // Even with credits depleted, auto-purchase mode reports not exhausted (server tops up)
+    await page.request.patch(`/api/chatbots/${BOT_ID}`, {
+      data: { credit_exhaustion_mode: 'purchase_credits' },
     });
 
+    // Simulate credit exhaustion via API (set messages_this_month >= limit)
+    const botRes = await page.request.get(`/api/chatbots/${BOT_ID}`);
+    const botData = await botRes.json();
+    const limit = botData.data?.chatbot?.monthly_message_limit || 100;
+
     await page.request.patch(`/api/chatbots/${BOT_ID}`, {
-      data: {
-        credit_exhaustion_mode: 'purchase_credits',
-        credit_exhaustion_config: {
-          purchase_credits: {
-            disabledPackageIds: [b.data.package.id],
-          },
-        },
-      },
+      data: { messages_this_month: limit + 10 },
     });
 
     const configRes = await page.request.get(`/api/widget/${BOT_ID}/config`);
     const config = await configRes.json();
-    const pkgNames = (config.data.creditPackages || []).map((p: any) => p.name);
 
-    expect(pkgNames).toContain('Widget Enabled');
-    expect(pkgNames).not.toContain('Widget Disabled');
+    // Server handles auto-topup — widget should NOT see exhaustion
+    expect(config.data.creditExhausted).toBe(false);
+    expect(config.data.creditExhaustionMode).toBe('purchase_credits');
+
+    // Restore messages_this_month
+    await page.request.patch(`/api/chatbots/${BOT_ID}`, {
+      data: { messages_this_month: 0 },
+    });
   });
 
-  test('WIDGET-003: Widget config returns empty packages for non-purchase modes', async ({ page }) => {
+  test('WIDGET-003: Widget config returns empty creditPackages for non-purchase modes too', async ({ page }) => {
     await createTestPackage(page, {
       name: 'Should Not Appear',
       stripe_price_id: 'price_e2e_widget_nope',
@@ -640,54 +647,6 @@ test.describe('5. Widget Config — Global Package Filtering', () => {
     const configRes = await page.request.get(`/api/widget/${BOT_ID}/config`);
     const config = await configRes.json();
     expect(config.data.creditPackages).toEqual([]);
-  });
-
-  test('WIDGET-004: Widget config excludes inactive global packages', async ({ page }) => {
-    await createTestPackage(page, {
-      name: 'Active Widget Pkg',
-      stripe_price_id: 'price_e2e_widget_act',
-      active: true,
-    });
-    await createTestPackage(page, {
-      name: 'Inactive Widget Pkg',
-      stripe_price_id: 'price_e2e_widget_inact',
-      active: false,
-    });
-
-    await page.request.patch(`/api/chatbots/${BOT_ID}`, {
-      data: { credit_exhaustion_mode: 'purchase_credits' },
-    });
-
-    const configRes = await page.request.get(`/api/widget/${BOT_ID}/config`);
-    const config = await configRes.json();
-    const pkgNames = (config.data.creditPackages || []).map((p: any) => p.name);
-
-    expect(pkgNames).toContain('Active Widget Pkg');
-    expect(pkgNames).not.toContain('Inactive Widget Pkg');
-  });
-
-  test('WIDGET-005: Widget config package data has correct shape', async ({ page }) => {
-    await createTestPackage(page, {
-      name: 'Shape Test',
-      credit_amount: 250,
-      price_cents: 1999,
-      stripe_price_id: 'price_e2e_widget_shape',
-    });
-
-    await page.request.patch(`/api/chatbots/${BOT_ID}`, {
-      data: { credit_exhaustion_mode: 'purchase_credits' },
-    });
-
-    const configRes = await page.request.get(`/api/widget/${BOT_ID}/config`);
-    const config = await configRes.json();
-    const pkg = config.data.creditPackages.find((p: any) => p.name === 'Shape Test');
-
-    expect(pkg).toBeDefined();
-    expect(pkg.id).toBeDefined();
-    expect(pkg.name).toBe('Shape Test');
-    expect(pkg.creditAmount).toBe(250);
-    expect(pkg.priceCents).toBe(1999);
-    expect(pkg.stripePriceId).toBe('price_e2e_widget_shape');
   });
 });
 
@@ -875,117 +834,121 @@ test.describe('8. Edge Cases & Integration', () => {
     await resetBotConfig(page);
   });
 
-  test('EDGE-001: Multiple chatbots can have different disabledPackageIds', async ({ page }) => {
-    const { body: pkg } = await createTestPackage(page, {
+  test('EDGE-001: Each chatbot stores its own selectedPackageId independently', async ({ page }) => {
+    const pkgId = await createTestPackageViaUI(page, {
       name: 'Multi-Bot Pkg',
-      stripe_price_id: 'price_e2e_multi_bot',
+      credits: 100,
+      priceDollars: '9.99',
+      stripePriceId: 'price_e2e_multi_bot',
     });
-    const pkgId = pkg.data.package.id;
 
-    // Bot 1 disables the package
+    // Set selectedPackageId for our test bot
     await page.request.patch(`/api/chatbots/${BOT_ID}`, {
       data: {
         credit_exhaustion_mode: 'purchase_credits',
         credit_exhaustion_config: {
           purchase_credits: {
-            disabledPackageIds: [pkgId],
+            selectedPackageId: pkgId,
+            maxAutoTopupsPerMonth: 5,
           },
         },
       },
     });
 
-    const config1 = await (await page.request.get(`/api/widget/${BOT_ID}/config`)).json();
-    const pkg1Ids = (config1.data.creditPackages || []).map((p: any) => p.id);
-    expect(pkg1Ids).not.toContain(pkgId);
+    // Verify config was saved correctly
+    const botRes = await page.request.get(`/api/chatbots/${BOT_ID}`);
+    const botData = await botRes.json();
+    expect(botData.data?.chatbot?.credit_exhaustion_config?.purchase_credits?.selectedPackageId).toBe(pkgId);
+    expect(botData.data?.chatbot?.credit_exhaustion_config?.purchase_credits?.maxAutoTopupsPerMonth).toBe(5);
   });
 
-  test('EDGE-002: disabledPackageIds with non-existent IDs are harmlessly ignored', async ({ page }) => {
+  test('EDGE-002: selectedPackageId persists in config after save via settings UI', async ({ page }) => {
+    const pkgId = await createTestPackageViaUI(page, {
+      name: 'Persist Config Pkg',
+      credits: 150,
+      priceDollars: '11.99',
+      stripePriceId: 'price_e2e_persist_cfg',
+    });
+
+    // Set mode via API, then use UI to select the package
+    await page.request.patch(`/api/chatbots/${BOT_ID}`, {
+      data: {
+        credit_exhaustion_mode: 'purchase_credits',
+        credit_exhaustion_config: {},
+      },
+    });
+
+    await page.goto(`/dashboard/chatbots/${BOT_ID}/settings`);
+    await page.waitForLoadState('domcontentloaded');
+    await page.getByRole('button', { name: /Credit Exhaustion/i }).click();
+
+    // Wait for packages and select via radio card
+    await expect(page.getByText('Persist Config Pkg').first()).toBeVisible({ timeout: 15000 });
+    const pkgLabel = page.locator('label').filter({ hasText: 'Persist Config Pkg' }).first();
+    await pkgLabel.click();
+
+    // Save
+    const saveButtons = page.getByRole('button', { name: 'Save Changes' });
+    const saveCount = await saveButtons.count();
+    await saveButtons.nth(saveCount - 1).click();
+    await page.waitForResponse(
+      (res) => res.url().includes(`/api/chatbots/${BOT_ID}`) && res.request().method() === 'PATCH',
+      { timeout: 10000 },
+    ).catch(() => {});
+    await page.waitForTimeout(1000);
+
+    // Verify config was persisted by reading bot data via API
+    const botRes = await page.request.get(`/api/chatbots/${BOT_ID}`);
+    const botData = await botRes.json();
+    const savedPkgId = botData.data?.chatbot?.credit_exhaustion_config?.purchase_credits?.selectedPackageId;
+    expect(savedPkgId).toBe(pkgId);
+  });
+
+  test('EDGE-003: Widget config always returns empty creditPackages regardless of packages', async ({ page }) => {
+    // Create packages — they should never appear in widget config (auto-purchase is server-side)
     await createTestPackage(page, {
-      name: 'Harmless Filter',
-      stripe_price_id: 'price_e2e_harmless',
+      name: 'Edge Pkg A',
+      stripe_price_id: 'price_e2e_edge_a',
+    });
+    await createTestPackage(page, {
+      name: 'Edge Pkg B',
+      stripe_price_id: 'price_e2e_edge_b',
     });
 
     await page.request.patch(`/api/chatbots/${BOT_ID}`, {
-      data: {
-        credit_exhaustion_mode: 'purchase_credits',
-        credit_exhaustion_config: {
-          purchase_credits: {
-            disabledPackageIds: ['00000000-0000-0000-0000-000000000099'],
-          },
-        },
-      },
+      data: { credit_exhaustion_mode: 'purchase_credits' },
     });
 
     const config = await (await page.request.get(`/api/widget/${BOT_ID}/config`)).json();
-    const pkgNames = (config.data.creditPackages || []).map((p: any) => p.name);
-    expect(pkgNames).toContain('Harmless Filter');
+    // Auto-purchase is server-side — widget always gets empty creditPackages
+    expect(config.data.creditPackages).toEqual([]);
   });
 
-  test('EDGE-003: Toggling all packages off results in empty creditPackages', async ({ page }) => {
-    const { body: a } = await createTestPackage(page, {
-      name: 'All Off A',
-      stripe_price_id: 'price_e2e_alloff_a',
-    });
-    const { body: b } = await createTestPackage(page, {
-      name: 'All Off B',
-      stripe_price_id: 'price_e2e_alloff_b',
-    });
-
+  test('EDGE-004: Widget does NOT show purchase view when credits exhausted in auto-purchase mode', async ({ page }) => {
     await page.request.patch(`/api/chatbots/${BOT_ID}`, {
       data: {
         credit_exhaustion_mode: 'purchase_credits',
         credit_exhaustion_config: {
           purchase_credits: {
-            disabledPackageIds: [a.data.package.id, b.data.package.id],
+            selectedPackageId: '00000000-0000-0000-0000-000000000001',
+            maxAutoTopupsPerMonth: 3,
           },
         },
       },
     });
 
-    const config = await (await page.request.get(`/api/widget/${BOT_ID}/config`)).json();
-    // Filter only our test packages — there may be other packages from other tests
-    const ourPkgs = (config.data.creditPackages || []).filter(
-      (p: any) => p.name === 'All Off A' || p.name === 'All Off B'
-    );
-    expect(ourPkgs).toHaveLength(0);
-  });
-
-  test('EDGE-004: Widget purchase view shows global packages when creditExhausted', async ({ page }) => {
-    await createTestPackageViaUI(page, {
-      name: 'Widget View Pkg',
-      credits: 75,
-      priceDollars: '5.99',
-      stripePriceId: 'price_e2e_widget_view',
-    });
-
-    await page.request.patch(`/api/chatbots/${BOT_ID}`, {
-      data: {
-        credit_exhaustion_mode: 'purchase_credits',
-        credit_exhaustion_config: {
-          purchase_credits: {
-            upsellMessage: 'E2E: Out of credits!',
-          },
-        },
-      },
-    });
-
-    // Mock widget as exhausted
-    await mockWidgetConfigExhausted(page, 'purchase_credits', {
-      purchase_credits: {
-        upsellMessage: 'E2E: Out of credits!',
-      },
-    });
-
+    // Navigate to widget — even if credits are technically depleted,
+    // auto-purchase mode means widget config reports creditExhausted=false
     await page.goto(`/widget/${BOT_ID}`);
     await page.waitForLoadState('networkidle');
 
-    // The purchase credits fallback view should show
-    // Look for the upsell message or package info
-    const hasUpsell = await page.getByText('E2E: Out of credits!').isVisible().catch(() => false);
-    const hasPkg = await page.getByText('Widget View Pkg').isVisible().catch(() => false);
+    // The widget should NOT show any purchase/upsell UI — auto-purchase is server-side
+    const hasPackageCards = await page.locator('[data-testid="credit-package"]').count().catch(() => 0);
+    expect(hasPackageCards).toBe(0);
 
-    // At least one should be visible in the fallback view
-    expect(hasUpsell || hasPkg).toBeTruthy();
+    // No "out of credits" or purchase-related fallback views
+    const hasPurchaseView = await page.getByText('Purchase Credits').isVisible().catch(() => false);
+    expect(hasPurchaseView).toBe(false);
   });
 
   test('EDGE-005: Upsell and success messages are chatbot-specific', async ({ page }) => {
@@ -1009,31 +972,42 @@ test.describe('8. Edge Cases & Integration', () => {
     expect(config.data.creditExhaustionConfig.purchase_credits.purchaseSuccessMessage).toBe('Custom success for this bot');
   });
 
-  test('EDGE-006: Admin can deactivate a package and it disappears from widget config', async ({ page }) => {
-    const { body: created } = await createTestPackage(page, {
-      name: 'Deactivate Test',
-      stripe_price_id: 'price_e2e_deactivate',
-      active: true,
+  test('EDGE-006: Deactivating the selected package removes it from settings radio list', async ({ page }) => {
+    const pkgId = await createTestPackageViaUI(page, {
+      name: 'Deactivate Selected Pkg',
+      credits: 100,
+      priceDollars: '9.99',
+      stripePriceId: 'price_e2e_deactivate_sel',
     });
-    const pkgId = created.data.package.id;
 
+    // Select this package for auto-purchase
     await page.request.patch(`/api/chatbots/${BOT_ID}`, {
-      data: { credit_exhaustion_mode: 'purchase_credits' },
+      data: {
+        credit_exhaustion_mode: 'purchase_credits',
+        credit_exhaustion_config: {
+          purchase_credits: { selectedPackageId: pkgId },
+        },
+      },
     });
 
-    // Verify it appears initially
-    let config = await (await page.request.get(`/api/widget/${BOT_ID}/config`)).json();
-    let pkgNames = (config.data.creditPackages || []).map((p: any) => p.name);
-    expect(pkgNames).toContain('Deactivate Test');
+    // Verify it shows on the settings page initially
+    await page.goto(`/dashboard/chatbots/${BOT_ID}/settings`);
+    await page.waitForLoadState('domcontentloaded');
+    await page.getByRole('button', { name: /Credit Exhaustion/i }).click();
+    await expect(page.getByText('Deactivate Selected Pkg').first()).toBeVisible({ timeout: 15000 });
 
-    // Deactivate it
+    // Deactivate via admin API
     await page.request.put(`/api/admin/credit-packages/${pkgId}`, {
       data: { active: false },
     });
 
-    // Verify it's gone from widget config
-    config = await (await page.request.get(`/api/widget/${BOT_ID}/config`)).json();
-    pkgNames = (config.data.creditPackages || []).map((p: any) => p.name);
-    expect(pkgNames).not.toContain('Deactivate Test');
+    // Reload settings — the deactivated package should no longer appear in radio list
+    await page.reload();
+    await page.waitForLoadState('domcontentloaded');
+    await page.getByRole('button', { name: /Credit Exhaustion/i }).click();
+
+    // Wait for packages to load (either we see other packages or empty state)
+    await page.waitForTimeout(3000);
+    await expect(page.getByText('Deactivate Selected Pkg')).not.toBeVisible();
   });
 });

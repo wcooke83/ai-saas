@@ -50,6 +50,9 @@ const updateChatbotSchema = z.object({
   credit_exhaustion_config: z.record(z.unknown()).optional(),
   monthly_message_limit: z.number().min(0).optional(),
   messages_this_month: z.number().min(0).optional(),
+  purchased_credits_remaining: z.number().min(0).optional(),
+  auto_topup_package_id: z.string().uuid().nullable().optional(),
+  auto_topup_max_per_month: z.number().min(1).max(50).optional(),
 });
 
 interface RouteParams {

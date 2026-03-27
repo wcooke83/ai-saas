@@ -800,6 +800,119 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
   });
 
   // ─────────────────────────────────────────────────────────────
+  // PHASE 7F: Schedule Override UX Clarity
+  // ─────────────────────────────────────────────────────────────
+
+  test('AG-100: Context-aware badge and helper text when global=Manual with per-prompt override', async ({ page }) => {
+    test.setTimeout(90_000);
+
+    await page.goto(`${BASE_URL}/articles`);
+    await page.waitForLoadState('networkidle');
+
+    // ── Step 1: Set global schedule to Manual via UI ──
+    const scheduleHeader = page.locator('[class*="cursor-pointer"]').filter({ hasText: 'Auto-Regeneration Schedule' }).first();
+    await expect(scheduleHeader).toBeVisible({ timeout: 30000 });
+    await scheduleHeader.click();
+
+    // Wait for the schedule dropdown to appear
+    const freqLabel = page.getByText('Default Regeneration Frequency');
+    await expect(freqLabel).toBeVisible({ timeout: 10000 });
+    const scheduleSection = freqLabel.locator('..');
+    const globalSelect = scheduleSection.locator('select').first();
+    await expect(globalSelect).toBeEnabled({ timeout: 10000 });
+
+    // Save the original value so we can restore later
+    const originalSchedule = await globalSelect.inputValue();
+
+    // Set to manual
+    if (originalSchedule !== 'manual') {
+      await globalSelect.selectOption('manual');
+      await page.waitForResponse(resp => resp.url().includes('/articles/schedule') && resp.request().method() === 'PATCH');
+    }
+
+    // Collapse the schedule card
+    await scheduleHeader.click();
+
+    // Verify badge shows "Off" (no per-prompt overrides yet)
+    const scheduleBadge = scheduleHeader.locator('[class*="badge"], span').filter({ hasText: /Off|prompt.*scheduled/ });
+    await expect(scheduleBadge.filter({ hasText: 'Off' })).toBeVisible({ timeout: 5000 });
+
+    // ── Step 2: Set one prompt to Daily via UI ──
+    const promptsHeader = page.locator('[class*="cursor-pointer"]').filter({ hasText: 'Extraction Prompts' }).first();
+    await expect(promptsHeader).toBeVisible({ timeout: 10000 });
+    await promptsHeader.click();
+
+    // Wait for prompts to load
+    const addInput = page.getByPlaceholder(/Add a custom/);
+    await expect(addInput).toBeVisible({ timeout: 15000 });
+
+    // Hover the first prompt row to reveal the schedule dropdown
+    const firstPromptRow = page.locator('.group').filter({ has: page.locator('button.flex-shrink-0') }).first();
+    await firstPromptRow.hover();
+
+    // Find the per-prompt schedule dropdown (has title="Set schedule for this prompt")
+    const promptScheduleSelect = firstPromptRow.locator('select[title="Set schedule for this prompt"]');
+    await expect(promptScheduleSelect).toBeVisible({ timeout: 5000 });
+
+    // Verify it shows "Use default (Manual)" as the first option
+    const inheritOption = promptScheduleSelect.locator('option[value="inherit"]');
+    const inheritText = await inheritOption.textContent();
+    expect(inheritText).toContain('Use default');
+    expect(inheritText).toContain('Manual');
+
+    // Change to Daily and wait for the PATCH response
+    await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/articles/prompts/') && resp.request().method() === 'PATCH'),
+      promptScheduleSelect.selectOption('daily'),
+    ]);
+
+    // ── Step 3: Verify the badge updated to "1 prompt scheduled" ──
+    // The badge on the schedule card header should now reflect the override
+    await expect(scheduleHeader.getByText(/1 prompt scheduled/)).toBeVisible({ timeout: 5000 });
+
+    // ── Step 4: Verify helper text in expanded schedule card ──
+    // Collapse prompts first, then expand schedule
+    await promptsHeader.click();
+    await scheduleHeader.click();
+    await expect(freqLabel).toBeVisible({ timeout: 10000 });
+
+    // Helper text should mention the override
+    await expect(page.getByText(/1 prompt has its own schedule and will still run/)).toBeVisible({ timeout: 5000 });
+
+    // Collapse schedule, re-expand prompts for indicator checks
+    await scheduleHeader.click();
+    await promptsHeader.click();
+    await expect(addInput).toBeVisible({ timeout: 15000 });
+
+    // ── Step 5: Verify per-prompt schedule indicators ──
+    // The overridden prompt should show a blue "Daily" badge
+    await expect(firstPromptRow.getByText('Daily')).toBeVisible({ timeout: 5000 });
+
+    // A different prompt (still inheriting) should show dimmed "Manual" text
+    const secondPromptRow = page.locator('.group').filter({ has: page.locator('button.flex-shrink-0') }).nth(1);
+    const secondRowExists = await secondPromptRow.isVisible({ timeout: 3000 }).catch(() => false);
+    if (secondRowExists) {
+      await expect(secondPromptRow.getByText('Manual')).toBeVisible({ timeout: 5000 });
+    }
+
+    // ── Cleanup: restore the prompt to "inherit" via UI ──
+    await firstPromptRow.hover();
+    const restoreSelect = firstPromptRow.locator('select[title="Set schedule for this prompt"]');
+    await expect(restoreSelect).toBeVisible({ timeout: 5000 });
+    await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/articles/prompts/') && resp.request().method() === 'PATCH'),
+      restoreSelect.selectOption('inherit'),
+    ]);
+
+    // Restore global schedule if it was changed
+    if (originalSchedule !== 'manual') {
+      await page.request.patch(`/api/chatbots/${CHATBOT_ID}/articles/schedule`, {
+        data: { article_schedule: originalSchedule },
+      });
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────
   // PHASE 8: Performance page waterfall verification
   // ─────────────────────────────────────────────────────────────
 
