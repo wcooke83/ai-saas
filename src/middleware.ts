@@ -5,9 +5,16 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
 import { updateSession, isProtectedRoute, isAuthRoute } from '@/lib/supabase/middleware';
+import { checkGate } from '@/lib/maintenance-gate';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Maintenance / coming-soon gate
+  const gate = checkGate(pathname);
+  if (gate.active) {
+    return NextResponse.rewrite(new URL(gate.destination, request.url));
+  }
 
   // Handle API routes - add CORS headers + refresh session
   if (pathname.startsWith('/api/')) {
