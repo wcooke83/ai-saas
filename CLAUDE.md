@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Product
+
+**VocUI** (Voice User Interface) - An AI-powered chatbot platform. Users build custom chatbots trained on their own knowledge bases (URLs, PDFs, docs) and deploy them via embeddable widgets, Slack, or Telegram. Brand domain: `vocui.com`.
+
 ## Commands
 
 ```bash

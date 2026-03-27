@@ -12,7 +12,15 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'VocUI - Voice User Interface',
   description:
-    'AI-powered tools to supercharge your workflow. Email writer, report generator, and more.',
+    'AI-powered chatbots trained on your knowledge base. Deploy on your website, Slack, or Telegram in minutes.',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://vocui.com'),
+  openGraph: {
+    siteName: 'VocUI',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
 };
 
 export default function RootLayout({

@@ -66,7 +66,7 @@ export async function getOrCreateCustomer(
     name: profile?.full_name || undefined,
     metadata: {
       user_id: userId,
-      source: 'ai-saas-tools',
+      source: 'vocui',
     },
   });
 

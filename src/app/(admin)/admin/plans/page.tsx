@@ -1036,7 +1036,7 @@ export default function PlansAdminPage() {
                     {/* Included Tools */}
                     <div>
                       <h3 className="text-sm font-semibold text-secondary-900 dark:text-secondary-100 mb-1">Included Tools</h3>
-                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-3">Select which AI tools are available to users on this plan</p>
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-3">Select which tools are available to users on this plan</p>
 
                       <div className="grid grid-cols-2 gap-3">
                         {AVAILABLE_TOOLS.map((tool) => {
