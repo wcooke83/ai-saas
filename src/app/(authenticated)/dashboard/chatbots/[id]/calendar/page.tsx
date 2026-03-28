@@ -1,23 +1,34 @@
 'use client';
 
-import { useState, useEffect, useCallback, use } from 'react';
+import { useState, useEffect, useCallback, useRef, use } from 'react';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Label } from '@/components/ui/label';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
 import { ConnectionStatus } from '@/components/calendar/connection-status';
 import { BookingHistory } from '@/components/calendar/booking-history';
 import { BusinessHoursEditor } from '@/components/calendar/business-hours-editor';
 import { EventTypeConfigForm } from '@/components/calendar/event-type-config';
+import { StickySaveBar } from '@/components/calendar/sticky-save-bar';
+import { ServiceManager } from '@/components/calendar/service-manager';
+import { ProviderManager } from '@/components/calendar/provider-manager';
+import { HolidaysManager } from '@/components/calendar/holidays-manager';
+import { DateOverridesManager } from '@/components/calendar/date-overrides-manager';
 import type {
   CalendarIntegration,
   CalendarBooking,
   BusinessHoursEntry,
+  BusinessHoursSet,
+  DateOverrideEntry,
+  HolidayEntry,
   EventTypeConfig,
+  EAConnectionState,
+  EAService,
+  EAProvider,
+  ProviderServicePriceOverrides,
 } from '@/lib/calendar/types';
 import { DEFAULT_BUSINESS_HOURS, DEFAULT_EVENT_TYPE } from '@/lib/calendar/types';
 
@@ -25,82 +36,141 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-interface EAService {
-  id: number;
-  name: string;
-  duration: number;
-}
-
-interface EAProvider {
-  id: number;
-  firstName: string;
-  lastName: string;
-}
-
 export default function CalendarSettingsPage({ params }: PageProps) {
   const { id: chatbotId } = use(params);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [activeTab, setActiveTab] = useState('connection');
   const [integration, setIntegration] = useState<CalendarIntegration | null>(null);
   const [bookings, setBookings] = useState<CalendarBooking[]>([]);
+  const [connectionState, setConnectionState] = useState<EAConnectionState>('not_connected');
 
-  // Easy!Appointments config
+  // EA services & providers
   const [services, setServices] = useState<EAService[]>([]);
   const [providers, setProviders] = useState<EAProvider[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState<string>('');
   const [selectedProviderId, setSelectedProviderId] = useState<string>('');
 
-  // Event type + business hours config
+  // Provider-level price overrides
+  const [providerServicePrices, setProviderServicePrices] = useState<ProviderServicePriceOverrides>({});
+
+  // Event type + business hours
   const [eventTypeConfig, setEventTypeConfig] = useState<EventTypeConfig>({
     ...DEFAULT_EVENT_TYPE,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   });
   const [businessHours, setBusinessHours] = useState<BusinessHoursEntry[]>(DEFAULT_BUSINESS_HOURS);
+  const [businessHoursSets, setBusinessHoursSets] = useState<BusinessHoursSet[]>([]);
+  const [dateOverrides, setDateOverrides] = useState<DateOverrideEntry[]>([]);
+  const [scopedHolidays, setScopedHolidays] = useState<HolidayEntry[]>([]);
+
+  // Dirty tracking
+  const initialStateRef = useRef<string>('');
+  const currentState = JSON.stringify({
+    selectedServiceId,
+    selectedProviderId,
+    eventTypeConfig,
+    businessHours,
+    businessHoursSets,
+    dateOverrides,
+    scopedHolidays,
+    providerServicePrices,
+  });
+  const isDirty = initialStateRef.current !== '' && currentState !== initialStateRef.current;
+
+  // Warn on unsaved changes
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
 
   const fetchData = useCallback(async () => {
     try {
-      // Fetch integration + bookings
-      const calRes = await fetch(`/api/calendar/integrations?chatbotId=${chatbotId}`);
-      if (!calRes.ok) throw new Error('Failed to fetch');
-      const data = await calRes.json();
-      const int = data.data?.integration;
-      setIntegration(int || null);
-      setBookings(data.data?.bookings || []);
+      const [calRes, setupRes] = await Promise.all([
+        fetch(`/api/calendar/integrations?chatbotId=${chatbotId}`),
+        fetch(`/api/calendar/setup?chatbotId=${chatbotId}`),
+      ]);
 
-      // Fetch setup config (event type + business hours + EA services/providers)
-      const setupRes = await fetch(`/api/calendar/setup?chatbotId=${chatbotId}`);
+      if (!calRes.ok) throw new Error('Failed to fetch');
+      const calData = await calRes.json();
+      const int = calData.data?.integration;
+      setIntegration(int || null);
+      setBookings(calData.data?.bookings || []);
+
       if (setupRes.ok) {
         const setupData = await setupRes.json();
-        if (setupData.data?.eventType) {
-          setEventTypeConfig(setupData.data.eventType);
-        }
-        if (setupData.data?.businessHours) {
-          setBusinessHours(setupData.data.businessHours);
-        }
-        if (setupData.data?.services) {
-          setServices(setupData.data.services);
-        }
-        if (setupData.data?.providers) {
-          setProviders(setupData.data.providers);
-        }
-        if (setupData.data?.serviceId) {
-          setSelectedServiceId(String(setupData.data.serviceId));
-        }
-        if (setupData.data?.providerId) {
-          setSelectedProviderId(String(setupData.data.providerId));
-        }
+        const d = setupData.data;
+
+        if (d?.connectionState) setConnectionState(d.connectionState);
+        if (d?.eventType) setEventTypeConfig(d.eventType);
+        if (d?.businessHours) setBusinessHours(d.businessHours);
+        if (d?.businessHoursSets) setBusinessHoursSets(d.businessHoursSets);
+        if (d?.dateOverrides) setDateOverrides(d.dateOverrides);
+        if (d?.holidays) setScopedHolidays(d.holidays);
+        if (d?.services) setServices(d.services);
+        if (d?.providers) setProviders(d.providers);
+
+        const svcId = d?.serviceId ? String(d.serviceId) : '';
+        const prvId = d?.providerId ? String(d.providerId) : '';
+        setSelectedServiceId(svcId);
+        setSelectedProviderId(prvId);
+
+        const prices = (d?.providerServicePrices ?? {}) as ProviderServicePriceOverrides;
+        setProviderServicePrices(prices);
+
+        // Snapshot initial state for dirty tracking
+        initialStateRef.current = JSON.stringify({
+          selectedServiceId: svcId,
+          selectedProviderId: prvId,
+          eventTypeConfig: d?.eventType || eventTypeConfig,
+          businessHours: d?.businessHours || businessHours,
+          businessHoursSets: d?.businessHoursSets || [],
+          dateOverrides: d?.dateOverrides || [],
+          scopedHolidays: d?.holidays || [],
+          providerServicePrices: prices,
+        });
       }
     } catch {
       toast.error('Failed to load calendar settings');
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatbotId]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const refetchServices = useCallback(async () => {
+    try {
+      const res = await fetch('/api/calendar/services');
+      if (res.ok) {
+        const data = await res.json();
+        setServices(data.data || []);
+      }
+    } catch {
+      // silent
+    }
+  }, []);
+
+  const refetchProviders = useCallback(async () => {
+    try {
+      const res = await fetch('/api/calendar/providers');
+      if (res.ok) {
+        const data = await res.json();
+        setProviders(data.data || []);
+      }
+    } catch {
+      // silent
+    }
+  }, []);
 
   async function handleSave() {
     setSaving(true);
@@ -112,8 +182,12 @@ export default function CalendarSettingsPage({ params }: PageProps) {
           chatbotId,
           eventType: eventTypeConfig,
           businessHours,
+          businessHoursSets,
+          dateOverrides,
+          scopedHolidays,
           serviceId: selectedServiceId || undefined,
           providerId: selectedProviderId || undefined,
+          providerServicePrices,
         }),
       });
       if (!res.ok) {
@@ -121,6 +195,8 @@ export default function CalendarSettingsPage({ params }: PageProps) {
         throw new Error(err.error?.message || 'Failed to save');
       }
       toast.success('Calendar settings saved');
+      // Reset dirty tracking
+      initialStateRef.current = currentState;
       fetchData();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save');
@@ -138,6 +214,7 @@ export default function CalendarSettingsPage({ params }: PageProps) {
       if (!res.ok) throw new Error('Failed to disconnect');
       toast.success('Calendar disconnected');
       setIntegration(null);
+      setConnectionState('not_connected');
     } catch {
       toast.error('Failed to disconnect');
     }
@@ -149,7 +226,6 @@ export default function CalendarSettingsPage({ params }: PageProps) {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const dateFrom = tomorrow.toISOString().split('T')[0];
-      const dateTo = dateFrom;
 
       const res = await fetch('/api/calendar/availability', {
         method: 'POST',
@@ -157,7 +233,7 @@ export default function CalendarSettingsPage({ params }: PageProps) {
         body: JSON.stringify({
           chatbotId,
           dateFrom,
-          dateTo,
+          dateTo: dateFrom,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         }),
       });
@@ -166,6 +242,7 @@ export default function CalendarSettingsPage({ params }: PageProps) {
       const data = await res.json();
       const slotCount = data.data?.slots?.length || 0;
       toast.success(`Connection working! Found ${slotCount} available slots for tomorrow.`);
+      setConnectionState('connected');
     } catch {
       toast.error('Test failed. Check your calendar configuration.');
     } finally {
@@ -186,11 +263,16 @@ export default function CalendarSettingsPage({ params }: PageProps) {
     }
   }
 
+  const activeBookingCount = bookings.filter(
+    (b) => b.status === 'confirmed' || b.status === 'pending'
+  ).length;
+
   if (loading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-24 rounded-lg" />
+        <Skeleton className="h-10 w-96 rounded-md" />
         <Skeleton className="h-40 rounded-lg" />
         <Skeleton className="h-40 rounded-lg" />
       </div>
@@ -211,114 +293,146 @@ export default function CalendarSettingsPage({ params }: PageProps) {
         }
       />
 
-      {/* Connection Status */}
-      {integration && (
-        <ConnectionStatus
-          integration={integration}
-          onDisconnect={handleDisconnect}
-          onTest={handleTest}
+      <ConnectionStatus
+        integration={integration}
+        connectionState={connectionState}
+        activeBookingCount={activeBookingCount}
+        onDisconnect={handleDisconnect}
+        onTest={handleTest}
+        testing={testing}
+      />
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="connection">Services &amp; Providers</TabsTrigger>
+          <TabsTrigger value="scheduling">Scheduling</TabsTrigger>
+          <TabsTrigger value="history">
+            Booking History
+            {activeBookingCount > 0 && (
+              <Tooltip content="Number of confirmed and pending bookings">
+                <Badge variant="outline" className="ml-2 text-xs">
+                  {activeBookingCount}
+                </Badge>
+              </Tooltip>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Tab 1: Services & Providers */}
+        <TabsContent value="connection">
+          <div className="space-y-6 mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Services</CardTitle>
+                <CardDescription>Manage the services your chatbot can book appointments for.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ServiceManager
+                  services={services}
+                  selectedServiceId={selectedServiceId}
+                  onSelectService={setSelectedServiceId}
+                  onServicesChange={refetchServices}
+                  connectionState={connectionState}
+                  eventTypeDuration={eventTypeConfig.durationMinutes}
+                />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Providers</CardTitle>
+                <CardDescription>Staff members who handle bookings for your services.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ProviderManager
+                  providers={providers}
+                  services={services}
+                  selectedProviderId={selectedProviderId}
+                  onSelectProvider={setSelectedProviderId}
+                  onProvidersChange={refetchProviders}
+                  connectionState={connectionState}
+                  providerServicePrices={providerServicePrices}
+                  onProviderServicePricesChange={setProviderServicePrices}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Tab 2: Scheduling */}
+        <TabsContent value="scheduling">
+          <div className="space-y-6 mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Appointment Settings</CardTitle>
+                <CardDescription>Configure what type of appointments can be booked through your chatbot.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <EventTypeConfigForm value={eventTypeConfig} onChange={setEventTypeConfig} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Business Hours</CardTitle>
+                <CardDescription>Set which days and times you accept bookings.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <BusinessHoursEditor
+                  globalHours={businessHours}
+                  onGlobalChange={setBusinessHours}
+                  scopedSets={businessHoursSets}
+                  onScopedSetsChange={setBusinessHoursSets}
+                  services={services}
+                  providers={providers}
+                />
+              </CardContent>
+            </Card>
+
+            <HolidaysManager
+              connectionState={connectionState}
+              services={services}
+              providers={providers}
+              scopedHolidays={scopedHolidays}
+              onScopedHolidaysChange={setScopedHolidays}
+            />
+
+            <DateOverridesManager
+              services={services}
+              providers={providers}
+              businessHours={businessHours}
+              value={dateOverrides}
+              onChange={setDateOverrides}
+            />
+          </div>
+        </TabsContent>
+
+        {/* Tab 3: Booking History */}
+        <TabsContent value="history">
+          <div className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Booking History</CardTitle>
+                <CardDescription>Recent appointments booked through your chatbot.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <BookingHistory bookings={bookings} onCancel={handleCancelBooking} />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {activeTab !== 'history' && (
+        <StickySaveBar
+          isDirty={isDirty}
+          saving={saving}
+          onSave={handleSave}
+          onTest={integration ? handleTest : undefined}
           testing={testing}
+          isNewSetup={!integration}
+          hasIntegration={!!integration}
         />
       )}
-
-      {/* Easy!Appointments Service & Provider Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Easy!Appointments Connection</CardTitle>
-          <CardDescription>
-            Select the service and provider from your Easy!Appointments instance.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {services.length > 0 ? (
-            <div>
-              <Label htmlFor="ea-service">Service</Label>
-              <select
-                id="ea-service"
-                value={selectedServiceId}
-                onChange={(e) => setSelectedServiceId(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-secondary-300 dark:border-secondary-600 bg-white dark:bg-secondary-800 px-3 py-2 text-sm text-secondary-900 dark:text-secondary-100 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-              >
-                <option value="">Select a service...</option>
-                {services.map((s) => (
-                  <option key={s.id} value={String(s.id)}>
-                    {s.name} ({s.duration} min)
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : (
-            <p className="text-sm text-secondary-500">
-              No services found. Make sure Easy!Appointments is configured and has at least one service.
-            </p>
-          )}
-
-          {providers.length > 0 && (
-            <div>
-              <Label htmlFor="ea-provider">Provider</Label>
-              <select
-                id="ea-provider"
-                value={selectedProviderId}
-                onChange={(e) => setSelectedProviderId(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-secondary-300 dark:border-secondary-600 bg-white dark:bg-secondary-800 px-3 py-2 text-sm text-secondary-900 dark:text-secondary-100 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-              >
-                <option value="">Select a provider...</option>
-                {providers.map((p) => (
-                  <option key={p.id} value={String(p.id)}>
-                    {p.firstName} {p.lastName}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Appointment Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Appointment Settings</CardTitle>
-          <CardDescription>Configure what type of appointments can be booked through your chatbot.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <EventTypeConfigForm value={eventTypeConfig} onChange={setEventTypeConfig} />
-        </CardContent>
-      </Card>
-
-      {/* Availability / Business Hours */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Availability</CardTitle>
-          <CardDescription>Set which days and times you accept bookings.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <BusinessHoursEditor value={businessHours} onChange={setBusinessHours} />
-        </CardContent>
-      </Card>
-
-      <div className="flex gap-3">
-        <Button onClick={handleSave} disabled={saving}>
-          {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-          {integration ? 'Update' : 'Enable'} Calendar
-        </Button>
-        {integration && (
-          <Button variant="outline" onClick={handleTest} disabled={testing}>
-            {testing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Test Connection
-          </Button>
-        )}
-      </div>
-
-      {/* Booking History */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Booking History</CardTitle>
-          <CardDescription>Recent appointments booked through your chatbot.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <BookingHistory bookings={bookings} onCancel={handleCancelBooking} />
-        </CardContent>
-      </Card>
     </div>
   );
 }

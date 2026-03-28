@@ -155,7 +155,7 @@ export function Tooltip({
   );
 
   return (
-    <div
+    <span
       ref={triggerRef}
       className={wrapperClassName || "relative inline-flex"}
       onMouseEnter={showTooltip}
@@ -165,7 +165,7 @@ export function Tooltip({
     >
       {children}
       {mounted && typeof document !== 'undefined' && createPortal(tooltipContent, document.body)}
-    </div>
+    </span>
   );
 }
 

@@ -24,11 +24,13 @@ interface DialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
+  pageScroll?: boolean;
 }
 
 interface DialogContentProps {
   children: React.ReactNode;
   className?: string;
+  pageScroll?: boolean;
 }
 
 interface DialogHeaderProps {
@@ -53,19 +55,25 @@ interface DialogFooterProps {
 
 const DialogContext = React.createContext<{
   onClose: () => void;
+  pageScroll?: boolean;
 } | null>(null);
 
-export function Dialog({ open, onOpenChange, children }: DialogProps) {
+export function Dialog({ open, onOpenChange, children, pageScroll = false }: DialogProps) {
   React.useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
+    if (!open) {
       document.body.style.overflow = '';
+      return;
+    }
+    if (pageScroll) {
+      // pageScroll mode: allow body to scroll
+      document.body.style.overflow = '';
+    } else {
+      document.body.style.overflow = 'hidden';
     }
     return () => {
       document.body.style.overflow = '';
     };
-  }, [open]);
+  }, [open, pageScroll]);
 
   React.useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -78,6 +86,33 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
   }, [open, onOpenChange]);
 
   if (!open) return null;
+
+  if (pageScroll) {
+    return (
+      <DialogContext.Provider value={{ onClose: () => onOpenChange(false), pageScroll }}>
+        {/* Backdrop layer: non-scrollable, covers full viewport */}
+        <div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0"
+          aria-hidden="true"
+        />
+        {/* Scrollable content layer */}
+        <div
+          className="fixed inset-0 z-50 overflow-y-auto"
+        >
+          <div
+            className="min-h-screen py-8 flex items-start justify-center"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                onOpenChange(false);
+              }
+            }}
+          >
+            {children}
+          </div>
+        </div>
+      </DialogContext.Provider>
+    );
+  }
 
   return (
     <DialogContext.Provider value={{ onClose: () => onOpenChange(false) }}>
@@ -95,8 +130,9 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
   );
 }
 
-export function DialogContent({ children, className }: DialogContentProps) {
+export function DialogContent({ children, className, pageScroll }: DialogContentProps) {
   const context = React.useContext(DialogContext);
+  const isPageScroll = pageScroll ?? context?.pageScroll ?? false;
   const [showBorder, setShowBorder] = React.useState(true);
   const { containerRef } = useFocusTrap<HTMLDivElement>({
     isActive: true,
@@ -143,8 +179,10 @@ export function DialogContent({ children, className }: DialogContentProps) {
       ref={containerRef}
       role="dialog"
       aria-modal="true"
+      onClick={(e) => e.stopPropagation()}
       className={cn(
         'relative z-50 w-full max-w-lg rounded-xl border p-6 shadow-xl animate-in fade-in-0 zoom-in-95',
+        isPageScroll && 'mx-auto max-w-[calc(100%-2rem)]',
         className
       )}
       style={{

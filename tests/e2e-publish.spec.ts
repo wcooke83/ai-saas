@@ -25,6 +25,75 @@ test.describe('Chatbot Publish/Unpublish', () => {
     await expect(page.getByText('Published')).toBeVisible({ timeout: 5000 });
   });
 
+  test('post-publish toast has Go to Deploy action button (P2 fix)', async ({ page }) => {
+    // Ensure unpublished first
+    await page.request.delete(`/api/chatbots/${CHATBOT_ID}/publish`);
+
+    await page.goto(`/dashboard/chatbots/${CHATBOT_ID}`);
+    await page.waitForLoadState('domcontentloaded');
+
+    const publishButton = page.getByRole('button', { name: 'Publish' });
+    await expect(publishButton).toBeVisible({ timeout: 10000 });
+
+    const publishPromise = page.waitForResponse(
+      (res) => res.url().includes(`/api/chatbots/${CHATBOT_ID}/publish`) && res.request().method() === 'POST'
+    );
+    await publishButton.click();
+    await publishPromise;
+
+    // P2: toast message should mention embed codes and deploy page
+    await expect(
+      page.getByText('Get your embed codes on the deploy page').or(
+        page.getByText('Chatbot published')
+      )
+    ).toBeVisible({ timeout: 10000 });
+
+    // P2: toast should have a "Go to Deploy" action button
+    const deployAction = page.getByRole('button', { name: /Go to Deploy/i });
+    await expect(deployAction).toBeVisible({ timeout: 5000 });
+  });
+
+  test('publish only sets is_published, status stays unchanged for active bots (P2 fix)', async ({ page }) => {
+    // Ensure published first (so status is active)
+    await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
+
+    // Now unpublish
+    await page.request.delete(`/api/chatbots/${CHATBOT_ID}/publish`);
+
+    // Navigate to overview to check the status badge
+    await page.goto(`/dashboard/chatbots/${CHATBOT_ID}`);
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.getByRole('heading').first()).toBeVisible({ timeout: 30000 });
+
+    // P2: unpublish should only set is_published=false, NOT change status to 'paused'
+    // Status should remain 'active' (not 'paused')
+    const statusBadge = page.getByText(/^(active|draft|paused|archived)$/i).first();
+    await expect(statusBadge).toBeVisible({ timeout: 10000 });
+    const statusText = (await statusBadge.textContent())?.toLowerCase();
+    // Status should NOT be 'paused' after unpublish (P2 fix decouples publish from status)
+    expect(statusText).not.toBe('paused');
+
+    // "Published" badge should NOT be visible
+    // Use a more specific selector to avoid matching partial text
+    const publishedBadges = page.locator('.bg-green-100, .bg-green-900\\/50').filter({ hasText: 'Published' });
+    await expect(publishedBadges).not.toBeVisible({ timeout: 5000 });
+
+    // Re-publish — status should still be 'active', not changed by publish
+    const publishButton = page.getByRole('button', { name: 'Publish' });
+    await expect(publishButton).toBeVisible({ timeout: 10000 });
+
+    const publishPromise = page.waitForResponse(
+      (res) => res.url().includes(`/api/chatbots/${CHATBOT_ID}/publish`) && res.request().method() === 'POST'
+    );
+    await publishButton.click();
+    const publishResponse = await publishPromise;
+    expect(publishResponse.ok()).toBeTruthy();
+
+    // Verify both Published badge and active status are shown
+    await expect(page.getByText('Published')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('active', { exact: true }).or(page.getByText('Active', { exact: true }))).toBeVisible({ timeout: 5000 });
+  });
+
   test('published chatbot widget config is accessible', async ({ page }) => {
     // Navigate to deploy page and verify widget preview is accessible
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/deploy`);
@@ -63,7 +132,8 @@ test.describe('Chatbot Publish/Unpublish', () => {
 
     // Should show the unpublished warning banner
     await expect(page.getByText('Chatbot not published')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('Publish now')).toBeVisible();
+    // "Publish now" should be a button, not a link
+    await expect(page.getByRole('button', { name: /Publish now/i })).toBeVisible();
   });
 
   test('re-publish for other tests', async ({ page }) => {

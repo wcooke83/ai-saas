@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { CalendarDays, Clock, User, Mail, X } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip';
+import { CalendarDays, Clock, User, Mail, X, Search } from 'lucide-react';
 import type { CalendarBooking } from '@/lib/calendar/types';
 
 const statusColors: Record<string, string> = {
@@ -26,10 +28,32 @@ export function BookingHistory({ bookings, onCancel }: BookingHistoryProps) {
   const [filter, setFilter] = useState<string>('all');
   const [page, setPage] = useState(0);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
-  const filtered = filter === 'all'
-    ? bookings
-    : bookings.filter((b) => b.status === filter);
+  // Filter chain: search → date range → status
+  let filtered = bookings;
+
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(
+      (b) =>
+        b.attendee_name.toLowerCase().includes(q) ||
+        b.attendee_email.toLowerCase().includes(q)
+    );
+  }
+
+  if (dateFrom) {
+    filtered = filtered.filter((b) => b.start_time.slice(0, 10) >= dateFrom);
+  }
+  if (dateTo) {
+    filtered = filtered.filter((b) => b.start_time.slice(0, 10) <= dateTo);
+  }
+
+  if (filter !== 'all') {
+    filtered = filtered.filter((b) => b.status === filter);
+  }
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -59,29 +83,72 @@ export function BookingHistory({ bookings, onCancel }: BookingHistoryProps) {
   }
 
   const statuses = ['all', 'confirmed', 'pending', 'cancelled', 'rescheduled'];
+  const statusTooltips: Record<string, string> = {
+    all: 'Show all bookings',
+    confirmed: 'Bookings that have been confirmed',
+    pending: 'Bookings awaiting confirmation',
+    cancelled: 'Bookings that were cancelled',
+    rescheduled: 'Bookings that were moved to a different time',
+  };
 
   return (
     <div className="space-y-4">
+      {/* Search and date filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Tooltip content="Search bookings by customer name or email address">
+          <div className="relative max-w-xs">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-400" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setPage(0); }}
+              placeholder="Search by name or email..."
+              className="pl-8 h-8 text-xs"
+            />
+          </div>
+        </Tooltip>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-secondary-500">From</span>
+          <Tooltip content="Filter bookings from this date">
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => { setDateFrom(e.target.value); setPage(0); }}
+              className="w-36 h-8 text-xs px-2"
+            />
+          </Tooltip>
+          <span className="text-xs text-secondary-500">To</span>
+          <Tooltip content="Filter bookings up to this date">
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={(e) => { setDateTo(e.target.value); setPage(0); }}
+              className="w-36 h-8 text-xs px-2"
+            />
+          </Tooltip>
+        </div>
+      </div>
+
       <div className="flex gap-2 flex-wrap" role="radiogroup" aria-label="Filter bookings by status">
         {statuses.map((status) => {
           const count = counts[status] || 0;
           if (status !== 'all' && count === 0) return null;
           return (
-            <button
-              key={status}
-              type="button"
-              role="radio"
-              aria-checked={filter === status}
-              onClick={() => { setFilter(status); setPage(0); }}
-              className={cn(
-                'px-3 py-1 text-xs rounded-full capitalize transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 outline-none',
-                filter === status
-                  ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
-                  : 'bg-secondary-100 text-secondary-600 dark:bg-secondary-800 dark:text-secondary-400 hover:bg-secondary-200 dark:hover:bg-secondary-700'
-              )}
-            >
-              {status} ({count})
-            </button>
+            <Tooltip key={status} content={statusTooltips[status] || status}>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={filter === status}
+                onClick={() => { setFilter(status); setPage(0); }}
+                className={cn(
+                  'px-3 py-1 text-xs rounded-full capitalize transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 outline-none',
+                  filter === status
+                    ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
+                    : 'bg-secondary-100 text-secondary-600 dark:bg-secondary-800 dark:text-secondary-400 hover:bg-secondary-200 dark:hover:bg-secondary-700'
+                )}
+              >
+                {status} ({count})
+              </button>
+            </Tooltip>
           );
         })}
       </div>
@@ -158,15 +225,17 @@ export function BookingHistory({ bookings, onCancel }: BookingHistoryProps) {
                     </Button>
                   </div>
                 ) : (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-red-500 hover:text-red-700 shrink-0"
-                    onClick={() => handleCancel(booking.id)}
-                    aria-label={`Cancel booking for ${booking.attendee_name}`}
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </Button>
+                  <Tooltip content="Cancel this booking. The customer will need to be notified separately.">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-red-500 hover:text-red-700 shrink-0"
+                      onClick={() => handleCancel(booking.id)}
+                      aria-label={`Cancel booking for ${booking.attendee_name}`}
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </Button>
+                  </Tooltip>
                 )
               )}
             </div>

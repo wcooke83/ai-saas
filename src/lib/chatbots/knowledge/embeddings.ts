@@ -84,79 +84,43 @@ export async function resolveEmbeddingConfig(): Promise<EmbeddingConfig | null> 
 }
 
 async function _resolveEmbeddingConfigUncached(): Promise<EmbeddingConfig | null> {
-  // 1. Check for manually configured embedding model preference
+  // 1. Check for manually configured embedding model in admin AI config (/admin/ai-config)
+  // This is the primary source of truth — always respect it
   try {
     const embeddingModel = await getEmbeddingModel();
     if (embeddingModel) {
       const slug = embeddingModel.provider?.slug?.toLowerCase();
+      const apiModelId = embeddingModel.api_model_id;
 
-      if (slug === 'openai' && isValidOpenAIKey()) {
-        console.log('[Embeddings] Using configured embedding model:', embeddingModel.name);
-        return {
-          provider: 'openai',
-          model: embeddingModel.api_model_id || 'text-embedding-ada-002',
-          dimensions: 1536,
-        };
+      if (slug === 'openai' && isValidOpenAIKey() && apiModelId) {
+        console.log('[Embeddings] Using admin-configured embedding model:', embeddingModel.name, `(${apiModelId})`);
+        return { provider: 'openai', model: apiModelId, dimensions: 1536 };
       }
 
-      if ((slug === 'google' || slug === 'gemini') && process.env.GOOGLE_API_KEY) {
-        console.log('[Embeddings] Using configured embedding model:', embeddingModel.name);
-        return {
-          provider: 'gemini',
-          model: 'gemini-embedding-001',
-          dimensions: 1536,
-        };
+      if ((slug === 'google' || slug === 'gemini') && process.env.GOOGLE_API_KEY && apiModelId) {
+        console.log('[Embeddings] Using admin-configured embedding model:', embeddingModel.name, `(${apiModelId})`);
+        return { provider: 'gemini', model: apiModelId, dimensions: 1536 };
       }
+
+      // Provider configured but API key missing — warn
+      console.warn(`[Embeddings] Admin-configured embedding model "${embeddingModel.name}" (${slug}) but no valid API key. Trying fallbacks.`);
     }
   } catch (err) {
     console.warn('[Embeddings] Failed to get configured embedding model:', err);
   }
 
-  // 2. Check active chat provider from admin AI config
-  try {
-    const active = await getActiveModelAndProvider();
-    const slug = active?.model?.provider?.slug?.toLowerCase();
-
-    if (slug === 'openai' && isValidOpenAIKey()) {
-      console.log('[Embeddings] Using active chat provider for embeddings: OpenAI');
-      return {
-        provider: 'openai',
-        model: 'text-embedding-3-small',
-        dimensions: 1536,
-      };
-    }
-
-    if ((slug === 'google' || slug === 'gemini') && process.env.GOOGLE_API_KEY) {
-      console.log('[Embeddings] Using active chat provider for embeddings: Gemini');
-      return {
-        provider: 'gemini',
-        model: 'gemini-embedding-001',
-        dimensions: 1536,
-      };
-    }
-  } catch (err) {
-    console.warn('[Embeddings] Failed to get active provider, trying fallbacks:', err);
-  }
-
-  // 3. Fallback: try available embedding providers in order of preference
+  // 2. Fallback: try available embedding providers based on which API keys are present
   if (process.env.GOOGLE_API_KEY) {
-    console.log('[Embeddings] Auto-selecting Gemini (free)');
-    return {
-      provider: 'gemini',
-      model: 'gemini-embedding-001',
-      dimensions: 1536,
-    };
+    console.log('[Embeddings] Fallback: using Gemini embeddings (GOOGLE_API_KEY available)');
+    return { provider: 'gemini', model: 'gemini-embedding-001', dimensions: 1536 };
   }
 
   if (isValidOpenAIKey()) {
-    console.log('[Embeddings] Auto-selecting OpenAI');
-    return {
-      provider: 'openai',
-      model: 'text-embedding-3-small',
-      dimensions: 1536,
-    };
+    console.log('[Embeddings] Fallback: using OpenAI embeddings (OPENAI_API_KEY available)');
+    return { provider: 'openai', model: 'text-embedding-3-small', dimensions: 1536 };
   }
 
+  console.warn('[Embeddings] No embedding provider available — no valid API keys found');
   return null;
 }
 

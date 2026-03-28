@@ -111,7 +111,16 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
 
       const data = await response.json();
       setChatbot(data.data.chatbot);
-      toast.success(data.data.chatbot.is_published ? 'Chatbot published' : 'Chatbot unpublished');
+      if (data.data.chatbot.is_published) {
+        toast.success('Chatbot published! Get your embed codes on the deploy page.', {
+          action: {
+            label: 'Go to Deploy',
+            onClick: () => router.push(`/dashboard/chatbots/${id}/deploy`),
+          },
+        });
+      } else {
+        toast.success('Chatbot unpublished');
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to update publish status');
     } finally {

@@ -13,6 +13,13 @@ import type {
   CancelRequest,
   RescheduleRequest,
   EasyAppointmentsConfig,
+  EAService,
+  EAServiceCreateInput,
+  EAProvider,
+  EAProviderCreateInput,
+  EABlockedPeriod,
+  EABlockedPeriodInput,
+  EAWorkingPlanDay,
 } from '../types';
 
 export class EasyAppointmentsAdapter implements CalendarProviderAdapter {
@@ -211,6 +218,87 @@ export class EasyAppointmentsAdapter implements CalendarProviderAdapter {
       lastName: string;
     }>>('GET', '/providers');
     return providers;
+  }
+
+  // ── Services CRUD ──
+
+  async getServicesFull(): Promise<EAService[]> {
+    return this.request<EAService[]>('GET', '/services');
+  }
+
+  async createService(input: EAServiceCreateInput): Promise<EAService> {
+    return this.request<EAService>('POST', '/services', input);
+  }
+
+  async updateService(id: number, input: Partial<EAServiceCreateInput>): Promise<EAService> {
+    return this.request<EAService>('PUT', `/services/${id}`, input);
+  }
+
+  async deleteService(id: number): Promise<void> {
+    await this.request('DELETE', `/services/${id}`);
+  }
+
+  // ── Providers CRUD ──
+
+  async getProvidersFull(): Promise<EAProvider[]> {
+    return this.request<EAProvider[]>('GET', '/providers');
+  }
+
+  async getProvider(id: number): Promise<EAProvider> {
+    return this.request<EAProvider>('GET', `/providers/${id}`);
+  }
+
+  async createProvider(input: EAProviderCreateInput): Promise<EAProvider> {
+    return this.request<EAProvider>('POST', '/providers', input);
+  }
+
+  async updateProvider(id: number, input: Record<string, unknown>): Promise<EAProvider> {
+    return this.request<EAProvider>('PUT', `/providers/${id}`, input);
+  }
+
+  async deleteProvider(id: number): Promise<void> {
+    await this.request('DELETE', `/providers/${id}`);
+  }
+
+  // ── Blocked Periods (Holidays) ──
+
+  async getBlockedPeriods(): Promise<EABlockedPeriod[]> {
+    return this.request<EABlockedPeriod[]>('GET', '/blocked_periods');
+  }
+
+  async createBlockedPeriod(input: EABlockedPeriodInput): Promise<EABlockedPeriod> {
+    return this.request<EABlockedPeriod>('POST', '/blocked_periods', input);
+  }
+
+  async deleteBlockedPeriod(id: number): Promise<void> {
+    await this.request('DELETE', `/blocked_periods/${id}`);
+  }
+
+  // ── Working Plan Exceptions (Date Overrides) ──
+
+  async getWorkingPlanExceptions(providerId: number): Promise<Record<string, EAWorkingPlanDay | null>> {
+    const provider = await this.getProvider(providerId);
+    return provider.settings.workingPlanExceptions || {};
+  }
+
+  async setWorkingPlanExceptions(
+    providerId: number,
+    exceptions: Record<string, EAWorkingPlanDay | null>
+  ): Promise<void> {
+    const provider = await this.getProvider(providerId);
+    const merged = { ...provider.settings.workingPlanExceptions, ...exceptions };
+    await this.request('PUT', `/providers/${providerId}`, {
+      settings: { ...provider.settings, workingPlanExceptions: merged },
+    });
+  }
+
+  async removeWorkingPlanException(providerId: number, date: string): Promise<void> {
+    const provider = await this.getProvider(providerId);
+    const exceptions = { ...provider.settings.workingPlanExceptions };
+    delete exceptions[date];
+    await this.request('PUT', `/providers/${providerId}`, {
+      settings: { ...provider.settings, workingPlanExceptions: exceptions },
+    });
   }
 
   // ── Private helpers ──

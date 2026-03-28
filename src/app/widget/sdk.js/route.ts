@@ -31,13 +31,22 @@ export async function GET() {
 
       // Fetch config and build widget
       fetch(baseUrl + '/api/widget/' + config.chatbotId + '/config?_t=' + Date.now())
-        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(r) {
+          if (r.status === 404) {
+            console.warn('[VocUI] Chatbot "' + config.chatbotId + '" is not published. The widget will not render. Publish your chatbot at https://vocui.com/dashboard/chatbots/' + config.chatbotId + ' to activate the widget.');
+            return null;
+          }
+          return r.ok ? r.json() : null;
+        })
         .then(function(data) {
-          var wc = data ? data.data.widgetConfig : null;
-          var pc = data ? data.data.proactiveMessagesConfig : null;
+          if (!data) return;
+          var wc = data.data.widgetConfig;
+          var pc = data.data.proactiveMessagesConfig;
           build(config.chatbotId, wc, pc, userData, userContext);
         })
-        .catch(function() { build(config.chatbotId, null, null, userData, userContext); });
+        .catch(function(err) {
+          console.warn('[VocUI] Failed to load chatbot "' + config.chatbotId + '" config:', err);
+        });
     },
     track: function(eventName) {
       _customEventHandlers.forEach(function(h) { h(eventName); });

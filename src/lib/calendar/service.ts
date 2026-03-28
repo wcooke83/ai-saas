@@ -15,7 +15,12 @@ import type {
   BookingResponse,
   RescheduleRequest,
   TimeSlot,
+  EasyAppointmentsConfig,
+  BusinessHoursSet,
+  BusinessHoursEntry,
+  HolidayEntry,
 } from './types';
+import { EasyAppointmentsAdapter } from './providers/easy-appointments';
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -41,52 +46,136 @@ export class CalendarService {
   }
 
   /**
+   * List available services for a chatbot's calendar integration.
+   * Used when no service is pre-selected and the chatbot needs to ask the customer.
+   */
+  static async getServices(chatbotId: string): Promise<Array<{ id: number; name: string; duration: number; price: number; currency: string; description: string | null }>> {
+    const integration = await this.getIntegration(chatbotId);
+    if (!integration) {
+      throw new Error('No active calendar integration found for this chatbot');
+    }
+
+    const config = integration.config as unknown as EasyAppointmentsConfig;
+    const ea = new EasyAppointmentsAdapter(config);
+    const services = await ea.getServicesFull();
+    return services.map((s) => ({
+      id: s.id,
+      name: s.name,
+      duration: s.duration,
+      price: s.price,
+      currency: s.currency,
+      description: s.description,
+    }));
+  }
+
+  /**
+   * Check if this chatbot's calendar integration has a pre-selected service.
+   */
+  static async hasPreselectedService(chatbotId: string): Promise<boolean> {
+    const integration = await this.getIntegration(chatbotId);
+    if (!integration) return false;
+    const config = integration.config as unknown as EasyAppointmentsConfig;
+    return !!config.service_id;
+  }
+
+  /**
    * Check availability (uses cache when valid)
+   * @param serviceIdOverride - Optional service ID override (used when chatbot asks customer to pick a service)
    */
   static async getAvailability(
     chatbotId: string,
-    request: AvailabilityRequest
+    request: AvailabilityRequest,
+    serviceIdOverride?: string
   ): Promise<AvailabilityResponse> {
     const integration = await this.getIntegration(chatbotId);
     if (!integration) {
       throw new Error('No active calendar integration found for this chatbot');
     }
 
-    // Check cache
+    // Apply service_id override if provided (dynamic service selection from chat)
+    const effectiveConfig = serviceIdOverride
+      ? { ...integration.config, service_id: serviceIdOverride }
+      : integration.config;
+
+    // Check cache (include service_id in cache key via request)
     const cached = await this.getCachedAvailability(integration.id, request);
     if (cached) {
       return cached;
     }
 
-    // Fetch from provider
-    const adapter = createCalendarProvider(integration.provider, integration.config);
+    // Fetch from provider with effective config
+    const adapter = createCalendarProvider(integration.provider, effectiveConfig);
     const availability = await adapter.getAvailability(request);
 
-    // Cache results
-    await this.cacheAvailability(integration.id, request, availability);
+    // Apply service-scoped business hours and holidays from local config
+    const config = effectiveConfig as unknown as EasyAppointmentsConfig;
+    const effectiveServiceId = serviceIdOverride || config.service_id;
+    const effectiveProviderId = config.provider_id;
 
-    return availability;
+    let filteredSlots = availability.slots;
+
+    // Check for service-scoped business hours (provider-scoped are already in EA)
+    if (config.business_hours_sets?.length && effectiveServiceId) {
+      const resolvedHours = this.resolveBusinessHours(
+        config.business_hours_sets,
+        effectiveServiceId,
+        effectiveProviderId
+      );
+      if (resolvedHours) {
+        filteredSlots = this.filterSlotsByHours(filteredSlots, resolvedHours);
+      }
+    }
+
+    // Check for service-scoped holidays (provider-scoped are already in EA)
+    if (config.holidays?.length) {
+      filteredSlots = filteredSlots.filter(slot => {
+        const date = slot.start.split('T')[0];
+        return !this.isHolidayBlocked(
+          config.holidays!,
+          date,
+          effectiveServiceId,
+          effectiveProviderId
+        );
+      });
+    }
+
+    const filteredAvailability: AvailabilityResponse = {
+      slots: filteredSlots,
+      timezone: availability.timezone,
+    };
+
+    // Cache results
+    await this.cacheAvailability(integration.id, request, filteredAvailability);
+
+    return filteredAvailability;
   }
 
   /**
    * Create a booking and persist to calendar_bookings
+   * @param serviceIdOverride - Optional service ID override (used when chatbot asks customer to pick a service)
    */
   static async createBooking(
     chatbotId: string,
     sessionId: string,
-    request: BookingRequest
+    request: BookingRequest,
+    serviceIdOverride?: string
   ): Promise<BookingResponse> {
     const integration = await this.getIntegration(chatbotId);
     if (!integration) {
       throw new Error('No active calendar integration found for this chatbot');
     }
 
+    // Apply service_id override if provided (dynamic service selection from chat)
+    const effectiveConfig = serviceIdOverride
+      ? { ...integration.config, service_id: serviceIdOverride }
+      : integration.config;
+
     // Re-check availability to prevent double-booking race conditions
     const availability = await this.getAvailability(chatbotId, {
       dateFrom: request.start.split('T')[0],
       dateTo: request.end.split('T')[0],
       timezone: request.attendeeTimezone,
-    });
+    }, serviceIdOverride);
 
     const requestedStart = new Date(request.start).getTime();
     const slotAvailable = availability.slots.some(
@@ -97,8 +186,8 @@ export class CalendarService {
       throw new Error('The requested time slot is no longer available. Please check availability again.');
     }
 
-    // Create booking via provider
-    const adapter = createCalendarProvider(integration.provider, integration.config);
+    // Create booking via provider with effective config
+    const adapter = createCalendarProvider(integration.provider, effectiveConfig);
     const bookingResponse = await adapter.createBooking(request);
 
     // Get conversation ID from session
@@ -227,6 +316,80 @@ export class CalendarService {
   }
 
   // ── Private helpers ──
+
+  /**
+   * Resolve which business hours apply for a given service/provider.
+   * Priority: both service+provider scoped > service-only > provider-only > global (null)
+   * Returns null if no scoped set matches (caller should use global business hours from DB).
+   */
+  private static resolveBusinessHours(
+    sets: BusinessHoursSet[],
+    serviceId?: string,
+    providerId?: string
+  ): BusinessHoursEntry[] | null {
+    if (!sets || sets.length === 0) return null;
+
+    let bestMatch: BusinessHoursSet | null = null;
+    let bestScore = -1;
+
+    for (const set of sets) {
+      const svcMatch = !set.serviceIds?.length || (serviceId && set.serviceIds.includes(serviceId));
+      const prvMatch = !set.providerIds?.length || (providerId && set.providerIds.includes(providerId));
+      if (!svcMatch || !prvMatch) continue;
+
+      // Score: 2 points for specific service match, 1 point for specific provider match
+      let score = 0;
+      if (set.serviceIds?.length && serviceId && set.serviceIds.includes(serviceId)) score += 2;
+      if (set.providerIds?.length && providerId && set.providerIds.includes(providerId)) score += 1;
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = set;
+      }
+    }
+
+    return bestMatch ? bestMatch.hours : null;
+  }
+
+  /**
+   * Check if a date is blocked by a scoped holiday for the given service/provider.
+   */
+  private static isHolidayBlocked(
+    holidays: HolidayEntry[],
+    date: string,           // "YYYY-MM-DD"
+    serviceId?: string,
+    providerId?: string
+  ): boolean {
+    if (!holidays || holidays.length === 0) return false;
+
+    return holidays.some(h => {
+      if (h.date !== date) return false;
+      const svcMatch = !h.serviceIds?.length || (serviceId && h.serviceIds.includes(serviceId));
+      const prvMatch = !h.providerIds?.length || (providerId && h.providerIds.includes(providerId));
+      return svcMatch && prvMatch;
+    });
+  }
+
+  /**
+   * Filter slots to only those within the given business hours.
+   */
+  private static filterSlotsByHours(
+    slots: TimeSlot[],
+    hours: BusinessHoursEntry[]
+  ): TimeSlot[] {
+    return slots.filter(slot => {
+      const slotDate = new Date(slot.start);
+      const dayOfWeek = slotDate.getUTCDay();
+      const entry = hours.find(h => h.dayOfWeek === dayOfWeek);
+      if (!entry || !entry.isEnabled) return false;
+
+      // Extract HH:mm from slot start time
+      const slotTime = slot.start.split('T')[1]?.slice(0, 5);
+      if (!slotTime) return false;
+
+      return slotTime >= entry.startTime && slotTime < entry.endTime;
+    });
+  }
 
   private static async getCachedAvailability(
     integrationId: string,

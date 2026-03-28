@@ -43,9 +43,11 @@ import {
   HelpCircle,
   BookOpen,
   FileCode,
+  ScrollText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useUISettings, BackdropBlurValue } from '@/contexts/ui-settings-context';
 
 // ============================================================================
@@ -1868,6 +1870,7 @@ export function SDKTabs() {
   const [activeTab, setActiveTab] = useState('design-system');
   const [copied, setCopied] = useState<string | null>(null);
   const [updateKey, setUpdateKey] = useState(0);
+  const [pageScrollOpen, setPageScrollOpen] = useState(false);
 
   // UI Settings (blur/opacity)
   const {
@@ -2851,6 +2854,152 @@ export function SDKTabs() {
                   </div>
                 </CardContent>
               </Card>
+            </section>
+
+            {/* Page Scroll Modal */}
+            <section>
+              <h2 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
+                <ScrollText className="w-5 h-5 text-primary-500" aria-hidden="true" />
+                Page Scroll Modal
+              </h2>
+              <p className="text-sm text-secondary-500 dark:text-secondary-400 mb-6">
+                For modals with tall content that exceeds the viewport height. Uses the browser&apos;s native scrollbar on the page edge instead of an internal scrollbar. Works correctly in Firefox.
+              </p>
+              <div className="grid md:grid-cols-2 gap-6">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <ScrollText className="w-5 h-5 text-primary-500" />
+                      <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">Scrollable Modal Demo</h3>
+                    </div>
+                    <p className="text-sm text-secondary-500 dark:text-secondary-400 mb-4">
+                      Opens a modal with content taller than the viewport. Scrollbar appears on the right edge of the browser window. Click outside to close.
+                    </p>
+                    <Button className="w-full" onClick={() => setPageScrollOpen(true)}>
+                      <ScrollText className="w-4 h-4" />
+                      Open Page Scroll Modal
+                    </Button>
+                    <Dialog open={pageScrollOpen} onOpenChange={setPageScrollOpen} pageScroll>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>
+                            Page Scroll Modal Example
+                          </DialogTitle>
+                          <DialogDescription>
+                            This modal demonstrates the pageScroll pattern for tall content.
+                          </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-6">
+                          <div className="p-4 bg-secondary-50 dark:bg-secondary-800 rounded-lg">
+                            <h4 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-2">Section 1: Overview</h4>
+                            <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                              The pageScroll prop changes how the modal handles overflow. Instead of scrolling inside the modal, the entire page becomes scrollable with the scrollbar on the browser edge.
+                            </p>
+                          </div>
+
+                          <div className="p-4 bg-secondary-50 dark:bg-secondary-800 rounded-lg">
+                            <h4 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-2">Section 2: How It Works</h4>
+                            <p className="text-sm text-secondary-600 dark:text-secondary-400 mb-3">
+                              The Dialog container becomes a fixed, full-screen scrollable container. The actual modal card is centered inside with min-h-screen on the wrapper.
+                            </p>
+                            <ul className="text-sm text-secondary-500 dark:text-secondary-400 space-y-1 list-disc list-inside">
+                              <li>Fixed container with inset-0 and overflow-y-auto</li>
+                              <li>Inner wrapper uses min-h-screen for proper scrolling</li>
+                              <li>Body scroll stays enabled instead of locked</li>
+                              <li>Click outside modal to close (stopPropagation on card)</li>
+                            </ul>
+                          </div>
+
+                          <div className="p-4 bg-secondary-50 dark:bg-secondary-800 rounded-lg">
+                            <h4 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-2">Section 3: When to Use</h4>
+                            <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                              Use pageScroll for forms with many fields, settings panels, or any modal where content naturally exceeds viewport height. This provides better UX than internal scrolling, especially on Firefox where overlay scrollbars can be hidden.
+                            </p>
+                          </div>
+
+                          <div className="p-4 bg-secondary-50 dark:bg-secondary-800 rounded-lg">
+                            <h4 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-2">Section 4: Form Example</h4>
+                            <div className="space-y-4">
+                              <div>
+                                <label className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Name</label>
+                                <Input placeholder="Enter name" />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Email</label>
+                                <Input type="email" placeholder="your@email.com" />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Description</label>
+                                <Textarea rows={3} placeholder="Enter description" />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="p-4 bg-secondary-50 dark:bg-secondary-800 rounded-lg">
+                            <h4 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-2">Section 5: Additional Content</h4>
+                            <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                              This section exists to ensure there&apos;s enough content to require scrolling. The scrollbar should appear on the right edge of the viewport, not inside the modal.
+                            </p>
+                          </div>
+
+                          <div className="p-4 bg-secondary-50 dark:bg-secondary-800 rounded-lg">
+                            <h4 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-2">Section 6: Even More Content</h4>
+                            <p className="text-sm text-secondary-600 dark:text-secondary-400 mb-3">
+                              Scroll down to see the action buttons at the bottom. The scrollbar should be clearly visible in all browsers including Firefox.
+                            </p>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="p-3 bg-white dark:bg-secondary-900 rounded text-center">
+                                <div className="text-2xl font-bold text-primary-500">42</div>
+                                <div className="text-xs text-secondary-500 dark:text-secondary-400">Items</div>
+                              </div>
+                              <div className="p-3 bg-white dark:bg-secondary-900 rounded text-center">
+                                <div className="text-2xl font-bold text-primary-500">100%</div>
+                                <div className="text-xs text-secondary-500 dark:text-secondary-400">Complete</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-3 pt-4 border-t border-secondary-200 dark:border-secondary-700">
+                            <Button variant="outline" onClick={() => setPageScrollOpen(false)} className="flex-1">
+                              Cancel
+                            </Button>
+                            <Button onClick={() => { toast.success("Saved!"); setPageScrollOpen(false); }} className="flex-1">
+                              Save Changes
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-3">Implementation</h3>
+                    <pre className="text-xs bg-secondary-50 dark:bg-secondary-800 p-3 rounded overflow-x-auto whitespace-pre-wrap text-secondary-700 dark:text-secondary-300">
+{`<Dialog pageScroll>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Title</DialogTitle>
+    </DialogHeader>
+    {/* Tall content here */}
+  </DialogContent>
+</Dialog>`}
+                    </pre>
+                    <div className="mt-4 p-3 bg-secondary-50 dark:bg-secondary-800 rounded">
+                      <h4 className="font-medium text-sm text-secondary-900 dark:text-secondary-100 mb-2">Key Features:</h4>
+                      <ul className="text-xs text-secondary-500 dark:text-secondary-400 space-y-1">
+                        <li>- Browser-native scrollbar on viewport edge</li>
+                        <li>- Works correctly in Firefox</li>
+                        <li>- Click outside to close</li>
+                        <li>- Keyboard accessible (Esc to close)</li>
+                        <li>- No custom CSS required</li>
+                      </ul>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </section>
           </div>
         )}

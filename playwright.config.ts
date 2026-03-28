@@ -1,4 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
+import { loadEnvConfig } from '@next/env';
+
+// Load .env.local so E2E_TEST_SECRET, CRON_SECRET, etc. are available
+loadEnvConfig(process.cwd());
 
 export default defineConfig({
   testDir: './tests',

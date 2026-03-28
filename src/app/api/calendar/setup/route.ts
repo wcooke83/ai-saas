@@ -10,7 +10,7 @@ import { authenticate } from '@/lib/auth/session';
 import { successResponse, errorResponse, APIError, parseBody } from '@/lib/api/utils';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { EasyAppointmentsAdapter } from '@/lib/calendar/providers/easy-appointments';
-import type { BusinessHoursEntry } from '@/lib/calendar/types';
+import type { BusinessHoursEntry, BusinessHoursSet, DateOverrideEntry, HolidayEntry, EAConnectionState, EAWorkingPlanDay } from '@/lib/calendar/types';
 
 const businessHoursSchema = z.array(z.object({
   dayOfWeek: z.number().min(0).max(6),
@@ -31,12 +31,43 @@ const eventTypeSchema = z.object({
   timezone: z.string(),
 });
 
+const dateOverrideSchema = z.array(z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/),
+  endTime: z.string().regex(/^\d{2}:\d{2}$/),
+  isClosed: z.boolean(),
+  label: z.string().max(100).optional(),
+  serviceIds: z.array(z.string()).optional(),
+  providerIds: z.array(z.string()).optional(),
+}));
+
+const businessHoursSetSchema = z.array(z.object({
+  id: z.string(),
+  label: z.string().max(100).optional(),
+  hours: businessHoursSchema,
+  serviceIds: z.array(z.string()).optional(),
+  providerIds: z.array(z.string()).optional(),
+})).optional().default([]);
+
+const holidayEntrySchema = z.array(z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  label: z.string().max(100).optional(),
+  serviceIds: z.array(z.string()).optional(),
+  providerIds: z.array(z.string()).optional(),
+})).optional().default([]);
+
+const providerServicePricesSchema = z.record(z.string(), z.record(z.string(), z.number())).optional().default({});
+
 const setupSchema = z.object({
   chatbotId: z.string().uuid(),
   eventType: eventTypeSchema,
   businessHours: businessHoursSchema,
+  dateOverrides: dateOverrideSchema.optional().default([]),
   serviceId: z.string().optional(),
   providerId: z.string().optional(),
+  providerServicePrices: providerServicePricesSchema,
+  businessHoursSets: businessHoursSetSchema,
+  scopedHolidays: holidayEntrySchema,
 });
 
 export async function GET(req: NextRequest) {
@@ -46,6 +77,20 @@ export async function GET(req: NextRequest) {
 
     const chatbotId = req.nextUrl.searchParams.get('chatbotId');
     if (!chatbotId) throw APIError.badRequest('chatbotId is required');
+
+    // Determine EA connection state
+    let connectionState: EAConnectionState = 'not_connected';
+    if (!process.env.EASY_APPOINTMENTS_URL || !process.env.EASY_APPOINTMENTS_KEY) {
+      connectionState = 'not_configured';
+    } else {
+      try {
+        const eaCheck = new EasyAppointmentsAdapter({});
+        const validation = await eaCheck.validateConfig();
+        connectionState = validation.valid ? 'connected' : 'unreachable';
+      } catch {
+        connectionState = 'unreachable';
+      }
+    }
 
     const supabase = createAdminClient();
 
@@ -75,10 +120,10 @@ export async function GET(req: NextRequest) {
       try {
         const ea = new EasyAppointmentsAdapter({});
         [services, providers] = await Promise.all([ea.getServices(), ea.getProviders()]);
-      } catch {
-        // EA might not be configured
+      } catch (err) {
+        console.error('[Calendar Setup] EA fetch failed (no integration):', err instanceof Error ? err.message : err);
       }
-      return successResponse({ eventType: null, businessHours: null, services, providers });
+      return successResponse({ eventType: null, businessHours: null, businessHoursSets: [], holidays: [], services, providers, connectionState });
     }
 
     // Get event type and business hours
@@ -129,10 +174,15 @@ export async function GET(req: NextRequest) {
         timezone: eventType.timezone,
       } : null,
       businessHours: businessHours.length > 0 ? businessHours : null,
+      dateOverrides: (config.date_overrides as DateOverrideEntry[]) || [],
+      businessHoursSets: (config.business_hours_sets as BusinessHoursSet[]) || [],
+      holidays: (config.holidays as HolidayEntry[]) || [],
       serviceId: config.service_id || null,
       providerId: config.provider_id || null,
+      providerServicePrices: (config.provider_service_prices as Record<string, Record<string, number>>) || {},
       services,
       providers,
+      connectionState,
     });
   } catch (error) {
     return errorResponse(error);
@@ -194,6 +244,10 @@ export async function POST(req: NextRequest) {
           config: {
             service_id: input.serviceId || null,
             provider_id: input.providerId || null,
+            date_overrides: input.dateOverrides,
+            provider_service_prices: input.providerServicePrices || {},
+            business_hours_sets: input.businessHoursSets || [],
+            holidays: input.scopedHolidays || [],
           },
         })
         .select('id, config')
@@ -202,13 +256,17 @@ export async function POST(req: NextRequest) {
       if (error) throw error;
       integration = newInt;
     } else {
-      // Update config with service/provider IDs
+      // Update config with service/provider IDs, date overrides, and price overrides
       await supabase
         .from('calendar_integrations')
         .update({
           config: {
             service_id: input.serviceId || null,
             provider_id: input.providerId || null,
+            date_overrides: input.dateOverrides,
+            provider_service_prices: input.providerServicePrices || {},
+            business_hours_sets: input.businessHoursSets || [],
+            holidays: input.scopedHolidays || [],
           },
         })
         .eq('id', integration.id);
@@ -253,6 +311,109 @@ export async function POST(req: NextRequest) {
     await supabase
       .from('calendar_business_hours')
       .insert(hoursUpserts);
+
+    // Auto-sync date overrides to EA providers
+    if (input.dateOverrides && input.dateOverrides.length > 0) {
+      try {
+        // Collect all EA provider IDs that need syncing
+        const allProviders = await ea.getProviders();
+        const providerIds = allProviders.map(p => p.id);
+
+        // Group overrides by target provider
+        const perProvider = new Map<number, Record<string, EAWorkingPlanDay | null>>();
+
+        for (const override of input.dateOverrides!) {
+          const exception: EAWorkingPlanDay | null = override.isClosed
+            ? null
+            : { start: override.startTime, end: override.endTime, breaks: [] };
+
+          if (override.providerIds && override.providerIds.length > 0) {
+            // Scoped to specific providers
+            for (const id of override.providerIds) {
+              const pid = Number(id);
+              if (!perProvider.has(pid)) perProvider.set(pid, {});
+              perProvider.get(pid)![override.date] = exception;
+            }
+          } else {
+            // Applies to all providers
+            for (const pid of providerIds) {
+              if (!perProvider.has(pid)) perProvider.set(pid, {});
+              perProvider.get(pid)![override.date] = exception;
+            }
+          }
+        }
+
+        // Push to each provider
+        await Promise.allSettled(
+          Array.from(perProvider.entries()).map(([pid, exceptions]) =>
+            ea.setWorkingPlanExceptions(pid, exceptions)
+          )
+        );
+      } catch (err) {
+        console.error('[Calendar Setup] EA sync for date overrides failed:', err);
+        // Non-fatal: local config is already saved
+      }
+    }
+
+    // Sync scoped business hours sets to EA providers
+    if (input.businessHoursSets && input.businessHoursSets.length > 0) {
+      try {
+        for (const set of input.businessHoursSets) {
+          if (!set.providerIds || set.providerIds.length === 0) continue;
+          // Only sync to EA if scoped to providers only (no service scoping — EA doesn't support per-service hours)
+          if (set.serviceIds && set.serviceIds.length > 0) continue;
+
+          // Build EA working plan from the set's hours
+          const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
+          const workingPlan: Record<string, EAWorkingPlanDay | null> = {};
+          for (const entry of set.hours) {
+            const dayName = dayNames[entry.dayOfWeek];
+            workingPlan[dayName] = entry.isEnabled
+              ? { start: entry.startTime, end: entry.endTime, breaks: [] }
+              : null;
+          }
+
+          // Update each targeted provider's working plan in EA
+          await Promise.allSettled(
+            set.providerIds.map(pid =>
+              ea.updateProvider(Number(pid), {
+                settings: { workingPlan: workingPlan as import('@/lib/calendar/types').EAWorkingPlan },
+              } as Parameters<typeof ea.updateProvider>[1])
+            )
+          );
+        }
+      } catch (err) {
+        console.error('[Calendar Setup] EA sync for scoped business hours failed:', err);
+      }
+    }
+
+    // Sync scoped holidays to EA providers as working_plan_exceptions
+    if (input.scopedHolidays && input.scopedHolidays.length > 0) {
+      try {
+        const allProviders = await ea.getProviders();
+        const providerIds = allProviders.map(p => p.id);
+        const perProvider = new Map<number, Record<string, EAWorkingPlanDay | null>>();
+
+        for (const holiday of input.scopedHolidays) {
+          const targetProviders = (holiday.providerIds && holiday.providerIds.length > 0)
+            ? holiday.providerIds.map(Number)
+            : providerIds;
+
+          for (const pid of targetProviders) {
+            if (!perProvider.has(pid)) perProvider.set(pid, {});
+            perProvider.get(pid)![holiday.date] = null; // null = closed
+          }
+        }
+
+        await Promise.allSettled(
+          Array.from(perProvider.entries()).map(([pid, exceptions]) =>
+            ea.setWorkingPlanExceptions(pid, exceptions)
+          )
+        );
+      } catch (err) {
+        console.error('[Calendar Setup] EA sync for scoped holidays failed:', err);
+      }
+    }
 
     return successResponse({
       integration_id: integration.id,

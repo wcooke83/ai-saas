@@ -168,16 +168,17 @@ export async function deleteChatbot(chatbotId: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function publishChatbot(chatbotId: string): Promise<Chatbot> {
-  return updateChatbot(chatbotId, {
-    status: 'active',
-    is_published: true,
-  });
+export async function publishChatbot(chatbotId: string, currentStatus?: string): Promise<Chatbot> {
+  const updates: ChatbotUpdate = { is_published: true };
+  // Transition out of draft on first publish, but don't touch status otherwise
+  if (currentStatus === 'draft') {
+    updates.status = 'active';
+  }
+  return updateChatbot(chatbotId, updates);
 }
 
 export async function unpublishChatbot(chatbotId: string): Promise<Chatbot> {
   return updateChatbot(chatbotId, {
-    status: 'paused',
     is_published: false,
   });
 }

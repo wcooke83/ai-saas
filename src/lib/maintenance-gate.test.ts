@@ -61,4 +61,26 @@ describe('checkGate', () => {
     process.env.MAINTENANCE_MODE = 'false';
     expect(checkGate('/')).toEqual({ active: false });
   });
+
+  it('bypasses gate when IP is in BYPASS_IPS', () => {
+    process.env.MAINTENANCE_MODE = 'true';
+    process.env.BYPASS_IPS = '1.2.3.4,5.6.7.8';
+    expect(checkGate('/', { ip: '1.2.3.4' })).toEqual({ active: false });
+    expect(checkGate('/', { ip: '9.9.9.9' })).toEqual({ active: true, destination: '/maintenance' });
+  });
+
+  it('bypasses gate when bypass cookie is present', () => {
+    process.env.COMING_SOON_MODE = 'true';
+    expect(checkGate('/', { hasBypassCookie: true })).toEqual({ active: false });
+  });
+
+  it('bypasses gate and signals setCookie when bypass param is present', () => {
+    process.env.COMING_SOON_MODE = 'true';
+    expect(checkGate('/', { hasBypassParam: true })).toEqual({ active: false, setCookie: true });
+  });
+
+  it('bypass param works for maintenance mode too', () => {
+    process.env.MAINTENANCE_MODE = 'true';
+    expect(checkGate('/', { hasBypassParam: true })).toEqual({ active: false, setCookie: true });
+  });
 });

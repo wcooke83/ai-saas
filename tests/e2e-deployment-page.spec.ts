@@ -115,7 +115,7 @@ test.describe('Deploy Page – Widget Embed Tab', () => {
     await expect(authCode).toContainText('context');
   });
 
-  test('DEPLOY-015: Live Preview iframe is visible with correct src', async ({ page }) => {
+  test('DEPLOY-015: Live Preview iframe uses ?preview param for authenticated access', async ({ page }) => {
     await gotoDeploy(page);
 
     const previewIframe = page.locator('iframe[title="Chatbot Preview"]');
@@ -123,6 +123,8 @@ test.describe('Deploy Page – Widget Embed Tab', () => {
 
     const src = await previewIframe.getAttribute('src');
     expect(src).toContain(`/widget/${CHATBOT_ID}`);
+    // P1 fix: preview iframe uses ?preview to hit preview-config endpoint
+    expect(src).toContain('?preview');
   });
 
   test('DEPLOY-016: Live Preview has Open button linking to widget', async ({ page }) => {
@@ -259,24 +261,78 @@ test.describe('Deploy Page – REST API Tab', () => {
   });
 });
 
-test.describe('Deploy Page – Unpublished Banner', () => {
-  test('DEPLOY-040: unpublished banner appears when chatbot is not published', async ({ page }) => {
+test.describe('Deploy Page – Unpublished Banner (P0 fixes)', () => {
+  test('DEPLOY-040: unpublished banner with inline publish button', async ({ page }) => {
+    // Ensure unpublished state
+    await page.request.delete(`/api/chatbots/${CHATBOT_ID}/publish`);
     await gotoDeploy(page);
 
-    const warningBanner = page.getByText('Chatbot not published');
-    const isUnpublished = await warningBanner.isVisible({ timeout: 5000 }).catch(() => false);
+    // Banner should appear with updated messaging
+    await expect(page.getByText('Chatbot not published')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('The embed codes below are ready to add to your site.')).toBeVisible();
+    await expect(page.getByText('The widget will not render for visitors until you publish.')).toBeVisible();
 
-    if (isUnpublished) {
-      await expect(page.getByText("Embed codes below won't work until you publish.")).toBeVisible();
-      // "Publish now" link pointing to chatbot overview
-      const publishLink = page.getByRole('link', { name: /Publish now/i });
-      await expect(publishLink).toBeVisible();
-      await expect(publishLink).toHaveAttribute('href', `/dashboard/chatbots/${CHATBOT_ID}`);
+    // "Publish now" is now a Button (not a Link) — no href attribute
+    const publishBtn = page.getByRole('button', { name: /Publish now/i });
+    await expect(publishBtn).toBeVisible();
+    await expect(publishBtn).toBeEnabled();
 
-      // Code blocks should have the "Publish to enable" overlay
-      await expect(page.getByText('Publish to enable')).toBeVisible();
-    }
-    // If published, no banner -- test passes either way
+    // There should be no link-based "Publish now" (old behavior)
+    await expect(page.getByRole('link', { name: /Publish now/i })).not.toBeVisible();
+  });
+
+  test('DEPLOY-041: embed codes are always visible and copyable when unpublished', async ({ page }) => {
+    // Ensure unpublished state
+    await page.request.delete(`/api/chatbots/${CHATBOT_ID}/publish`);
+    await gotoDeploy(page);
+
+    await expect(page.getByText('Chatbot not published')).toBeVisible({ timeout: 10000 });
+
+    // Embed codes should be visible at full opacity (no "Publish to enable" overlay)
+    await expect(page.getByText('Publish to enable')).not.toBeVisible();
+
+    // Code blocks should be visible with chatbot ID
+    const codeBlock = page.locator('pre code').filter({ hasText: 'data-chatbot-id' }).first();
+    await expect(codeBlock).toBeVisible({ timeout: 10000 });
+    await expect(codeBlock).toContainText(CHATBOT_ID);
+
+    // Code blocks should not have select-none or reduced opacity
+    const preElement = page.locator('pre').filter({ hasText: 'data-chatbot-id' }).first();
+    const classes = await preElement.getAttribute('class') || '';
+    expect(classes).not.toContain('select-none');
+    // Opacity should not be 50%
+    expect(classes).not.toContain('opacity-50');
+
+    // Copy button should be enabled
+    const copyButton = page.getByRole('button', { name: /^Copy$/i }).first();
+    await expect(copyButton).toBeVisible();
+    await expect(copyButton).toBeEnabled();
+  });
+
+  test('DEPLOY-042: inline publish button publishes chatbot and removes banner', async ({ page }) => {
+    // Ensure unpublished state
+    await page.request.delete(`/api/chatbots/${CHATBOT_ID}/publish`);
+    await gotoDeploy(page);
+
+    await expect(page.getByText('Chatbot not published')).toBeVisible({ timeout: 10000 });
+
+    // Click the inline Publish button
+    const publishPromise = page.waitForResponse(
+      (res) => res.url().includes(`/api/chatbots/${CHATBOT_ID}/publish`) && res.request().method() === 'POST'
+    );
+    await page.getByRole('button', { name: /Publish now/i }).click();
+    const publishResponse = await publishPromise;
+    expect(publishResponse.ok()).toBeTruthy();
+
+    // Toast should confirm publication
+    await expect(page.getByText('embed codes are now active')).toBeVisible({ timeout: 10000 });
+
+    // Banner should disappear
+    await expect(page.getByText('Chatbot not published')).not.toBeVisible({ timeout: 5000 });
+  });
+
+  test('DEPLOY-043: re-publish for other tests', async ({ page }) => {
+    await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
   });
 });
 

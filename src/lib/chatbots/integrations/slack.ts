@@ -285,17 +285,8 @@ export async function handleSlackEvent(
   const systemPrompt = buildSystemPrompt(chatbot, ragContext.chunks.length > 0);
   const userPrompt = buildRAGPrompt(ragContext, history, cleanText);
 
-  // Generate response
-  const modelMap: Record<string, 'balanced' | 'powerful' | 'fast'> = {
-    'claude-3-haiku-20240307': 'fast',
-    'claude-3-5-sonnet-20241022': 'balanced',
-    'claude-sonnet-4-20250514': 'powerful',
-  };
-  const modelLevel = modelMap[chatbot.model] || 'balanced';
-
+  // Generate response — uses the admin-configured AI model
   const result = await generate(userPrompt, {
-    provider: 'claude',
-    model: modelLevel,
     systemPrompt,
     temperature: chatbot.temperature,
     maxTokens: chatbot.max_tokens,

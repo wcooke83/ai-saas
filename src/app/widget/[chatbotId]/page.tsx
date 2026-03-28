@@ -32,6 +32,7 @@ export default function WidgetPage({ params }: WidgetPageProps) {
     creditPackages?: Array<{ id: string; name: string; creditAmount: number; priceCents: number; stripePriceId: string }>;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notPublished, setNotPublished] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<Record<string, string> | null>(null);
   const [userContext, setUserContext] = useState<Record<string, unknown> | null>(null);
@@ -57,9 +58,18 @@ export default function WidgetPage({ params }: WidgetPageProps) {
   useEffect(() => {
     async function fetchConfig() {
       try {
-        // Add cache-busting to ensure fresh config
+        // In preview mode (dashboard context), use the authenticated preview-config
+        // endpoint which skips the is_published check. Otherwise use the public endpoint.
+        const preview = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('preview');
         const cacheBuster = Date.now();
-        const response = await fetch(`/api/widget/${chatbotId}/config?_t=${cacheBuster}`);
+        const configUrl = preview
+          ? `/api/chatbots/${chatbotId}/preview-config?_t=${cacheBuster}`
+          : `/api/widget/${chatbotId}/config?_t=${cacheBuster}`;
+        const response = await fetch(configUrl);
+        if (response.status === 404) {
+          setNotPublished(true);
+          return;
+        }
         const data = await response.json();
         if (!response.ok) {
           const detail = data?.error?.details || data?.error?.message || `HTTP ${response.status}`;
@@ -80,6 +90,19 @@ export default function WidgetPage({ params }: WidgetPageProps) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-transparent">
         <div className="animate-pulse text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
+  if (notPublished) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-transparent">
+        <div className="text-center p-6 max-w-sm">
+          <p className="font-medium text-gray-700">This chatbot is not yet published.</p>
+          <p className="text-sm text-gray-500 mt-2">
+            If you own this chatbot, publish it from your VocUI dashboard.
+          </p>
+        </div>
       </div>
     );
   }

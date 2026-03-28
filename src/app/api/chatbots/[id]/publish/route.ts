@@ -42,8 +42,8 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const sources = await getKnowledgeSources(id);
     const hasKnowledge = sources.some(s => s.status === 'completed');
 
-    // Publish the chatbot
-    const chatbot = await publishChatbot(id);
+    // Publish the chatbot (pass current status so draft→active transition works)
+    const chatbot = await publishChatbot(id, existing.status);
 
     // Generate embed code
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';

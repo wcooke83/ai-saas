@@ -188,8 +188,6 @@ Rules for key_facts:
 
   try {
     const result = await generate(prompt, {
-      provider: 'claude',
-      model: 'fast',
       temperature: 0.1,
       maxTokens: 500,
     });
@@ -245,8 +243,6 @@ export async function summarizeConversation(
     const result = await generate(
       `Summarize this conversation in 1-2 sentences. Focus on what the user needed and whether it was resolved.\n\n${conversationText}`,
       {
-        provider: 'claude',
-        model: 'fast',
         temperature: 0.1,
         maxTokens: 200,
       }

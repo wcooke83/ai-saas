@@ -7,7 +7,6 @@ import {
   Circle,
   Database,
   Palette,
-  Play,
   Code,
   X,
   ChevronRight,
@@ -31,7 +30,6 @@ interface OnboardingChecklistProps {
 
 const DISMISS_KEY_PREFIX = 'chatbot-onboarding-dismissed-';
 export const WIDGET_REVIEWED_KEY_PREFIX = 'chatbot-widget-reviewed-';
-export const CHATBOT_TESTED_KEY_PREFIX = 'chatbot-tested-';
 
 export function OnboardingChecklist({
   chatbotId,
@@ -40,13 +38,11 @@ export function OnboardingChecklist({
 }: OnboardingChecklistProps) {
   const [dismissed, setDismissed] = useState(true); // start hidden to avoid flash
   const [widgetReviewed, setWidgetReviewed] = useState(false);
-  const [chatbotTested, setChatbotTested] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem(`${DISMISS_KEY_PREFIX}${chatbotId}`);
     setDismissed(stored === 'true');
     setWidgetReviewed(localStorage.getItem(`${WIDGET_REVIEWED_KEY_PREFIX}${chatbotId}`) === 'true');
-    setChatbotTested(localStorage.getItem(`${CHATBOT_TESTED_KEY_PREFIX}${chatbotId}`) === 'true');
   }, [chatbotId]);
 
   const steps: OnboardingStep[] = [
@@ -67,17 +63,9 @@ export function OnboardingChecklist({
       icon: Palette,
     },
     {
-      id: 'test',
-      label: 'Test Your Chatbot',
-      description: 'Preview how visitors will interact with it',
-      completed: chatbotTested,
-      href: `/dashboard/chatbots/${chatbotId}/deploy`,
-      icon: Play,
-    },
-    {
       id: 'deploy',
       label: 'Deploy to Website',
-      description: 'Publish and embed on your site',
+      description: 'Test the live preview, publish, and embed on your site',
       completed: isPublished,
       href: `/dashboard/chatbots/${chatbotId}/deploy`,
       icon: Code,

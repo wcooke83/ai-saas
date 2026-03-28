@@ -68,6 +68,8 @@ export function ArticleGeneration({
   const [deletingPromptId, setDeletingPromptId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [showPrompts, setShowPrompts] = useState(false);
+  const [togglingPromptId, setTogglingPromptId] = useState<string | null>(null);
+  const [schedulingPromptId, setSchedulingPromptId] = useState<string | null>(null);
 
   // Schedule state
   const [schedule, setSchedule] = useState<Schedule>('manual');
@@ -82,16 +84,16 @@ export function ArticleGeneration({
 
   // --- Data Fetching ---
 
-  const fetchPrompts = async () => {
-    setPromptsLoading(true);
+  const fetchPrompts = async (silent = false) => {
+    if (!silent) setPromptsLoading(true);
     try {
       const res = await fetch(`/api/chatbots/${chatbotId}/articles/prompts`);
       const data = await res.json();
       if (data.success) setPrompts(data.data.prompts);
     } catch {
-      toast.error('Failed to load extraction prompts');
+      if (!silent) toast.error('Failed to load extraction prompts');
     } finally {
-      setPromptsLoading(false);
+      if (!silent) setPromptsLoading(false);
     }
   };
 
@@ -184,8 +186,7 @@ export function ArticleGeneration({
   };
 
   const togglePrompt = async (promptId: string, enabled: boolean) => {
-    // Optimistic update
-    setPrompts(prev => prev.map(p => p.id === promptId ? { ...p, enabled } : p));
+    setTogglingPromptId(promptId);
     try {
       const res = await fetch(`/api/chatbots/${chatbotId}/articles/prompts/${promptId}`, {
         method: 'PATCH',
@@ -193,11 +194,12 @@ export function ArticleGeneration({
         body: JSON.stringify({ enabled }),
       });
       if (!res.ok) throw new Error('Failed');
+      await fetchPrompts(true);
       toast.success(enabled ? 'Prompt enabled' : 'Prompt disabled');
     } catch {
-      // Rollback
-      setPrompts(prev => prev.map(p => p.id === promptId ? { ...p, enabled: !enabled } : p));
       toast.error('Failed to update prompt');
+    } finally {
+      setTogglingPromptId(null);
     }
   };
 
@@ -262,8 +264,7 @@ export function ArticleGeneration({
   };
 
   const updatePromptSchedule = async (promptId: string, newSchedule: PromptSchedule) => {
-    // Optimistic update
-    setPrompts(prev => prev.map(p => p.id === promptId ? { ...p, schedule: newSchedule } : p));
+    setSchedulingPromptId(promptId);
     try {
       const res = await fetch(`/api/chatbots/${chatbotId}/articles/prompts/${promptId}`, {
         method: 'PATCH',
@@ -271,14 +272,12 @@ export function ArticleGeneration({
         body: JSON.stringify({ schedule: newSchedule }),
       });
       if (!res.ok) throw new Error('Failed');
+      await fetchPrompts(true);
       toast.success(`Prompt schedule set to ${SCHEDULE_LABELS[newSchedule].toLowerCase()}`);
     } catch {
-      // Rollback
-      const original = prompts.find(p => p.id === promptId);
-      if (original) {
-        setPrompts(prev => prev.map(p => p.id === promptId ? { ...p, schedule: original.schedule } : p));
-      }
       toast.error('Failed to update prompt schedule');
+    } finally {
+      setSchedulingPromptId(null);
     }
   };
 
@@ -293,7 +292,8 @@ export function ArticleGeneration({
         body: JSON.stringify({ article_schedule: newSchedule }),
       });
       if (!res.ok) throw new Error('Failed');
-      setSchedule(newSchedule);
+      await fetchSchedule();
+      await fetchPrompts(true);
       toast.success(`Schedule updated to ${newSchedule}`);
     } catch {
       toast.error('Failed to update schedule');
@@ -304,6 +304,7 @@ export function ArticleGeneration({
 
   const enabledPromptsCount = prompts.filter(p => p.enabled).length;
   const promptsWithActiveSchedule = prompts.filter(p => {
+    if (!p.enabled) return false;
     if (p.schedule === 'inherit') return schedule !== 'manual';
     return p.schedule !== 'manual';
   }).length;
@@ -472,18 +473,25 @@ export function ArticleGeneration({
               <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-secondary-400" /></div>
             ) : (
               <div className="space-y-2">
-                {prompts.map((prompt) => (
-                  <div key={prompt.id} className="flex items-center gap-2 group">
+                {prompts.map((prompt) => {
+                  const isPromptBusy = togglingPromptId === prompt.id || schedulingPromptId === prompt.id || savingPromptId === prompt.id;
+                  return (
+                  <div key={prompt.id} className={`flex items-center gap-2 group transition-opacity duration-200 ${isPromptBusy ? 'opacity-50' : ''}`}>
                     <button
                       onClick={() => togglePrompt(prompt.id, !prompt.enabled)}
-                      disabled={!!savingPromptId || !!deletingPromptId}
-                      className={`flex-shrink-0 w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-                        prompt.enabled
-                          ? 'bg-primary-600 border-primary-600 text-white'
-                          : 'border-secondary-300 dark:border-secondary-600 hover:border-primary-400'
+                      disabled={!!togglingPromptId || !!savingPromptId || !!deletingPromptId}
+                      className={`flex-shrink-0 w-5 h-5 rounded border flex items-center justify-center transition-all duration-200 ${
+                        togglingPromptId === prompt.id
+                          ? 'border-primary-400 bg-primary-50 dark:bg-primary-900/20'
+                          : prompt.enabled
+                            ? 'bg-primary-600 border-primary-600 text-white'
+                            : 'border-secondary-300 dark:border-secondary-600 hover:border-primary-400'
                       }`}
                     >
-                      {prompt.enabled && <Check className="w-3 h-3" />}
+                      {togglingPromptId === prompt.id
+                        ? <Loader2 className="w-3 h-3 animate-spin text-primary-500" />
+                        : prompt.enabled && <Check className="w-3 h-3" />
+                      }
                     </button>
 
                     {editingPromptId === prompt.id ? (
@@ -547,11 +555,15 @@ export function ArticleGeneration({
 
                         <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                           {/* Schedule dropdown */}
+                          {schedulingPromptId === prompt.id && (
+                            <Loader2 className="w-3 h-3 animate-spin text-primary-500 flex-shrink-0 self-center" />
+                          )}
                           <select
                             value={prompt.schedule || 'inherit'}
                             onChange={e => updatePromptSchedule(prompt.id, e.target.value as PromptSchedule)}
                             onClick={e => e.stopPropagation()}
-                            className="h-7 text-[10px] rounded border border-secondary-200 dark:border-secondary-700 bg-transparent px-1 text-secondary-500 hover:text-secondary-700 dark:hover:text-secondary-300 cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-500"
+                            disabled={!!schedulingPromptId}
+                            className="h-7 text-[10px] rounded border border-secondary-200 dark:border-secondary-700 bg-transparent px-1 text-secondary-500 hover:text-secondary-700 dark:hover:text-secondary-300 cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Set schedule for this prompt"
                           >
                             <option value="inherit">{`Use default (${schedule === 'manual' ? 'Manual' : schedule.charAt(0).toUpperCase() + schedule.slice(1)})`}</option>
@@ -610,7 +622,8 @@ export function ArticleGeneration({
                       </>
                     )}
                   </div>
-                ))}
+                  );
+                })}
 
                 {/* Add new prompt */}
                 <div className="flex gap-2 mt-3 pt-3 border-t border-secondary-100 dark:border-secondary-800">

@@ -5,15 +5,33 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
 import { updateSession, isProtectedRoute, isAuthRoute } from '@/lib/supabase/middleware';
-import { checkGate } from '@/lib/maintenance-gate';
+import { checkGate, BYPASS_COOKIE_NAME, BYPASS_COOKIE_MAX_AGE } from '@/lib/maintenance-gate';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Maintenance / coming-soon gate
-  const gate = checkGate(pathname);
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip');
+  const gate = checkGate(pathname, {
+    ip,
+    hasBypassCookie: request.cookies.get(BYPASS_COOKIE_NAME)?.value === 'true',
+    hasBypassParam: request.nextUrl.searchParams.get('i') === 'true',
+  });
   if (gate.active) {
     return NextResponse.rewrite(new URL(gate.destination, request.url));
+  }
+  if (!gate.active && gate.setCookie) {
+    // Strip the ?i=true param and redirect, setting the bypass cookie
+    const cleanUrl = new URL(request.url);
+    cleanUrl.searchParams.delete('i');
+    const response = NextResponse.redirect(cleanUrl);
+    response.cookies.set(BYPASS_COOKIE_NAME, 'true', {
+      maxAge: BYPASS_COOKIE_MAX_AGE,
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+    });
+    return response;
   }
 
   // Handle API routes - add CORS headers + refresh session

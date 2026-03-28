@@ -10,6 +10,39 @@ import type { KnowledgeSource, KnowledgeSourceInsert } from '../types';
 import { chunkText } from './chunker';
 import { generateEmbeddings, resolveEmbeddingConfig } from './embeddings';
 
+/** Wrap a promise with a timeout. Rejects with a clear message on expiry. */
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s`)), ms);
+    promise.then(
+      (v) => { clearTimeout(timer); resolve(v); },
+      (e) => { clearTimeout(timer); reject(e); },
+    );
+  });
+}
+
+/** Retry a function with exponential backoff for transient failures. */
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  { retries = 2, baseDelay = 1000, label = 'operation' } = {}
+): Promise<T> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      const isLast = attempt === retries;
+      const msg = error instanceof Error ? error.message : String(error);
+      // Only retry on transient errors (rate limits, server errors, timeouts)
+      const isTransient = /rate.?limit|429|5\d{2}|timeout|ECONNRESET|ETIMEDOUT|fetch failed/i.test(msg);
+      if (isLast || !isTransient) throw error;
+      const delay = baseDelay * Math.pow(2, attempt);
+      console.warn(`[Processor] ${label} failed (attempt ${attempt + 1}/${retries + 1}), retrying in ${delay}ms: ${msg}`);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  throw new Error('unreachable');
+}
+
 function contentHash(text: string): string {
   return createHash('sha256').update(text.trim().toLowerCase()).digest('hex').slice(0, 16);
 }
@@ -94,7 +127,7 @@ export async function processKnowledgeSource(
           throw new Error('No URL for URL source');
         }
         const { extractURL } = await import('./extractors/url');
-        content = await extractURL(source.url);
+        content = await withTimeout(extractURL(source.url), 60_000, `URL extraction for ${source.url}`);
         break;
 
       case 'text':
@@ -183,8 +216,11 @@ export async function processKnowledgeSource(
       const batchHashes = dedupedHashes.slice(i, i + BATCH_SIZE);
       const texts = batch.map((c) => c.content);
 
-      // Generate embeddings for batch using the resolved config
-      const embeddings = await generateEmbeddings(texts, embeddingConfig);
+      // Generate embeddings for batch with retry and timeout
+      const embeddings = await withRetry(
+        () => withTimeout(generateEmbeddings(texts, embeddingConfig), 30_000, 'Embedding generation'),
+        { retries: 2, baseDelay: 1000, label: `Embedding batch ${i / BATCH_SIZE + 1}` },
+      );
 
       // Store chunks with embeddings and content hash
       const chunkInserts = batch.map((chunk, index) => ({
@@ -225,6 +261,13 @@ export async function processKnowledgeSource(
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    // Clean up any partial chunks inserted before failure
+    try {
+      await supabase.from('knowledge_chunks').delete().eq('source_id', sourceId);
+    } catch (cleanupErr) {
+      console.error(`[Processor] Failed to clean up partial chunks for ${sourceId}:`, cleanupErr);
+    }
 
     // Update source status to failed
     await updateSourceStatus(sourceId, 'failed', errorMessage);
@@ -300,7 +343,7 @@ export async function processUrlWithCrawl(
     // Crawl the website to discover pages
     console.log(`[Crawler] Starting crawl for source ${parentSourceId}`);
     const { crawlWebsite } = await import('./crawler');
-    const pages = await crawlWebsite(startUrl, { maxPages });
+    const pages = await withTimeout(crawlWebsite(startUrl, { maxPages }), 120_000, `Crawl of ${startUrl}`);
 
     if (pages.length === 0) {
       throw new Error('No pages discovered during crawl');

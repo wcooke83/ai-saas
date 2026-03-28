@@ -2,10 +2,11 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import {
   Code, Copy, Check, ExternalLink, Globe, Terminal,
   Info, BookOpen, FileCode, Zap, Headphones, ChevronDown, AlertTriangle,
-  Eye, EyeOff
+  Eye, EyeOff, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -13,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
-import type { Chatbot } from '@/lib/chatbots/types';
+import { useChatbot } from '@/components/chatbots/ChatbotContext';
 
 function CodeBlock({
   code,
@@ -69,9 +70,7 @@ interface DeployPageProps {
 
 export default function DeployPage({ params }: DeployPageProps) {
   const { id } = use(params);
-  const [chatbot, setChatbot] = useState<Chatbot | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { chatbot, loading, error, setChatbot } = useChatbot();
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('widget');
   const [embedMethod, setEmbedMethod] = useState('script');
@@ -80,24 +79,7 @@ export default function DeployPage({ params }: DeployPageProps) {
   const [showAuthSection, setShowAuthSection] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   const [previewExpanded, setPreviewExpanded] = useState(false);
-
-  useEffect(() => {
-    async function fetchChatbot() {
-      try {
-        const response = await fetch(`/api/chatbots/${id}`);
-        if (!response.ok) throw new Error('Failed to fetch chatbot');
-        const data = await response.json();
-        setChatbot(data.data.chatbot);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchChatbot();
-    localStorage.setItem(`chatbot-tested-${id}`, 'true');
-  }, [id]);
+  const [publishing, setPublishing] = useState(false);
 
   // Handle expand/shrink messages from the widget iframe
   useEffect(() => {
@@ -119,6 +101,26 @@ export default function DeployPage({ params }: DeployPageProps) {
   }, []);
   const isPublished = chatbot?.is_published ?? false;
   const handoffEnabled = chatbot?.live_handoff_config?.enabled ?? false;
+
+  const handlePublish = async () => {
+    if (!chatbot) return;
+    setPublishing(true);
+    try {
+      const response = await fetch(`/api/chatbots/${id}/publish`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to publish chatbot');
+      }
+      const data = await response.json();
+      setChatbot(data.data.chatbot);
+      toast.success('Chatbot published \u2014 embed codes are now active');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to publish chatbot');
+    } finally {
+      setPublishing(false);
+    }
+  };
 
   const copyToClipboard = async (text: string, codeType: string) => {
     await navigator.clipboard.writeText(text);
@@ -266,20 +268,27 @@ const data = await res.json();`;
         }
       />
 
-      {/* Unpublished blocking banner */}
+      {/* Unpublished info banner */}
       {!isPublished && (
         <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
-            <div>
+            <div className="flex-1">
               <p className="font-medium text-yellow-800 dark:text-yellow-200">Chatbot not published</p>
               <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                Embed codes below won&apos;t work until you publish.{' '}
-                <Link href={`/dashboard/chatbots/${chatbot.id}`} className="underline font-medium hover:text-yellow-900 dark:hover:text-yellow-100">
-                  Publish now
-                </Link>
+                The embed codes below are ready to add to your site. The widget will not render for visitors until you publish.
               </p>
             </div>
+            <Button
+              size="sm"
+              variant="default"
+              onClick={handlePublish}
+              disabled={publishing}
+              className="flex-shrink-0"
+            >
+              {publishing ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : null}
+              Publish now
+            </Button>
           </div>
         </div>
       )}
@@ -344,15 +353,7 @@ const data = await res.json();`;
                         copyId={embedMethod}
                         copiedCode={copiedCode}
                         onCopy={copyToClipboard}
-                        disabled={!isPublished}
                       />
-                      {!isPublished && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-secondary-900/60 rounded-lg">
-                          <span className="text-sm font-medium text-white bg-yellow-600 px-3 py-1.5 rounded-md">
-                            Publish to enable
-                          </span>
-                        </div>
-                      )}
                     </div>
 
                     {/* Post-copy hint */}
@@ -396,7 +397,6 @@ const data = await res.json();`;
                         copyId="authenticated"
                         copiedCode={copiedCode}
                         onCopy={copyToClipboard}
-                        disabled={!isPublished}
                       />
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div className="p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg border border-secondary-200 dark:border-secondary-700">
@@ -441,17 +441,15 @@ const data = await res.json();`;
                       </div>
                     </div>
                   </CardHeader>
-                  {showPreview && (
-                    <CardContent className="pt-0">
-                      <div className={`bg-secondary-100 dark:bg-secondary-800 rounded-lg p-3 overflow-hidden transition-all duration-300 ${previewExpanded ? 'h-[700px]' : 'h-[520px]'}`}>
-                        <iframe
-                          src={`/widget/${id}`}
-                          className="rounded-lg border-0 w-full h-full"
-                          title="Chatbot Preview"
-                        />
-                      </div>
-                    </CardContent>
-                  )}
+                  <CardContent className={`pt-0 ${showPreview ? '' : 'hidden'}`}>
+                    <div className={`bg-secondary-100 dark:bg-secondary-800 rounded-lg p-3 overflow-hidden transition-all duration-300 ${previewExpanded ? 'h-[700px]' : 'h-[520px]'}`}>
+                      <iframe
+                        src={`/widget/${id}?preview`}
+                        className="rounded-lg border-0 w-full h-full"
+                        title="Chatbot Preview"
+                      />
+                    </div>
+                  </CardContent>
                 </Card>
               </div>
             </div>

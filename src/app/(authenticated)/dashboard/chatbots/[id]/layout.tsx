@@ -1,9 +1,10 @@
 'use client';
 
-import { use, useState, useEffect } from 'react';
+import { use } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Bot, AlertTriangle } from 'lucide-react';
 import { ChatbotSubNav } from '@/components/chatbots/ChatbotSubNav';
+import { ChatbotProvider, useChatbot } from '@/components/chatbots/ChatbotContext';
 
 interface ChatbotLayoutProps {
   children: React.ReactNode;
@@ -12,24 +13,19 @@ interface ChatbotLayoutProps {
 
 export default function ChatbotLayout({ children, params }: ChatbotLayoutProps) {
   const { id } = use(params);
-  const [chatbotName, setChatbotName] = useState<string | null>(null);
-  const [needsReembed, setNeedsReembed] = useState(false);
 
-  useEffect(() => {
-    async function fetchChatbot() {
-      try {
-        const response = await fetch(`/api/chatbots/${id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setChatbotName(data.data.chatbot.name);
-          setNeedsReembed(data.data.needs_reembed === true);
-        }
-      } catch {
-        // Non-critical, nav still works without name
-      }
-    }
-    fetchChatbot();
-  }, [id]);
+  return (
+    <ChatbotProvider chatbotId={id}>
+      <ChatbotLayoutInner chatbotId={id}>
+        {children}
+      </ChatbotLayoutInner>
+    </ChatbotProvider>
+  );
+}
+
+function ChatbotLayoutInner({ chatbotId, children }: { chatbotId: string; children: React.ReactNode }) {
+  const { chatbot, needsReembed } = useChatbot();
+  const chatbotName = chatbot?.name ?? null;
 
   return (
     <div className="space-y-0">
@@ -54,7 +50,7 @@ export default function ChatbotLayout({ children, params }: ChatbotLayoutProps) 
       </div>
 
       {/* Shared sub-navigation */}
-      <ChatbotSubNav chatbotId={id} />
+      <ChatbotSubNav chatbotId={chatbotId} />
 
       {/* Re-embed warning banner */}
       {needsReembed && (
@@ -64,7 +60,7 @@ export default function ChatbotLayout({ children, params }: ChatbotLayoutProps) 
             Your knowledge base needs re-processing. Your chatbot may give incorrect answers until this is fixed.
           </p>
           <Link
-            href={`/dashboard/chatbots/${id}/knowledge`}
+            href={`/dashboard/chatbots/${chatbotId}/knowledge`}
             className="text-sm font-semibold text-amber-700 dark:text-amber-300 hover:underline whitespace-nowrap flex-shrink-0"
           >
             Fix now &rarr;

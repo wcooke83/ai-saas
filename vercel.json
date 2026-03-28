@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/regenerate-articles",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/recover-stuck-sources",
+      "schedule": "*/15 * * * *"
     }
   ]
 }

@@ -1,20 +1,18 @@
 /**
  * E2E Test: Getting Started Onboarding Checklist
  *
- * Tests the 4-step onboarding checklist on the chatbot overview page:
+ * Tests the 3-step onboarding checklist on the chatbot overview page:
  * 1. Add Knowledge Sources — completed when a knowledge source has status 'completed'
  * 2. Customize Widget — completed when user saves on the customize page
- * 3. Test Your Chatbot — completed when user visits the deploy page
- * 4. Deploy to Website — completed when chatbot is published
+ * 3. Deploy to Website — completed when chatbot is published
  *
  * Flow:
  * 1. Create a chatbot via the UI wizard
- * 2. Verify the Getting Started checklist appears with all 4 items unchecked
+ * 2. Verify the Getting Started checklist appears with all 3 items unchecked
  * 3. Complete "Customize Widget" step → verify it checks off
- * 4. Complete "Test Your Chatbot" step → verify it checks off
- * 5. Verify the progress bar updates correctly
- * 6. Dismiss the checklist → verify it stays dismissed after reload
- * 7. Clean up by deleting the chatbot
+ * 4. Verify the progress bar updates correctly
+ * 5. Dismiss the checklist → verify it stays dismissed after reload
+ * 6. Clean up by deleting the chatbot
  *
  * 100% UI-driven — no mock data, no direct API calls, no test shortcuts.
  */
@@ -43,17 +41,25 @@ async function clickWizardNext(page: import('@playwright/test').Page) {
 
 /**
  * Helper: navigate to chatbot overview and wait for data to fully load.
- * Waits for the chatbot API response, then for the skeleton to disappear.
+ * The H1 heading with the chatbot name only renders after all API fetches
+ * complete and loading=false, so it's the most reliable signal.
+ */
+/**
+ * Navigate to the chatbot overview page.
+ * If already on a chatbot subpage, clicks the Overview tab (client-side nav).
+ * Otherwise falls back to page.goto() with retries.
  */
 async function gotoOverviewAndWait(page: import('@playwright/test').Page, chatbotId: string) {
-  const responsePromise = page.waitForResponse(
-    (res) => res.url().includes(`/api/chatbots/${chatbotId}`) && res.request().method() === 'GET' && res.status() === 200,
-    { timeout: 30_000 }
-  );
-  await page.goto(`/dashboard/chatbots/${chatbotId}`);
-  await responsePromise;
-  // Wait for React to re-render after data loads
-  await page.waitForTimeout(1_000);
+  const currentUrl = page.url();
+  if (currentUrl.includes(`/dashboard/chatbots/${chatbotId}/`)) {
+    // Already on a subpage — use client-side navigation via the tab
+    await page.getByRole('link', { name: 'Overview' }).click();
+    await page.waitForURL(`**/dashboard/chatbots/${chatbotId}`, { timeout: 10_000, waitUntil: 'commit' });
+  } else {
+    await page.goto(`/dashboard/chatbots/${chatbotId}`);
+  }
+  // Wait for page data to load — h1 only renders after loading=false
+  await page.waitForFunction(() => !!document.querySelector('h1'), { timeout: 30_000 });
 }
 
 test.describe('Getting Started Onboarding Checklist', () => {
@@ -101,37 +107,41 @@ test.describe('Getting Started Onboarding Checklist', () => {
   // PHASE 2: Verify checklist renders with all items unchecked
   // ─────────────────────────────────────────────────────────────────
 
-  test('OB-002: Checklist appears with all 4 items unchecked', async ({ page }) => {
+  test('OB-002: Checklist appears with all 3 items unchecked', async ({ page }) => {
     test.skip(!createdChatbotId, 'No chatbot created');
 
-    // Navigate to dashboard first to set up localStorage on the correct domain
-    await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    // Navigate to a chatbot subpage first so we can use client-side nav to overview
+    await page.goto(`/dashboard/chatbots/${createdChatbotId}/knowledge`);
+    await page.waitForLoadState('domcontentloaded');
+
+    // Clear localStorage so checklist is visible
     await page.evaluate((id) => {
       localStorage.removeItem(`chatbot-onboarding-dismissed-${id}`);
       localStorage.removeItem(`chatbot-widget-reviewed-${id}`);
-      localStorage.removeItem(`chatbot-tested-${id}`);
     }, createdChatbotId);
 
-    // Now navigate to the overview page with clean localStorage
+    // Navigate to overview via tab (client-side nav works reliably)
     await gotoOverviewAndWait(page, createdChatbotId!);
 
     // Getting Started checklist should be visible
     const checklist = page.getByText('Getting Started');
     await expect(checklist).toBeVisible({ timeout: 10_000 });
 
-    // All 4 items should be visible
+    // All 3 items should be visible
     await expect(page.getByText('Add Knowledge Sources')).toBeVisible();
     await expect(page.getByText('Customize Widget')).toBeVisible();
-    await expect(page.getByText('Test Your Chatbot')).toBeVisible();
     await expect(page.getByText('Deploy to Website')).toBeVisible();
 
-    // Progress should show "0 of 4 steps complete"
-    await expect(page.getByText('0 of 4 steps complete')).toBeVisible();
-    await expect(page.getByText('0%')).toBeVisible();
+    // "Test Your Chatbot" should no longer exist as a separate step
+    await expect(page.getByText('Test Your Chatbot')).not.toBeVisible();
+
+    // Progress should show "0 of 3 steps complete"
+    const checklistSection = page.locator('section, div').filter({ hasText: 'Getting Started' }).first();
+    await expect(checklistSection.getByText('0 of 3 steps complete')).toBeVisible();
+    await expect(checklistSection.locator('span').filter({ hasText: '0%' })).toBeVisible();
 
     // None of the step labels should have line-through (completed styling)
-    for (const label of ['Add Knowledge Sources', 'Customize Widget', 'Test Your Chatbot', 'Deploy to Website']) {
+    for (const label of ['Add Knowledge Sources', 'Customize Widget', 'Deploy to Website']) {
       const stepEl = page.getByText(label);
       const textDecoration = await stepEl.evaluate((el) => window.getComputedStyle(el).textDecoration);
       expect(textDecoration).not.toContain('line-through');
@@ -145,13 +155,12 @@ test.describe('Getting Started Onboarding Checklist', () => {
   test('OB-003: Customize Widget step completes after saving', async ({ page }) => {
     test.skip(!createdChatbotId, 'No chatbot created');
 
-    // Ensure clean state — clear localStorage from dashboard, then navigate
-    await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    // Ensure clean state — navigate to subpage, clear localStorage, then go to overview
+    await page.goto(`/dashboard/chatbots/${createdChatbotId}/knowledge`);
+    await page.waitForLoadState('domcontentloaded');
     await page.evaluate((id) => {
       localStorage.removeItem(`chatbot-onboarding-dismissed-${id}`);
       localStorage.removeItem(`chatbot-widget-reviewed-${id}`);
-      localStorage.removeItem(`chatbot-tested-${id}`);
     }, createdChatbotId);
     await gotoOverviewAndWait(page, createdChatbotId!);
     await expect(page.getByText('Getting Started')).toBeVisible({ timeout: 10_000 });
@@ -163,7 +172,7 @@ test.describe('Getting Started Onboarding Checklist', () => {
 
     // Should navigate to the customize page
     await page.waitForURL(`**/dashboard/chatbots/${createdChatbotId}/customize`, { timeout: 15_000 });
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Wait for the customize page to load
     await expect(page.getByText('Save Changes')).toBeVisible({ timeout: 15_000 });
@@ -186,68 +195,21 @@ test.describe('Getting Started Onboarding Checklist', () => {
     const textDecoration = await customizeLabel.evaluate((el) => window.getComputedStyle(el).textDecoration);
     expect(textDecoration).toContain('line-through');
 
-    // Progress should show "1 of 4 steps complete"
-    await expect(page.getByText('1 of 4 steps complete')).toBeVisible();
-    await expect(page.getByText('25%')).toBeVisible();
+    // Progress should show "1 of 3 steps complete"
+    const checklistSection = page.locator('section, div').filter({ hasText: 'Getting Started' }).first();
+    await expect(checklistSection.getByText('1 of 3 steps complete')).toBeVisible();
+    await expect(checklistSection.locator('span').filter({ hasText: '33%' })).toBeVisible();
   });
 
   // ─────────────────────────────────────────────────────────────────
-  // PHASE 4: Complete "Test Your Chatbot" step
-  // ─────────────────────────────────────────────────────────────────
-
-  test('OB-004: Test Your Chatbot step completes after visiting deploy page', async ({ page }) => {
-    test.skip(!createdChatbotId, 'No chatbot created');
-
-    // Ensure Customize Widget is still marked, but Test is not
-    await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
-    await page.evaluate((id) => {
-      localStorage.removeItem(`chatbot-onboarding-dismissed-${id}`);
-      localStorage.removeItem(`chatbot-tested-${id}`);
-      // Keep widget-reviewed set from the previous test
-    }, createdChatbotId);
-    await gotoOverviewAndWait(page, createdChatbotId!);
-    await expect(page.getByText('Getting Started')).toBeVisible({ timeout: 10_000 });
-
-    // "Test Your Chatbot" should not yet have line-through
-    const testLabel = page.getByText('Test Your Chatbot');
-    await expect(testLabel).toBeVisible();
-    const beforeDecoration = await testLabel.evaluate((el) => window.getComputedStyle(el).textDecoration);
-    expect(beforeDecoration).not.toContain('line-through');
-
-    // Click the "Test Your Chatbot" link in the checklist
-    const testLink = page.getByRole('link', { name: /Test Your Chatbot/i });
-    await expect(testLink).toBeVisible();
-    await testLink.click();
-
-    // Should navigate to the deploy page
-    await page.waitForURL(`**/dashboard/chatbots/${createdChatbotId}/deploy`, { timeout: 15_000 });
-    await page.waitForLoadState('networkidle');
-
-    // Navigate back to the overview page
-    await gotoOverviewAndWait(page, createdChatbotId!);
-
-    // Verify "Test Your Chatbot" is now checked (has line-through)
-    await expect(page.getByText('Getting Started')).toBeVisible({ timeout: 10_000 });
-    const testLabelAfter = page.getByText('Test Your Chatbot');
-    await expect(testLabelAfter).toBeVisible();
-    const afterDecoration = await testLabelAfter.evaluate((el) => window.getComputedStyle(el).textDecoration);
-    expect(afterDecoration).toContain('line-through');
-
-    // Progress should show "2 of 4 steps complete" (Customize + Test)
-    await expect(page.getByText('2 of 4 steps complete')).toBeVisible();
-    await expect(page.getByText('50%')).toBeVisible();
-  });
-
-  // ─────────────────────────────────────────────────────────────────
-  // PHASE 5: Dismiss the checklist
+  // PHASE 4: Dismiss the checklist
   // ─────────────────────────────────────────────────────────────────
 
   test('OB-005: Dismiss checklist persists across page reloads', async ({ page }) => {
     test.skip(!createdChatbotId, 'No chatbot created');
 
-    await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.goto(`/dashboard/chatbots/${createdChatbotId}/knowledge`);
+    await page.waitForLoadState('domcontentloaded');
 
     // Ensure checklist is not dismissed
     await page.evaluate((id) => {
@@ -267,21 +229,21 @@ test.describe('Getting Started Onboarding Checklist', () => {
     await expect(checklist).not.toBeVisible({ timeout: 5_000 });
 
     // Navigate away and back to verify dismiss persists
-    await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.goto(`/dashboard/chatbots/${createdChatbotId}/knowledge`);
+    await page.waitForLoadState('domcontentloaded');
     await gotoOverviewAndWait(page, createdChatbotId!);
     await expect(checklist).not.toBeVisible({ timeout: 5_000 });
   });
 
   // ─────────────────────────────────────────────────────────────────
-  // PHASE 6: Clean up — delete the chatbot
+  // PHASE 5: Clean up — delete the chatbot
   // ─────────────────────────────────────────────────────────────────
 
   test('OB-006: Delete chatbot cleanup', async ({ page }) => {
     test.skip(!createdChatbotId, 'No chatbot created');
 
     await page.goto('/dashboard/chatbots');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(
       page.getByRole('heading', { name: 'Chatbots' }).or(page.getByText('No chatbots yet'))
     ).toBeVisible({ timeout: 15_000 });

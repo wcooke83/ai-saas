@@ -150,39 +150,31 @@ export async function getRAGContext(
   }
 
   // Determine the correct embedding config: must match what chunks were embedded with
+  // Always prefer the admin-configured embedding model (from /admin/ai-config Active Model Assignments)
   let queryEmbeddingConfig: EmbeddingConfig | undefined;
-  const openaiKey = process.env.OPENAI_API_KEY;
-  const hasValidOpenAI = !!openaiKey && openaiKey.startsWith('sk-') && openaiKey.length > 20;
 
   if (sourceEmbeddingInfo?.[0]?.embedding_provider) {
     const recordedProvider = sourceEmbeddingInfo[0].embedding_provider as EmbeddingProvider;
     const recordedModel = sourceEmbeddingInfo[0].embedding_model;
 
-    if (recordedProvider === 'openai' && !hasValidOpenAI) {
+    // If chunks were embedded with a different provider than what's configured,
+    // use the chunk's provider for query compatibility (and warn)
+    if (recordedProvider !== resolvedEmbeddingConfig.provider) {
       console.warn(
-        `[RAG] Chunks were embedded with OpenAI but no valid OpenAI key available. ` +
-        `Falling back to current embedding provider — results may be less accurate. ` +
-        `Re-process knowledge sources to re-embed with the current provider.`
+        `[RAG] Embedding model mismatch: chunks use ${recordedProvider}/${recordedModel}, ` +
+        `config says ${resolvedEmbeddingConfig.provider}/${resolvedEmbeddingConfig.model}. ` +
+        `Using configured model — re-process knowledge sources if results are poor.`
       );
     } else {
       queryEmbeddingConfig = {
         provider: recordedProvider,
-        model: recordedModel || 'text-embedding-3-small',
-        dimensions: 1536,
+        model: recordedModel || resolvedEmbeddingConfig.model,
+        dimensions: resolvedEmbeddingConfig.dimensions || 1536,
       };
-      if (resolvedEmbeddingConfig.provider !== queryEmbeddingConfig.provider) {
-        console.warn(
-          `[RAG] Embedding model mismatch detected! Chunks use ${queryEmbeddingConfig.provider}/${queryEmbeddingConfig.model}, ` +
-          `config says ${resolvedEmbeddingConfig.provider}/${resolvedEmbeddingConfig.model}. Using chunk model for query to ensure compatibility.`
-        );
-      }
-    }
-  } else {
-    if (hasValidOpenAI) {
-      console.log('[RAG] No embedding model recorded on sources, defaulting to OpenAI ada-002 (legacy chunks)');
-      queryEmbeddingConfig = { provider: 'openai', model: 'text-embedding-ada-002', dimensions: 1536 };
     }
   }
+  // No recorded provider on sources — use the admin-configured embedding model
+  // (no hardcoded fallback to OpenAI)
 
   const queryEmbedding = await generateQueryEmbedding(query, queryEmbeddingConfig || resolvedEmbeddingConfig);
   _re('embedding');
@@ -433,7 +425,8 @@ export function buildSystemPrompt(
   memoryContext?: string | null,
   userData?: Record<string, string> | null,
   userContext?: Record<string, unknown> | null,
-  calendarEnabled?: boolean
+  calendarEnabled?: boolean,
+  calendarHasPreselectedService?: boolean
 ): string {
   let systemPrompt = chatbot.system_prompt;
 
@@ -464,11 +457,21 @@ export function buildSystemPrompt(
 
   // Add calendar booking instructions if integration is active
   if (calendarEnabled) {
+    const serviceSelectionInstructions = calendarHasPreselectedService
+      ? ''
+      : `
+
+0. FIRST, when the user wants to book, you must determine which service they need:
+   - Include the marker: [CALENDAR_LIST_SERVICES:{}]
+   - Present the available services to the customer in a clear, friendly format (name, duration, and price if applicable)
+   - Ask them to choose which service they'd like to book
+   - Once they choose, remember the service_id and include it in all subsequent CALENDAR_CHECK and CALENDAR_BOOK markers`;
+
     systemPrompt += `
 
 ## Calendar Booking
 You have calendar booking capabilities. When a user wants to schedule an appointment, meeting, or booking:
-
+${serviceSelectionInstructions}
 1. COLLECT required information through natural conversation:
    - Their preferred date(s) and time(s)
    - Their name (if not already known from visitor info)
@@ -476,12 +479,12 @@ You have calendar booking capabilities. When a user wants to schedule an appoint
    - Their timezone (detect from context or ask)
 
 2. Once you have their preferred dates, tell them you will check availability and include the marker:
-   [CALENDAR_CHECK:{"date_from":"YYYY-MM-DD","date_to":"YYYY-MM-DD","timezone":"IANA_TZ"}]
+   [CALENDAR_CHECK:{"date_from":"YYYY-MM-DD","date_to":"YYYY-MM-DD","timezone":"IANA_TZ"${calendarHasPreselectedService ? '' : ',"service_id":"ID"'}}]
 
 3. When presenting available slots, format them clearly grouped by date in the user's timezone.
 
 4. When the user confirms a slot, include the marker:
-   [CALENDAR_BOOK:{"start":"ISO8601","end":"ISO8601","name":"...","email":"...","timezone":"..."}]
+   [CALENDAR_BOOK:{"start":"ISO8601","end":"ISO8601","name":"...","email":"...","timezone":"..."${calendarHasPreselectedService ? '' : ',"service_id":"ID"'}}]
 
 5. For cancellations include: [CALENDAR_CANCEL:{"booking_id":"...","reason":"..."}]
 6. For rescheduling include: [CALENDAR_RESCHEDULE:{"booking_id":"...","new_start":"ISO8601","new_end":"ISO8601"}]

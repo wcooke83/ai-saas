@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Bot } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { H1 } from '@/components/ui/heading';
+import { useChatbot } from '@/components/chatbots/ChatbotContext';
 import type { ReactNode } from 'react';
 
 const statusColors: Record<string, string> = {
@@ -21,35 +21,10 @@ interface ChatbotPageHeaderProps {
   actions?: ReactNode;
 }
 
-interface ChatbotInfo {
-  name: string;
-  status: string;
-  is_published: boolean;
-  logo_url: string | null;
-}
+export function ChatbotPageHeader({ title, badges, actions }: ChatbotPageHeaderProps) {
+  const { chatbot, loading } = useChatbot();
 
-export function ChatbotPageHeader({ chatbotId, title, badges, actions }: ChatbotPageHeaderProps) {
-  const [chatbot, setChatbot] = useState<ChatbotInfo | null>(null);
-
-  useEffect(() => {
-    fetch(`/api/chatbots/${chatbotId}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.data?.chatbot) {
-          const { name, status, is_published, logo_url } = data.data.chatbot;
-          setChatbot({ name, status, is_published, logo_url });
-        } else {
-          // API returned non-200 or no chatbot data — show header without chatbot details
-          setChatbot({ name: '', status: 'draft', is_published: false, logo_url: null });
-        }
-      })
-      .catch(() => {
-        // Network error — show header without chatbot details rather than skeleton forever
-        setChatbot({ name: '', status: 'draft', is_published: false, logo_url: null });
-      });
-  }, [chatbotId]);
-
-  if (!chatbot) {
+  if (loading && !chatbot) {
     return (
       <div className="flex items-center gap-4">
         <Skeleton className="w-12 h-12 rounded-lg" />
@@ -61,14 +36,19 @@ export function ChatbotPageHeader({ chatbotId, title, badges, actions }: Chatbot
     );
   }
 
+  const name = chatbot?.name ?? '';
+  const status = chatbot?.status ?? 'draft';
+  const isPublished = chatbot?.is_published ?? false;
+  const logoUrl = chatbot?.logo_url ?? null;
+
   return (
     <div className="flex items-start justify-between">
       <div>
         <div className="flex items-center gap-4">
-          {chatbot.logo_url ? (
+          {logoUrl ? (
             <img
-              src={chatbot.logo_url}
-              alt={chatbot.name}
+              src={logoUrl}
+              alt={name}
               className="w-12 h-12 rounded-lg object-cover"
             />
           ) : (
@@ -79,10 +59,10 @@ export function ChatbotPageHeader({ chatbotId, title, badges, actions }: Chatbot
           <div>
             <H1 variant="dashboard">{title}</H1>
             <div className="flex items-center gap-2 mt-1">
-              <Badge className={statusColors[chatbot.status] || statusColors.draft}>
-                {chatbot.status}
+              <Badge className={statusColors[status] || statusColors.draft}>
+                {status}
               </Badge>
-              {chatbot.is_published && (
+              {isPublished && (
                 <Badge className="bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300">
                   Published
                 </Badge>

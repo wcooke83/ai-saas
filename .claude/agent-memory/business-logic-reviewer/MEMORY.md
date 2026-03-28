@@ -1,0 +1,2 @@
+- [Billing architecture](billing_architecture.md) — file map for billing code, upgrade/downgrade flow audit with 2 critical + 3 warning issues (2026-03-29)
+- [Auto top-up dual system audit](auto_topup_dual_system_audit.md) — two separate auto-topup systems with critical settings disconnect (2026-03-29)

@@ -814,39 +814,40 @@ export default function AIConfigPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {/* Chat Default */}
-            <div className="flex items-center gap-4">
-              <Label className="text-sm font-medium w-40 shrink-0">Chat (default)</Label>
-              <div className="flex-1">
-                <select
-                  value={models.find((m) => m.is_default)?.id || ''}
-                  onChange={(e) => e.target.value && handleSetDefault(e.target.value)}
-                  disabled={settingDefault !== null}
-                  className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {chatCapableModels.map((model) => (
-                    <option key={model.id} value={model.id}>
-                      {model.provider_name} - {model.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <p className="text-xs text-secondary-500 dark:text-secondary-400 w-36 shrink-0">
-                Users can override
-              </p>
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium w-32 shrink-0 flex items-center gap-1">
+                Chat (default)
+                <InfoTooltip content="Users can override this in their chat settings" side="top" />
+              </Label>
+              <select
+                value={models.find((m) => m.is_default)?.id || ''}
+                onChange={(e) => e.target.value && handleSetDefault(e.target.value)}
+                disabled={settingDefault !== null}
+                className="flex-1 min-w-0 px-3 py-1.5 text-sm border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {chatCapableModels.map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.provider_name} - {model.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Embeddings */}
-            <div className="flex items-center gap-4">
-              <Label htmlFor="embedding-model" className="text-sm font-medium w-40 shrink-0">Embeddings</Label>
-              <div className="flex-1 flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="embedding-model" className="text-sm font-medium w-32 shrink-0 flex items-center gap-1">
+                Embeddings
+                <InfoTooltip content="Knowledge base vectors" side="top" />
+              </Label>
+              <div className="flex-1 min-w-0 flex items-center gap-1.5">
                 <select
                   id="embedding-model"
                   value={embeddingModelId || ''}
                   onChange={(e) => handleSetEmbeddingModel(e.target.value || null)}
                   disabled={savingEmbeddingModel}
-                  className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-1.5 text-sm border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="">Auto-select (Gemini → OpenAI)</option>
                   {embeddingCapableModels.length > 0 &&
@@ -859,26 +860,24 @@ export default function AIConfigPage() {
                   }
                 </select>
                 {savingEmbeddingModel && (
-                  <Loader2 className="w-5 h-5 animate-spin text-primary-500 shrink-0" />
+                  <Loader2 className="w-4 h-4 animate-spin text-primary-500 shrink-0" />
                 )}
               </div>
-              <p className="text-xs text-secondary-500 dark:text-secondary-400 w-36 shrink-0">
-                Knowledge base vectors
-              </p>
             </div>
 
             {/* Sentiment Analysis */}
-            <div className="flex items-center gap-4">
-              <Label htmlFor="sentiment-model" className="text-sm font-medium w-40 shrink-0">
-                Sentiment Analysis
+            <div className="flex items-center gap-2">
+              <Label htmlFor="sentiment-model" className="text-sm font-medium w-32 shrink-0 flex items-center gap-1">
+                Sentiment
+                <InfoTooltip content="Conversation scoring for sentiment analysis" side="top" />
               </Label>
-              <div className="flex-1 flex items-center gap-2">
+              <div className="flex-1 min-w-0 flex items-center gap-1.5">
                 <select
                   id="sentiment-model"
                   value={sentimentModelId || ''}
                   onChange={(e) => handleSetSentimentModel(e.target.value || null)}
                   disabled={savingSentimentModel}
-                  className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-1.5 text-sm border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {chatCapableModels.map((model) => (
                     <option key={model.id} value={model.id}>
@@ -887,26 +886,24 @@ export default function AIConfigPage() {
                   ))}
                 </select>
                 {savingSentimentModel && (
-                  <Loader2 className="w-5 h-5 animate-spin text-primary-500 shrink-0" />
+                  <Loader2 className="w-4 h-4 animate-spin text-primary-500 shrink-0" />
                 )}
               </div>
-              <p className="text-xs text-secondary-500 dark:text-secondary-400 w-36 shrink-0">
-                Conversation scoring
-              </p>
             </div>
 
             {/* Article Generation */}
-            <div className="flex items-center gap-4">
-              <Label htmlFor="article-generation-model" className="text-sm font-medium w-40 shrink-0">
-                Article Generation
+            <div className="flex items-center gap-2">
+              <Label htmlFor="article-generation-model" className="text-sm font-medium w-32 shrink-0 flex items-center gap-1">
+                Articles
+                <InfoTooltip content="Article generation from URL" side="top" />
               </Label>
-              <div className="flex-1 flex items-center gap-2">
+              <div className="flex-1 min-w-0 flex items-center gap-1.5">
                 <select
                   id="article-generation-model"
                   value={articleGenerationModelId || ''}
                   onChange={(e) => handleSetArticleGenerationModel(e.target.value || null)}
                   disabled={savingArticleGenerationModel}
-                  className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-1.5 text-sm border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {chatCapableModels.map((model) => (
                     <option key={model.id} value={model.id}>
@@ -915,12 +912,9 @@ export default function AIConfigPage() {
                   ))}
                 </select>
                 {savingArticleGenerationModel && (
-                  <Loader2 className="w-5 h-5 animate-spin text-primary-500 shrink-0" />
+                  <Loader2 className="w-4 h-4 animate-spin text-primary-500 shrink-0" />
                 )}
               </div>
-              <p className="text-xs text-secondary-500 dark:text-secondary-400 w-36 shrink-0">
-                Generate from URL
-              </p>
             </div>
           </div>
         </CardContent>

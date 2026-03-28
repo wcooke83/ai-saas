@@ -13,13 +13,39 @@ export async function handleCalendarToolCall(
 ): Promise<string> {
   try {
     switch (toolName) {
+      case 'list_services': {
+        const services = await CalendarService.getServices(context.chatbotId);
+
+        if (services.length === 0) {
+          return JSON.stringify({
+            available: false,
+            message: 'No services are currently available for booking.',
+          });
+        }
+
+        return JSON.stringify({
+          available: true,
+          services: services.map((s) => ({
+            id: String(s.id),
+            name: s.name,
+            duration_minutes: s.duration,
+            price: s.price,
+            currency: s.currency,
+            description: s.description,
+          })),
+          total: services.length,
+          message: 'Ask the customer which service they would like to book.',
+        });
+      }
+
       case 'check_availability': {
+        const serviceIdOverride = args.service_id as string | undefined;
         const availability = await CalendarService.getAvailability(context.chatbotId, {
           dateFrom: args.date_from as string,
           dateTo: args.date_to as string,
           timezone: args.timezone as string,
           duration: args.duration_minutes as number | undefined,
-        });
+        }, serviceIdOverride);
 
         if (availability.slots.length === 0) {
           return JSON.stringify({
@@ -59,6 +85,7 @@ export async function handleCalendarToolCall(
       }
 
       case 'create_booking': {
+        const bookingServiceOverride = args.service_id as string | undefined;
         const booking = await CalendarService.createBooking(
           context.chatbotId,
           context.sessionId,
@@ -69,7 +96,8 @@ export async function handleCalendarToolCall(
             attendeeEmail: args.attendee_email as string,
             attendeeTimezone: args.attendee_timezone as string,
             notes: args.notes as string | undefined,
-          }
+          },
+          bookingServiceOverride
         );
 
         return JSON.stringify({
@@ -132,5 +160,5 @@ export async function handleCalendarToolCall(
  * Check if a tool name is a calendar tool
  */
 export function isCalendarTool(toolName: string): boolean {
-  return ['check_availability', 'create_booking', 'cancel_booking', 'reschedule_booking'].includes(toolName);
+  return ['list_services', 'check_availability', 'create_booking', 'cancel_booking', 'reschedule_booking'].includes(toolName);
 }

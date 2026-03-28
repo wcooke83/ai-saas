@@ -650,11 +650,14 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     // Check for active calendar integration (fire-and-forget style, cached)
     const calendarIntegration = await CalendarService.getIntegration(chatbotId);
     const hasCalendar = !!calendarIntegration;
+    const calendarHasPreselectedService = hasCalendar
+      ? !!(calendarIntegration!.config as Record<string, unknown>)?.service_id
+      : false;
 
     // Build prompts with active language (conversation language overrides chatbot default)
     _stages.start('prompts_built');
     const chatbotWithActiveLanguage = { ...chatbot, language: activeLanguage };
-    const systemPrompt = buildSystemPrompt(chatbotWithActiveLanguage, ragContext.contextText.length > 0, preChatInfo, memoryContext, input.user_data, input.user_context, hasCalendar);
+    const systemPrompt = buildSystemPrompt(chatbotWithActiveLanguage, ragContext.contextText.length > 0, preChatInfo, memoryContext, input.user_data, input.user_context, hasCalendar, calendarHasPreselectedService);
     const userPrompt = buildRAGPrompt(
       ragContext,
       messages,
@@ -727,7 +730,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
             // Process calendar markers if calendar is enabled
             let processedResponse = fullResponse;
             if (hasCalendar) {
-              const calendarMarkerRegex = /\[CALENDAR_(CHECK|BOOK|CANCEL|RESCHEDULE):(\{[^}]+\})\]/g;
+              const calendarMarkerRegex = /\[CALENDAR_(LIST_SERVICES|CHECK|BOOK|CANCEL|RESCHEDULE):(\{[^}]*\})\]/g;
               let match;
               while ((match = calendarMarkerRegex.exec(fullResponse)) !== null) {
                 const action = match[1];
@@ -737,13 +740,17 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
                   let toolArgs: Record<string, unknown> = {};
 
                   switch (action) {
+                    case 'LIST_SERVICES':
+                      toolName = 'list_services';
+                      toolArgs = {};
+                      break;
                     case 'CHECK':
                       toolName = 'check_availability';
-                      toolArgs = { date_from: params.date_from, date_to: params.date_to, timezone: params.timezone, duration_minutes: params.duration };
+                      toolArgs = { date_from: params.date_from, date_to: params.date_to, timezone: params.timezone, duration_minutes: params.duration, service_id: params.service_id };
                       break;
                     case 'BOOK':
                       toolName = 'create_booking';
-                      toolArgs = { start_time: params.start, end_time: params.end, attendee_name: params.name, attendee_email: params.email, attendee_timezone: params.timezone, notes: params.notes };
+                      toolArgs = { start_time: params.start, end_time: params.end, attendee_name: params.name, attendee_email: params.email, attendee_timezone: params.timezone, notes: params.notes, service_id: params.service_id };
                       break;
                     case 'CANCEL':
                       toolName = 'cancel_booking';

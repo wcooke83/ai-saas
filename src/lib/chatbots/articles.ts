@@ -11,7 +11,7 @@ import { generate } from '@/lib/ai/provider';
 import { getArticleGenerationModel } from '@/lib/settings';
 import { extractURL } from '@/lib/chatbots/knowledge/extractors/url';
 import { chunkText } from '@/lib/chatbots/knowledge/chunker';
-import { generateEmbeddings, resolveEmbeddingConfig } from '@/lib/chatbots/knowledge/embeddings';
+import { generateEmbeddings, resolveEmbeddingConfig, type EmbeddingProvider } from '@/lib/chatbots/knowledge/embeddings';
 import type { Json } from '@/types/database';
 
 // Prompt-targeted generation: searches all knowledge for the answer to one specific question
@@ -130,22 +130,17 @@ async function embedArticlesAsKnowledge(
     .limit(1);
 
   if (existingSources?.[0]?.embedding_provider) {
-    const provider = existingSources[0].embedding_provider as 'openai' | 'gemini';
+    const provider = existingSources[0].embedding_provider as EmbeddingProvider;
     const model = existingSources[0].embedding_model;
-    // Verify we have the API key for this provider
-    const openaiKey = process.env.OPENAI_API_KEY;
-    const hasOpenAI = !!openaiKey && openaiKey.startsWith('sk-') && openaiKey.length > 20;
-    const hasGemini = !!process.env.GOOGLE_API_KEY;
-
-    if ((provider === 'openai' && hasOpenAI) || (provider === 'gemini' && hasGemini)) {
+    // Use recorded provider/model if it matches current config, otherwise use config
+    if (provider === defaultConfig.provider) {
       embeddingConfig = {
         provider,
-        model: model || (provider === 'openai' ? 'text-embedding-ada-002' : 'gemini-embedding-001'),
-        dimensions: 1536,
+        model: model || defaultConfig.model,
+        dimensions: defaultConfig.dimensions || 1536,
       };
-      if (embeddingConfig.provider !== defaultConfig.provider) {
-        console.log(`[Articles] Using ${provider}/${embeddingConfig.model} to match existing chunks (default was ${defaultConfig.provider})`);
-      }
+    } else {
+      console.log(`[Articles] Existing chunks use ${provider}/${model} but config says ${defaultConfig.provider}/${defaultConfig.model}. Using config.`);
     }
   }
 

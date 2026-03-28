@@ -741,13 +741,19 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
     ]);
     expect(patchResponse.ok()).toBeTruthy();
 
-    // Should show toggle toast
+    // Should show toggle toast (fires after server-confirmed re-fetch, not optimistic)
     await expect(
       page.getByText(/Prompt (enabled|disabled)/)
     ).toBeVisible({ timeout: 8000 });
 
-    // Toggle back
+    // Wait for loading state to clear before toggling back
+    await expect(firstCheckbox).toBeEnabled({ timeout: 5000 });
+
+    // Toggle back and wait for completion
     await firstCheckbox.click();
+    await expect(
+      page.getByText(/Prompt (enabled|disabled)/)
+    ).toBeVisible({ timeout: 8000 });
   });
 
   test('AG-092: Deleting prompt requires confirmation click', async ({ page }) => {
@@ -838,6 +844,21 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
     await expect(scheduleBadge.filter({ hasText: 'Off' })).toBeVisible({ timeout: 5000 });
 
     // ── Step 2: Set one prompt to Daily via UI ──
+    // First, ensure the prompt is enabled (disabled prompts are excluded from the schedule count)
+    const promptListRes = await page.request.get(`/api/chatbots/${CHATBOT_ID}/articles/prompts`);
+    const promptListData = await promptListRes.json();
+    const firstPromptForSchedule = promptListData.data.prompts[0];
+    if (!firstPromptForSchedule.enabled) {
+      await page.request.patch(
+        `/api/chatbots/${CHATBOT_ID}/articles/prompts/${firstPromptForSchedule.id}`,
+        { data: { enabled: true } }
+      );
+      // Reload to pick up the change
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      // Re-expand schedule and collapse it
+      await expect(scheduleHeader).toBeVisible({ timeout: 30000 });
+    }
+
     const promptsHeader = page.locator('[class*="cursor-pointer"]').filter({ hasText: 'Extraction Prompts' }).first();
     await expect(promptsHeader).toBeVisible({ timeout: 10000 });
     await promptsHeader.click();
@@ -866,9 +887,12 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
       promptScheduleSelect.selectOption('daily'),
     ]);
 
+    // Wait for re-fetch to complete (non-optimistic: server confirms, then re-fetches prompts)
+    await expect(page.getByText(/schedule set to daily/i)).toBeVisible({ timeout: 10000 });
+
     // ── Step 3: Verify the badge updated to "1 prompt scheduled" ──
     // The badge on the schedule card header should now reflect the override
-    await expect(scheduleHeader.getByText(/1 prompt scheduled/)).toBeVisible({ timeout: 5000 });
+    await expect(scheduleHeader.getByText(/1 prompt scheduled/)).toBeVisible({ timeout: 10000 });
 
     // ── Step 4: Verify helper text in expanded schedule card ──
     // Collapse prompts first, then expand schedule
@@ -885,24 +909,27 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
     await expect(addInput).toBeVisible({ timeout: 15000 });
 
     // ── Step 5: Verify per-prompt schedule indicators ──
-    // The overridden prompt should show a blue "Daily" badge
-    await expect(firstPromptRow.getByText('Daily')).toBeVisible({ timeout: 5000 });
+    // The overridden prompt should show a blue "Daily" badge (use .first() to avoid matching <option>)
+    await expect(firstPromptRow.getByText('Daily').first()).toBeVisible({ timeout: 5000 });
 
     // A different prompt (still inheriting) should show dimmed "Manual" text
     const secondPromptRow = page.locator('.group').filter({ has: page.locator('button.flex-shrink-0') }).nth(1);
     const secondRowExists = await secondPromptRow.isVisible({ timeout: 3000 }).catch(() => false);
     if (secondRowExists) {
-      await expect(secondPromptRow.getByText('Manual')).toBeVisible({ timeout: 5000 });
+      await expect(secondPromptRow.getByText('Manual').first()).toBeVisible({ timeout: 5000 });
     }
 
     // ── Cleanup: restore the prompt to "inherit" via UI ──
     await firstPromptRow.hover();
     const restoreSelect = firstPromptRow.locator('select[title="Set schedule for this prompt"]');
     await expect(restoreSelect).toBeVisible({ timeout: 5000 });
+    await expect(restoreSelect).toBeEnabled({ timeout: 5000 });
     await Promise.all([
       page.waitForResponse(resp => resp.url().includes('/articles/prompts/') && resp.request().method() === 'PATCH'),
       restoreSelect.selectOption('inherit'),
     ]);
+    // Wait for the operation to fully complete
+    await expect(page.getByText(/schedule set to inherit/i)).toBeVisible({ timeout: 10000 });
 
     // Restore global schedule if it was changed
     if (originalSchedule !== 'manual') {
@@ -910,6 +937,222 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
         data: { article_schedule: originalSchedule },
       });
     }
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // PHASE 7G: Loading State & Non-Optimistic Update Tests
+  // ─────────────────────────────────────────────────────────────
+
+  test('AG-110: Toggle prompt shows loading spinner without optimistic update', async ({ page }) => {
+    test.setTimeout(60_000);
+    await page.goto(`${BASE_URL}/articles`);
+    await page.waitForLoadState('networkidle');
+
+    // Expand prompts section
+    const promptsHeader = page.locator('[class*="cursor-pointer"]').filter({ hasText: 'Extraction Prompts' }).first();
+    await promptsHeader.click();
+    await expect(page.getByPlaceholder(/Add a custom/)).toBeVisible({ timeout: 15000 });
+
+    const firstPromptRow = page.locator('.group').filter({ has: page.locator('button.flex-shrink-0') }).first();
+    const firstCheckbox = firstPromptRow.locator('button.flex-shrink-0');
+    await expect(firstCheckbox).toBeVisible({ timeout: 5000 });
+
+    // Slow down PATCH to reliably observe loading state
+    await page.route('**/articles/prompts/*', async route => {
+      if (route.request().method() === 'PATCH') {
+        await new Promise(resolve => setTimeout(resolve, 800));
+      }
+      await route.continue();
+    });
+
+    // Click the checkbox
+    await firstCheckbox.click();
+
+    // During loading: row should be dimmed (opacity-50 class)
+    await expect(firstPromptRow).toHaveClass(/opacity-50/, { timeout: 2000 });
+
+    // During loading: checkbox should be disabled
+    await expect(firstCheckbox).toBeDisabled({ timeout: 2000 });
+
+    // Wait for completion (toast fires after server round-trip + re-fetch)
+    await expect(page.getByText(/Prompt (enabled|disabled)/)).toBeVisible({ timeout: 15000 });
+
+    // After completion: row opacity restored
+    await expect(firstPromptRow).not.toHaveClass(/opacity-50/, { timeout: 5000 });
+
+    // After completion: checkbox re-enabled
+    await expect(firstCheckbox).toBeEnabled({ timeout: 5000 });
+
+    // Remove route interception before toggling back
+    await page.unroute('**/articles/prompts/*');
+
+    // Toggle back to restore
+    await firstCheckbox.click();
+    await expect(page.getByText(/Prompt (enabled|disabled)/)).toBeVisible({ timeout: 10000 });
+  });
+
+  test('AG-111: Per-prompt schedule change shows loading state', async ({ page }) => {
+    test.setTimeout(60_000);
+    await page.goto(`${BASE_URL}/articles`);
+    await page.waitForLoadState('networkidle');
+
+    // Expand prompts section
+    const promptsHeader = page.locator('[class*="cursor-pointer"]').filter({ hasText: 'Extraction Prompts' }).first();
+    await promptsHeader.click();
+    await expect(page.getByPlaceholder(/Add a custom/)).toBeVisible({ timeout: 15000 });
+
+    // Hover first prompt row to reveal schedule dropdown
+    const firstPromptRow = page.locator('.group').filter({ has: page.locator('button.flex-shrink-0') }).first();
+    await firstPromptRow.hover();
+
+    const promptScheduleSelect = firstPromptRow.locator('select[title="Set schedule for this prompt"]');
+    await expect(promptScheduleSelect).toBeVisible({ timeout: 5000 });
+
+    // Slow down PATCH to observe loading state
+    await page.route('**/articles/prompts/*', async route => {
+      if (route.request().method() === 'PATCH') {
+        await new Promise(resolve => setTimeout(resolve, 800));
+      }
+      await route.continue();
+    });
+
+    // Change schedule — set up response listener before action
+    const patchPromise = page.waitForResponse(
+      resp => resp.url().includes('/articles/prompts/') && resp.request().method() === 'PATCH'
+    );
+    await promptScheduleSelect.selectOption('weekly');
+
+    // During loading: row should be dimmed
+    await expect(firstPromptRow).toHaveClass(/opacity-50/, { timeout: 2000 });
+
+    // During loading: schedule select should be disabled
+    await expect(promptScheduleSelect).toBeDisabled({ timeout: 2000 });
+
+    // Wait for PATCH response
+    const patchRes = await patchPromise;
+    expect(patchRes.ok()).toBeTruthy();
+
+    // Wait for loading to fully clear (re-fetch completes after PATCH)
+    await expect(firstPromptRow).not.toHaveClass(/opacity-50/, { timeout: 10000 });
+    await expect(promptScheduleSelect).toBeEnabled({ timeout: 5000 });
+
+    // Remove route interception
+    await page.unroute('**/articles/prompts/*');
+
+    // Restore to inherit via API (more reliable than UI for cleanup)
+    const listRes = await page.request.get(`/api/chatbots/${CHATBOT_ID}/articles/prompts`);
+    const listData = await listRes.json();
+    const targetPrompt = listData.data.prompts[0];
+    if (targetPrompt && targetPrompt.schedule !== 'inherit') {
+      await page.request.patch(
+        `/api/chatbots/${CHATBOT_ID}/articles/prompts/${targetPrompt.id}`,
+        { data: { schedule: 'inherit' } }
+      );
+    }
+  });
+
+  test('AG-112: Global schedule change shows loading indicator', async ({ page }) => {
+    test.setTimeout(60_000);
+    await page.goto(`${BASE_URL}/articles`);
+    await page.waitForLoadState('networkidle');
+
+    // Expand schedule section
+    const scheduleHeader = page.locator('[class*="cursor-pointer"]').filter({ hasText: 'Auto-Regeneration Schedule' }).first();
+    await expect(scheduleHeader).toBeVisible({ timeout: 30000 });
+    await scheduleHeader.click();
+
+    const freqLabel = page.getByText('Default Regeneration Frequency');
+    await expect(freqLabel).toBeVisible({ timeout: 10000 });
+    const scheduleSection = freqLabel.locator('..');
+    const globalSelect = scheduleSection.locator('select').first();
+    await expect(globalSelect).toBeEnabled({ timeout: 10000 });
+
+    const originalSchedule = await globalSelect.inputValue();
+
+    // Slow down PATCH to observe spinner
+    await page.route('**/articles/schedule', async route => {
+      if (route.request().method() === 'PATCH') {
+        await new Promise(resolve => setTimeout(resolve, 800));
+      }
+      await route.continue();
+    });
+
+    // Change to daily
+    await globalSelect.selectOption('daily');
+
+    // Loading spinner should appear near the select
+    const spinner = scheduleSection.locator('svg.animate-spin');
+    await expect(spinner).toBeVisible({ timeout: 2000 });
+
+    // Select should be disabled during update
+    await expect(globalSelect).toBeDisabled({ timeout: 2000 });
+
+    // Wait for completion
+    await expect(page.getByText(/Schedule updated to daily/)).toBeVisible({ timeout: 15000 });
+
+    // Spinner should be gone
+    await expect(spinner).not.toBeVisible({ timeout: 5000 });
+
+    // Remove route interception
+    await page.unroute('**/articles/schedule');
+
+    // Restore
+    await expect(globalSelect).toBeEnabled({ timeout: 5000 });
+    await globalSelect.selectOption(originalSchedule || 'manual');
+    await expect(page.getByText(/Schedule updated/)).toBeVisible({ timeout: 10000 });
+  });
+
+  test('AG-113: Disabled prompts are not counted in scheduled badge', async ({ page }) => {
+    test.setTimeout(90_000);
+
+    // Get prompts and pick the first one
+    const listRes = await page.request.get(`/api/chatbots/${CHATBOT_ID}/articles/prompts`);
+    const listData = await listRes.json();
+    const prompts = listData.data.prompts;
+    expect(prompts.length).toBeGreaterThanOrEqual(1);
+    const firstPrompt = prompts[0];
+
+    // Ensure global schedule is manual
+    await page.request.patch(`/api/chatbots/${CHATBOT_ID}/articles/schedule`, {
+      data: { article_schedule: 'manual' },
+    });
+
+    // Ensure all prompts are on inherit first
+    for (const p of prompts) {
+      if (p.schedule !== 'inherit') {
+        await page.request.patch(`/api/chatbots/${CHATBOT_ID}/articles/prompts/${p.id}`, {
+          data: { schedule: 'inherit' },
+        });
+      }
+    }
+
+    // Enable the first prompt and set it to daily
+    await page.request.patch(`/api/chatbots/${CHATBOT_ID}/articles/prompts/${firstPrompt.id}`, {
+      data: { enabled: true, schedule: 'daily' },
+    });
+
+    // Load page — badge should show "1 prompt scheduled"
+    await page.goto(`${BASE_URL}/articles`);
+    await page.waitForLoadState('networkidle');
+
+    const scheduleHeader = page.locator('[class*="cursor-pointer"]').filter({ hasText: 'Auto-Regeneration Schedule' }).first();
+    await expect(scheduleHeader).toBeVisible({ timeout: 30000 });
+    await expect(scheduleHeader.getByText(/1 prompt scheduled/)).toBeVisible({ timeout: 10000 });
+
+    // Disable the prompt — badge should change to "Off"
+    await page.request.patch(`/api/chatbots/${CHATBOT_ID}/articles/prompts/${firstPrompt.id}`, {
+      data: { enabled: false },
+    });
+
+    // Reload to pick up the change
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(scheduleHeader).toBeVisible({ timeout: 30000 });
+    await expect(scheduleHeader.getByText('Off')).toBeVisible({ timeout: 15000 });
+
+    // Restore: re-enable and reset to inherit
+    await page.request.patch(`/api/chatbots/${CHATBOT_ID}/articles/prompts/${firstPrompt.id}`, {
+      data: { enabled: true, schedule: 'inherit' },
+    });
   });
 
   // ─────────────────────────────────────────────────────────────
