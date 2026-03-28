@@ -139,12 +139,6 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
       throw APIError.badRequest('Cannot delete the default model. Set another model as default first.');
     }
 
-    // Clear any user preferences pointing to this model
-    await supabase
-      .from('profiles')
-      .update({ preferred_model_id: null })
-      .eq('preferred_model_id', id);
-
     const { error } = await supabase
       .from('ai_models')
       .delete()

@@ -286,6 +286,7 @@ export type Database = {
       app_settings: {
         Row: {
           ai_provider: string
+          article_generation_model_id: string | null
           chat_debug_mode: boolean
           embedding_model_id: string | null
           id: string
@@ -303,6 +304,7 @@ export type Database = {
         }
         Insert: {
           ai_provider?: string
+          article_generation_model_id?: string | null
           chat_debug_mode?: boolean
           embedding_model_id?: string | null
           id?: string
@@ -320,6 +322,7 @@ export type Database = {
         }
         Update: {
           ai_provider?: string
+          article_generation_model_id?: string | null
           chat_debug_mode?: boolean
           embedding_model_id?: string | null
           id?: string
@@ -336,6 +339,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "app_settings_article_generation_model_id_fkey"
+            columns: ["article_generation_model_id"]
+            isOneToOne: false
+            referencedRelation: "ai_models"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "app_settings_embedding_model_id_fkey"
             columns: ["embedding_model_id"]
@@ -2151,7 +2161,6 @@ export type Database = {
           id: string
           is_admin: boolean
           is_affiliate: boolean | null
-          preferred_model_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -2162,7 +2171,6 @@ export type Database = {
           id: string
           is_admin?: boolean
           is_affiliate?: boolean | null
-          preferred_model_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -2173,18 +2181,9 @@ export type Database = {
           id?: string
           is_admin?: boolean
           is_affiliate?: boolean | null
-          preferred_model_id?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_preferred_model_id_fkey"
-            columns: ["preferred_model_id"]
-            isOneToOne: false
-            referencedRelation: "ai_models"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       rate_limit_usage: {
         Row: {
@@ -3573,3 +3572,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

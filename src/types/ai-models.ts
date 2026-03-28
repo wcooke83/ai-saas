@@ -139,27 +139,6 @@ export interface UpdateModelInput {
 // USER MODEL SELECTION
 // =============================================================================
 
-export interface UserModelPreference {
-  model_id: string | null;
-  model: AIModelWithProvider | null;
-}
-
-// Model for display to users (simplified pricing based on user type)
-export interface UserAvailableModel {
-  id: string;
-  provider_id: string;
-  provider_name: string;
-  provider_slug: string;
-  name: string;
-  tier: 'fast' | 'balanced' | 'powerful' | null;
-  grade: string;
-  input_per_mtok: number;   // Based on user type (retail or wholesale)
-  output_per_mtok: number;
-  cost_indicator: '$' | '$$' | '$$$';  // Visual cost level
-  is_current: boolean;  // Is this the user's current selection
-  is_default: boolean;  // Is this the system default
-}
-
 // =============================================================================
 // BILLING CALCULATION
 // =============================================================================

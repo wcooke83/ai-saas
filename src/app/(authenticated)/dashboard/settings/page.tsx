@@ -25,13 +25,6 @@ import {
   Smartphone,
   Copy,
   CheckCircle2,
-  Mail,
-  FileText,
-  MessageSquare,
-  Megaphone,
-  PenTool,
-  ClipboardList,
-  Send,
   Bot,
   Settings,
 } from 'lucide-react';
@@ -49,10 +42,8 @@ import type { Database } from '@/types/database';
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type Subscription = Database['public']['Tables']['subscriptions']['Row'];
 type SubscriptionPlan = Database['public']['Tables']['subscription_plans']['Row'];
-import { ModelSelector } from '@/components/settings/ModelSelector';
-
 // Tool display configuration
-const toolConfig: Record<string, { name: string; icon: typeof Mail }> = {
+const toolConfig: Record<string, { name: string; icon: typeof Bot }> = {
   custom_chatbots: { name: 'Custom Chatbots', icon: Bot },
 };
 
@@ -436,9 +427,6 @@ export default function SettingsPage() {
             </form>
           </CardContent>
         </Card>
-
-        {/* AI Model Preference */}
-        <ModelSelector />
 
         {/* Subscription */}
         <Card>

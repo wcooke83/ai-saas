@@ -38,13 +38,12 @@ import {
   extractAndStoreMemory,
   summarizeConversation,
 } from '@/lib/chatbots/memory';
-import { getUserPreferredModel, isChatDebugMode } from '@/lib/settings';
+import { isChatDebugMode } from '@/lib/settings';
 import { logAPICall } from '@/lib/api/logging';
 import type { Chatbot, Message, Attachment, FileUploadConfig } from '@/lib/chatbots/types';
 import { DEFAULT_FILE_UPLOAD_CONFIG, FILE_TYPE_MAP } from '@/lib/chatbots/types';
 import { getActiveHandoff, forwardVisitorMessage } from '@/lib/telegram/handoff';
 import { analyzeConversationSentiment, updateVisitorLoyalty } from '@/lib/chatbots/sentiment';
-import type { AIModelWithProvider } from '@/types/ai-models';
 import { CalendarService } from '@/lib/calendar/service';
 import { handleCalendarToolCall } from '@/lib/chatbots/tools/calendar-handler';
 import { attemptAutoTopup, triggerPreemptiveTopup } from '@/lib/chatbots/auto-topup';
@@ -316,8 +315,6 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     // Optional API key authentication (for API access)
     let authenticatedUserId: string | null = null;
-    let userPreferredModel: AIModelWithProvider | null = null;
-
     const authHeader = req.headers.get('authorization');
     if (authHeader?.startsWith('Bearer ')) {
       const key = authHeader.substring(7);
@@ -344,17 +341,6 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         }
       }
 
-      // Get user's preferred AI model
-      userPreferredModel = await getUserPreferredModel(authenticatedUserId);
-
-      // Debug logging
-      console.log('[Chat API] User preferred model:', {
-        userId: authenticatedUserId,
-        modelId: userPreferredModel?.id,
-        modelName: userPreferredModel?.name,
-        providerSlug: userPreferredModel?.provider?.slug,
-        providerName: userPreferredModel?.provider?.name,
-      });
     }
 
     // Parse and validate input
@@ -697,14 +683,6 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       systemPromptLength: systemPrompt.length,
     }));
 
-    // Model mapping (used as fallback when no user preference)
-    const modelMap: Record<string, 'balanced' | 'powerful' | 'fast'> = {
-      'claude-3-haiku-20240307': 'fast',
-      'claude-3-5-sonnet-20241022': 'balanced',
-      'claude-sonnet-4-20250514': 'powerful',
-    };
-    const modelLevel = modelMap[chatbot.model] || 'balanced';
-
     // Build multi-turn conversation messages (last 10 turns)
     const conversationMessages = formatConversationHistory(messages.slice(-10));
 
@@ -716,12 +694,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       _perf('stream_start');
       _stages.start('first_token');
       const generator = generateStream(userPrompt, {
-        provider: 'claude',
-        model: modelLevel,
         systemPrompt,
         temperature: chatbot.temperature,
         maxTokens: chatbot.max_tokens,
-        specificModel: userPreferredModel || undefined,
         images: aiImages.length > 0 ? aiImages : undefined,
         conversationMessages,
       });
@@ -904,13 +879,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     _stages.start('generate');
     const startTime = Date.now();
     const result = await generate(userPrompt, {
-      provider: 'claude',
-      model: modelLevel,
       systemPrompt,
       temperature: chatbot.temperature,
       maxTokens: chatbot.max_tokens,
-      // Use user's preferred model if authenticated
-      specificModel: userPreferredModel || undefined,
       images: aiImages.length > 0 ? aiImages : undefined,
       conversationMessages,
     });

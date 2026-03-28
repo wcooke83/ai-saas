@@ -327,39 +327,6 @@ export async function getModelById(modelId: string): Promise<AIModelWithProvider
   }
 }
 
-/**
- * Get user's preferred model (or default if not set)
- */
-export async function getUserPreferredModel(userId: string): Promise<AIModelWithProvider | null> {
-  try {
-    const supabase = createAdminClient();
-
-    // Get user's preferred_model_id
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('preferred_model_id')
-      .eq('id', userId)
-      .single();
-
-    if (profileError || !profile?.preferred_model_id) {
-      // Return default model if user has no preference
-      return getDefaultModel();
-    }
-
-    // Get the user's preferred model
-    const model = await getModelById(profile.preferred_model_id);
-
-    // If preferred model is disabled or deleted, fall back to default
-    if (!model || !model.is_enabled || !model.provider?.is_enabled) {
-      return getDefaultModel();
-    }
-
-    return model;
-  } catch (error) {
-    console.error('Failed to fetch user preferred model:', error);
-    return getDefaultModel();
-  }
-}
 
 /**
  * Check if user is an affiliate
