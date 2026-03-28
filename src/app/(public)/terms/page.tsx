@@ -41,11 +41,6 @@ export default function TermsPage() {
               VocUI provides AI-powered productivity tools including, but not limited to:
             </p>
             <ul className="list-disc pl-6 text-[rgb(var(--text-primary))] mb-4 space-y-2">
-              <li>AI Email Writer for generating professional emails</li>
-              <li>AI Proposal Generator for creating business proposals</li>
-              <li>AI Blog Writer for generating written content</li>
-              <li>AI Ad Copy Generator for marketing content</li>
-              <li>AI Meeting Notes Summarizer for meeting transcripts</li>
               <li>Custom AI Chatbot Builder with RAG-powered knowledge bases</li>
               <li>API access for integrating our tools into your applications</li>
             </ul>

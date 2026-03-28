@@ -20,7 +20,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import {
   Package, Plus, Edit2, Trash2, X, Loader2, GripVertical, Building2,
-  Mail, FileText, Share2, Megaphone, PenTool, ClipboardList, Send, Bot, EyeOff
+  Bot, EyeOff
 } from 'lucide-react';
 import { Tooltip } from '@/components/ui/tooltip';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -31,13 +31,6 @@ import { isCustomPricingPlan, formatPrice, formatCredits } from '@/lib/billing/u
 
 // Tool definitions with icons
 const AVAILABLE_TOOLS = [
-  { id: 'email_writer', name: 'Email Writer', icon: Mail },
-  { id: 'proposal_generator', name: 'Proposal Generator', icon: FileText },
-  { id: 'social_post', name: 'Social Post', icon: Share2 },
-  { id: 'ad_copy', name: 'Ad Copy', icon: Megaphone },
-  { id: 'blog_writer', name: 'Blog Writer', icon: PenTool },
-  { id: 'meeting_notes', name: 'Meeting Notes', icon: ClipboardList },
-  { id: 'email_sequence', name: 'Email Sequence Builder', icon: Send },
   { id: 'custom_chatbots', name: 'Custom Chatbots', icon: Bot },
 ] as const;
 
@@ -87,13 +80,6 @@ const defaultFormData: PlanFormData = {
   isFeatured: false,
   isHidden: false,
   includedTools: {
-    email_writer: true,
-    proposal_generator: true,
-    social_post: true,
-    ad_copy: true,
-    blog_writer: true,
-    meeting_notes: true,
-    email_sequence: true,
     custom_chatbots: false,
   },
 };
@@ -442,15 +428,8 @@ export default function PlansAdminPage() {
   function openEditForm(plan: SubscriptionPlan) {
     const isCustom = isCustomPricingPlan(plan);
 
-    // Extract tool settings from features, defaulting to true for most tools
+    // Extract tool settings from features
     const includedTools: Record<ToolId, boolean> = {
-      email_writer: plan.features?.email_writer !== false,
-      proposal_generator: plan.features?.proposal_generator !== false,
-      social_post: plan.features?.social_post !== false,
-      ad_copy: plan.features?.ad_copy !== false,
-      blog_writer: plan.features?.blog_writer !== false,
-      meeting_notes: plan.features?.meeting_notes !== false,
-      email_sequence: plan.features?.email_sequence !== false,
       custom_chatbots: plan.features?.custom_chatbots === true,
     };
 

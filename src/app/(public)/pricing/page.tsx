@@ -22,27 +22,13 @@ import {
   Building2,
   Rocket,
   Loader2,
-  Mail,
-  FileText,
-  MessageSquare,
-  Megaphone,
-  PenTool,
-  ClipboardList,
-  Send,
   Bot,
 } from 'lucide-react';
 import type { SubscriptionPlan } from '@/types/billing';
 import { isCustomPricingPlan, sortPlansByDisplayOrder } from '@/lib/billing/utils';
 
 // Tool display configuration
-const toolConfig: Record<string, { name: string; icon: typeof Mail }> = {
-  email_writer: { name: 'Email Writer', icon: Mail },
-  proposal_generator: { name: 'Proposal Generator', icon: FileText },
-  social_post: { name: 'Social Post Generator', icon: MessageSquare },
-  ad_copy: { name: 'Ad Copy Generator', icon: Megaphone },
-  blog_writer: { name: 'Blog Writer', icon: PenTool },
-  meeting_notes: { name: 'Meeting Notes', icon: ClipboardList },
-  email_sequence: { name: 'Email Sequence Builder', icon: Send },
+const toolConfig: Record<string, { name: string; icon: typeof Bot }> = {
   custom_chatbots: { name: 'Custom Chatbots', icon: Bot },
 };
 
@@ -125,7 +111,7 @@ const testimonials = [
     gradient: "from-emerald-400 to-emerald-600",
   },
   {
-    quote: "The email writer alone saves me 5 hours a week. I've tried other tools but VocUI actually understands business context.",
+    quote: "The chatbot alone saves me 5 hours a week. I've tried other tools but VocUI actually understands business context.",
     author: "Michael Torres",
     role: "Founder & CEO",
     company: "Nexus Digital",

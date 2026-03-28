@@ -90,7 +90,7 @@ Always output:
 
 ```
 /design review src/components/PricingCard.tsx
-/design palette "AI email writer for real estate agents"
+/design palette "AI chatbot platform for real estate agents"
 /design guidelines --primary "#6366f1" --accent "#f43f5e"
 /design improve src/app/page.tsx
 ```
@@ -124,7 +124,6 @@ Always output:
 A conversion-optimized call-to-action card with gradient background and dual buttons. Used on landing pages, tool pages, and documentation.
 
 **Usage Examples:**
-- `/tools/social-post/page.tsx` (lines 149-177)
 - `/app/sdk/page.tsx` (CTA section)
 
 **Code Pattern:**

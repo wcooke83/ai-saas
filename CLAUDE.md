@@ -38,7 +38,7 @@ src/
 ├── app/                    # Next.js App Router pages
 │   ├── api/               # API routes
 │   ├── dashboard/         # Protected user dashboard
-│   ├── tools/             # AI tool pages (email-writer, proposal-generator, etc.)
+│   ├── tools/             # AI tool pages
 │   └── embed/             # Embeddable widget versions of tools
 ├── components/
 │   ├── tools/             # Tool-specific components

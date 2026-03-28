@@ -8,16 +8,10 @@ import {
   Sparkles,
   Key,
   BarChart3,
-  Mail,
   FileText,
   Clock,
   ArrowRight,
   TrendingUp,
-  Share2,
-  Megaphone,
-  PenTool,
-  MessageSquare,
-  ClipboardList,
   Plug,
   Code,
   Bot,
@@ -360,27 +354,7 @@ export default async function DashboardPage() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="p-1.5 bg-secondary-100 dark:bg-secondary-800 rounded">
-                        {gen.type === 'email' && (
-                          <Mail className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
-                        )}
-                        {gen.type === 'proposal' && (
-                          <ClipboardList className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
-                        )}
-                        {gen.type === 'social-post' && (
-                          <Share2 className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
-                        )}
-                        {gen.type === 'ad-copy' && (
-                          <Megaphone className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
-                        )}
-                        {gen.type === 'blog-post' && (
-                          <PenTool className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
-                        )}
-                        {gen.type === 'meeting-notes' && (
-                          <MessageSquare className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
-                        )}
-                        {!['email', 'proposal', 'social-post', 'ad-copy', 'blog-post', 'meeting-notes'].includes(gen.type) && (
-                          <FileText className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
-                        )}
+                        <FileText className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
                       </div>
                       <div>
                         <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 capitalize">{gen.type}</p>
@@ -404,7 +378,7 @@ export default async function DashboardPage() {
             ) : recentApiLogs.length > 0 ? (
               <ul className="space-y-2">
                 {recentApiLogs.map((log: { id: string; endpoint: string; status_code: number; tokens_total: number | null; created_at: string }) => {
-                  // Extract tool type from endpoint (e.g., /api/tools/email-writer -> email-writer)
+                  // Extract tool type from endpoint
                   const toolMatch = log.endpoint.match(/\/api\/tools\/([^/]+)/);
                   const chatMatch = !toolMatch && log.endpoint.match(/\/api\/chat(?:bots)?(?:\/|$)/);
                   const toolType = toolMatch ? toolMatch[1]
@@ -417,28 +391,9 @@ export default async function DashboardPage() {
                     >
                       <div className="flex items-center gap-3">
                         <div className="p-1.5 bg-secondary-100 dark:bg-secondary-800 rounded">
-                          {toolType === 'email-writer' && (
-                            <Mail className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
-                          )}
-                          {toolType === 'proposal-generator' && (
-                            <ClipboardList className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
-                          )}
-                          {toolType === 'social-post' && (
-                            <Share2 className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
-                          )}
-                          {toolType === 'ad-copy' && (
-                            <Megaphone className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
-                          )}
-                          {toolType === 'blog-writer' && (
-                            <PenTool className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
-                          )}
-                          {toolType === 'meeting-notes' && (
-                            <MessageSquare className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
-                          )}
-                          {toolType === 'chatbot' && (
+                          {toolType === 'chatbot' ? (
                             <Bot className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
-                          )}
-                          {!['email-writer', 'proposal-generator', 'social-post', 'ad-copy', 'blog-writer', 'meeting-notes', 'chatbot'].includes(toolType) && (
+                          ) : (
                             <FileText className="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" aria-hidden="true" />
                           )}
                         </div>

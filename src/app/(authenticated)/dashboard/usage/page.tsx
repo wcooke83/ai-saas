@@ -15,12 +15,10 @@ import {
   TrendingDown,
   Calendar,
   Sparkles,
-  Mail,
   FileText,
   Clock,
   ArrowUpRight,
   Filter,
-  Share2,
   Zap,
   ScrollText,
   RefreshCw,
@@ -67,7 +65,7 @@ export default function UsagePage() {
   const [totalTokensUsed, setTotalTokensUsed] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'email' | 'proposal' | 'social-post'>('all');
+  const [filter, setFilter] = useState<'all'>('all');
   const [logFilter, setLogFilter] = useState<'all' | 'errors'>('all');
   const [activeTab, setActiveTab] = useState<'generations' | 'logs'>('generations');
   const [chartPeriod, setChartPeriod] = useState<'7d' | '14d' | '30d'>('14d');
@@ -274,15 +272,6 @@ export default function UsagePage() {
 
   const stats = {
     totalGenerations: totalGenerationsCount,
-    emailGenerations: generations.length > 0
-      ? generations.filter((g) => g.type === 'email').length
-      : apiLogs.filter((l) => l.endpoint.includes('email-writer')).length,
-    proposalGenerations: generations.length > 0
-      ? generations.filter((g) => g.type === 'proposal').length
-      : apiLogs.filter((l) => l.endpoint.includes('proposal')).length,
-    socialPostGenerations: generations.length > 0
-      ? generations.filter((g) => g.type === 'social-post').length
-      : apiLogs.filter((l) => l.endpoint.includes('social-post')).length,
     apiCalls: apiLogs.length,
     avgDuration: apiLogs.length > 0
       ? Math.round(apiLogs.reduce((sum, l) => sum + (l.duration_ms || 0), 0) / apiLogs.length)
@@ -580,18 +569,7 @@ export default function UsagePage() {
               {activeTab === 'generations' ? (
                 <>
                   <Filter className="w-4 h-4 text-secondary-400" aria-hidden="true" />
-                  <select
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value as typeof filter)}
-                    className="text-sm border border-secondary-200 dark:border-secondary-700 text-secondary-900 dark:text-secondary-100 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
-                    aria-label="Filter generations"
-                  >
-                    <option value="all">All Types</option>
-                    <option value="email">Emails Only</option>
-                    <option value="proposal">Proposals Only</option>
-                    <option value="social-post">Social Posts Only</option>
-                  </select>
+                  <span className="text-sm text-secondary-500 dark:text-secondary-400">All Types</span>
                 </>
               ) : (
                 <>
@@ -632,18 +610,8 @@ export default function UsagePage() {
                       className="flex items-center justify-between p-4 border border-secondary-100 dark:border-secondary-800 rounded-lg hover:bg-secondary-50 dark:hover:bg-secondary-800/50 transition-colors"
                     >
                       <div className="flex items-center gap-4">
-                        <div className={`p-2 rounded-lg ${
-                          gen.type === 'email' ? 'bg-green-100 dark:bg-green-900/30' :
-                          gen.type === 'social-post' ? 'bg-blue-100 dark:bg-blue-900/30' :
-                          'bg-purple-100 dark:bg-purple-900/30'
-                        }`}>
-                          {gen.type === 'email' ? (
-                            <Mail className="w-4 h-4 text-green-600 dark:text-green-400" aria-hidden="true" />
-                          ) : gen.type === 'social-post' ? (
-                            <Share2 className="w-4 h-4 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                          ) : (
-                            <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" aria-hidden="true" />
-                          )}
+                        <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+                          <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" aria-hidden="true" />
                         </div>
                         <div>
                           <p className="font-medium text-secondary-900 dark:text-secondary-100 capitalize">{gen.type} Generation</p>
@@ -674,13 +642,7 @@ export default function UsagePage() {
               ) : apiLogs.length > 0 ? (
                 // Show api_logs as generation history when generations table is empty
                 <div className="space-y-3">
-                  {apiLogs.filter((log) => {
-                    if (filter === 'all') return true;
-                    if (filter === 'email') return log.endpoint.includes('email-writer');
-                    if (filter === 'proposal') return log.endpoint.includes('proposal');
-                    if (filter === 'social-post') return log.endpoint.includes('social-post');
-                    return true;
-                  }).map((log) => {
+                  {apiLogs.map((log) => {
                     // Extract tool type from endpoint
                     let toolType = 'api';
                     let displayType = 'Api';
@@ -703,16 +665,10 @@ export default function UsagePage() {
                       >
                         <div className="flex items-center gap-4">
                           <div className={`p-2 rounded-lg ${
-                            toolType.includes('email') ? 'bg-green-100 dark:bg-green-900/30' :
-                            toolType.includes('social') ? 'bg-blue-100 dark:bg-blue-900/30' :
                             toolType === 'chat' ? 'bg-indigo-100 dark:bg-indigo-900/30' :
                             'bg-purple-100 dark:bg-purple-900/30'
                           }`}>
-                            {toolType.includes('email') ? (
-                              <Mail className="w-4 h-4 text-green-600 dark:text-green-400" aria-hidden="true" />
-                            ) : toolType.includes('social') ? (
-                              <Share2 className="w-4 h-4 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                            ) : toolType === 'chat' ? (
+                            {toolType === 'chat' ? (
                               <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
                             ) : (
                               <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" aria-hidden="true" />
@@ -807,9 +763,9 @@ export default function UsagePage() {
                   <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">No generations yet</p>
                   <p className="text-sm text-secondary-500 dark:text-secondary-400 mb-4">Start using VocUI to see your history</p>
                   <Button asChild>
-                    <a href="/tools/email-writer">
+                    <a href="/dashboard/chatbots">
                       <Sparkles className="w-4 h-4 mr-2" aria-hidden="true" />
-                      Try Email Writer
+                      Create a Chatbot
                     </a>
                   </Button>
                 </div>

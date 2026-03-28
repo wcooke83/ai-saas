@@ -626,17 +626,17 @@ export default function APIKeysPage() {
               <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300">Example cURL Request</p>
               <div className="relative">
                 <code className="block p-3 bg-secondary-900 text-secondary-100 rounded-lg text-sm font-mono whitespace-pre-wrap overflow-x-auto">
-{`curl -X POST https://your-domain.com/api/tools/email-writer \\
+{`curl -X POST https://your-domain.com/api/chatbots/{id}/chat \\
   -H "Authorization: Bearer sk_live_xxxxx" \\
   -H "Content-Type: application/json" \\
-  -d '{"purpose": "Follow up", "tone": "professional"}'`}
+  -d '{"message": "Hello, how can I help?"}'`}
                 </code>
                 <Button
                   variant="ghost"
                   size="sm"
                   className="absolute top-2 right-2 text-secondary-400 hover:text-white hover:bg-secondary-700 dark:hover:bg-white/10 p-1.5 rounded transition-colors"
                   onClick={() => copyToClipboard(
-                    `curl -X POST https://your-domain.com/api/tools/email-writer \\\n  -H "Authorization: Bearer sk_live_xxxxx" \\\n  -H "Content-Type: application/json" \\\n  -d '{"purpose": "Follow up", "tone": "professional"}'`,
+                    `curl -X POST https://your-domain.com/api/chatbots/{id}/chat \\\n  -H "Authorization: Bearer sk_live_xxxxx" \\\n  -H "Content-Type: application/json" \\\n  -d '{"message": "Hello, how can I help?"}'`,
                     'curl'
                   )}
                 >

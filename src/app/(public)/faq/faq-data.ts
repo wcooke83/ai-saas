@@ -142,7 +142,7 @@ export const faqCategories: FaqCategory[] = [
       {
         id: 'tools-available',
         question: 'What tools are available?',
-        answer: 'Currently, we offer the AI Email Writer and AI Proposal Generator. More tools including Report Generator, Workflow Automator, and Content Rewriter are coming soon.',
+        answer: 'VocUI offers a custom AI Chatbot Builder with RAG-powered knowledge bases. Build chatbots trained on your own content and deploy them via embeddable widgets, Slack, or Telegram.',
         popular: true,
       },
       {
@@ -157,8 +157,8 @@ export const faqCategories: FaqCategory[] = [
       },
       {
         id: 'tools-export',
-        question: 'What file formats can I export to?',
-        answer: 'Pro and Enterprise users can export proposals to PDF and DOCX formats. Email content can be copied directly or exported as plain text.',
+        question: 'What integrations are available?',
+        answer: 'You can deploy chatbots via an embeddable web widget, Slack, or Telegram. API access is available for custom integrations.',
       },
     ],
   },

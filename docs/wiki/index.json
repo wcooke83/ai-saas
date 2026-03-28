@@ -143,63 +143,6 @@
       ]
     },
     {
-      "id": "ai-tools",
-      "title": "Tools",
-      "icon": "Sparkles",
-      "description": "Guides for each AI content generation tool",
-      "pages": [
-        {
-          "id": "email-writer-guide",
-          "file": "email-writer-guide.md",
-          "title": "Email Writer",
-          "description": "Generate professional emails with AI — cold outreach, follow-ups, introductions, and more with customizable tone and structure",
-          "order": 1
-        },
-        {
-          "id": "email-sequence-guide",
-          "file": "email-sequence-guide.md",
-          "title": "Email Sequence Builder",
-          "description": "Generate multi-email sequences for outreach, onboarding, sales nurture, and more with AI-powered scheduling and personalization",
-          "order": 2
-        },
-        {
-          "id": "proposal-generator-guide",
-          "file": "proposal-generator-guide.md",
-          "title": "Proposal Generator",
-          "description": "Create professional business proposals with AI — sales, RFP responses, project, and technical proposals with export to PDF and Word",
-          "order": 3
-        },
-        {
-          "id": "blog-writer-guide",
-          "file": "blog-writer-guide.md",
-          "title": "Blog Writer",
-          "description": "Generate SEO-optimized blog posts with AI — from outline to full article with customizable format, tone, and word count",
-          "order": 4
-        },
-        {
-          "id": "meeting-summarizer-guide",
-          "file": "meeting-summarizer-guide.md",
-          "title": "Meeting Summarizer",
-          "description": "Transform meeting transcripts into structured summaries with action items, key decisions, and attendee lists using AI",
-          "order": 5
-        },
-        {
-          "id": "ad-copy-guide",
-          "file": "ad-copy-guide.md",
-          "title": "Ad Copy Generator",
-          "description": "Create platform-optimized ad copy for Google, Meta, LinkedIn, Twitter, TikTok, and Pinterest with character limit validation",
-          "order": 6
-        },
-        {
-          "id": "social-post-guide",
-          "file": "social-post-guide.md",
-          "title": "Social Post Generator",
-          "description": "Create platform-optimized social media posts for LinkedIn, Twitter, Instagram, and TikTok with hashtags and multiple variations",
-          "order": 7
-        }
-      ]
-    },
-    {
       "id": "api-integration",
       "title": "API Integration",
       "icon": "Code",

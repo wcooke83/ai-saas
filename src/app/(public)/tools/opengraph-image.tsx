@@ -76,7 +76,7 @@ export default function OgImage() {
             textAlign: 'center' as const,
           }}
         >
-          Email writer, proposal generator, blog writer, and more
+          AI-powered chatbot builder with custom knowledge bases
         </span>
 
         {/* URL */}

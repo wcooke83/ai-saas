@@ -14,8 +14,8 @@ export async function sendWelcomeEmail(to: string, name?: string) {
         <h1 style="color: #6366f1;">Welcome${name ? `, ${name}` : ''}!</h1>
         <p>Thanks for signing up for VocUI. You now have access to:</p>
         <ul>
-          <li>AI Email Writer</li>
-          <li>Proposal Generator</li>
+          <li>Custom AI Chatbot Builder</li>
+          <li>RAG-powered knowledge bases</li>
           <li>API access for integrations</li>
         </ul>
         <p>

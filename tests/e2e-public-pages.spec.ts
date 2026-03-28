@@ -5,13 +5,6 @@ const publicPages = [
   { path: '/', label: 'home' },
   { path: '/login', label: 'login' },
   { path: '/pricing', label: 'pricing' },
-  { path: '/tools', label: 'tools hub' },
-  { path: '/tools/email-writer', label: 'email writer' },
-  { path: '/tools/blog-writer', label: 'blog writer' },
-  { path: '/tools/social-post', label: 'social post' },
-  { path: '/tools/ad-copy', label: 'ad copy' },
-  { path: '/tools/meeting-notes', label: 'meeting notes' },
-  { path: '/tools/proposal-generator', label: 'proposal generator' },
 ];
 
 test.describe('Public Pages', () => {

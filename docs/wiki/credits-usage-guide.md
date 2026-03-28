@@ -23,12 +23,6 @@ Credits represent your monthly token allowance. Every interaction with an AI too
 | Action | Approximate Cost |
 |--------|-----------------|
 | Chatbot message (visitor question + bot response) | 200-800 tokens |
-| Email Writer generation | 500-1,500 tokens |
-| Blog Post generation | 1,000-3,000 tokens |
-| Proposal generation | 2,000-5,000 tokens |
-| Social Post generation | 200-500 tokens |
-| Ad Copy generation | 300-700 tokens |
-| Meeting Notes generation | 500-2,000 tokens |
 
 Actual usage depends on the length of your input and the AI's response.
 

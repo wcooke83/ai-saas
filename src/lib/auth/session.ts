@@ -244,7 +244,7 @@ export async function requireAdmin(req: NextRequest): Promise<AuthenticatedUser>
 /**
  * Check if a user's plan has access to a specific tool
  * @param userId - The user's ID
- * @param toolSlug - The tool slug (e.g., 'email-writer', 'proposal-generator')
+ * @param toolSlug - The tool slug (e.g., 'chatbots', 'custom-chatbots')
  * @returns boolean indicating if the user has access
  */
 export async function checkToolAccess(userId: string, toolSlug: string): Promise<boolean> {
@@ -291,7 +291,7 @@ export async function checkToolAccess(userId: string, toolSlug: string): Promise
 /**
  * Require tool access - throws if user's plan doesn't include the tool
  * @param user - The authenticated user
- * @param toolSlug - The tool slug (e.g., 'email-writer', 'proposal-generator')
+ * @param toolSlug - The tool slug (e.g., 'chatbots', 'custom-chatbots')
  */
 export async function requireToolAccess(
   user: AuthenticatedUser,
