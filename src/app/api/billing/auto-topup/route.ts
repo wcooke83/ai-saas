@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { requireAuth } from '@/lib/auth/session';
 import { successResponse, errorResponse, parseBody, APIError } from '@/lib/api/utils';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getCustomerPaymentMethods } from '@/lib/stripe/customers';
 import type { AutoTopupSettings } from '@/types/billing';
 
 const updateSchema = z.object({
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
     const { data, error } = await supabase
       .from('user_credits')
       .select(
-        'auto_topup_enabled, auto_topup_threshold, auto_topup_amount, auto_topup_max_monthly, auto_topup_this_month, default_payment_method_id'
+        'auto_topup_enabled, auto_topup_threshold, auto_topup_amount, auto_topup_max_monthly, auto_topup_this_month, default_payment_method_id, stripe_customer_id'
       )
       .eq('user_id', user.id)
       .single();
@@ -34,13 +35,33 @@ export async function GET(req: NextRequest) {
       throw APIError.internal('Failed to fetch auto top-up settings');
     }
 
+    // Check Stripe directly for payment methods if cached value is missing
+    let hasPaymentMethod = !!data?.default_payment_method_id;
+
+    if (!hasPaymentMethod && data?.stripe_customer_id) {
+      try {
+        const methods = await getCustomerPaymentMethods(data.stripe_customer_id);
+        if (methods.length > 0) {
+          hasPaymentMethod = true;
+          // Backfill the cached column so auto-topup charges work
+          const pmId = methods[0].id;
+          await supabase
+            .from('user_credits')
+            .update({ default_payment_method_id: pmId })
+            .eq('user_id', user.id);
+        }
+      } catch (err) {
+        console.error('Failed to check Stripe payment methods:', err);
+      }
+    }
+
     const settings: AutoTopupSettings = {
       enabled: data?.auto_topup_enabled ?? false,
       threshold: data?.auto_topup_threshold ?? 100,
       amount: data?.auto_topup_amount ?? 1000,
       maxMonthly: data?.auto_topup_max_monthly ?? null,
       thisMonth: data?.auto_topup_this_month ?? 0,
-      hasPaymentMethod: !!data?.default_payment_method_id,
+      hasPaymentMethod,
     };
 
     return successResponse(settings);
@@ -55,18 +76,36 @@ export async function PUT(req: NextRequest) {
     const input = await parseBody(req, updateSchema);
     const supabase = createAdminClient();
 
-    // If enabling, check for payment method
+    // If enabling, check for payment method (check Stripe directly as fallback)
     if (input.enabled === true) {
       const { data: credits } = await supabase
         .from('user_credits')
-        .select('default_payment_method_id')
+        .select('default_payment_method_id, stripe_customer_id')
         .eq('user_id', user.id)
         .single();
 
       if (!credits?.default_payment_method_id) {
-        throw APIError.badRequest(
-          'Please add a payment method before enabling auto top-up'
-        );
+        // Try Stripe directly
+        let found = false;
+        if (credits?.stripe_customer_id) {
+          try {
+            const methods = await getCustomerPaymentMethods(credits.stripe_customer_id);
+            if (methods.length > 0) {
+              found = true;
+              await supabase
+                .from('user_credits')
+                .update({ default_payment_method_id: methods[0].id })
+                .eq('user_id', user.id);
+            }
+          } catch (err) {
+            console.error('Failed to check Stripe payment methods:', err);
+          }
+        }
+        if (!found) {
+          throw APIError.badRequest(
+            'Please add a payment method before enabling auto top-up'
+          );
+        }
       }
     }
 

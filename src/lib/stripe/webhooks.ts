@@ -31,6 +31,48 @@ export async function handleCheckoutCompleted(
   } else if (session.mode === 'payment') {
     await handleCreditPurchase(session, userId);
   }
+
+  // Save the payment method from checkout for future auto top-up use
+  if (session.customer) {
+    try {
+      const stripe = getStripeClient();
+      let pmId: string | null = null;
+
+      if (session.payment_intent) {
+        // Credit purchases (mode: 'payment') have a payment_intent
+        const pi = await stripe.paymentIntents.retrieve(session.payment_intent as string);
+        pmId = pi.payment_method
+          ? (typeof pi.payment_method === 'string' ? pi.payment_method : pi.payment_method.id)
+          : null;
+      } else if (session.subscription) {
+        // Subscription checkouts — get payment method from the subscription
+        const sub = await stripe.subscriptions.retrieve(session.subscription as string, {
+          expand: ['default_payment_method'],
+        });
+        const defaultPm = sub.default_payment_method;
+        pmId = defaultPm
+          ? (typeof defaultPm === 'string' ? defaultPm : defaultPm.id)
+          : null;
+      }
+
+      if (pmId) {
+        const customerId = typeof session.customer === 'string' ? session.customer : session.customer.id;
+        // Upsert to handle users without an existing user_credits row
+        await supabase
+          .from('user_credits')
+          .upsert(
+            {
+              user_id: userId,
+              stripe_customer_id: customerId,
+              default_payment_method_id: pmId,
+            },
+            { onConflict: 'user_id' }
+          );
+      }
+    } catch (err) {
+      console.error('Failed to save payment method from checkout:', err);
+    }
+  }
 }
 
 /**
@@ -193,47 +235,108 @@ async function handleChatbotCreditPurchase(
 }
 
 /**
- * Handle customer.subscription.updated event
+ * Handle customer.subscription.updated event.
+ * Syncs status/period dates AND detects plan changes from upgrade/downgrade.
  */
 export async function handleSubscriptionUpdated(
   subscription: Stripe.Subscription
 ): Promise<void> {
   const supabase = createAdminClient();
-  const userId = subscription.metadata?.user_id;
 
-  if (!userId) {
-    // Try to find user by subscription ID
-    const { data: sub } = await supabase
+  const targetUserId =
+    subscription.metadata?.user_id ||
+    (await getUserIdFromSubscription(subscription.id));
+
+  if (!targetUserId) {
+    console.error('Could not find user for subscription:', subscription.id);
+    return;
+  }
+
+  // Detect plan change from metadata set by changeSubscription()
+  const newPlanId = subscription.metadata?.plan_id || null;
+  const newPlanSlug = subscription.metadata?.plan_slug || null;
+
+  // Build the base update payload (always sync these fields)
+  const updatePayload: Record<string, unknown> = {
+    status: subscription.status,
+    current_period_start: new Date(
+      subscription.current_period_start * 1000
+    ).toISOString(),
+    current_period_end: new Date(
+      subscription.current_period_end * 1000
+    ).toISOString(),
+    cancel_at_period_end: subscription.cancel_at_period_end,
+    updated_at: new Date().toISOString(),
+  };
+
+  // Check if the plan actually changed by comparing metadata against current DB state
+  let planActuallyChanged = false;
+
+  if (newPlanId) {
+    const { data: currentSub } = await supabase
       .from('subscriptions')
-      .select('user_id')
+      .select('plan_id')
       .eq('stripe_subscription_id', subscription.id)
       .single();
 
-    if (!sub) {
-      console.error('Could not find user for subscription:', subscription.id);
-      return;
+    if (currentSub && currentSub.plan_id !== newPlanId) {
+      planActuallyChanged = true;
+      updatePayload.plan_id = newPlanId;
+      updatePayload.plan = newPlanSlug;
     }
   }
 
-  const targetUserId = userId || (await getUserIdFromSubscription(subscription.id));
-  if (!targetUserId) return;
-
   await supabase
     .from('subscriptions')
-    .update({
-      status: subscription.status,
-      current_period_start: new Date(
-        subscription.current_period_start * 1000
-      ).toISOString(),
-      current_period_end: new Date(
-        subscription.current_period_end * 1000
-      ).toISOString(),
-      cancel_at_period_end: subscription.cancel_at_period_end,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updatePayload)
     .eq('stripe_subscription_id', subscription.id);
 
-  console.log(`Subscription ${subscription.id} updated, status: ${subscription.status}`);
+  // Only reset usage and complete tracking if the plan actually changed
+  if (planActuallyChanged && newPlanId) {
+    const { data: plan } = await supabase
+      .from('subscription_plans')
+      .select('credits_monthly')
+      .eq('id', newPlanId)
+      .single();
+
+    if (plan) {
+      await supabase
+        .from('usage')
+        .update({
+          credits_limit: plan.credits_monthly,
+          credits_used: 0,
+          period_start: new Date().toISOString(),
+          period_end: new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000
+          ).toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', targetUserId);
+    }
+
+    // Complete pending subscription_changes record
+    await supabase
+      .from('subscription_changes')
+      .update({
+        new_stripe_subscription_id: subscription.id,
+        status: 'completed',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', targetUserId)
+      .eq('new_plan_id', newPlanId)
+      .eq('status', 'pending');
+
+    // Clear the one-shot metadata so future events don't re-trigger plan change logic
+    const stripe = getStripeClient();
+    await stripe.subscriptions.update(subscription.id, {
+      metadata: { plan_id: '', plan_slug: '' },
+    });
+  }
+
+  console.log(
+    `Subscription ${subscription.id} updated, status: ${subscription.status}` +
+      (newPlanSlug ? `, plan changed to: ${newPlanSlug}` : '')
+  );
 }
 
 /**

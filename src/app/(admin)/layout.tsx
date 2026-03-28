@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Menu, X, Home, Key, BarChart3, Settings, LogOut, User, CreditCard, Bot, Shield, ChevronDown, ChevronLeft, ChevronRight, Cpu, FileText, Package, Gift, Coins, ShoppingBag } from 'lucide-react';
+import { Menu, X, Home, Key, BarChart3, Settings, LogOut, CreditCard, Bot, Shield, ChevronDown, ChevronLeft, ChevronRight, Cpu, FileText, Package, Gift, Coins, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggleSimple } from '@/components/ui/theme-toggle';
 import { useFocusTrap } from '@/hooks/use-focus-trap';
@@ -22,7 +22,6 @@ const baseNavItems: NavItem[] = [
   { href: '/dashboard/chatbots', label: 'Chatbots', icon: Bot },
   { href: '/dashboard/api-keys', label: 'API Keys', icon: Key },
   { href: '/dashboard/usage', label: 'Usage', icon: BarChart3 },
-  { href: '/dashboard/profile', label: 'Profile', icon: User },
   { href: '/dashboard/billing', label: 'Billing', icon: CreditCard },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];

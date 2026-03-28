@@ -1,6 +1,7 @@
 /**
  * Stripe Checkout API
- * Creates checkout sessions for subscriptions and credit purchases
+ * Creates checkout sessions for new subscriptions and credit purchases.
+ * Upgrades/downgrades use stripe.subscriptions.update() instead of Checkout Sessions.
  */
 
 import { NextRequest } from 'next/server';
@@ -9,6 +10,7 @@ import { requireAuth } from '@/lib/auth/session';
 import { successResponse, errorResponse, parseBody, APIError } from '@/lib/api/utils';
 import {
   createSubscriptionCheckout,
+  changeSubscription,
   createCreditPurchaseCheckout,
   isStripeConfigured,
 } from '@/lib/stripe';
@@ -18,13 +20,12 @@ const subscriptionSchema = z.object({
   planId: z.string().uuid(),
   billingInterval: z.enum(['monthly', 'yearly']).default('monthly'),
   trialLinkCode: z.string().optional(),
-  isUpgrade: z.boolean().optional(),
-  creditAmountCents: z.number().optional(),
+  changeType: z.enum(['upgrade', 'downgrade']).optional(),
 });
 
 const creditSchema = z.object({
   type: z.literal('credits'),
-  creditAmount: z.number().min(100).max(100000),
+  creditAmount: z.number().min(1).max(100000),
 });
 
 const checkoutSchema = z.discriminatedUnion('type', [
@@ -48,14 +49,25 @@ export async function POST(req: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3030';
 
     if (input.type === 'subscription') {
+      // Upgrade/downgrade: use stripe.subscriptions.update() directly
+      if (input.changeType) {
+        const result = await changeSubscription({
+          userId: user.id,
+          planId: input.planId,
+          billingInterval: input.billingInterval || 'monthly',
+          changeType: input.changeType,
+        });
+
+        return successResponse(result);
+      }
+
+      // New subscription: use Checkout Session
       const url = await createSubscriptionCheckout({
         userId: user.id,
         email: user.email,
         planId: input.planId,
         billingInterval: input.billingInterval || 'monthly',
         trialLinkCode: input.trialLinkCode,
-        isUpgrade: input.isUpgrade,
-        creditAmountCents: input.creditAmountCents,
         successUrl: `${baseUrl}/dashboard/billing?checkout=success&type=subscription`,
         cancelUrl: `${baseUrl}/dashboard/billing?checkout=canceled`,
       });

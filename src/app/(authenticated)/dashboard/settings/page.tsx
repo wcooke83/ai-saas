@@ -37,6 +37,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { H1 } from '@/components/ui/heading';
+import { InfoTooltip } from '@/components/ui/tooltip';
 import type { Database } from '@/types/database';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -394,7 +395,9 @@ export default function SettingsPage() {
             <form onSubmit={handleSaveProfile} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <div className="flex items-center gap-1.5">
+                    <Label htmlFor="fullName">Full Name</Label>
+                  </div>
                   <Input
                     id="fullName"
                     value={fullName}
@@ -403,7 +406,10 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <div className="flex items-center gap-1.5">
+                    <Label htmlFor="email">Email</Label>
+                    <InfoTooltip content="Your email is used for login and notifications. Contact support to change it." side="top" />
+                  </div>
                   <Input
                     id="email"
                     type="email"
@@ -495,11 +501,17 @@ export default function SettingsPage() {
                 <ul className="grid gap-2 sm:grid-cols-2">
                   <li className="flex items-center gap-2 text-sm text-secondary-600 dark:text-secondary-400">
                     <Check className="w-4 h-4 text-green-500" aria-hidden="true" />
-                    {planData?.credits_monthly === -1 ? 'Unlimited' : (planData?.credits_monthly || 100).toLocaleString()} credits/month
+                    <span className="flex items-center gap-1">
+                      {planData?.credits_monthly === -1 ? 'Unlimited' : (planData?.credits_monthly || 100).toLocaleString()} credits/month
+                      <InfoTooltip content="Credits are consumed per AI message. Usage varies by model and response length." side="top" />
+                    </span>
                   </li>
                   <li className="flex items-center gap-2 text-sm text-secondary-600 dark:text-secondary-400">
                     <Check className="w-4 h-4 text-green-500" aria-hidden="true" />
-                    {planData?.api_keys_limit === -1 ? 'Unlimited' : (planData?.api_keys_limit || 2)} API keys
+                    <span className="flex items-center gap-1">
+                      {planData?.api_keys_limit === -1 ? 'Unlimited' : (planData?.api_keys_limit || 2)} API keys
+                      <InfoTooltip content="API keys allow external applications to access your chatbots programmatically." side="top" />
+                    </span>
                   </li>
                 </ul>
 
@@ -587,7 +599,10 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-secondary-900 dark:text-secondary-100">Two-Factor Authentication</p>
+                    <p className="flex items-center gap-1.5 font-medium text-secondary-900 dark:text-secondary-100">
+                      Two-Factor Authentication
+                      <InfoTooltip content="Requires a 6-digit code from an authenticator app each time you sign in." side="top" />
+                    </p>
                     {twoFAEnabled ? (
                       <Badge variant="success" className="text-xs">
                         <Check className="w-3 h-3 mr-1" aria-hidden="true" />
@@ -638,13 +653,16 @@ export default function SettingsPage() {
           <CardContent>
             <div className="space-y-4">
               {[
-                { id: 'product', label: 'Product updates', description: 'News about new features and improvements' },
-                { id: 'usage', label: 'Usage alerts', description: 'Get notified when approaching credit limits' },
-                { id: 'marketing', label: 'Marketing emails', description: 'Tips, best practices, and offers' },
+                { id: 'product', label: 'Product updates', description: 'News about new features and improvements', tooltip: 'Release notes, new features, and platform changes — typically 1-2 emails per month.' },
+                { id: 'usage', label: 'Usage alerts', description: 'Get notified when approaching credit limits', tooltip: "You'll receive alerts at 80% and 95% of your monthly credit limit, plus when credits are fully exhausted." },
+                { id: 'marketing', label: 'Marketing emails', description: 'Tips, best practices, and offers', tooltip: 'Tips, best practices, and occasional promotional offers. You can unsubscribe at any time.' },
               ].map((item) => (
                 <div key={item.id} className="flex items-center justify-between p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg">
                   <div>
-                    <p className="font-medium text-secondary-900 dark:text-secondary-100">{item.label}</p>
+                    <p className="flex items-center gap-1.5 font-medium text-secondary-900 dark:text-secondary-100">
+                      {item.label}
+                      {item.tooltip && <InfoTooltip content={item.tooltip} side="top" />}
+                    </p>
                     <p className="text-sm text-secondary-500 dark:text-secondary-400">{item.description}</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -667,7 +685,10 @@ export default function SettingsPage() {
           <CardContent>
             <div className="flex items-center justify-between p-4 border border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-900/20">
               <div>
-                <p className="font-medium text-red-900 dark:text-red-300">Delete Account</p>
+                <p className="flex items-center gap-1.5 font-medium text-red-900 dark:text-red-300">
+                  Delete Account
+                  <InfoTooltip content="This permanently removes all your chatbots, knowledge sources, conversations, and billing data. This cannot be undone." side="top" />
+                </p>
                 <p className="text-sm text-red-600 dark:text-red-400">Permanently delete your account and all data</p>
               </div>
               <Button variant="destructive">Delete Account</Button>

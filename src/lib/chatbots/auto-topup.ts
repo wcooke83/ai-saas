@@ -105,7 +105,23 @@ export async function attemptAutoTopup(
       return { success: false, error: 'no_payment_method' };
     }
 
-    // 5. Insert pending purchase record BEFORE charging (crash safety)
+    // 5. Guard against concurrent auto-topup attempts (TOCTOU race).
+    //    If another request is already processing a purchase for this chatbot,
+    //    a 'pending' row will exist. Bail out to avoid double-charging.
+    const { data: existingPending } = await supabase
+      .from('credit_purchases')
+      .select('id')
+      .eq('chatbot_id', chatbotId)
+      .eq('status', 'pending')
+      .eq('purchase_type', 'auto')
+      .limit(1)
+      .maybeSingle();
+
+    if (existingPending) {
+      return { success: false, error: 'topup_already_in_progress' };
+    }
+
+    // Insert pending purchase record BEFORE charging (crash safety)
     const idempotencyKey = `auto-topup:${chatbotId}:${new Date().toISOString().slice(0, 7)}:${(topupCount ?? 0) + 1}`;
 
     const { data: pendingPurchase, error: insertErr } = await supabase

@@ -5,7 +5,6 @@ const dashboardPages = [
   { path: '/dashboard/chatbots', label: 'chatbots list' },
   { path: '/dashboard/api-keys', label: 'API keys' },
   { path: '/dashboard/usage', label: 'usage' },
-  { path: '/dashboard/profile', label: 'profile' },
   { path: '/dashboard/billing', label: 'billing' },
   { path: '/dashboard/settings', label: 'settings' },
   { path: '/dashboard/integrations', label: 'integrations' },

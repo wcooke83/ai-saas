@@ -1,10 +1,11 @@
 /**
- * Subscription Upgrade Calculation API
- * POST - Calculate prorated credit for upgrading to a new plan
+ * Subscription Upgrade/Downgrade Preview API
+ * POST - Uses Stripe's upcoming invoice to get accurate proration amounts
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { getStripeClient } from '@/lib/stripe/client';
 import { z } from 'zod';
 import type { Database } from '@/types/database';
 
@@ -31,22 +32,11 @@ export interface UpgradeCalculationResponse {
     priceMonthlyCents: number;
     priceYearlyCents: number | null;
   };
-  currentSubscription: {
-    id: string;
-    stripeSubscriptionId: string | null;
-    currentPeriodStart: Date;
-    currentPeriodEnd: Date;
-    billingInterval: 'monthly' | 'yearly';
-  } | null;
   calculation: {
-    daysRemaining: number;
-    totalDaysInPeriod: number;
-    unusedAmountCents: number;
     newPlanPriceCents: number;
-    creditAppliedCents: number;
-    amountDueCents: number;
+    proratedAmountDueCents: number;
     isUpgrade: boolean;
-    changeType: 'upgrade' | 'downgrade' | 'interval_change' | 'new_subscription';
+    changeType: 'upgrade' | 'downgrade' | 'new_subscription';
   };
 }
 
@@ -54,7 +44,6 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
 
-    // Get authenticated user
     const {
       data: { user },
       error: authError,
@@ -64,7 +53,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Parse request body
     const body = await req.json();
     const { targetPlanId, billingInterval } = calculateSchema.parse(body);
 
@@ -103,84 +91,78 @@ export async function POST(req: NextRequest) {
     }
     const targetPlan = targetPlanData as SubscriptionPlanRow;
 
-    // Calculate pricing
-    const now = new Date();
-    let calculation: UpgradeCalculationResponse['calculation'];
+    const newPriceId =
+      billingInterval === 'yearly'
+        ? targetPlan.stripe_price_id_yearly
+        : targetPlan.stripe_price_id_monthly;
 
-    if (!subscription || subscription.status !== 'active') {
-      // New subscription - no credit
-      const newPlanPrice = billingInterval === 'yearly' 
+    const newPlanPriceCents =
+      billingInterval === 'yearly'
         ? (targetPlan.price_yearly_cents || targetPlan.price_monthly_cents * 12)
         : targetPlan.price_monthly_cents;
 
-      calculation = {
-        daysRemaining: 0,
-        totalDaysInPeriod: billingInterval === 'yearly' ? 365 : 30,
-        unusedAmountCents: 0,
-        newPlanPriceCents: newPlanPrice,
-        creditAppliedCents: 0,
-        amountDueCents: newPlanPrice,
-        isUpgrade: true,
-        changeType: 'new_subscription',
-      };
-    } else {
-      // Existing subscription - calculate proration
-      const periodStart = subscription.current_period_start 
-        ? new Date(subscription.current_period_start) 
-        : now;
-      const periodEnd = subscription.current_period_end 
-        ? new Date(subscription.current_period_end) 
-        : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-      
-      const totalDaysInPeriod = Math.ceil((periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24));
-      const daysRemaining = Math.max(0, Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-      
-      // Current plan pricing
-      const currentPrice = subscription.billing_interval === 'yearly' && currentPlan?.price_yearly_cents
-        ? currentPlan.price_yearly_cents
-        : (currentPlan?.price_monthly_cents || 0);
-      
-      // Calculate unused amount (daily rate * days remaining)
-      const dailyRate = totalDaysInPeriod > 0 ? currentPrice / totalDaysInPeriod : 0;
-      const unusedAmount = Math.round(dailyRate * daysRemaining);
+    // Determine change type
+    const currentMonthly = currentPlan?.price_monthly_cents || 0;
+    const targetMonthly = targetPlan.price_monthly_cents;
+    const isUpgrade = targetMonthly > currentMonthly;
+    const changeType: 'upgrade' | 'downgrade' | 'new_subscription' =
+      !subscription || subscription.status !== 'active'
+        ? 'new_subscription'
+        : isUpgrade
+          ? 'upgrade'
+          : 'downgrade';
 
-      // New plan pricing
-      const newPlanPrice = billingInterval === 'yearly' 
-        ? (targetPlan.price_yearly_cents || targetPlan.price_monthly_cents * 12)
-        : targetPlan.price_monthly_cents;
+    // For existing subscriptions with a Stripe subscription, use Stripe's upcoming invoice
+    let proratedAmountDueCents = newPlanPriceCents;
 
-      // Determine if this is upgrade or downgrade
-      const currentMonthly = currentPlan?.price_monthly_cents || 0;
-      const targetMonthly = targetPlan.price_monthly_cents;
-      const isUpgrade = targetMonthly > currentMonthly;
-      const isIntervalChange = targetMonthly === currentMonthly && subscription.billing_interval !== billingInterval;
+    if (
+      subscription?.stripe_subscription_id &&
+      subscription.status === 'active' &&
+      newPriceId &&
+      changeType === 'upgrade'
+    ) {
+      try {
+        const stripe = getStripeClient();
 
-      // Calculate amount due (ensure minimum $1 charge for upgrades)
-      let amountDue = newPlanPrice - unusedAmount;
-      if (isUpgrade && amountDue < 100) {
-        amountDue = 100; // Minimum $1 charge
+        // Retrieve the current subscription to get the item ID
+        const stripeSub = await stripe.subscriptions.retrieve(
+          subscription.stripe_subscription_id
+        );
+        const itemId = stripeSub.items.data[0]?.id;
+
+        if (itemId) {
+          // Ask Stripe what the upcoming invoice would look like with the new price
+          const upcomingInvoice = await stripe.invoices.retrieveUpcoming({
+            customer: subscription.stripe_customer_id!,
+            subscription: subscription.stripe_subscription_id,
+            subscription_items: [{ id: itemId, price: newPriceId }],
+            subscription_proration_behavior: 'create_prorations',
+          });
+
+          // amount_due includes proration credits/debits calculated by Stripe
+          proratedAmountDueCents = upcomingInvoice.amount_due;
+        }
+      } catch (err) {
+        // If Stripe preview fails, fall back to the full plan price
+        console.error('Failed to retrieve upcoming invoice from Stripe:', err);
       }
+    }
 
-      calculation = {
-        daysRemaining,
-        totalDaysInPeriod,
-        unusedAmountCents: unusedAmount,
-        newPlanPriceCents: newPlanPrice,
-        creditAppliedCents: unusedAmount,
-        amountDueCents: Math.max(0, amountDue),
-        isUpgrade,
-        changeType: isIntervalChange ? 'interval_change' : isUpgrade ? 'upgrade' : 'downgrade',
-      };
+    // For downgrades, no amount is due now (change happens at period end)
+    if (changeType === 'downgrade') {
+      proratedAmountDueCents = 0;
     }
 
     const response: UpgradeCalculationResponse = {
-      currentPlan: currentPlan ? {
-        id: currentPlan.id,
-        name: currentPlan.name,
-        slug: currentPlan.slug,
-        priceMonthlyCents: currentPlan.price_monthly_cents,
-        priceYearlyCents: currentPlan.price_yearly_cents,
-      } : null,
+      currentPlan: currentPlan
+        ? {
+            id: currentPlan.id,
+            name: currentPlan.name,
+            slug: currentPlan.slug,
+            priceMonthlyCents: currentPlan.price_monthly_cents,
+            priceYearlyCents: currentPlan.price_yearly_cents,
+          }
+        : null,
       targetPlan: {
         id: targetPlan.id,
         name: targetPlan.name,
@@ -188,14 +170,12 @@ export async function POST(req: NextRequest) {
         priceMonthlyCents: targetPlan.price_monthly_cents,
         priceYearlyCents: targetPlan.price_yearly_cents,
       },
-      currentSubscription: subscription ? {
-        id: subscription.id,
-        stripeSubscriptionId: subscription.stripe_subscription_id,
-        currentPeriodStart: new Date(subscription.current_period_start || now),
-        currentPeriodEnd: new Date(subscription.current_period_end || now),
-        billingInterval: (subscription.billing_interval as 'monthly' | 'yearly') || 'monthly',
-      } : null,
-      calculation,
+      calculation: {
+        newPlanPriceCents,
+        proratedAmountDueCents,
+        isUpgrade,
+        changeType,
+      },
     };
 
     return NextResponse.json(response);

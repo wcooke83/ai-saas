@@ -25,7 +25,6 @@ async function auditDashboard() {
   const dashboardPages = [
     { path: '/dashboard', name: 'Dashboard Main' },
     { path: '/dashboard/usage', name: 'Dashboard Usage' },
-    { path: '/dashboard/profile', name: 'Dashboard Profile' },
     { path: '/dashboard/settings', name: 'Dashboard Settings' },
     { path: '/dashboard/api-keys', name: 'Dashboard API Keys' },
   ];
@@ -122,21 +121,6 @@ async function auditDashboard() {
         // Check for usage numbers
         const usageNumbers = await page.locator('[class*="usage"], [class*="stat"]').count();
         audit.elements['usageStats'] = usageNumbers;
-
-      } else if (path === '/dashboard/profile') {
-        // Check for profile form
-        const formInputs = await page.locator('input[type="text"], input[type="email"]').count();
-        audit.elements['formInputs'] = formInputs;
-        console.log(`  Form inputs found: ${formInputs}`);
-
-        // Check for avatar upload
-        const avatarUpload = await page.locator('input[type="file"], [class*="avatar"], [class*="upload"]').count();
-        audit.elements['avatarUpload'] = avatarUpload > 0;
-        console.log(`  Avatar upload area: ${avatarUpload > 0}`);
-
-        // Check for save button
-        const saveButton = await page.locator('button:has-text("Save"), button:has-text("Update"), button[type="submit"]').count();
-        audit.elements['saveButton'] = saveButton > 0;
 
       } else if (path === '/dashboard/settings') {
         // Check for toggle switches

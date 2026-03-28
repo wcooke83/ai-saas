@@ -15,12 +15,24 @@ interface CreateSubscriptionCheckoutParams {
   successUrl: string;
   cancelUrl: string;
   trialLinkCode?: string;
-  isUpgrade?: boolean;
-  creditAmountCents?: number;
+}
+
+interface SubscriptionChangeParams {
+  userId: string;
+  planId: string;
+  billingInterval: 'monthly' | 'yearly';
+  changeType: 'upgrade' | 'downgrade';
+}
+
+export interface SubscriptionChangeResult {
+  success: boolean;
+  changeType: 'upgrade' | 'downgrade';
+  effectiveAt: 'immediately' | 'period_end';
 }
 
 /**
- * Create a checkout session for subscription purchase
+ * Create a checkout session for a NEW subscription purchase.
+ * For upgrades/downgrades of existing subscriptions, use changeSubscription() instead.
  */
 export async function createSubscriptionCheckout(
   params: CreateSubscriptionCheckoutParams
@@ -67,7 +79,6 @@ export async function createSubscriptionCheckout(
       .single();
 
     if (trialLink) {
-      // Check if trial link is valid
       const isExpired =
         trialLink.expires_at && new Date(trialLink.expires_at) < new Date();
       const isMaxedOut =
@@ -79,26 +90,6 @@ export async function createSubscriptionCheckout(
         trialLinkId = trialLink.id;
       }
     }
-  }
-
-  // Apply credit if this is an upgrade with unused time credit
-  if (params.isUpgrade && params.creditAmountCents && params.creditAmountCents > 0) {
-    // Apply credit to customer's balance (negative amount = credit)
-    await stripe.customers.createBalanceTransaction(customerId, {
-      amount: -params.creditAmountCents, // Negative = credit
-      currency: 'usd',
-      description: `Prorated credit for upgrade from previous plan`,
-    });
-
-    // Record the subscription change
-    await supabase.from('subscription_changes').insert({
-      user_id: params.userId,
-      old_plan_id: null, // Will be updated in webhook after successful checkout
-      new_plan_id: params.planId,
-      credit_amount_cents: params.creditAmountCents,
-      change_type: 'upgrade',
-      status: 'pending',
-    });
   }
 
   // Build checkout session params
@@ -145,6 +136,126 @@ export async function createSubscriptionCheckout(
   return session.url;
 }
 
+/**
+ * Change an existing subscription's plan (upgrade or downgrade).
+ * Uses stripe.subscriptions.update() so Stripe handles proration natively.
+ * - Upgrades: take effect immediately with Stripe-calculated proration.
+ * - Downgrades: deferred to end of current billing period (no proration).
+ */
+export async function changeSubscription(
+  params: SubscriptionChangeParams
+): Promise<SubscriptionChangeResult> {
+  const stripe = getStripeClient();
+  const supabase = createAdminClient();
+
+  // Look up the user's current subscription
+  const { data: subscription, error: subError } = await supabase
+    .from('subscriptions')
+    .select('stripe_subscription_id, plan_id')
+    .eq('user_id', params.userId)
+    .single();
+
+  if (subError || !subscription?.stripe_subscription_id) {
+    throw new Error('No active subscription found for this user');
+  }
+
+  // Get the target plan's Stripe price ID
+  const { data: targetPlan, error: planError } = await supabase
+    .from('subscription_plans')
+    .select('stripe_price_id_monthly, stripe_price_id_yearly, slug')
+    .eq('id', params.planId)
+    .single();
+
+  if (planError || !targetPlan) {
+    throw new Error('Target plan not found');
+  }
+
+  const newPriceId =
+    params.billingInterval === 'yearly'
+      ? targetPlan.stripe_price_id_yearly
+      : targetPlan.stripe_price_id_monthly;
+
+  if (!newPriceId) {
+    throw new Error(
+      `Stripe price not configured for target plan (${params.billingInterval})`
+    );
+  }
+
+  // Retrieve the current Stripe subscription to get the item ID
+  const stripeSub = await stripe.subscriptions.retrieve(
+    subscription.stripe_subscription_id
+  );
+  const itemId = stripeSub.items.data[0]?.id;
+
+  if (!itemId) {
+    throw new Error('Could not find subscription item on Stripe subscription');
+  }
+
+  // Record the subscription change as pending
+  await supabase.from('subscription_changes').insert({
+    user_id: params.userId,
+    old_plan_id: subscription.plan_id,
+    new_plan_id: params.planId,
+    old_stripe_subscription_id: subscription.stripe_subscription_id,
+    change_type: params.changeType,
+    status: 'pending',
+  });
+
+  if (params.changeType === 'upgrade') {
+    // Upgrade: apply immediately, Stripe creates proration invoice items
+    await stripe.subscriptions.update(subscription.stripe_subscription_id, {
+      items: [{ id: itemId, price: newPriceId }],
+      proration_behavior: 'create_prorations',
+      metadata: {
+        user_id: params.userId,
+        plan_id: params.planId,
+        plan_slug: targetPlan.slug,
+      },
+    });
+
+    return {
+      success: true,
+      changeType: 'upgrade',
+      effectiveAt: 'immediately',
+    };
+  } else {
+    // Downgrade: schedule price change at end of current billing period
+    // Using subscription schedules so the old plan stays active until renewal
+    let schedule = stripeSub.schedule
+      ? await stripe.subscriptionSchedules.retrieve(
+          stripeSub.schedule as string
+        )
+      : await stripe.subscriptionSchedules.create({
+          from_subscription: subscription.stripe_subscription_id,
+        });
+
+    await stripe.subscriptionSchedules.update(schedule.id, {
+      phases: [
+        {
+          items: [{ price: stripeSub.items.data[0].price.id as string, quantity: 1 }],
+          start_date: schedule.phases[0]?.start_date ?? stripeSub.current_period_start,
+          end_date: stripeSub.current_period_end,
+        },
+        {
+          items: [{ price: newPriceId, quantity: 1 }],
+          start_date: stripeSub.current_period_end,
+          metadata: {
+            user_id: params.userId,
+            plan_id: params.planId,
+            plan_slug: targetPlan.slug,
+          },
+        },
+      ],
+    });
+
+    return {
+      success: true,
+      changeType: 'downgrade',
+      effectiveAt: 'period_end',
+    };
+  }
+}
+
 interface CreateCreditPurchaseParams {
   userId: string;
   email: string;
@@ -163,8 +274,8 @@ export async function createCreditPurchaseCheckout(
   const stripe = getStripeClient();
 
   // Validate credit amount
-  if (params.creditAmount < 100) {
-    throw new Error('Minimum credit purchase is 100 credits');
+  if (params.creditAmount < 1) {
+    throw new Error('Credit amount must be at least 1');
   }
 
   if (params.creditAmount > 100000) {
@@ -180,6 +291,7 @@ export async function createCreditPurchaseCheckout(
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     mode: 'payment',
+    invoice_creation: { enabled: true },
     line_items: [
       {
         price_data: {
@@ -234,7 +346,29 @@ export async function createAutoTopupPayment(
     .eq('user_id', userId)
     .single();
 
-  if (!credits?.stripe_customer_id || !credits?.default_payment_method_id) {
+  if (!credits?.stripe_customer_id) {
+    return {
+      success: false,
+      error: 'No payment method configured for auto top-up',
+    };
+  }
+
+  // Use cached payment method, or fall back to Stripe customer's payment methods
+  let paymentMethodId = credits.default_payment_method_id;
+
+  if (!paymentMethodId) {
+    const methods = await stripe.customers.listPaymentMethods(credits.stripe_customer_id, { limit: 1 });
+    if (methods.data.length > 0) {
+      paymentMethodId = methods.data[0].id;
+      // Backfill cache
+      await supabase
+        .from('user_credits')
+        .update({ default_payment_method_id: paymentMethodId })
+        .eq('user_id', userId);
+    }
+  }
+
+  if (!paymentMethodId) {
     return {
       success: false,
       error: 'No payment method configured for auto top-up',
@@ -247,7 +381,7 @@ export async function createAutoTopupPayment(
       amount: creditAmount, // 1 credit = 1 cent
       currency: 'usd',
       customer: credits.stripe_customer_id,
-      payment_method: credits.default_payment_method_id,
+      payment_method: paymentMethodId,
       off_session: true,
       confirm: true,
       metadata: {

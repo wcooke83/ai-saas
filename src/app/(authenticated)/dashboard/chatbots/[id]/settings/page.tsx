@@ -483,6 +483,8 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
           telegram_config: values.telegramConfig,
           credit_exhaustion_mode: values.creditExhaustionMode,
           credit_exhaustion_config: values.creditExhaustionConfig,
+          auto_topup_package_id: values.creditExhaustionConfig?.purchase_credits?.selectedPackageId || null,
+          auto_topup_max_per_month: values.creditExhaustionConfig?.purchase_credits?.maxAutoTopupsPerMonth || 3,
           model: values.modelTier,
           temperature: values.temperature,
           max_tokens: values.maxTokens,

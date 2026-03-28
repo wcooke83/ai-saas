@@ -18,9 +18,11 @@ export {
 } from './customers';
 export {
   createSubscriptionCheckout,
+  changeSubscription,
   createCreditPurchaseCheckout,
   createAutoTopupPayment,
 } from './checkout';
+export type { SubscriptionChangeResult } from './checkout';
 export {
   createPortalSession,
   getSubscriptionFromStripe,

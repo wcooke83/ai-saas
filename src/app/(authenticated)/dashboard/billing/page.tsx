@@ -27,7 +27,6 @@ import {
 import type { Database } from '@/types/database';
 import AutoTopupSettings from '@/components/dashboard/AutoTopupSettings';
 import CreditPurchase from '@/components/dashboard/CreditPurchase';
-import LicenseKeyRedemption from '@/components/dashboard/LicenseKeyRedemption';
 import { H1 } from '@/components/ui/heading';
 
 type Subscription = Database['public']['Tables']['subscriptions']['Row'];
@@ -604,13 +603,6 @@ export default function BillingPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* License Key Redemption */}
-      <LicenseKeyRedemption
-        purchaseSource={purchaseSource}
-        currentPlanSlug={subscription?.plan}
-        onRedeemed={() => window.location.reload()}
-      />
 
       {/* Credit Purchase */}
       <CreditPurchase purchaseSource={purchaseSource} />

@@ -102,7 +102,7 @@ export default function UpgradePage() {
     setCheckoutLoading(planId);
 
     try {
-      // First, calculate upgrade details if user has active subscription
+      // Calculate upgrade/downgrade details
       const calcResponse = await fetch('/api/billing/upgrade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -113,29 +113,54 @@ export default function UpgradePage() {
       });
 
       if (!calcResponse.ok) {
-        throw new Error('Failed to calculate upgrade details');
+        throw new Error('Failed to calculate plan change details');
       }
 
       const calcData = await calcResponse.json();
-      const isUpgrade = calcData.calculation?.isUpgrade && calcData.calculation?.creditAppliedCents > 0;
+      const { changeType, proratedAmountDueCents } = calcData.calculation ?? {};
 
-      // If there's a credit, show confirmation with breakdown
-      if (isUpgrade && calcData.calculation?.creditAppliedCents > 0) {
-        const creditDollars = (calcData.calculation.creditAppliedCents / 100).toFixed(2);
-        const amountDueDollars = (calcData.calculation.amountDueCents / 100).toFixed(2);
-        const confirmed = confirm(
-          `Upgrade Summary:\n\n` +
-          `Credit for unused time: $${creditDollars}\n` +
-          `Amount due today: $${amountDueDollars}\n\n` +
-          `Continue to checkout?`
-        );
+      // For upgrades/downgrades of existing subscriptions, use direct subscription update
+      if (changeType === 'upgrade' || changeType === 'downgrade') {
+        const amountDueDollars = ((proratedAmountDueCents ?? 0) / 100).toFixed(2);
+        const confirmMessage =
+          changeType === 'upgrade'
+            ? `Upgrade to ${calcData.targetPlan.name}?\n\nProrated amount due now: $${amountDueDollars}\n\nStripe will handle proration automatically.`
+            : `Downgrade to ${calcData.targetPlan.name}?\n\nYour current plan will remain active until the end of the billing period. The new plan takes effect at renewal.`;
+
+        const confirmed = confirm(confirmMessage);
         if (!confirmed) {
           setCheckoutLoading(null);
           return;
         }
+
+        const response = await fetch('/api/stripe/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'subscription',
+            planId,
+            billingInterval: interval,
+            changeType,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error?.message || data.error || 'Failed to change subscription');
+        }
+
+        // Direct subscription update succeeded -- redirect to billing
+        toast.success(
+          changeType === 'upgrade'
+            ? 'Plan upgraded successfully!'
+            : 'Plan downgrade scheduled for end of billing period.'
+        );
+        router.push('/dashboard/billing?upgrade=success');
+        return;
       }
 
-      // Proceed to checkout with credit info
+      // New subscription: go through Stripe Checkout
       const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -143,8 +168,6 @@ export default function UpgradePage() {
           type: 'subscription',
           planId,
           billingInterval: interval,
-          isUpgrade: calcData.calculation?.isUpgrade,
-          creditAmountCents: calcData.calculation?.creditAppliedCents,
         }),
       });
 

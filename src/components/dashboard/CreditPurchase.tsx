@@ -24,49 +24,62 @@ import {
 } from 'lucide-react';
 import type { CreditBalance } from '@/types/billing';
 
+interface CreditPackage {
+  id: string;
+  name: string;
+  credit_amount: number;
+  price_cents: number;
+  sort_order: number;
+}
+
 interface CreditPurchaseProps {
   purchaseSource?: string | null;
 }
 
-const CREDIT_PACKS = [
-  { amount: 500, label: '500', popular: false },
-  { amount: 1000, label: '1,000', popular: false },
-  { amount: 5000, label: '5,000', popular: true },
-  { amount: 10000, label: '10,000', popular: false },
-  { amount: 25000, label: '25,000', popular: false },
-  { amount: 50000, label: '50,000', popular: false },
-];
-
 export default function CreditPurchase({ purchaseSource }: CreditPurchaseProps) {
   const [balance, setBalance] = useState<CreditBalance | null>(null);
+  const [packages, setPackages] = useState<CreditPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [selectedPriceCents, setSelectedPriceCents] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState('');
 
   const isExternalPurchase = purchaseSource && purchaseSource !== 'stripe';
 
-  const loadBalance = useCallback(async () => {
+  const loadData = useCallback(async () => {
     try {
-      const res = await fetch('/api/billing/credits');
-      if (!res.ok) throw new Error('Failed to load balance');
-      const result = await res.json();
-      const data = result.data || result;
-      setBalance(data.balance);
+      const [balanceRes, packagesRes] = await Promise.all([
+        fetch('/api/billing/credits'),
+        fetch('/api/credit-packages'),
+      ]);
+
+      if (balanceRes.ok) {
+        const result = await balanceRes.json();
+        const data = result.data || result;
+        setBalance(data.balance);
+      }
+
+      if (packagesRes.ok) {
+        const result = await packagesRes.json();
+        const data = result.data || result;
+        setPackages(data.packages || []);
+      }
     } catch (err) {
-      console.error('Failed to load credit balance:', err);
+      console.error('Failed to load credit data:', err);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadBalance();
-  }, [loadBalance]);
+    loadData();
+  }, [loadData]);
 
-  const handlePurchase = async (amount: number) => {
+  const handlePurchase = async (amount: number, priceCents?: number) => {
     setSelectedAmount(amount);
+    setSelectedPriceCents(priceCents ?? null);
     setShowDialog(true);
   };
 
@@ -185,46 +198,35 @@ export default function CreditPurchase({ purchaseSource }: CreditPurchaseProps) 
           )}
 
           {/* Credit Packs */}
-          <div>
-            <h3 className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-3">
-              Credit Packs
-            </h3>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {CREDIT_PACKS.map((pack) => (
-                <button
-                  key={pack.amount}
-                  onClick={() => handlePurchase(pack.amount)}
-                  className={`
-                    relative p-4 rounded-lg border text-left transition-all
-                    hover:border-primary-500 hover:shadow-md
-                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500
-                    ${pack.popular
-                      ? 'border-primary-300 dark:border-primary-700 bg-primary-50/50 dark:bg-primary-900/20'
-                      : 'border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800/50'
-                    }
-                  `}
-                >
-                  {pack.popular && (
-                    <Badge className="absolute -top-2 right-2 bg-primary-500 text-white text-[10px]">
-                      Popular
-                    </Badge>
-                  )}
-                  <div className="flex items-center gap-2 mb-1">
-                    <Sparkles className="w-4 h-4 text-primary-500" aria-hidden="true" />
-                    <span className="font-semibold text-secondary-900 dark:text-secondary-100">
-                      {pack.label}
-                    </span>
-                  </div>
-                  <p className="text-sm font-medium text-primary-600 dark:text-primary-400">
-                    ${(pack.amount / 100).toFixed(2)}
-                  </p>
-                  <p className="text-xs text-secondary-500 dark:text-secondary-400">
-                    credits
-                  </p>
-                </button>
-              ))}
+          {packages.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-3">
+                Credit Packs
+              </h3>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {packages.map((pkg) => (
+                  <button
+                    key={pkg.id}
+                    onClick={() => handlePurchase(pkg.credit_amount, pkg.price_cents)}
+                    className="relative p-4 rounded-lg border text-left transition-all hover:border-primary-500 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800/50"
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <Sparkles className="w-4 h-4 text-primary-500" aria-hidden="true" />
+                      <span className="font-semibold text-secondary-900 dark:text-secondary-100">
+                        {pkg.credit_amount.toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium text-primary-600 dark:text-primary-400">
+                      ${(pkg.price_cents / 100).toFixed(2)}
+                    </p>
+                    <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                      {pkg.name}
+                    </p>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Custom Amount */}
           <div>
@@ -288,7 +290,7 @@ export default function CreditPurchase({ purchaseSource }: CreditPurchaseProps) 
                 <div className="text-right">
                   <p className="text-sm text-secondary-600 dark:text-secondary-400">Total</p>
                   <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                    ${(selectedAmount / 100).toFixed(2)}
+                    ${((selectedPriceCents ?? selectedAmount) / 100).toFixed(2)}
                   </p>
                 </div>
               </div>
@@ -330,7 +332,7 @@ export default function CreditPurchase({ purchaseSource }: CreditPurchaseProps) 
               ) : (
                 <>
                   <ShoppingCart className="w-4 h-4 mr-2" />
-                  Purchase for ${selectedAmount ? (selectedAmount / 100).toFixed(2) : '0.00'}
+                  Purchase for ${selectedAmount ? ((selectedPriceCents ?? selectedAmount) / 100).toFixed(2) : '0.00'}
                 </>
               )}
             </Button>
