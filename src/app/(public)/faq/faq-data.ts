@@ -31,7 +31,7 @@ export const faqCategories: FaqCategory[] = [
       {
         id: 'credits-what',
         question: 'What are credits?',
-        answer: 'Credits are the currency used to generate content with VocUI. Each generation consumes a certain number of credits depending on the tool and output length. For example, generating an email uses 1 credit, while a full proposal may use 2-5 credits.',
+        answer: 'Credits are consumed each time your chatbot answers a question or processes a knowledge source. A typical chatbot conversation uses 1-3 credits depending on the length of the response.',
         popular: true,
       },
       {
@@ -47,7 +47,7 @@ export const faqCategories: FaqCategory[] = [
       {
         id: 'credits-empty',
         question: 'What happens if I run out of credits?',
-        answer: "If you run out of credits, you'll need to wait until your next billing cycle for them to reset, or upgrade to a higher plan with more credits. Enterprise customers have unlimited credits.",
+        answer: "You can purchase additional credits anytime, enable auto-topup to never run out, or upgrade for a higher monthly allocation. Enterprise customers have unlimited credits.",
       },
     ],
   },
@@ -70,7 +70,7 @@ export const faqCategories: FaqCategory[] = [
       {
         id: 'billing-refunds',
         question: 'Do you offer refunds?',
-        answer: "We offer a 14-day money-back guarantee for new Pro subscriptions. If you're not satisfied, contact support within 14 days of your initial purchase for a full refund.",
+        answer: "We offer a 14-day money-back guarantee. If you're not satisfied, contact support within 14 days of your initial purchase for a full refund.",
       },
       {
         id: 'billing-change',
@@ -142,7 +142,7 @@ export const faqCategories: FaqCategory[] = [
       {
         id: 'tools-available',
         question: 'What tools are available?',
-        answer: 'VocUI offers a custom AI Chatbot Builder with RAG-powered knowledge bases. Build chatbots trained on your own content and deploy them via embeddable widgets, Slack, or Telegram.',
+        answer: 'VocUI lets you build AI chatbots trained on your own content. Import your website, documents, or FAQs and deploy via embed widget, Slack, or Telegram.',
         popular: true,
       },
       {

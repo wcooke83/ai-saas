@@ -75,7 +75,7 @@ interface HeaderProps {
 export function Header({
   navItems = defaultNavItems,
   showLogo = true,
-  cta = { label: 'Get Started', href: '/login' },
+  cta = { label: 'Get Started', href: '/signup' },
   secondaryCta,
   showThemeToggle = true,
   className,

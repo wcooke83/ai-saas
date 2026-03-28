@@ -731,7 +731,7 @@ export default function PlansAdminPage() {
                         <div>
                           <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1.5 flex items-center gap-1">
                             Usage Description
-                            <Tooltip content="Text shown below credits (e.g., '~50 emails or ~20 proposals')" side="right">
+                            <Tooltip content="Text shown below credits (e.g., '~50 chatbot conversations')" side="right">
                               <span className="text-secondary-400 cursor-help">ⓘ</span>
                             </Tooltip>
                           </label>
@@ -741,7 +741,7 @@ export default function PlansAdminPage() {
                             onChange={(e) => setFormData({ ...formData, usageDescription: e.target.value })}
                             className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
                             style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
-                            placeholder="~50 emails or ~20 proposals"
+                            placeholder="~50 chatbot conversations"
                           />
                           <p className="text-xs text-secondary-500 mt-1">Helps users understand credit value</p>
                         </div>

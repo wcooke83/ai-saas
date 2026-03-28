@@ -43,7 +43,7 @@ function getRecommendedTemplateId(chatbotName: string): string | null {
 
 const steps = [
   { id: 'basics', title: 'Basic Info', description: 'Name and describe your chatbot' },
-  { id: 'prompt', title: 'System Prompt', description: 'Define how your chatbot behaves' },
+  { id: 'prompt', title: 'Chatbot Instructions', description: 'Define how your chatbot behaves' },
   { id: 'review', title: 'Review', description: 'Review and create' },
 ];
 
@@ -469,7 +469,7 @@ function SystemPromptStep({ formData, updateField }: StepProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="system_prompt">System Prompt *</Label>
+        <Label htmlFor="system_prompt">Chatbot Instructions *</Label>
         <textarea
           id="system_prompt"
           value={formData.system_prompt}
@@ -499,7 +499,7 @@ function SystemPromptStep({ formData, updateField }: StepProps) {
             Enable Prompt Injection Protection (Recommended)
           </Label>
           <p className="text-xs text-secondary-600 dark:text-secondary-400 mt-1">
-            Automatically adds security rules to prevent users from manipulating the chatbot with prompt injection attacks.
+            Prevents users from tricking your chatbot into ignoring its instructions or revealing its configuration.
             Keeps your chatbot focused on its intended purpose and prevents it from being tricked into revealing instructions or behaving unexpectedly.
           </p>
         </div>
@@ -548,7 +548,7 @@ function ReviewStep({ formData }: { formData: FormData }) {
 
           <div>
             <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
-              System Prompt
+              Chatbot Instructions
             </p>
             <p className="text-sm text-secondary-600 dark:text-secondary-400 whitespace-pre-wrap">
               {formData.system_prompt}

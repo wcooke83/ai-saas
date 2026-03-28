@@ -82,6 +82,9 @@ test.describe('Section 41: Admin -- Credit Adjustments (/admin/credits)', () => 
     if (await dropdown.isVisible()) {
       await dropdown.locator('button').first().click();
 
+      // Wait for loading to finish before checking usage info
+      await page.getByText('Loading usage...').waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
+
       // Usage info panel should show
       const usageText = page.getByText('Current Usage');
       const noUsage = page.getByText('No usage record found');

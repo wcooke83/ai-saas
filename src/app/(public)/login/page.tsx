@@ -108,7 +108,7 @@ function LoginForm() {
       router.push(redirect);
       router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : (mode === 'login' ? 'Sign-in failed. Check your email and password and try again.' : 'Account creation failed. Please try again or contact support.'));
     } finally {
       setLoading(false);
     }
@@ -143,7 +143,7 @@ function LoginForm() {
       router.push(redirect);
       router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Invalid verification code');
+      toast.error(err instanceof Error ? err.message : "That code didn't work. Check your authenticator app and enter the current 6-digit code.");
     } finally {
       setMfaVerifying(false);
     }
@@ -237,7 +237,7 @@ function LoginForm() {
               <CardDescription>
                 {mode === 'login'
                   ? 'Sign in to access your dashboard'
-                  : 'Get started with AI-powered tools'}
+                  : 'Create your first AI chatbot in minutes'}
               </CardDescription>
             </CardHeader>
 
@@ -249,7 +249,7 @@ function LoginForm() {
                 <Input
                   id="name"
                   type="text"
-                  placeholder="John Doe"
+                  placeholder="Your full name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoComplete="name"
@@ -299,6 +299,32 @@ function LoginForm() {
                 </button>
               </div>
             </div>
+
+            {mode === 'login' && (
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!email) {
+                      toast.error('Enter your email address first, then click Forgot password.');
+                      return;
+                    }
+                    try {
+                      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                        redirectTo: `${window.location.origin}/auth/callback?redirect=/dashboard/settings`,
+                      });
+                      if (error) throw error;
+                      toast.success('Password reset link sent. Check your email.');
+                    } catch (err) {
+                      toast.error(err instanceof Error ? err.message : 'Failed to send reset link. Please try again.');
+                    }
+                  }}
+                  className="text-sm text-primary-500 hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
 
             {/* Email confirmation message */}
             {showEmailConfirmation && (

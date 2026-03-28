@@ -18,7 +18,7 @@ export default function ChatbotsPage() {
   const [loading, setLoading] = useState(true);
   const { confirm: confirmDelete, ConfirmDialog: DeleteConfirmDialog } = useConfirmDialog({
     title: 'Delete Chatbot',
-    description: 'Are you sure you want to delete this chatbot? This action cannot be undone.',
+    description: 'This will permanently delete this chatbot, its knowledge sources, conversations, and settings. This cannot be undone.',
     confirmText: 'Delete',
     variant: 'danger',
   });
@@ -92,7 +92,7 @@ export default function ChatbotsPage() {
       }
 
       setChatbots(chatbots.filter(c => c.id !== id));
-      toast.success('Chatbot deleted');
+      toast.success('Chatbot deleted successfully.');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to delete chatbot');
     }
@@ -152,7 +152,7 @@ export default function ChatbotsPage() {
             </h3>
             <p className="text-secondary-600 dark:text-secondary-400 mb-6 max-w-md">
               Create your first AI chatbot to start engaging with your customers.
-              Train it with your knowledge base and deploy it anywhere.
+              Train it with your knowledge base and deploy it on your website, Slack, or Telegram.
             </p>
             <Button asChild>
               <Link href="/dashboard/chatbots/new">

@@ -21,10 +21,10 @@ export default function GlobalError({
               <AlertTriangle className="w-10 h-10 text-red-600 dark:text-red-400" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
-              Critical Error
+              Something went wrong
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mb-8">
-              A critical error occurred. Please try refreshing the page.
+              Something went wrong. Try refreshing the page. If the problem continues, contact support.
             </p>
             <button
               onClick={reset}

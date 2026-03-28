@@ -174,9 +174,9 @@ export function PlanCard({
   // Use usage_description from database with fallback to defaults
   const defaultCreditContext =
     plan.slug === 'base'
-      ? '~50,000 emails or ~20,000 proposals'
+      ? '~50 chatbot conversations'
       : plan.slug === 'pro'
-        ? '~500 emails or ~200 proposals'
+        ? '~500 chatbot conversations'
         : 'No limits on usage';
   const creditContext = plan.usage_description || defaultCreditContext;
 

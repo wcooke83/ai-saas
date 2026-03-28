@@ -623,7 +623,7 @@ export default function BillingPage() {
                 <Check className="w-4 h-4 text-green-500" aria-hidden="true" />
                 <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100">More Credits</span>
               </div>
-              <p className="text-sm text-secondary-600 dark:text-secondary-400">Generate more content with higher credit limits</p>
+              <p className="text-sm text-secondary-600 dark:text-secondary-400">Handle more chatbot conversations with higher credit limits</p>
             </div>
             <div className="p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg">
               <div className="flex items-center gap-2 mb-2">

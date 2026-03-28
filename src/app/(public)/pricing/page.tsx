@@ -48,7 +48,7 @@ const planStyles: Record<string, {
     iconBg: 'bg-secondary-100 dark:bg-secondary-700',
     iconColor: 'text-secondary-600 dark:text-secondary-200',
     cardClass: 'border-secondary-200 dark:border-secondary-600 bg-white dark:bg-secondary-800',
-    cta: 'Try Free',
+    cta: 'Get Started',
     ctaVariant: 'ghost',
     popular: false,
   },
@@ -95,7 +95,7 @@ const defaultPlanStyle = {
 
 const testimonials = [
   {
-    quote: "VocUI has transformed how I write proposals. What used to take me 2-3 hours now takes 15 minutes. The Pro plan paid for itself in the first week.",
+    quote: "VocUI has transformed our customer support. We deployed a chatbot trained on our knowledge base in under an hour, and it handles 70% of inquiries on its own.",
     author: "James Davidson",
     role: "Marketing Consultant",
     company: "Davidson Marketing Co.",
@@ -103,7 +103,7 @@ const testimonials = [
     gradient: "from-primary-400 to-primary-600",
   },
   {
-    quote: "We've cut our proposal turnaround time by 80%. Our sales team closes more deals because we respond to RFPs faster than our competitors.",
+    quote: "We embedded VocUI on our website and saw response times drop from hours to seconds. Our support team can finally focus on complex issues instead of answering the same questions.",
     author: "Sarah Chen",
     role: "VP of Sales",
     company: "TechStart Inc.",
@@ -111,7 +111,7 @@ const testimonials = [
     gradient: "from-emerald-400 to-emerald-600",
   },
   {
-    quote: "The chatbot alone saves me 5 hours a week. I've tried other tools but VocUI actually understands business context.",
+    quote: "The chatbot saves me 5 hours a week. I trained it on our docs and FAQs, and it answers customer questions better than I expected. The Slack integration is a game-changer.",
     author: "Michael Torres",
     role: "Founder & CEO",
     company: "Nexus Digital",
@@ -206,7 +206,7 @@ function buildComparisonFeatures(plans: SubscriptionPlan[]) {
 const faqs = [
   {
     question: 'What are credits?',
-    answer: 'Credits are used each time you generate content with VocUI. One email generation uses 1 credit, and one proposal generation uses 2-5 credits depending on length.',
+    answer: 'Credits are consumed each time your chatbot answers a question or processes a knowledge source. A typical chatbot conversation uses 1-3 credits.',
   },
   {
     question: 'Can I change plans anytime?',
@@ -214,7 +214,7 @@ const faqs = [
   },
   {
     question: 'What happens if I run out of credits?',
-    answer: 'You\'ll need to wait until your credits reset at the start of your billing period, or upgrade to a higher plan for more credits.',
+    answer: 'You can purchase additional credits anytime, enable auto-topup to never run out, or upgrade for a higher monthly allocation.',
   },
   {
     question: 'Is there a free trial for Pro?',
@@ -226,7 +226,7 @@ const faqs = [
   },
   {
     question: 'Can I get a refund?',
-    answer: 'Yes! We offer a 30-day money-back guarantee. If you\'re not satisfied, contact support for a full refund.',
+    answer: 'Yes! We offer a 14-day money-back guarantee. If you\'re not satisfied, contact support within 14 days of your initial purchase for a full refund.',
   },
 ];
 
@@ -353,7 +353,7 @@ export default function PricingPage() {
             </div>
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-green-600 dark:text-green-400" aria-hidden="true" />
-              <span>30-day money-back guarantee</span>
+              <span>14-day money-back guarantee</span>
             </div>
           </div>
         </section>
@@ -477,7 +477,7 @@ export default function PricingPage() {
                               {creditsText} credits/month
                             </div>
                             <div className="text-xs text-secondary-500 dark:text-secondary-400">
-                              {plan.credits_monthly >= 1000 ? '~500 emails or ~200 proposals' : '~50 emails or ~20 proposals'}
+                              {plan.credits_monthly >= 1000 ? '~500 chatbot conversations' : '~50 chatbot conversations'}
                             </div>
                           </div>
                         )}
@@ -742,7 +742,7 @@ export default function PricingPage() {
                   className="border-white text-white hover:bg-white/10"
                   asChild
                 >
-                  <Link href="/tools">Explore Tools</Link>
+                  <Link href="/faq">See How It Works</Link>
                 </Button>
               </div>
             </div>

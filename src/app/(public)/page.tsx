@@ -11,7 +11,7 @@ import { ArrowRight, Bot, MessageSquare, Globe, Zap, Shield, BarChart3 } from 'l
 const features = [
   {
     name: 'Custom Knowledge Base',
-    description: 'Train your chatbot on your own content — URLs, PDFs, documents. RAG-powered answers grounded in your data.',
+    description: 'Train your chatbot on your own content — websites, PDFs, and documents. Every answer comes directly from your knowledge base.',
     icon: Globe,
   },
   {
@@ -51,9 +51,9 @@ export default function HomePage() {
         <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center container mx-auto px-4 py-12 text-center">
           <Badge className="mb-4">AI-Powered Chatbots</Badge>
           <H1 className="text-4xl sm:text-5xl md:text-6xl mb-6">
-            Build Intelligent Chatbots with{' '}
+            Build Custom AI Chatbots Trained on{' '}
             <span className="text-primary-500">VocUI</span>
-            <span className="block text-lg sm:text-xl font-normal tracking-normal text-secondary-500 dark:text-secondary-400 mt-2">Giving Voice to the User Interface</span>
+            <span className="block text-lg sm:text-xl font-normal tracking-normal text-secondary-500 dark:text-secondary-400 mt-2">Deploy on your website, Slack, or Telegram in minutes</span>
           </H1>
           <p className="mx-auto max-w-2xl text-lg text-secondary-600 dark:text-secondary-400 mb-8">
             Create AI chatbots trained on your own knowledge base. Deploy on your website,
@@ -75,7 +75,7 @@ export default function HomePage() {
         {/* Features Grid */}
         <section id="features" className="container mx-auto px-4 py-16">
           <h2 className="text-2xl font-bold text-center mb-8 text-secondary-900 dark:text-secondary-100">
-            Everything you need to deploy AI chatbots
+            One platform. Every channel.
           </h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
             {features.map((feature) => (
@@ -100,7 +100,7 @@ export default function HomePage() {
           <div className="max-w-5xl mx-auto">
             <div className="rounded-2xl bg-primary-500 p-8 md:p-12 text-center text-white">
               <h2 className="text-2xl md:text-3xl font-bold mb-4">
-                Ready to deploy your AI chatbot?
+                Start building your chatbot today
               </h2>
               <p className="text-primary-100 mb-6 max-w-xl mx-auto">
                 Start building for free. No credit card required.

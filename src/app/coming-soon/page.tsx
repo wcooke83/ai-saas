@@ -20,11 +20,11 @@ export default function ComingSoonPage() {
         </div>
 
         <h1 className="text-4xl sm:text-5xl font-bold text-[rgb(var(--text-heading))] mb-4">
-          Something amazing is coming
+          This feature is coming soon
         </h1>
 
         <p className="text-lg text-[rgb(var(--text-primary))] max-w-md mb-8">
-          <span className="font-semibold text-primary-500">VocUI</span> is being built to give voice to the user interface. Stay tuned.
+          We're working on it and will let you know when it's ready.
         </p>
       </main>
     </PageBackground>

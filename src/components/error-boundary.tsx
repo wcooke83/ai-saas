@@ -57,7 +57,7 @@ export class ErrorBoundary extends Component<Props, State> {
               Something went wrong
             </h2>
             <p className="text-secondary-600 dark:text-secondary-400 mb-6">
-              We encountered an unexpected error. Please try again or return to the homepage.
+              This section couldn't load. Try refreshing, or go back to the homepage.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button onClick={this.handleReset} variant="default">
@@ -105,7 +105,7 @@ export function InlineErrorFallback({
       <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
       <div className="flex-1 min-w-0">
         <p className="text-sm text-red-700 dark:text-red-300">
-          Failed to load this content
+          Couldn't load this content. Check your connection and try again.
         </p>
         {error && process.env.NODE_ENV === 'development' && (
           <p className="text-xs text-red-500 dark:text-red-400 truncate mt-1">
@@ -169,10 +169,10 @@ export function PageErrorFallback({
           <AlertTriangle className="w-10 h-10 text-red-600 dark:text-red-400" />
         </div>
         <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mb-3">
-          Oops! Something went wrong
+          This page didn't load correctly
         </h1>
         <p className="text-secondary-600 dark:text-secondary-400 mb-8">
-          We're sorry, but something unexpected happened. Our team has been notified
+          Something unexpected happened. Our team has been notified
           and we're working to fix the issue.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">

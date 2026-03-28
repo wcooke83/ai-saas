@@ -83,7 +83,7 @@ export function FaqSearch({ onSearchResults, onClear }: FaqSearchProps) {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          placeholder="Search for answers..."
+          placeholder="What do you need help with?"
           className="w-full pl-12 pr-24 py-4 text-base bg-transparent text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none"
           aria-label="Search frequently asked questions"
           aria-describedby="search-hint"

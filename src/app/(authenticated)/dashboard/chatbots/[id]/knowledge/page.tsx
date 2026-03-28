@@ -174,7 +174,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
         body: JSON.stringify({ is_priority: newPriority }),
       });
       if (!response.ok) throw new Error('Failed to update');
-      toast.success(newPriority ? 'Source pinned — always included in AI context' : 'Source unpinned');
+      toast.success(newPriority ? 'Source pinned — your chatbot will always reference this source when answering' : 'Source unpinned');
     } catch {
       // Rollback
       setSources((prev) =>
@@ -188,7 +188,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
     setConfirmDialog({
       open: true,
       title: `Re-process "${source.name}"?`,
-      description: 'This will delete existing chunks and re-embed with the current AI model.',
+      description: 'This will re-read and reorganize this source so your chatbot can search it accurately.',
       onConfirm: () => handleReprocessSource(source),
     });
   };
@@ -218,7 +218,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
     setConfirmDialog({
       open: true,
       title: 'Delete knowledge source?',
-      description: 'This will permanently remove this source and all its chunks. This cannot be undone.',
+      description: 'This will permanently remove this source and all its content. This cannot be undone.',
       onConfirm: () => handleDeleteSource(sourceId),
     });
   };
@@ -241,12 +241,12 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
     setReembedding(true);
     try {
       const response = await fetch(`/api/chatbots/${id}/knowledge/reembed-all`, { method: 'POST' });
-      if (!response.ok) throw new Error('Failed to start re-embedding');
+      if (!response.ok) throw new Error('Failed to start re-processing');
       const data = await response.json();
-      toast.success(data.data?.message || 'Re-embedding started');
+      toast.success(data.data?.message || 'Re-processing started');
       fetchSources();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to re-embed');
+      toast.error(err instanceof Error ? err.message : 'Failed to re-process');
     } finally {
       setReembedding(false);
     }
@@ -267,10 +267,10 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
     const completed = sources.filter(s => s.status === 'completed' && s.chunks_count > 0);
     const providers = new Set(completed.map(s => (s as any).embedding_provider));
     if (providers.has(null) || providers.has(undefined)) {
-      return 'Some knowledge sources are missing embedding model information. This can cause search to return incomplete results.';
+      return 'Some knowledge sources need to be updated so your chatbot can find answers accurately.';
     }
     if (providers.size > 1) {
-      return 'Your knowledge sources were embedded with different AI models. This causes search to return poor or no results.';
+      return 'Your knowledge sources were processed at different times. Re-processing ensures consistent search quality.';
     }
     return 'Your knowledge base needs re-processing to ensure your chatbot can find answers accurately.';
   })();
@@ -319,7 +319,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
                 title="Re-process all sources with the current embedding model so similarity search is consistent"
               >
                 {reembedding ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RotateCw className="w-4 h-4 mr-2" />}
-                {reembedding ? 'Re-embedding...' : 'Re-embed All'}
+                {reembedding ? 'Re-processing...' : 'Re-process All'}
               </Button>
             )}
             <Button variant="outline" size="sm" onClick={() => fetchSources()}>
@@ -389,7 +389,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
               Import Website Content
             </h3>
             <p className="text-sm text-secondary-500 mt-1">
-              Scrape raw content from a webpage and add it directly to the knowledge base
+              Import content from any webpage to train your chatbot
             </p>
           </button>
 
@@ -402,7 +402,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
               Add Text Content
             </h3>
             <p className="text-sm text-secondary-500 mt-1">
-              Paste text or documentation
+              Paste FAQs, product docs, policies, or any text your chatbot should know
             </p>
           </button>
 
@@ -604,7 +604,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
                         </Badge>
                         {source.chunks_count > 0 && (
                           <span className="text-xs text-secondary-500">
-                            {source.chunks_count} chunks
+                            {source.chunks_count} sections
                           </span>
                         )}
                         {source.error_message && (
@@ -624,7 +624,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
                         ? 'text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
                         : 'text-secondary-400 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
                       }
-                      title={source.is_priority ? 'Unpin — remove from always-included context' : 'Pin — always include in AI context'}
+                      title={source.is_priority ? 'Unpin — your chatbot will only reference this when relevant' : 'Pin — your chatbot will always reference this source when answering'}
                     >
                       <Star className={`w-4 h-4 ${source.is_priority ? 'fill-current' : ''}`} />
                     </Button>
@@ -634,7 +634,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
                         size="sm"
                         onClick={() => confirmReprocessSource(source)}
                         className="text-secondary-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20"
-                        title="Re-process — delete chunks and re-embed with current AI model"
+                        title="Re-process this source so your chatbot can search it accurately"
                       >
                         <RotateCw className="w-4 h-4" />
                       </Button>
@@ -677,7 +677,7 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
           Article Generation
         </h2>
         <p className="text-sm text-secondary-500 mb-4">
-          Generate structured help articles using AI, then embed them into the knowledge base so your chatbot can answer questions without live-fetching URLs.
+          Generate help articles from your content. Articles are added to your chatbot's knowledge so it can answer questions instantly.
         </p>
         <ArticleGeneration
           chatbotId={id}

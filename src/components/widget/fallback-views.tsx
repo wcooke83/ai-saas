@@ -78,11 +78,11 @@ export function FallbackTicketForm({ chatbotId, config, widgetConfig, onSuccess,
         body: JSON.stringify(form),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error?.message || 'Failed to submit');
+      if (!res.ok) throw new Error(data.error?.message || "We couldn't submit your ticket. Please try again.");
       setSuccess(data.data?.reference || 'Submitted');
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit');
+      setError(err instanceof Error ? err.message : "We couldn't submit your ticket. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -199,11 +199,11 @@ export function FallbackContactForm({ chatbotId, widgetConfig, onSuccess, onBack
         body: JSON.stringify(form),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error?.message || 'Failed to submit');
+      if (!res.ok) throw new Error(data.error?.message || "We couldn't send your message. Please try again.");
       setSuccess(true);
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit');
+      setError(err instanceof Error ? err.message : "We couldn't send your message. Please try again.");
     } finally {
       setSubmitting(false);
     }

@@ -174,7 +174,7 @@ export default async function DashboardPage() {
         </div>
         <div>
           <H1 variant="dashboard">Dashboard</H1>
-          <p className="text-secondary-600 dark:text-secondary-400">Welcome back! Here&apos;s an overview of your account.</p>
+          <p className="text-secondary-600 dark:text-secondary-400">Here&apos;s what&apos;s happening with your chatbots.</p>
         </div>
       </div>
 
@@ -204,7 +204,7 @@ export default async function DashboardPage() {
             <div className="flex items-center justify-between">
               <CardDescription className="flex items-center gap-1">
                 Credits Remaining
-                <Tooltip content="Token credits available this billing period. Credits are consumed by AI tool usage and chatbot messages.">
+                <Tooltip content="Credits remaining this billing period. Credits are used when your chatbot answers questions and processes knowledge sources.">
                   <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
                 </Tooltip>
               </CardDescription>
@@ -263,7 +263,7 @@ export default async function DashboardPage() {
             <div className="flex items-center justify-between">
               <CardDescription className="flex items-center gap-1">
                 Total Generations
-                <Tooltip content="All-time count of AI content generated across all tools and chatbot interactions.">
+                <Tooltip content="Total chatbot responses and content generated since you created your account.">
                   <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
                 </Tooltip>
               </CardDescription>
@@ -299,9 +299,9 @@ export default async function DashboardPage() {
               </p>
             </div>
             <Button asChild>
-              <Link href="/dashboard/integrations">
+              <Link href="/dashboard/chatbots">
                 <Code className="w-4 h-4 mr-2" aria-hidden="true" />
-                View Integrations
+                View Chatbots
               </Link>
             </Button>
           </div>
@@ -316,7 +316,7 @@ export default async function DashboardPage() {
               <Sparkles className="w-5 h-5 text-primary-500" aria-hidden="true" />
               Quick Actions
             </CardTitle>
-            <CardDescription>Get started with VocUI</CardDescription>
+            <CardDescription>Quick links</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-2">
@@ -342,7 +342,7 @@ export default async function DashboardPage() {
               <Clock className="w-5 h-5 text-primary-500" aria-hidden="true" />
               Recent Activity
             </CardTitle>
-            <CardDescription>Your latest generations</CardDescription>
+            <CardDescription>Recent chatbot activity</CardDescription>
           </CardHeader>
           <CardContent>
             {hasGenerations ? (
@@ -418,8 +418,8 @@ export default async function DashboardPage() {
                 <div className="mx-auto w-12 h-12 bg-secondary-100 dark:bg-secondary-800 rounded-full flex items-center justify-center mb-3">
                   <BarChart3 className="w-6 h-6 text-secondary-400" aria-hidden="true" />
                 </div>
-                <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">No generations yet</p>
-                <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-4">Create a chatbot to get started</p>
+                <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">No activity yet</p>
+                <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-4">Create a chatbot to start seeing responses here</p>
                 <Button asChild size="sm" variant="outline">
                   <Link href="/dashboard/chatbots">
                     <Sparkles className="w-3.5 h-3.5 mr-1.5" aria-hidden="true" />

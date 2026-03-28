@@ -146,7 +146,7 @@ export default function SettingsPage() {
         .eq('id', profile?.id);
 
       if (error) throw error;
-      toast.success('Profile updated successfully');
+      toast.success('Profile updated');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {

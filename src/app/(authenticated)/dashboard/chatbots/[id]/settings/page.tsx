@@ -392,7 +392,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
       validationErrors.push({ section: 'general', field: 'name', message: 'Chatbot name is required' });
     }
     if (values.systemPrompt.trim().length < 10) {
-      validationErrors.push({ section: 'prompt', field: 'systemPrompt', message: 'System prompt must be at least 10 characters' });
+      validationErrors.push({ section: 'prompt', field: 'systemPrompt', message: 'Chatbot instructions must be at least 10 characters' });
     }
     if (values.creditExhaustionMode === 'purchase_credits' && !values.creditExhaustionConfig?.purchase_credits?.selectedPackageId) {
       validationErrors.push({ section: 'fallback', field: 'autoTopupPackage', message: 'Please select a credit package for auto-purchase' });
@@ -404,7 +404,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
       setSectionErrors(errorMap);
 
       const sectionLabels: Record<string, string> = {
-        general: 'General', prompt: 'System Prompt', 'ai-model': 'AI Model',
+        general: 'General', prompt: 'Chatbot Instructions', 'ai-model': 'AI Model',
         memory: 'Memory', 'pre-chat': 'Pre-Chat Form', 'post-chat': 'Post-Chat Survey',
         'file-uploads': 'File Uploads', proactive: 'Proactive', transcripts: 'Transcripts',
         feedback: 'Feedback & Reports', handoff: 'Live Handoff', fallback: 'Credit Exhaustion',
@@ -549,7 +549,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
 
   const sections = [
     { id: 'general', label: 'General', icon: Bot, warning: hasPlaceholderWarning },
-    { id: 'prompt', label: 'System Prompt', icon: MessageSquare },
+    { id: 'prompt', label: 'Chatbot Instructions', icon: MessageSquare },
     { id: 'ai-model', label: 'AI Model', icon: Cpu },
     { id: 'memory', label: 'Memory', icon: Brain },
     { id: 'pre-chat', label: 'Pre-Chat Form', icon: ClipboardList },
@@ -918,14 +918,14 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
         </Card>
       )}
 
-      {/* System Prompt */}
+      {/* Chatbot Instructions */}
       {activeSection === 'prompt' && (
         <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="w-5 h-5 text-primary-500" />
-                System Prompt
+                Chatbot Instructions
               </CardTitle>
               <CardDescription>
                 Define how your chatbot behaves and responds
@@ -1074,7 +1074,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               </div>
 
               <div className={cn("space-y-2", highlightField === 'systemPrompt' && "ring-2 ring-red-500 rounded-lg p-2 transition-all")} data-field="systemPrompt">
-                <Label htmlFor="system_prompt">System Prompt *</Label>
+                <Label htmlFor="system_prompt">Chatbot Instructions *</Label>
                 <textarea
                   id="system_prompt"
                   {...register('systemPrompt', {
@@ -1103,7 +1103,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                     Enable Prompt Injection Protection
                   </Label>
                   <p className="text-xs text-secondary-600 dark:text-secondary-400 mt-1">
-                    Adds security rules to prevent users from manipulating the chatbot with prompt injection attacks.
+                    Prevents users from tricking your chatbot into ignoring its instructions or revealing its configuration.
                   </p>
                 </div>
               </div>

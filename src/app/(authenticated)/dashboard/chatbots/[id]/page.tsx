@@ -145,7 +145,9 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
   if (error || !chatbot) {
     return (
       <div className="p-8 text-center">
-        <p className="text-red-600 dark:text-red-400">{error || 'Chatbot not found'}</p>
+        <p className="text-red-600 dark:text-red-400">
+          {error ? "We couldn't load this chatbot. It may have been deleted, or there was a connection issue." : 'Chatbot not found'}
+        </p>
         <Button variant="outline" asChild className="mt-4">
           <Link href="/dashboard/chatbots">Back to Chatbots</Link>
         </Button>
@@ -326,7 +328,7 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
       {/* System Prompt Preview */}
       <Card>
         <CardHeader>
-          <CardTitle>System Prompt</CardTitle>
+          <CardTitle>Chatbot Instructions</CardTitle>
           <CardDescription>
             How your chatbot is configured to behave
           </CardDescription>
