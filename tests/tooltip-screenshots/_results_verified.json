@@ -1,0 +1,97 @@
+[
+  {
+    "label": "Dashboard — Total Generations",
+    "status": "PASS",
+    "note": "\"Total chatbot responses generated since your account was created.\""
+  },
+  {
+    "label": "Chatbot Overview — Satisfaction",
+    "status": "PASS",
+    "note": "\"Positive survey rating rate. Requires the post-chat survey to be enabled in Settings.\""
+  },
+  {
+    "label": "Analytics — Total Conversations",
+    "status": "PASS",
+    "note": "\"Total unique chat sessions started by visitors during the selected period.\""
+  },
+  {
+    "label": "Analytics — Total Messages",
+    "status": "PASS",
+    "note": "\"Total messages exchanged, including both visitor and bot messages, during the se\""
+  },
+  {
+    "label": "Analytics — Unique Visitors",
+    "status": "PASS",
+    "note": "\"Number of distinct visitors identified by session cookies during the selected pe\""
+  },
+  {
+    "label": "Analytics — Satisfaction Rate",
+    "status": "PASS",
+    "note": "\"Positive survey rating rate during the selected period. Requires the post-chat s\""
+  },
+  {
+    "label": "Leads — Today's Activity",
+    "status": "PASS",
+    "note": "\"Leads and conversations in the last 24 hours.\""
+  },
+  {
+    "label": "Customize — Powered by",
+    "status": "PASS",
+    "note": "\"Displays a 'Powered by VocUI' link at the bottom of the widget. Only removable o\""
+  },
+  {
+    "label": "Customize — Border Radius",
+    "status": "PASS",
+    "note": "\"Rounds the corners of the entire chat widget container.\""
+  },
+  {
+    "label": "Usage — Tokens Used",
+    "status": "PASS",
+    "note": "\"Total tokens processed by AI models. Tokens are units of text — roughly 1 token \""
+  },
+  {
+    "label": "Usage — API Calls",
+    "status": "PASS",
+    "note": "\"Total API calls made using your API keys. Does not include widget chat traffic.\""
+  },
+  {
+    "label": "API Keys — prefix tooltip",
+    "status": "NOTE",
+    "note": "No API keys exist. Source: \"Only the first few characters are shown for security. Copy the full key when creating it — it cannot be retrieved later.\""
+  },
+  {
+    "label": "API Keys — revoke tooltip",
+    "status": "NOTE",
+    "note": "No API keys exist. Source: \"Permanently invalidates this key. Any application using it will immediately lose access.\""
+  },
+  {
+    "label": "Billing — auto top-up tooltips",
+    "status": "NOTE",
+    "note": "Section not visible (not enabled). Source confirms threshold + amount tooltips exist."
+  },
+  {
+    "label": "Calendar — no redundant edit tooltip",
+    "status": "PASS",
+    "note": "No services to test"
+  },
+  {
+    "label": "Articles — knowledge relationship",
+    "status": "FAIL",
+    "error": "page.waitForSelector: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[aria-label=\"More information\"]') to be visible\u001b[22m\n"
+  },
+  {
+    "label": "Settings — Chatbot Instructions",
+    "status": "PASS",
+    "note": "\"The system prompt defines your chatbot's persona, knowledge boundaries, and resp\""
+  },
+  {
+    "label": "Settings — Proactive Trigger Type",
+    "status": "NOTE",
+    "note": "Trigger Type label only shows inside expanded proactive rules; no rule exists to expand. Source: \"Determines what visitor behaviour triggers this message.\""
+  },
+  {
+    "label": "Settings — Post-Chat Survey Question Type",
+    "status": "NOTE",
+    "note": "Question Type label only shows when a survey question exists. Source: \"Star Rating: 1–5 (or custom range) star selector...\""
+  }
+]

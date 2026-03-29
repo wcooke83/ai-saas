@@ -179,15 +179,13 @@ test.describe('37. Layout & Breadcrumb', () => {
     await expect(moreButton).toHaveAttribute('aria-expanded', 'true');
 
     // Click a dropdown item to navigate (items have role="menuitem", not "link")
-    const analyticsItem = page.getByRole('menuitem', { name: /Analytics/i });
-    await analyticsItem.click();
+    // Analytics is now in primary nav — use Performance which is in the More dropdown
+    const performanceItem = page.getByRole('menuitem', { name: /Performance/i });
+    await performanceItem.click();
 
-    await page.waitForURL(`**/${CHATBOT_ID}/analytics`, { timeout: 15000 });
+    await page.waitForURL(`**/${CHATBOT_ID}/performance`, { timeout: 15000 });
 
-    // Manually close the dropdown by clicking outside it
-    await page.locator('nav[aria-label="Chatbot navigation"]').click();
-
-    // Dropdown menu should no longer be visible
+    // Dropdown menu should no longer be visible after navigation
     const dropdown = page.locator('[role="menu"][aria-label="More navigation options"]');
     await expect(dropdown).not.toBeVisible({ timeout: 5000 });
   });
