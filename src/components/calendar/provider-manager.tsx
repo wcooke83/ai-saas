@@ -628,8 +628,7 @@ export function ProviderManager({
                 )}
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
-                <Tooltip content="Edit provider">
-                  <Button
+                <Button
                     size="icon"
                     variant="ghost"
                     className="h-8 w-8"
@@ -638,8 +637,7 @@ export function ProviderManager({
                   >
                     <Pencil className="w-4 h-4" />
                   </Button>
-                </Tooltip>
-                <Tooltip content="Delete provider">
+                <Tooltip content="Remove this staff member from the booking calendar.">
                   <Button
                     size="icon"
                     variant="ghost"

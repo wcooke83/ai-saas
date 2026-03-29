@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Menu, X, Home, Key, BarChart3, Settings, LogOut, CreditCard, Bot, Shield, ChevronDown, ChevronLeft, ChevronRight, Cpu, FileText, Package, Gift, BookOpen, Coins, ShoppingBag } from 'lucide-react';
+import { Menu, X, Home, Key, BarChart3, Settings, LogOut, CreditCard, Bot, Shield, ChevronDown, ChevronLeft, ChevronRight, Cpu, FileText, Package, Gift, BookOpen, Coins, ShoppingBag, Webhook } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggleSimple } from '@/components/ui/theme-toggle';
 import { useFocusTrap } from '@/hooks/use-focus-trap';
 import { PastDueBanner } from '@/components/dashboard/past-due-banner';
+import { CreditMeter } from '@/components/dashboard/credit-meter';
+import { CreditAlertBanner } from '@/components/dashboard/credit-alert-banner';
 import { LucideIcon } from 'lucide-react';
 
 interface NavItem {
@@ -22,6 +24,7 @@ const baseNavItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
   { href: '/dashboard/chatbots', label: 'Chatbots', icon: Bot },
   { href: '/dashboard/api-keys', label: 'API Keys', icon: Key },
+  { href: '/dashboard/webhooks', label: 'Webhooks', icon: Webhook },
   { href: '/dashboard/usage', label: 'Usage', icon: BarChart3 },
   { href: '/dashboard/billing', label: 'Billing', icon: CreditCard },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
@@ -423,6 +426,11 @@ export default function DashboardLayout({
             })}
           </nav>
 
+          {/* Credit meter */}
+          <div className={cn("px-4 py-3 border-t border-secondary-200 dark:border-secondary-700", sidebarCollapsed && "px-2")}>
+            <CreditMeter collapsed={sidebarCollapsed} />
+          </div>
+
           {/* Sign out & collapse section */}
           <div className={cn(
             "border-t border-secondary-200 dark:border-secondary-700",
@@ -476,6 +484,7 @@ export default function DashboardLayout({
       >
         <div className="p-4 sm:p-6 lg:p-8">
           <PastDueBanner />
+          <CreditAlertBanner />
           {children}
         </div>
       </main>

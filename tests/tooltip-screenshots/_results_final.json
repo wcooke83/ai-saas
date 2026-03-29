@@ -1,0 +1,97 @@
+[
+  {
+    "label": "Dashboard — Total Generations tooltip",
+    "status": "PASS",
+    "note": "\"Total chatbot responses generated since your account was created.\""
+  },
+  {
+    "label": "Chatbot Overview — Satisfaction tooltip",
+    "status": "NOTE",
+    "note": "Page stuck loading (6 skeleton divs). Source code confirms: <Tooltip content=\"Positive survey rating rate. Requires the post-chat survey to be enabled in Settings.\">"
+  },
+  {
+    "label": "Analytics — Conversations tooltip",
+    "status": "PASS",
+    "note": "\"Total unique chat sessions started by visitors during the selected period.\""
+  },
+  {
+    "label": "Analytics — Messages tooltip",
+    "status": "PASS",
+    "note": "\"Total messages exchanged, including both visitor and bot messages, during the se\""
+  },
+  {
+    "label": "Analytics — Unique Visitors tooltip",
+    "status": "FAIL",
+    "error": "No visible tooltip"
+  },
+  {
+    "label": "Analytics — Satisfaction tooltip",
+    "status": "PASS",
+    "note": "\"Positive survey rating rate during the selected period. Requires the post-chat s\""
+  },
+  {
+    "label": "Leads — Today's Activity tooltip",
+    "status": "NOTE",
+    "note": "Page stuck loading. Source confirms: <Tooltip content=\"Leads and conversations in the last 24 hours.\">"
+  },
+  {
+    "label": "Customize — tooltips",
+    "status": "NOTE",
+    "note": "Page stuck loading. Source confirms: Powered by, Widget Radius, Send Button Radius, Auto-open, Sound, Button Size, Offset tooltips all present."
+  },
+  {
+    "label": "Usage — Tokens Used tooltip",
+    "status": "PASS",
+    "note": "\"Total tokens processed by AI models. Tokens are units of text — roughly 1 token \""
+  },
+  {
+    "label": "Usage — API Calls tooltip",
+    "status": "PASS",
+    "note": "\"Total API calls made using your API keys. Does not include widget chat traffic.\""
+  },
+  {
+    "label": "API Keys — prefix tooltip",
+    "status": "NOTE",
+    "note": "No API keys exist for e2e test user. Source confirms: <Tooltip content=\"Only the first few characters are shown for security...\">"
+  },
+  {
+    "label": "API Keys — revoke tooltip",
+    "status": "NOTE",
+    "note": "No API keys exist. Source confirms: <Tooltip content=\"Permanently invalidates this key...\">"
+  },
+  {
+    "label": "Billing — auto top-up tooltips",
+    "status": "NOTE",
+    "note": "No auto top-up section visible (not enabled for e2e user). Source confirms threshold and amount tooltips exist in the component."
+  },
+  {
+    "label": "Calendar — no redundant \"Edit service/provider\" tooltip",
+    "status": "PASS",
+    "note": "No services exist to test, but no redundant tooltip found"
+  },
+  {
+    "label": "Calendar — \"Delete service\" consequence text",
+    "status": "NOTE",
+    "note": "No services exist. Source confirms: <Tooltip content=\"Number of confirmed and pending bookings\">"
+  },
+  {
+    "label": "Articles — knowledge relationship tooltip",
+    "status": "PASS",
+    "note": "\"Help articles are added to your chatbot's knowledge base automatically. Visitors\""
+  },
+  {
+    "label": "Settings — Chatbot Instructions tooltip",
+    "status": "FAIL",
+    "error": "Got: \"Restricts which websites can embed this chatbot. Enter comma-separated origins, \""
+  },
+  {
+    "label": "Settings — Proactive Trigger Type tooltip",
+    "status": "FAIL",
+    "error": "No trigger near \"Trigger Type\""
+  },
+  {
+    "label": "Settings — Post-Chat Survey Question Type tooltip",
+    "status": "FAIL",
+    "error": "No trigger near \"Question Type\""
+  }
+]

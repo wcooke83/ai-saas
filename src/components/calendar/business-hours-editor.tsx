@@ -279,16 +279,14 @@ export function BusinessHoursEditor({
             <p className="text-xs text-secondary-500 mt-0.5">Applies to all services and providers unless overridden below.</p>
           </div>
           {!editingGlobal && (
-            <Tooltip content="Edit global business hours">
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-secondary-500 hover:text-secondary-700 h-7 w-7 p-0"
-                onClick={() => setEditingGlobal(true)}
-              >
-                <Pencil className="w-3.5 h-3.5" />
-              </Button>
-            </Tooltip>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-secondary-500 hover:text-secondary-700 h-7 w-7 p-0"
+              onClick={() => setEditingGlobal(true)}
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </Button>
           )}
         </div>
 
@@ -430,8 +428,7 @@ export function BusinessHoursEditor({
                   </p>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <Tooltip content="Edit these business hours">
-                    <Button
+                  <Button
                       size="sm"
                       variant="ghost"
                       className="text-secondary-500 hover:text-secondary-700 h-7 w-7 p-0"
@@ -439,8 +436,7 @@ export function BusinessHoursEditor({
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </Button>
-                  </Tooltip>
-                  <Tooltip content="Remove these business hours">
+                  <Tooltip content="Remove this business hours rule. The global schedule applies instead.">
                     <Button
                       size="sm"
                       variant="ghost"

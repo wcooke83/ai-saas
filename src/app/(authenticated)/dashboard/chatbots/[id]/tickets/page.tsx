@@ -15,6 +15,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
@@ -369,8 +370,8 @@ export default function TicketsPage({ params }: { params: Promise<{ id: string }
                       <MessageSquare className="w-4 h-4" />
                       Reply to {selected.visitor_name}
                     </label>
-                    <textarea
-                      className="w-full min-h-[100px] rounded-md border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-y"
+                    <Textarea
+                      className="min-h-[100px] resize-y"
                       placeholder="Type your reply... The visitor will be notified via email."
                       value={replyText}
                       onChange={e => setReplyText(e.target.value)}
@@ -473,8 +474,8 @@ export default function TicketsPage({ params }: { params: Promise<{ id: string }
                 <CardTitle className="text-sm font-medium">Internal Notes</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <textarea
-                  className="w-full min-h-[80px] rounded-md border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-y"
+                <Textarea
+                  className="resize-y"
                   placeholder="Add internal notes (not visible to visitor)..."
                   value={adminNotes}
                   onChange={e => setAdminNotes(e.target.value)}

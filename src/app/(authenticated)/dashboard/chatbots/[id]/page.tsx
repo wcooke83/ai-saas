@@ -112,12 +112,9 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
       const data = await response.json();
       setChatbot(data.data.chatbot);
       if (data.data.chatbot.is_published) {
-        toast.success('Chatbot published! Get your embed codes on the deploy page.', {
-          action: {
-            label: 'Go to Deploy',
-            onClick: () => router.push(`/dashboard/chatbots/${id}/deploy`),
-          },
-        });
+        toast.success(
+          <span>Chatbot published! <Link href={`/dashboard/chatbots/${id}/deploy`} className="underline underline-offset-2">Get your embed codes</Link></span>
+        );
       } else {
         toast.success('Chatbot unpublished');
       }
@@ -274,7 +271,7 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
                 </p>
                 <p className="text-sm text-secondary-500 flex items-center gap-1">
                   Satisfaction
-                  <Tooltip content="Percentage of positive post-chat survey ratings from visitors.">
+                  <Tooltip content="Positive survey rating rate. Requires the post-chat survey to be enabled in Settings.">
                     <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
                   </Tooltip>
                 </p>
@@ -309,6 +306,7 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
         chatbotId={id}
         hasKnowledgeSources={hasKnowledgeSources}
         isPublished={chatbot.is_published}
+        widgetReviewedAt={chatbot.widget_reviewed_at ?? null}
       />
 
       {/* Description */}

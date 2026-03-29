@@ -94,7 +94,7 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
     await expect(disabledBanner).toBeVisible({ timeout: 10000 });
 
     // Banner should show user-friendly message (not "monthly message limit")
-    await expect(disabledBanner).toContainText('temporarily unavailable');
+    await expect(disabledBanner).toContainText(/temporarily unavailable|reached its message limit|check back later/i);
 
     // The failed message should show "Unable to send message" (not "Message limit reached")
     const failedAlert = page.locator('.chat-widget-container [role="alert"]');

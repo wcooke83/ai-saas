@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip } from '@/components/ui/tooltip';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { SYSTEM_PROMPT_TEMPLATES, SYSTEM_PROMPT_TEMPLATE_CATEGORIES } from '@/lib/chatbots/types';
 import type { TemplateCategory } from '@/lib/chatbots/types';
@@ -262,7 +263,12 @@ function BasicInfoStep({ formData, updateField }: StepProps) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="name">Chatbot Name *</Label>
+        <Label htmlFor="name" className="flex items-center gap-1">
+          Chatbot Name *
+          <Tooltip content="Used as the chatbot's display name in the widget header and your dashboard.">
+            <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+          </Tooltip>
+        </Label>
         <Input
           id="name"
           placeholder="My Support Bot"
@@ -277,13 +283,12 @@ function BasicInfoStep({ formData, updateField }: StepProps) {
 
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
-        <textarea
+        <Textarea
           id="description"
           placeholder="A helpful chatbot for answering customer questions..."
           value={formData.description}
           onChange={(e) => updateField('description', e.target.value)}
-          className="w-full min-h-[100px] px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 placeholder-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
-          style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+          className="min-h-[100px] resize-none"
           maxLength={500}
         />
         <p className="text-xs text-secondary-500">
@@ -470,15 +475,14 @@ function SystemPromptStep({ formData, updateField }: StepProps) {
 
       <div className="space-y-2">
         <Label htmlFor="system_prompt">Chatbot Instructions *</Label>
-        <textarea
+        <Textarea
           id="system_prompt"
           value={formData.system_prompt}
           onChange={(e) => {
             updateField('system_prompt', e.target.value);
             setAppliedTemplateName(null);
           }}
-          className="w-full min-h-[200px] px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 placeholder-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono text-sm resize-y"
-          style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+          className="min-h-[200px] font-mono resize-y"
           placeholder="You are a helpful AI assistant..."
         />
         <p className="text-xs text-secondary-500">

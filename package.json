@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3030",
+    "dev:log": "next dev -p 3030 2>&1 | tee server.log",
+    "e2e:dev": "fuser -k 3030/tcp 2>/dev/null || true && npm run clean && npm run dev:log",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

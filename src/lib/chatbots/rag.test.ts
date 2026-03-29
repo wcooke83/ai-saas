@@ -40,6 +40,8 @@ function makeChatbot(overrides: Partial<Chatbot> = {}): Chatbot {
     live_fetch_threshold: 0.8,
     custom_text_updated_at: null,
     language_updated_at: null,
+    widget_reviewed_at: null,
+    first_conversation_at: null,
     created_at: '2024-01-01',
     updated_at: '2024-01-01',
     ...overrides,

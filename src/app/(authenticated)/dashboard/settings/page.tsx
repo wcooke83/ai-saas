@@ -76,6 +76,13 @@ export default function SettingsPage() {
   const [verifying, setVerifying] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
 
+  // Notification preferences state
+  const [notifyNewTicket, setNotifyNewTicket] = useState(true);
+  const [notifyNewEscalation, setNotifyNewEscalation] = useState(true);
+  const [notifyProductUpdates, setNotifyProductUpdates] = useState(true);
+  const [notifyUsageAlerts, setNotifyUsageAlerts] = useState(true);
+  const [notifyMarketing, setNotifyMarketing] = useState(false);
+
   // Real MFA state from Supabase
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
   const [totpUri, setTotpUri] = useState<string>('');
@@ -129,6 +136,21 @@ export default function SettingsPage() {
         setTwoFAEnabled(hasVerifiedFactor);
       }
 
+      // Load notification preferences
+      try {
+        const prefsRes = await fetch('/api/notifications/preferences');
+        if (prefsRes.ok) {
+          const { preferences } = await prefsRes.json();
+          setNotifyNewTicket(preferences.notify_new_ticket);
+          setNotifyNewEscalation(preferences.notify_new_escalation);
+          setNotifyProductUpdates(preferences.notify_product_updates);
+          setNotifyUsageAlerts(preferences.notify_usage_alerts);
+          setNotifyMarketing(preferences.notify_marketing);
+        }
+      } catch {
+        // Non-critical — leave defaults
+      }
+
       setLoading(false);
     }
 
@@ -151,6 +173,19 @@ export default function SettingsPage() {
       toast.error(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleNotificationToggle = async (key: string, value: boolean) => {
+    try {
+      const res = await fetch('/api/notifications/preferences', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [key]: value }),
+      });
+      if (!res.ok) throw new Error('Failed to save');
+    } catch {
+      toast.error('Failed to save notification preference');
     }
   };
 
@@ -652,12 +687,14 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { id: 'product', label: 'Product updates', description: 'News about new features and improvements', tooltip: 'Release notes, new features, and platform changes — typically 1-2 emails per month.' },
-                { id: 'usage', label: 'Usage alerts', description: 'Get notified when approaching credit limits', tooltip: "You'll receive alerts at 80% and 95% of your monthly credit limit, plus when credits are fully exhausted." },
-                { id: 'marketing', label: 'Marketing emails', description: 'Tips, best practices, and offers', tooltip: 'Tips, best practices, and occasional promotional offers. You can unsubscribe at any time.' },
-              ].map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg">
+              {([
+                { key: 'notify_new_ticket', label: 'New ticket', description: 'Get notified by email when a visitor submits a support ticket', tooltip: 'Sent when a visitor submits a ticket through your chatbot.', checked: notifyNewTicket, set: setNotifyNewTicket },
+                { key: 'notify_new_escalation', label: 'New escalation', description: 'Get notified when a visitor reports an issue or escalates a conversation', tooltip: 'Sent when a visitor flags a problem or requests a human handoff.', checked: notifyNewEscalation, set: setNotifyNewEscalation },
+                { key: 'notify_product_updates', label: 'Product updates', description: 'News about new features and improvements', tooltip: 'Release notes, new features, and platform changes — typically 1-2 emails per month.', checked: notifyProductUpdates, set: setNotifyProductUpdates },
+                { key: 'notify_usage_alerts', label: 'Usage alerts', description: 'Get notified when approaching credit limits', tooltip: "You'll receive alerts at 80% and 95% of your monthly credit limit, plus when credits are fully exhausted.", checked: notifyUsageAlerts, set: setNotifyUsageAlerts },
+                { key: 'notify_marketing', label: 'Marketing emails', description: 'Tips, best practices, and offers', tooltip: 'Tips, best practices, and occasional promotional offers. You can unsubscribe at any time.', checked: notifyMarketing, set: setNotifyMarketing },
+              ] as const).map((item) => (
+                <div key={item.key} className="flex items-center justify-between p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg">
                   <div>
                     <p className="flex items-center gap-1.5 font-medium text-secondary-900 dark:text-secondary-100">
                       {item.label}
@@ -666,7 +703,15 @@ export default function SettingsPage() {
                     <p className="text-sm text-secondary-500 dark:text-secondary-400">{item.description}</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" defaultChecked={item.id !== 'marketing'} />
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={item.checked}
+                      onChange={(e) => {
+                        item.set(e.target.checked);
+                        handleNotificationToggle(item.key, e.target.checked);
+                      }}
+                    />
                     <div className="w-11 h-6 bg-secondary-200 dark:bg-secondary-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 peer-focus:ring-offset-2 dark:peer-focus:ring-offset-secondary-900 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-secondary-300 dark:after:border-secondary-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
                     <span className="sr-only">Toggle {item.label}</span>
                   </label>

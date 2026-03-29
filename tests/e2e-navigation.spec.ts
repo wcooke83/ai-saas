@@ -3,16 +3,17 @@ import { test, expect } from '@playwright/test';
 test.describe('Sidebar Navigation', () => {
   test('sidebar links are visible on dashboard', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('domcontentloaded');
+    // Wait for the page to finish client-side loading (avoid "Loading..." state)
+    await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
-    // Core nav items should be present
-    const navItems = ['Dashboard', 'Chatbots', 'API Keys', 'Usage'];
+    // Core nav items should be present (Webhooks added in business audit)
+    const navItems = ['Dashboard', 'Chatbots', 'API Keys', 'Webhooks', 'Usage'];
     for (const item of navItems) {
-      const link = page.locator(`nav >> text=${item}`).first();
+      const link = page.locator(`nav`).getByText(item, { exact: false }).first();
       const isVisible = await link.isVisible().catch(() => false);
       // Nav might be collapsed on mobile, so just check it exists in DOM
       const exists = await link.count() > 0;
-      expect(isVisible || exists).toBeTruthy();
+      expect(isVisible || exists, `Nav item "${item}" not found`).toBeTruthy();
     }
   });
 

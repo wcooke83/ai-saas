@@ -9,7 +9,9 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { getClientIP } from '@/lib/api/utils';
 import { getChatbotCorsOrigin } from '@/lib/api/cors';
 import { sendTicketSubmittedEmail, sendNewTicketAdminEmail } from '@/lib/email/smtp';
+import { sendNewTicketNotification } from '@/lib/email/resend';
 import { DEFAULT_CREDIT_EXHAUSTION_CONFIG } from '@/lib/chatbots/types';
+import { emitWebhookEvent } from '@/lib/webhooks/emit';
 
 const ticketSchema = z.object({
   name: z.string().min(1).max(200),
@@ -44,7 +46,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     // Get chatbot (must be published and active)
     const { data: chatbot } = await supabase
       .from('chatbots')
-      .select('id, name, is_published, status, credit_exhaustion_mode, credit_exhaustion_config, allowed_origins')
+      .select('id, name, user_id, is_published, status, credit_exhaustion_mode, credit_exhaustion_config, allowed_origins')
       .eq('id', chatbotId)
       .eq('is_published', true)
       .eq('status', 'active')
@@ -92,6 +94,20 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       return corsResponse({ success: false, error: { message: 'Failed to create ticket' } }, 500, req, chatbotId);
     }
 
+    // Emit ticket.created webhook (fire-and-forget)
+    if ((chatbot as any).user_id) {
+      emitWebhookEvent((chatbot as any).user_id, 'ticket.created', {
+        chatbot_id: chatbotId,
+        chatbot_name: chatbot.name,
+        ticket_id: ticket.id,
+        reference: ticket.reference,
+        visitor_name: input.name,
+        visitor_email: input.email,
+        subject: input.subject ?? null,
+        priority: input.priority,
+      }).catch(() => {});
+    }
+
     // Send emails (fire-and-forget) via SMTP
     const ticketRef = ticket.reference;
     sendTicketSubmittedEmail(input.email, {
@@ -112,6 +128,26 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         chatbotName: (chatbot as any).name,
         dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/chatbots/${chatbotId}/tickets`,
       }).catch((e) => console.error('[Widget:Tickets] Admin notification failed:', e));
+    }
+
+    // Notify chatbot owner if they have the preference enabled
+    if ((chatbot as any).user_id) {
+      supabase
+        .from('profiles')
+        .select('email, notify_new_ticket')
+        .eq('id', (chatbot as any).user_id)
+        .single()
+        .then(({ data: ownerProfile }) => {
+          if (ownerProfile?.notify_new_ticket) {
+            sendNewTicketNotification(ownerProfile.email, {
+              ticketId: ticketRef,
+              visitorName: input.name,
+              subject: input.subject,
+              chatbotName: (chatbot as any).name,
+              dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/chatbots/${chatbotId}/tickets`,
+            }).catch(() => {});
+          }
+        }, () => {});
     }
 
     return corsResponse({

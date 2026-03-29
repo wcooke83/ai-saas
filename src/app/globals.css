@@ -132,9 +132,9 @@
     --subsection-title: 2 6 23; /* secondary-950 */
 
     /* Tooltip colors */
-    --tooltip-bg: 15 23 42; /* secondary-900 */
-    --tooltip-text: 248 250 252; /* secondary-50 */
-    --tooltip-border: 51 65 85; /* secondary-700 */
+    --tooltip-bg: 241 245 249; /* secondary-100 */
+    --tooltip-text: 15 23 42; /* secondary-950 */
+    --tooltip-border: 148 163 184; /* secondary-400 */
     --tooltip-min-width: 12rem; /* 192px */
     --tooltip-max-width: 14rem; /* 224px */
 

@@ -177,6 +177,20 @@ export const WEBHOOK_EVENTS = {
   // API key events
   'api_key.created': 'When new API key is created',
   'api_key.deleted': 'When API key is deleted',
+
+  // Chatbot conversation events
+  'conversation.started': 'When a new chat session begins',
+  'conversation.ended': 'When a chat session ends',
+
+  // Lead capture events
+  'lead.captured': 'When a visitor submits the pre-chat form',
+
+  // Support events
+  'ticket.created': 'When a visitor submits a support ticket',
+  'escalation.created': 'When a visitor escalates or reports an issue',
+
+  // Credit events
+  'credits.exhausted': 'When account credits reach zero',
 } as const;
 
 export type WebhookEventType = keyof typeof WEBHOOK_EVENTS;

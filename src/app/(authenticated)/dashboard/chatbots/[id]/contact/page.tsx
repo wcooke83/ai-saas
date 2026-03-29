@@ -4,6 +4,7 @@ import { useState, useEffect, use, useRef } from 'react';
 import { toast } from 'sonner';
 import { Loader2, FileText, ChevronRight, Send, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
@@ -244,11 +245,11 @@ export default function ContactPage({ params }: { params: Promise<{ id: string }
             {/* Reply form */}
             <div className="border-t border-secondary-200 dark:border-secondary-700 pt-4">
               <label className="block text-sm font-medium mb-2">Reply to {selected.visitor_name}</label>
-              <textarea
+              <Textarea
                 value={replyText}
                 onChange={e => setReplyText(e.target.value)}
                 placeholder="Type your reply..."
-                className="w-full min-h-[100px] p-3 rounded-lg border border-secondary-300 dark:border-secondary-600 bg-white dark:bg-secondary-900 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="min-h-[100px] resize-y"
                 disabled={sendingReply}
               />
               <div className="flex items-center justify-between mt-3">

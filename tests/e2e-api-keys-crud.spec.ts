@@ -13,7 +13,7 @@ test.describe('API Key CRUD', () => {
     await createButton.click();
 
     // Fill in the key name
-    const nameInput = page.locator('input[placeholder*="key" i], input[name="name"]').first();
+    const nameInput = page.getByRole('textbox', { name: /key name/i });
     await expect(nameInput).toBeVisible({ timeout: 5000 });
     await nameInput.fill('E2E Test Key');
 
@@ -37,7 +37,7 @@ test.describe('API Key CRUD', () => {
     await page.waitForLoadState('domcontentloaded');
 
     // The key name should appear on the page
-    await expect(page.getByText('E2E Test Key')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('E2E Test Key').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('delete API key via dashboard', async ({ page }) => {
@@ -46,28 +46,24 @@ test.describe('API Key CRUD', () => {
     await page.goto('/dashboard/api-keys');
     await page.waitForLoadState('domcontentloaded');
 
-    // Find the delete button near the E2E Test Key
-    const keyRow = page.getByText('E2E Test Key').locator('..').locator('..');
-    const deleteButton = keyRow.locator('button[aria-label*="delete" i], button:has(svg)').last();
+    // Find the row containing the E2E Test Key by its key ID link
+    const keyRow = page.locator('div.group', { has: page.getByText('E2E Test Key') }).first();
+    await expect(keyRow).toBeVisible({ timeout: 10000 });
 
-    if (await deleteButton.isVisible({ timeout: 5000 }).catch(() => false)) {
-      const deletePromise = page.waitForResponse(
-        (res) => res.url().includes('/api/keys/') && res.request().method() === 'DELETE'
-      );
-      await deleteButton.click();
+    // Hover to reveal the action buttons (they use opacity-0 group-hover:opacity-100)
+    await keyRow.hover();
 
-      // Handle confirmation dialog if present
-      const confirmButton = page.getByRole('button', { name: /confirm|delete/i }).last();
-      if (await confirmButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await confirmButton.click();
-      }
+    // The Delete button uses window.confirm() — auto-accept it before clicking
+    page.on('dialog', dialog => dialog.accept());
 
-      const deleteResponse = await deletePromise;
-      expect(deleteResponse.ok()).toBeTruthy();
-    } else {
-      // Fallback: delete via API
-      const res = await page.request.delete(`/api/keys/${createdKeyId}`);
-      expect(res.ok()).toBeTruthy();
-    }
+    const deletePromise = page.waitForResponse(
+      (res) => res.url().includes('/api/keys/') && res.request().method() === 'DELETE'
+    );
+    await keyRow.getByRole('button', { name: 'Delete' }).click();
+    const deleteResponse = await deletePromise;
+    expect(deleteResponse.ok()).toBeTruthy();
+
+    // Key should no longer appear in the list
+    await expect(page.getByText('E2E Test Key')).not.toBeVisible({ timeout: 10000 });
   });
 });

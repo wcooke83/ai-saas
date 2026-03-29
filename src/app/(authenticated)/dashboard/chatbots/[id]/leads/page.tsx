@@ -484,7 +484,7 @@ export default function ChatbotLeadsPage({ params }: ChatbotLeadsPageProps) {
               <div>
                 <p className="text-sm text-secondary-500 flex items-center gap-1">
                   Today&apos;s Activity
-                  <Tooltip content="Combined total of leads and conversations from the last 24 hours.">
+                  <Tooltip content="Leads and conversations in the last 24 hours.">
                     <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
                   </Tooltip>
                 </p>

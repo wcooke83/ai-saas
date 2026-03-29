@@ -1059,6 +1059,7 @@ export type Database = {
           escalation_config: Json
           feedback_config: Json | null
           file_upload_config: Json
+          first_conversation_at: string | null
           id: string
           is_published: boolean | null
           language: string
@@ -1091,6 +1092,7 @@ export type Database = {
           user_id: string
           welcome_message: string | null
           widget_config: Json | null
+          widget_reviewed_at: string | null
         }
         Insert: {
           allowed_origins?: string[] | null
@@ -1108,6 +1110,7 @@ export type Database = {
           escalation_config?: Json
           feedback_config?: Json | null
           file_upload_config?: Json
+          first_conversation_at?: string | null
           id?: string
           is_published?: boolean | null
           language?: string
@@ -1140,6 +1143,7 @@ export type Database = {
           user_id: string
           welcome_message?: string | null
           widget_config?: Json | null
+          widget_reviewed_at?: string | null
         }
         Update: {
           allowed_origins?: string[] | null
@@ -1157,6 +1161,7 @@ export type Database = {
           escalation_config?: Json
           feedback_config?: Json | null
           file_upload_config?: Json
+          first_conversation_at?: string | null
           id?: string
           is_published?: boolean | null
           language?: string
@@ -1189,6 +1194,7 @@ export type Database = {
           user_id?: string
           welcome_message?: string | null
           widget_config?: Json | null
+          widget_reviewed_at?: string | null
         }
         Relationships: [
           {
@@ -2161,6 +2167,11 @@ export type Database = {
           id: string
           is_admin: boolean
           is_affiliate: boolean | null
+          notify_marketing: boolean
+          notify_new_escalation: boolean
+          notify_new_ticket: boolean
+          notify_product_updates: boolean
+          notify_usage_alerts: boolean
           updated_at: string | null
         }
         Insert: {
@@ -2171,6 +2182,11 @@ export type Database = {
           id: string
           is_admin?: boolean
           is_affiliate?: boolean | null
+          notify_marketing?: boolean
+          notify_new_escalation?: boolean
+          notify_new_ticket?: boolean
+          notify_product_updates?: boolean
+          notify_usage_alerts?: boolean
           updated_at?: string | null
         }
         Update: {
@@ -2181,6 +2197,11 @@ export type Database = {
           id?: string
           is_admin?: boolean
           is_affiliate?: boolean | null
+          notify_marketing?: boolean
+          notify_new_escalation?: boolean
+          notify_new_ticket?: boolean
+          notify_product_updates?: boolean
+          notify_usage_alerts?: boolean
           updated_at?: string | null
         }
         Relationships: []
@@ -2954,6 +2975,8 @@ export type Database = {
       usage: {
         Row: {
           created_at: string | null
+          credit_alert_75_sent_at: string | null
+          credit_alert_90_sent_at: string | null
           credits_limit: number | null
           credits_used: number | null
           id: string
@@ -2964,6 +2987,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          credit_alert_75_sent_at?: string | null
+          credit_alert_90_sent_at?: string | null
           credits_limit?: number | null
           credits_used?: number | null
           id?: string
@@ -2974,6 +2999,8 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          credit_alert_75_sent_at?: string | null
+          credit_alert_90_sent_at?: string | null
           credits_limit?: number | null
           credits_used?: number | null
           id?: string
@@ -3572,4 +3599,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

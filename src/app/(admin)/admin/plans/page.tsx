@@ -23,6 +23,7 @@ import {
   Bot, EyeOff
 } from 'lucide-react';
 import { Tooltip } from '@/components/ui/tooltip';
+import { Textarea } from '@/components/ui/textarea';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { H1 } from '@/components/ui/heading';
 import { toast } from 'sonner';
@@ -718,11 +719,10 @@ export default function PlansAdminPage() {
                               <span className="text-secondary-400 cursor-help">ⓘ</span>
                             </Tooltip>
                           </label>
-                          <textarea
+                          <Textarea
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow resize-none"
-                            style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+                            className="resize-none"
                             rows={2}
                             placeholder="Perfect for growing businesses that need more power"
                           />

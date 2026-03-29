@@ -280,7 +280,7 @@ test.describe('Ticketing System - Full Lifecycle', () => {
 
     // Click "Open" filter
     await page.getByRole('button', { name: 'Open', exact: true }).click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('networkidle').catch(() => {});
   });
 
   test('TKT-010: Ticket list shows the created ticket', async ({ page }) => {

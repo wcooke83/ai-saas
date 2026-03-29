@@ -17,7 +17,7 @@ test.describe('Chatbot CRUD', () => {
     await page.waitForLoadState('domcontentloaded');
 
     // Step 1: Basic Info
-    await expect(page.getByText('Basic Info')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Basic Info' })).toBeVisible();
     await page.locator('#name').fill('E2E Temp Bot');
     await page.locator('#description').fill('A temporary bot created by E2E tests.');
     await page.locator('#welcome_message').fill('Hello from E2E!');

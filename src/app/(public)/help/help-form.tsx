@@ -4,6 +4,7 @@ import { useState, useId } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Send, CheckCircle } from 'lucide-react';
 
 interface HelpFormProps {
@@ -112,13 +113,12 @@ export function HelpForm({ prefilledSubject = '' }: HelpFormProps) {
 
       <div className="space-y-2">
         <Label htmlFor={messageId}>Message</Label>
-        <textarea
+        <Textarea
           id={messageId}
           placeholder="How can we help you?"
           value={formData.message}
           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-          className="flex min-h-[120px] w-full rounded-md border border-secondary-200 dark:border-secondary-700 px-3 py-2 text-sm text-secondary-900 dark:text-secondary-100 ring-offset-white dark:ring-offset-secondary-900 placeholder:text-secondary-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-          style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+          className="min-h-[120px]"
           required
         />
       </div>

@@ -3,11 +3,13 @@
 import { useState, useEffect, use } from 'react';
 import { toast } from 'sonner';
 import { Loader2, BookOpen, Trash2, Eye, EyeOff, Globe, CheckCheck } from 'lucide-react';
+import { InfoTooltip } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
 import { ArticleGeneration } from '@/components/chatbots/ArticleGeneration';
 
@@ -131,8 +133,8 @@ export default function ArticlesPage({ params }: { params: Promise<{ id: string 
             </div>
             <div>
               <Label className="text-xs">Body (Markdown)</Label>
-              <textarea
-                className="w-full min-h-[200px] rounded-md border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-900 px-3 py-2 text-sm font-mono"
+              <Textarea
+                className="min-h-[200px] font-mono"
                 value={editForm.body}
                 onChange={e => setEditForm(f => ({ ...f, body: e.target.value }))}
               />
@@ -154,8 +156,9 @@ export default function ArticlesPage({ params }: { params: Promise<{ id: string 
         title="Help Articles"
         actions={
           <div className="flex items-center gap-2">
-            <span className="text-sm text-secondary-500">
+            <span className="text-sm text-secondary-500 flex items-center gap-1">
               {articles.length} articles from {sourcesCount} sources
+              <InfoTooltip content="Help articles are added to your chatbot's knowledge base automatically. Visitors can also browse them directly from the widget." />
             </span>
             {draftCount > 0 && (
               <Button

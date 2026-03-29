@@ -20,8 +20,8 @@ test.describe('34. Overview Page', () => {
     const statusBadge = page.getByText(/^(draft|active|paused|archived)$/i).first();
     await expect(statusBadge).toBeVisible({ timeout: 10000 });
 
-    // System prompt section
-    await expect(page.getByText('System Prompt')).toBeVisible();
+    // Chatbot instructions section (was "System Prompt")
+    await expect(page.getByText('Chatbot Instructions')).toBeVisible();
   });
 
   test('OVERVIEW-002: Publish/unpublish button with loading state', async ({ page }) => {
@@ -78,7 +78,7 @@ test.describe('34. Overview Page', () => {
     await gotoOverview(page);
     await expect(page.getByRole('heading').first()).toBeVisible({ timeout: 30000 });
 
-    await expect(page.getByText('System Prompt')).toBeVisible();
+    await expect(page.getByText('Chatbot Instructions')).toBeVisible();
 
     // System prompt should have some text content in a pre/code block
     const promptContent = page.locator('pre, code, [class*="overflow"]').filter({

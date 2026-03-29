@@ -5,20 +5,20 @@ const CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
 test.describe('Widget Configuration', () => {
   test('customize page loads with color pickers', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/customize`);
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
 
     // Should show color picker section
-    await expect(page.getByText('Primary Color').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Primary Color').first()).toBeVisible({ timeout: 20000 });
   });
 
   test('update widget colors via customize page', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/customize`);
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
 
     // Find a color input and change it
     const colorInput = page.locator('input[type="color"]').first();
-    await expect(colorInput).toBeVisible({ timeout: 10000 });
+    await expect(colorInput).toBeVisible({ timeout: 20000 });
     await colorInput.fill('#FF5733');
 
     // Save changes

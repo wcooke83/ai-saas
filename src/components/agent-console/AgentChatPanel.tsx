@@ -4,6 +4,7 @@ import { useState, useRef, memo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Send,
   UserCheck,
@@ -296,7 +297,7 @@ export const AgentChatPanel = memo(function AgentChatPanel({
       {!isResolved && (
         <div className="p-3 border-t border-secondary-200 dark:border-secondary-700">
           <div className="flex gap-2">
-            <textarea
+            <Textarea
               ref={inputRef}
               value={input}
               onChange={handleInputChange}
@@ -307,7 +308,7 @@ export const AgentChatPanel = memo(function AgentChatPanel({
                   : 'Type a reply...'
               }
               disabled={conversation.handoff_status === 'pending' || sending}
-              className="flex-1 resize-none rounded-lg border border-secondary-300 dark:border-secondary-600 bg-white dark:bg-secondary-900 px-3 py-2 text-sm placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
+              className="flex-1 resize-none"
               rows={2}
             />
             <Button

@@ -281,12 +281,15 @@ test.describe('Chatbot Creation & Knowledge Pipeline', () => {
   test('CC-004: Complete Step 3 — Review and Create', async ({ page }) => {
     console.log('[CC-004] Running full wizard flow to create the chatbot');
 
-    // Clean up any existing chatbots to avoid plan limit errors (free plan = 1 chatbot)
+    // Clean up leftover temp chatbots from previous runs (e2e user is on pro, no 1-bot limit).
+    // Never delete the main e2e chatbot — other test files depend on it.
+    const E2E_MAIN_ID = 'e2e00000-0000-0000-0000-000000000001';
     const listRes = await page.request.get('/api/chatbots');
     if (listRes.ok()) {
       const listData = await listRes.json();
-      const existing = listData.data?.chatbots || [];
+      const existing: Array<{ id: string; name: string }> = listData.data?.chatbots || [];
       for (const bot of existing) {
+        if (bot.id === E2E_MAIN_ID) continue;
         console.log(`[CC-004] Deleting existing chatbot: ${bot.name} (${bot.id})`);
         await page.request.delete(`/api/chatbots/${bot.id}`);
       }

@@ -19,6 +19,7 @@ import {
 import { Tooltip } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
 import { H1 } from '@/components/ui/heading';
+import { NewUserWelcome } from '@/components/dashboard/new-user-welcome';
 import type { Database } from '@/types/database';
 
 type Subscription = Database['public']['Tables']['subscriptions']['Row'];
@@ -40,6 +41,7 @@ async function getDashboardData() {
     apiKeysResult,
     apiLogsResult,
     apiLogsCountResult,
+    chatbotsCountResult,
   ] = await Promise.all([
     supabase.from('subscriptions').select('*').eq('user_id', user.id).single(),
     supabase.from('usage').select('*').eq('user_id', user.id).order('period_start', { ascending: false }).limit(1).single(),
@@ -50,6 +52,7 @@ async function getDashboardData() {
     supabase.from('api_logs').select('id, endpoint, status_code, tokens_input, tokens_output, tokens_total, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
     // Get count for total generations (use api_logs if generations is empty)
     supabase.from('api_logs').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+    supabase.from('chatbots').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
   ]);
 
   // Fetch subscription plan details if user has a plan
@@ -96,6 +99,7 @@ async function getDashboardData() {
     totalGenerations: totalGenerationsCount > 0 ? totalGenerationsCount : totalApiLogsCount,
     apiKeysCount: apiKeysResult.count || 0,
     totalTokensUsed,
+    chatbotCount: chatbotsCountResult.count ?? 0,
   };
 }
 
@@ -150,7 +154,11 @@ export default async function DashboardPage() {
     return <DashboardSkeleton />;
   }
 
-  const { subscription, subscriptionPlan, usage, recentGenerations, recentApiLogs, totalGenerations, apiKeysCount, totalTokensUsed } = data;
+  const { subscription, subscriptionPlan, usage, recentGenerations, recentApiLogs, totalGenerations, apiKeysCount, totalTokensUsed, chatbotCount } = data;
+
+  if (chatbotCount === 0) {
+    return <NewUserWelcome />;
+  }
 
   // Get credits limit from subscription plan, falling back to usage table, then default
   const creditsLimit = subscriptionPlan?.credits_monthly || usage?.credits_limit || 100;
@@ -263,7 +271,7 @@ export default async function DashboardPage() {
             <div className="flex items-center justify-between">
               <CardDescription className="flex items-center gap-1">
                 Total Generations
-                <Tooltip content="Total chatbot responses and content generated since you created your account.">
+                <Tooltip content="Total chatbot responses generated since your account was created.">
                   <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
                 </Tooltip>
               </CardDescription>

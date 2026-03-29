@@ -1,3 +1,4 @@
-- [Test Suite Overview](test_suite_overview.md) -- 133 specs, 1292 tests, health score 4/10, core patterns and IDs
+- [Test Suite Overview](test_suite_overview.md) -- ~141 specs, ~1368 tests, health score 4/10, core patterns and IDs
 - [Auth Setup Pattern](auth_setup_pattern.md) -- E2E auth via /api/auth/e2e-login, hardcoded project ref in cookie
 - [Route Rename Issue](route_rename_escalations_issues.md) -- /escalations was renamed to /issues, tests lag behind
+- [Business Audit Coverage Map](business_audit_coverage.md) -- 2026-03-30 audit: webhooks, credit alerts, nav changes, notif prefs, branding lock, zero-state

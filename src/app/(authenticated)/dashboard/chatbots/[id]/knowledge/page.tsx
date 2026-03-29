@@ -26,6 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import { getClient } from '@/lib/supabase/client';
 import { validateUrl } from '@/lib/utils';
 import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
@@ -516,13 +517,12 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="textContent">Content</Label>
-                  <textarea
+                  <Textarea
                     id="textContent"
                     placeholder="Paste your text content here..."
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
-                    className="w-full min-h-[200px] px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-y"
-                    style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+                    className="min-h-[200px] resize-y"
                   />
                 </div>
               </>
@@ -541,13 +541,12 @@ export default function KnowledgePage({ params }: KnowledgePageProps) {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="answer">Answer</Label>
-                  <textarea
+                  <Textarea
                     id="answer"
                     placeholder="We offer a 30-day return policy..."
                     value={qaAnswer}
                     onChange={(e) => setQaAnswer(e.target.value)}
-                    className="w-full min-h-[120px] px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-y"
-                    style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+                    className="min-h-[120px] resize-y"
                   />
                 </div>
               </>

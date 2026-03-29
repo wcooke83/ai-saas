@@ -26,6 +26,7 @@ interface OnboardingChecklistProps {
   chatbotId: string;
   hasKnowledgeSources: boolean;
   isPublished: boolean;
+  widgetReviewedAt: string | null;
 }
 
 const DISMISS_KEY_PREFIX = 'chatbot-onboarding-dismissed-';
@@ -35,15 +36,22 @@ export function OnboardingChecklist({
   chatbotId,
   hasKnowledgeSources,
   isPublished,
+  widgetReviewedAt,
 }: OnboardingChecklistProps) {
   const [dismissed, setDismissed] = useState(true); // start hidden to avoid flash
-  const [widgetReviewed, setWidgetReviewed] = useState(false);
+  const [widgetReviewed, setWidgetReviewed] = useState(!!widgetReviewedAt);
 
   useEffect(() => {
     const stored = localStorage.getItem(`${DISMISS_KEY_PREFIX}${chatbotId}`);
     setDismissed(stored === 'true');
-    setWidgetReviewed(localStorage.getItem(`${WIDGET_REVIEWED_KEY_PREFIX}${chatbotId}`) === 'true');
-  }, [chatbotId]);
+
+    // If localStorage says reviewed but server doesn't, sync to server
+    const localReviewed = localStorage.getItem(`${WIDGET_REVIEWED_KEY_PREFIX}${chatbotId}`) === 'true';
+    if (localReviewed && !widgetReviewedAt) {
+      fetch(`/api/chatbots/${chatbotId}/widget-reviewed`, { method: 'POST' }).catch(() => {});
+      setWidgetReviewed(true);
+    }
+  }, [chatbotId, widgetReviewedAt]);
 
   const steps: OnboardingStep[] = [
     {

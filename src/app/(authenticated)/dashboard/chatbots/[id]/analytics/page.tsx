@@ -10,11 +10,13 @@ import {
   Download,
   Calendar,
   Clock,
+  Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip } from '@/components/ui/tooltip';
 import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
 import type { Chatbot } from '@/lib/chatbots/types';
 
@@ -206,8 +208,11 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
                 <MessageSquare className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-sm text-secondary-500 dark:text-secondary-400">
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                   Total Conversations
+                  <Tooltip content="Total unique chat sessions started by visitors during the selected period.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
                 </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                   {defaultAnalytics.total_conversations.toLocaleString()}
@@ -224,8 +229,11 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
                 <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-sm text-secondary-500 dark:text-secondary-400">
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                   Total Messages
+                  <Tooltip content="Total messages exchanged, including both visitor and bot messages, during the selected period.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
                 </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                   {defaultAnalytics.total_messages.toLocaleString()}
@@ -242,8 +250,11 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
                 <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
-                <p className="text-sm text-secondary-500 dark:text-secondary-400">
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                   Unique Visitors
+                  <Tooltip content="Number of distinct visitors identified by session cookies during the selected period. The same person on a different device or browser counts as a new visitor.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
                 </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                   {defaultAnalytics.unique_visitors.toLocaleString()}
@@ -260,8 +271,11 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
                 <ThumbsUp className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
               </div>
               <div>
-                <p className="text-sm text-secondary-500 dark:text-secondary-400">
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                   Satisfaction Rate
+                  <Tooltip content="Positive survey rating rate during the selected period. Requires the post-chat survey to be enabled in Settings.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
                 </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                   {defaultAnalytics.satisfaction_rate}%
@@ -324,7 +338,12 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
             <div className="p-4 bg-secondary-50 dark:bg-secondary-800 rounded-lg">
               <div className="flex items-center gap-2 text-secondary-600 dark:text-secondary-400 mb-2">
                 <Clock className="w-4 h-4" />
-                <span className="text-sm">Avg. Messages/Conv</span>
+                <span className="text-sm flex items-center gap-1">
+                  Avg. Messages/Conv
+                  <Tooltip content="Average number of messages per conversation during the selected period. Higher values may indicate users are engaging deeply or struggling to get answers.">
+                    <Info className="w-3.5 h-3.5 cursor-help" />
+                  </Tooltip>
+                </span>
               </div>
               <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                 {defaultAnalytics.avg_messages_per_conversation.toFixed(1)}
@@ -334,7 +353,12 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
             <div className="p-4 bg-secondary-50 dark:bg-secondary-800 rounded-lg">
               <div className="flex items-center gap-2 text-secondary-600 dark:text-secondary-400 mb-2">
                 <Calendar className="w-4 h-4" />
-                <span className="text-sm">Daily Average</span>
+                <span className="text-sm flex items-center gap-1">
+                  Daily Average
+                  <Tooltip content="Average conversations per day during the selected period.">
+                    <Info className="w-3.5 h-3.5 cursor-help" />
+                  </Tooltip>
+                </span>
               </div>
               <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                 {days > 0
@@ -347,7 +371,12 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
             <div className="p-4 bg-secondary-50 dark:bg-secondary-800 rounded-lg">
               <div className="flex items-center gap-2 text-secondary-600 dark:text-secondary-400 mb-2">
                 <MessageSquare className="w-4 h-4" />
-                <span className="text-sm">Message Growth</span>
+                <span className="text-sm flex items-center gap-1">
+                  Message Growth
+                  <Tooltip content="Percentage change in messages compared to the previous equivalent period.">
+                    <Info className="w-3.5 h-3.5 cursor-help" />
+                  </Tooltip>
+                </span>
               </div>
               <Badge variant="success">Active</Badge>
             </div>

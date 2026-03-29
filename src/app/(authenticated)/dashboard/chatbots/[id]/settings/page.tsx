@@ -55,7 +55,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip } from '@/components/ui/tooltip';
+import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, InfoTooltip } from '@/components/ui/tooltip';
+import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import {
   SYSTEM_PROMPT_TEMPLATES,
@@ -238,6 +240,8 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
   const [showPreChatWarning, setShowPreChatWarning] = useState(false);
   const [showPostChatWarning, setShowPostChatWarning] = useState(false);
 
+  const [accountEmail, setAccountEmail] = useState<string | null>(null);
+
   // Credit packages (stored in DB, not in chatbot JSON config)
   const [creditPackages, setCreditPackages] = useState<Array<{
     id?: string; name: string; credit_amount: number; price_cents: number; stripe_price_id: string; active: boolean; sort_order: number;
@@ -343,7 +347,16 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
     fetchChatbot();
   }, [id, router, reset]);
 
-  // Lazy-load global credit packages when fallback section is opened
+  // Lazy-load account email and credit packages when fallback section is opened
+  useEffect(() => {
+    if (activeSection === 'fallback' && !accountEmail) {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data }) => {
+        if (data.user?.email) setAccountEmail(data.user.email);
+      });
+    }
+  }, [activeSection, accountEmail]);
+
   useEffect(() => {
     if (activeSection === 'fallback' && !creditPackagesLoaded) {
       fetch('/api/credit-packages')
@@ -758,16 +771,12 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Label htmlFor="description">Description</Label>
-                <Tooltip content="A brief description of what your chatbot does. This helps you identify the chatbot in your dashboard.">
-                  <Info className="w-4 h-4 text-secondary-400 cursor-help" />
-                </Tooltip>
               </div>
-              <textarea
+              <Textarea
                 id="description"
                 {...register('description')}
                 placeholder="A helpful chatbot for answering customer questions..."
-                className="w-full min-h-[100px] px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 placeholder-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
-                style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+                className="min-h-[100px] resize-none"
                 maxLength={500}
               />
               <p className="text-xs text-secondary-500">
@@ -844,9 +853,6 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Label htmlFor="welcome_message">Welcome Message</Label>
-                  <Tooltip content="The first message your chatbot sends when a visitor opens the chat. Use {{name}}, {{email}}, {{company_name}}, or any other field label from your pre-chat form to personalize the message.">
-                    <Info className="w-4 h-4 text-secondary-400 cursor-help" />
-                  </Tooltip>
                 </div>
                 <Input
                   id="welcome_message"
@@ -864,9 +870,6 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Label htmlFor="placeholder_text">Input Placeholder Text</Label>
-                  <Tooltip content="The placeholder text shown in the message input field before the visitor starts typing.">
-                    <Info className="w-4 h-4 text-secondary-400 cursor-help" />
-                  </Tooltip>
                 </div>
                 <Input
                   id="placeholder_text"
@@ -875,9 +878,6 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   placeholder="Type your message..."
                   maxLength={200}
                 />
-                <p className="text-xs text-secondary-500">
-                  Placeholder text shown in the message input field
-                </p>
               </div>
               {!preChatConfig.enabled && /\{\{\w+\}\}/.test(welcomeMessage) && (
                 <div className="col-span-1 lg:col-span-2 flex gap-1 text-xs text-amber-600 dark:text-amber-400">
@@ -900,8 +900,8 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Label htmlFor="allowed_origins">Allowed Origins</Label>
-                <Tooltip content="Restrict which websites can embed your chatbot widget. Leave empty to allow all origins (default). Enter comma-separated origins like https://example.com, https://app.example.com">
-                  <Info className="w-4 h-4 text-secondary-400 cursor-help" />
+                <Tooltip content="Restricts which websites can embed this chatbot. Enter comma-separated origins, e.g. https://yoursite.com. Leave empty to allow any website — not recommended for production." side="right">
+                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
                 </Tooltip>
               </div>
               <Input
@@ -1074,14 +1074,18 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               </div>
 
               <div className={cn("space-y-2", highlightField === 'systemPrompt' && "ring-2 ring-red-500 rounded-lg p-2 transition-all")} data-field="systemPrompt">
-                <Label htmlFor="system_prompt">Chatbot Instructions *</Label>
-                <textarea
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="system_prompt">Chatbot Instructions *</Label>
+                  <Tooltip content="The system prompt defines your chatbot's persona, knowledge boundaries, and response style. It is never shown to visitors. Be specific — vague instructions lead to inconsistent responses." side="right">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </div>
+                <Textarea
                   id="system_prompt"
                   {...register('systemPrompt', {
                     onChange: () => setAppliedTemplateName(null),
                   })}
-                  className="w-full min-h-[250px] px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 placeholder-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono text-sm resize-y"
-                  style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+                  className="min-h-[250px] font-mono resize-y"
                   placeholder="You are a helpful AI assistant..."
                 />
                 <p className="text-xs text-secondary-500">
@@ -1197,7 +1201,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <Label htmlFor="live_fetch_threshold">Live Fetch Threshold</Label>
-                  <Tooltip content="When a visitor's question doesn't closely match your knowledge base, the chatbot can fetch fresh content from your pinned URLs. This slider sets how confident the match must be before skipping the live fetch. Lower = fewer fetches (faster). Higher = more fetches (more accurate)." side="right">
+                  <Tooltip content="When a visitor's question closely matches saved knowledge, the chatbot uses that directly. When the match is weak, it may fetch the live URL to get fresher content. A higher threshold means the bot is less likely to use the cached version and more likely to re-fetch — useful if your source URLs update frequently." side="right">
                     <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
                   </Tooltip>
                 </div>
@@ -1267,8 +1271,8 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Label htmlFor="memory_days">Memory Retention</Label>
-                  <Tooltip content="How long to remember visitor context. Set to 0 for unlimited retention. Memory is automatically cleaned up after this period.">
-                    <Info className="w-4 h-4 text-secondary-400 cursor-help" />
+                  <Tooltip content="How long the chatbot remembers facts about a returning visitor, such as their name, preferences, or past issues. After this period, the visitor starts fresh. Requires memory to be enabled." side="right">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
                   </Tooltip>
                 </div>
                 <div className="flex items-center gap-3 max-w-xs">
@@ -1463,9 +1467,6 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               <div className="space-y-2 max-w-xs">
                 <div className="flex items-center gap-2">
                   <Label htmlFor="max_file_size">Maximum File Size</Label>
-                  <Tooltip content="The maximum file size visitors can upload per file.">
-                    <Info className="w-4 h-4 text-secondary-400 cursor-help" />
-                  </Tooltip>
                 </div>
                 <select
                   id="max_file_size"
@@ -1493,9 +1494,6 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               <div className="space-y-2 max-w-xs">
                 <div className="flex items-center gap-2">
                   <Label htmlFor="max_files_per_message">Files Per Message</Label>
-                  <Tooltip content="The maximum number of files a visitor can attach to a single message.">
-                    <Info className="w-4 h-4 text-secondary-400 cursor-help" />
-                  </Tooltip>
                 </div>
                 <select
                   id="max_files_per_message"
@@ -1775,9 +1773,6 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 <CardTitle className="flex items-center gap-2">
                   <Headphones className="w-5 h-5" />
                   Live Handoff
-                  <Tooltip content="When enabled, visitors see a headset icon in the chat widget. Clicking it sends a handoff request that agents can pick up from the Agent Console or via Telegram." side="right">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
                 </CardTitle>
                 <CardDescription>
                   Let visitors request a transfer to a human agent. A headset icon will appear in the chat widget.
@@ -1810,12 +1805,12 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 <Label htmlFor="handoff-timeout-live" className="text-sm font-medium">
                   Handoff Inactivity Timeout
                 </Label>
-                <Tooltip content="Once a visitor requests a handoff, if they don't send another message within this many minutes the handoff is automatically closed and the AI resumes. Set to 0 to keep handoffs open indefinitely until an agent resolves them." side="right">
+                <Tooltip content="If the visitor goes quiet after requesting a handoff, the handoff closes and the AI takes over again. Set to 0 to keep handoffs open until an agent resolves them." side="right">
                   <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
                 </Tooltip>
               </div>
               <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5 mb-2">
-                Auto-close conversations after visitor inactivity. Set to 0 to disable.
+                Minutes of visitor inactivity before the handoff closes automatically.
               </p>
               <div className="flex items-center gap-2">
                 <Input
@@ -1839,9 +1834,6 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               <div>
                 <div className="flex items-center gap-1.5">
                   <Label className="text-sm font-medium">Require Agent Online</Label>
-                  <Tooltip content="When on, the handoff button only appears if at least one agent is online in the Agent Console or if Telegram is configured. When off, visitors can always request a handoff — but they may wait if no one is available." side="right">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
                 </div>
                 <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">
                   Only show the handoff button when an agent is online in the Agent Console or Telegram is configured. Turn off to always show it.
@@ -1984,7 +1976,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   <div className="space-y-2">
                     <div className="flex items-center gap-1.5">
                       <Label htmlFor="telegram-webhook-secret">Webhook Secret (optional)</Label>
-                      <Tooltip content="An optional secret token used to verify that incoming webhook requests genuinely come from Telegram. If set, Telegram includes it in a header that the server validates. Recommended for production." side="right">
+                      <Tooltip content="An optional string you choose that Telegram includes in every webhook request. Your server checks it to confirm the message came from Telegram, not an attacker. Use any random string — at least 20 characters is recommended." side="right">
                         <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
                       </Tooltip>
                     </div>
@@ -2065,12 +2057,14 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
           <CardContent className="space-y-6">
             {/* Mode Selection */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium">Fallback Mode</Label>
+              <div className="flex items-center gap-1.5">
+                <Label className="text-sm font-medium">Fallback Mode</Label>
+              </div>
               {([
-                { value: 'tickets' as const, label: 'Open Tickets', desc: 'Show a ticket form for visitors to submit support requests' },
-                { value: 'contact_form' as const, label: 'Simple Contact Form', desc: 'Show a basic contact form with name, email, and message' },
-                { value: 'purchase_credits' as const, label: 'Auto-Purchase Additional Credits', desc: 'Automatically purchase more credits using your saved payment method when your chatbot runs out' },
-                { value: 'help_articles' as const, label: 'Help Articles', desc: 'Display searchable help articles from your knowledge sources' },
+                { value: 'tickets' as const, label: 'Open Tickets', desc: 'Show a ticket form for visitors to submit support requests', tooltip: 'Visitors can submit a support ticket with their name, email, and message. You receive a notification and can follow up manually.' },
+                { value: 'contact_form' as const, label: 'Simple Contact Form', desc: 'Show a basic contact form with name, email, and message', tooltip: 'A lightweight contact form — no ticket tracking, just a direct message to your notification email.' },
+                { value: 'purchase_credits' as const, label: 'Auto-Purchase Additional Credits', desc: 'Automatically purchase more credits using your saved payment method when your chatbot runs out', tooltip: 'When credits hit zero, a credit package is charged automatically to your saved payment method so conversations continue without interruption.' },
+                { value: 'help_articles' as const, label: 'Help Articles', desc: 'Display searchable help articles from your knowledge sources', tooltip: 'Visitors can browse and search content from your knowledge base. No AI processing is needed, so it works even with zero credits.' },
               ]).map((mode) => (
                 <label key={mode.value} className={cn(
                   'flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
@@ -2087,7 +2081,10 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                     className="mt-1"
                   />
                   <div>
-                    <p className="text-sm font-medium">{mode.label}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-medium">{mode.label}</p>
+                      <InfoTooltip content={mode.tooltip} side="top" />
+                    </div>
                     <p className="text-xs text-secondary-500 dark:text-secondary-400">{mode.desc}</p>
                   </div>
                 </label>
@@ -2118,7 +2115,10 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 <h4 className="text-sm font-medium">Ticket Form Settings</h4>
                 <div className="space-y-3">
                   <div>
-                    <Label className="text-xs">Form Title</Label>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Label className="text-xs">Form Title</Label>
+                      <InfoTooltip content="The heading shown at the top of the ticket form. If left blank, defaults to 'Submit a Support Request'." side="top" />
+                    </div>
                     <Input
                       value={watch('creditExhaustionConfig')?.tickets?.title || ''}
                       onChange={(e) => {
@@ -2129,7 +2129,10 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Form Description</Label>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Label className="text-xs">Form Description</Label>
+                      <InfoTooltip content="Optional subtext shown below the form title. Use it to set expectations, e.g. 'We'll get back to you within 24 hours.'" side="top" />
+                    </div>
                     <Input
                       value={watch('creditExhaustionConfig')?.tickets?.description || ''}
                       onChange={(e) => {
@@ -2150,7 +2153,8 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                           setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
                         }}
                       />
-                      Phone field
+                      <span>Phone field</span>
+                      <InfoTooltip content="Adds a phone number field to the ticket form. The number is included in the notification email but is not required unless you mark it as required." side="top" />
                     </label>
                     <label className="flex items-center gap-2 text-sm">
                       <input
@@ -2162,7 +2166,8 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                           setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
                         }}
                       />
-                      Subject field
+                      <span>Subject field</span>
+                      <InfoTooltip content="Adds a short subject line field, useful if you want to triage tickets by topic." side="top" />
                     </label>
                     <label className="flex items-center gap-2 text-sm">
                       <input
@@ -2174,14 +2179,18 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                           setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
                         }}
                       />
-                      Priority dropdown
+                      <span>Priority dropdown</span>
+                      <InfoTooltip content="Lets visitors self-select a priority level (Low, Medium, High). Included in the notification email." side="top" />
                     </label>
                   </div>
                   <div>
-                    <Label className="text-xs">Admin Notification Email</Label>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Label className="text-xs">Notification Email</Label>
+                      <InfoTooltip content="Where ticket submission emails are sent. Defaults to your account email — changing this only affects where notifications go, not your account itself." side="top" />
+                    </div>
                     <Input
                       type="email"
-                      placeholder="admin@yourcompany.com"
+                      placeholder={accountEmail ?? 'your account email'}
                       value={watch('creditExhaustionConfig')?.tickets?.adminNotificationEmail || ''}
                       onChange={(e) => {
                         const cfg = { ...watch('creditExhaustionConfig') };
@@ -2189,9 +2198,15 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                         setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
                       }}
                     />
+                    {accountEmail && !watch('creditExhaustionConfig')?.tickets?.adminNotificationEmail && (
+                      <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-1">Using {accountEmail}</p>
+                    )}
                   </div>
                   <div>
-                    <Label className="text-xs">Ticket Reference Prefix</Label>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Label className="text-xs">Ticket Reference Prefix</Label>
+                      <InfoTooltip content="A short prefix prepended to each ticket ID, e.g. 'TKT-1042'. Useful if you manage tickets across multiple chatbots." side="top" />
+                    </div>
                     <Input
                       placeholder="TKT-"
                       value={watch('creditExhaustionConfig')?.tickets?.ticketReferencePrefix || 'TKT-'}
@@ -2203,10 +2218,12 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Auto-Reply Email Template</Label>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Label className="text-xs">Auto-Reply Email Template</Label>
+                      <InfoTooltip content="Sent to the visitor immediately after they submit a ticket. Use {{name}}, {{ticketId}}, and {{subject}} to personalise the message." side="top" />
+                    </div>
                     <p className="text-xs text-secondary-500 mb-1">Available placeholders: {'{{name}}'}, {'{{ticketId}}'}, {'{{subject}}'}</p>
-                    <textarea
-                      className="w-full min-h-[80px] rounded-md border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-900 px-3 py-2 text-sm"
+                    <Textarea
                       value={watch('creditExhaustionConfig')?.tickets?.autoReplyTemplate || ''}
                       onChange={(e) => {
                         const cfg = { ...watch('creditExhaustionConfig') };
@@ -2225,7 +2242,10 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 <h4 className="text-sm font-medium">Contact Form Settings</h4>
                 <div className="space-y-3">
                   <div>
-                    <Label className="text-xs">Form Title</Label>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Label className="text-xs">Form Title</Label>
+                      <InfoTooltip content="The heading shown at the top of the contact form. Keep it short and action-oriented." side="top" />
+                    </div>
                     <Input
                       value={watch('creditExhaustionConfig')?.contact_form?.title || ''}
                       onChange={(e) => {
@@ -2236,7 +2256,10 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Form Description</Label>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Label className="text-xs">Form Description</Label>
+                      <InfoTooltip content="Optional subtext shown below the form title. Use it to set expectations, e.g. 'We'll get back to you within 24 hours.'" side="top" />
+                    </div>
                     <Input
                       value={watch('creditExhaustionConfig')?.contact_form?.description || ''}
                       onChange={(e) => {
@@ -2247,10 +2270,13 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Admin Notification Email</Label>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Label className="text-xs">Notification Email</Label>
+                      <InfoTooltip content="Where contact form submissions are sent. Defaults to your account email — changing this only affects where notifications go, not your account itself." side="top" />
+                    </div>
                     <Input
                       type="email"
-                      placeholder="admin@yourcompany.com"
+                      placeholder={accountEmail ?? 'your account email'}
                       value={watch('creditExhaustionConfig')?.contact_form?.adminNotificationEmail || ''}
                       onChange={(e) => {
                         const cfg = { ...watch('creditExhaustionConfig') };
@@ -2258,6 +2284,9 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                         setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
                       }}
                     />
+                    {accountEmail && !watch('creditExhaustionConfig')?.contact_form?.adminNotificationEmail && (
+                      <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-1">Using {accountEmail}</p>
+                    )}
                   </div>
                   <label className="flex items-center gap-2 text-sm">
                     <input
@@ -2269,7 +2298,8 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                         setValue('creditExhaustionConfig', cfg, { shouldDirty: true });
                       }}
                     />
-                    Send auto-reply to visitor
+                    <span>Send auto-reply to visitor</span>
+                    <InfoTooltip content="Sends a confirmation email to the visitor after they submit the form, letting them know their message was received." side="top" />
                   </label>
                 </div>
               </div>
@@ -2763,9 +2793,6 @@ function PreChatFormEditor({ config, onChange, language, shouldShowWarning, onOp
           <div className="space-y-2">
             <div className="flex items-center gap-1.5">
               <Label htmlFor="form_title">Form Title</Label>
-              <Tooltip content="Heading shown at the top of the pre-chat form. Keep it short and welcoming." side="right">
-                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-              </Tooltip>
             </div>
             <Input
               id="form_title"
@@ -2794,9 +2821,6 @@ function PreChatFormEditor({ config, onChange, language, shouldShowWarning, onOp
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <Label>Form Fields</Label>
-                <Tooltip content="Fields the visitor must fill out before chatting. Collected data is passed to the AI as context and saved to Leads. Use {{field_label}} in your system prompt to reference field values." side="right">
-                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                </Tooltip>
               </div>
               <Button variant="outline" size="sm" onClick={addField}>
                 <Plus className="w-4 h-4 mr-1" />
@@ -2893,7 +2917,7 @@ function PreChatFormEditor({ config, onChange, language, shouldShowWarning, onOp
                         className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
                       />
                       <span className="text-sm text-secondary-700 dark:text-secondary-300">Required</span>
-                      <Tooltip content="When checked, the visitor cannot start chatting without filling in this field." side="top">
+                      <Tooltip content="Required fields must be completed before the visitor can open the chat. Use sparingly — too many required fields reduce form completion rates." side="top">
                         <Info className="w-3 h-3 text-secondary-400 cursor-help" />
                       </Tooltip>
                     </label>
@@ -2906,9 +2930,6 @@ function PreChatFormEditor({ config, onChange, language, shouldShowWarning, onOp
           <div className="space-y-2 max-w-xs">
             <div className="flex items-center gap-1.5">
               <Label htmlFor="submit_button">Submit Button Text</Label>
-              <Tooltip content="The label on the button visitors click to submit the form and enter the chat." side="right">
-                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-              </Tooltip>
             </div>
             <Input
               id="submit_button"
@@ -3057,7 +3078,12 @@ function PostChatSurveyEditor({ config, onChange, language, shouldShowWarning, o
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="survey_description">Survey Description</Label>
+            <div className="flex items-center gap-1.5">
+              <Label htmlFor="survey_description">Survey Description</Label>
+              <Tooltip content="Optional subtext shown below the survey title. Use it to encourage participation, e.g. 'This takes less than 30 seconds.'" side="right">
+                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+              </Tooltip>
+            </div>
             <Input
               id="survey_description"
               value={config.description}
@@ -3135,7 +3161,12 @@ function PostChatSurveyEditor({ config, onChange, language, shouldShowWarning, o
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs">Type</Label>
+                    <div className="flex items-center gap-1">
+                      <Label className="text-xs">Type</Label>
+                      <Tooltip content="Star Rating: 1–5 (or custom range) star selector. Text: open-ended text input. Single Choice: one answer from a list. Multiple Choice: multiple answers from a list." side="top">
+                        <Info className="w-3 h-3 text-secondary-400 cursor-help" />
+                      </Tooltip>
+                    </div>
                     <select
                       value={question.type}
                       onChange={(e) => updateQuestion(question.id, { type: e.target.value as SurveyQuestionType })}
@@ -3160,13 +3191,21 @@ function PostChatSurveyEditor({ config, onChange, language, shouldShowWarning, o
                       className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
                     />
                     <span className="text-sm text-secondary-700 dark:text-secondary-300">Required</span>
+                    <Tooltip content="Required questions must be answered before the visitor can submit the survey. Use sparingly — too many required fields reduce completion rates." side="top">
+                      <Info className="w-3 h-3 text-secondary-400 cursor-help" />
+                    </Tooltip>
                   </label>
                 </div>
 
                 {question.type === 'rating' && (
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-1">
-                      <Label className="text-xs">Min Rating</Label>
+                      <div className="flex items-center gap-1">
+                        <Label className="text-xs">Min Rating</Label>
+                        <Tooltip content="The lowest star value the visitor can select. Usually 1." side="top">
+                          <Info className="w-3 h-3 text-secondary-400 cursor-help" />
+                        </Tooltip>
+                      </div>
                       <Input
                         type="number"
                         value={question.minRating || 1}
@@ -3176,7 +3215,12 @@ function PostChatSurveyEditor({ config, onChange, language, shouldShowWarning, o
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">Max Rating</Label>
+                      <div className="flex items-center gap-1">
+                        <Label className="text-xs">Max Rating</Label>
+                        <Tooltip content="The highest star value the visitor can select. Usually 5." side="top">
+                          <Info className="w-3 h-3 text-secondary-400 cursor-help" />
+                        </Tooltip>
+                      </div>
                       <Input
                         type="number"
                         value={question.maxRating || 5}
@@ -3191,7 +3235,7 @@ function PostChatSurveyEditor({ config, onChange, language, shouldShowWarning, o
                 {(question.type === 'single_choice' || question.type === 'multi_choice') && (
                   <div className="space-y-1">
                     <Label className="text-xs">Options (one per line)</Label>
-                    <textarea
+                    <Textarea
                       value={(question.options || []).join('\n')}
                       onChange={(e) =>
                         updateQuestion(question.id, {
@@ -3199,8 +3243,7 @@ function PostChatSurveyEditor({ config, onChange, language, shouldShowWarning, o
                         })
                       }
                       placeholder="Option 1&#10;Option 2&#10;Option 3"
-                      className="w-full min-h-[80px] px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 text-sm resize-none"
-                      style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+                      className="resize-none"
                     />
                   </div>
                 )}
@@ -3236,11 +3279,10 @@ function PostChatSurveyEditor({ config, onChange, language, shouldShowWarning, o
                         </div>
                       )}
                       {q.type === 'text' && (
-                        <textarea
+                        <Textarea
                           disabled
                           placeholder="Type your feedback..."
-                          className="w-full rounded-md border border-secondary-300 dark:border-secondary-600 px-3 py-2 text-sm opacity-60 min-h-[60px]"
-                          style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+                          className="min-h-[60px]"
                         />
                       )}
                       {q.type === 'single_choice' && (
@@ -3677,18 +3719,22 @@ function ProactiveMessagesEditor({ config, onChange }: ProactiveMessagesEditorPr
 
                         <div className="space-y-1">
                           <Label className="text-xs">Message</Label>
-                          <textarea
+                          <Textarea
                             value={rule.message}
                             onChange={(e) => updateRule(rule.id, { message: e.target.value })}
                             placeholder="The message to show visitors..."
-                            className="w-full min-h-[80px] px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 text-sm resize-none"
-                            style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+                            className="resize-none"
                           />
                         </div>
 
                         <div className="grid gap-4 sm:grid-cols-2">
                           <div className="space-y-1">
-                            <Label className="text-xs">Trigger Type</Label>
+                            <div className="flex items-center gap-1">
+                              <Label className="text-xs">Trigger Type</Label>
+                              <Tooltip content="Determines what visitor behaviour triggers this message. Each type exposes different configuration fields below." side="top">
+                                <Info className="w-3 h-3 text-secondary-400 cursor-help" />
+                              </Tooltip>
+                            </div>
                             <select
                               value={rule.triggerType}
                               onChange={(e) => {
@@ -3718,7 +3764,12 @@ function ProactiveMessagesEditor({ config, onChange }: ProactiveMessagesEditorPr
                           </div>
 
                           <div className="space-y-1">
-                            <Label className="text-xs">Display Mode</Label>
+                            <div className="flex items-center gap-1">
+                              <Label className="text-xs">Display Mode</Label>
+                              <Tooltip content="Bubble preview: shows a speech bubble next to the chat button without opening the widget. Auto-open widget: opens the full chat widget automatically." side="top">
+                                <Info className="w-3 h-3 text-secondary-400 cursor-help" />
+                              </Tooltip>
+                            </div>
                             <select
                               value={rule.displayMode}
                               onChange={(e) => updateRule(rule.id, { displayMode: e.target.value as ProactiveDisplayMode })}

@@ -186,18 +186,18 @@ test.describe('Upgrade Page – Feature Comparison', () => {
     // Click to expand
     await compareButton.click();
 
-    // Feature comparison table should appear
-    await expect(page.getByText('Feature')).toBeVisible({ timeout: 5000 });
+    // Feature comparison table should appear (check the column header)
+    await expect(page.getByRole('columnheader', { name: 'Feature' })).toBeVisible({ timeout: 5000 });
 
     // Table should show plan columns (Base, Pro, Enterprise)
     await expect(page.locator('th').getByText('Base')).toBeVisible();
     await expect(page.locator('th').getByText('Pro')).toBeVisible();
     await expect(page.locator('th').getByText('Enterprise')).toBeVisible();
 
-    // Some feature rows
-    await expect(page.getByText('Monthly credits')).toBeVisible();
-    await expect(page.getByText('API keys')).toBeVisible();
-    await expect(page.getByText('Chatbot builder')).toBeVisible();
+    // Some feature rows (scope to td to avoid strict-mode violations with repeated text)
+    await expect(page.locator('td').getByText('Monthly credits').first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('td').getByText('API keys').first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('td').getByText('Chatbot builder').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('UPGRADE-041: clicking Compare again hides the table', async ({ page }) => {
@@ -230,6 +230,19 @@ test.describe('Upgrade Page – Plan Selection Flow', () => {
         test.skip(true, 'No selectable plan buttons found');
         return;
       }
+
+      // Use downgrade button instead
+      const button = downgradeButton;
+      await expect(button).toBeEnabled();
+      const calcPromise2 = page.waitForResponse(
+        (res) => res.url().includes('/api/billing/upgrade') || res.url().includes('/api/stripe/checkout'),
+        { timeout: 10000 }
+      );
+      page.on('dialog', async (dialog) => { await dialog.dismiss(); });
+      await button.click();
+      const response2 = await calcPromise2.catch(() => null);
+      if (response2) { expect(response2.status()).toBeLessThan(500); }
+      return;
     }
 
     // Click first upgrade button

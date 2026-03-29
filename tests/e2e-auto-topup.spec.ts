@@ -10,7 +10,7 @@ async function gotoBilling(page: import('@playwright/test').Page) {
 
 async function waitForAutoTopup(page: import('@playwright/test').Page) {
   // Wait for Auto Top-up card to load (past skeleton state)
-  await expect(page.getByText('Auto Top-up')).toBeVisible({ timeout: 15000 });
+  await expect(page.getByRole('heading', { name: 'Auto Top-up' })).toBeVisible({ timeout: 15000 });
   // Wait for the status line which indicates data has loaded
   await expect(page.getByText('Status:').first()).toBeVisible({ timeout: 10000 });
 }

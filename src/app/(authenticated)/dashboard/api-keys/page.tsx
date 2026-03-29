@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { H1 } from '@/components/ui/heading';
+import { Textarea } from '@/components/ui/textarea';
 import {
   KeyRound,
   Plus,
@@ -26,7 +27,9 @@ import {
   Globe,
   X,
   Settings,
+  Info,
 } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip';
 
 interface APIKey {
   id: string;
@@ -348,13 +351,11 @@ export default function APIKeysPage() {
                   <Globe className="w-4 h-4" />
                   Allowed Domains (optional)
                 </Label>
-                <textarea
+                <Textarea
                   id="keyDomains"
                   placeholder="example.com&#10;*.myapp.com&#10;localhost:3000"
                   value={newKeyDomains}
                   onChange={(e) => setNewKeyDomains(e.target.value)}
-                  className="w-full min-h-[80px] px-3 py-2 text-sm rounded-lg border border-secondary-200 dark:border-secondary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
                 />
                 <p className="text-xs text-secondary-500 dark:text-secondary-400">
                   One domain per line. Use *.domain.com for subdomains. Leave empty for no restriction.
@@ -417,13 +418,12 @@ export default function APIKeysPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="editDomains">Allowed Domains</Label>
-                <textarea
+                <Textarea
                   id="editDomains"
                   placeholder="example.com&#10;*.myapp.com&#10;localhost:3000"
                   value={editDomainsValue}
                   onChange={(e) => setEditDomainsValue(e.target.value)}
-                  className="w-full min-h-[120px] px-3 py-2 text-sm rounded-lg border border-secondary-200 dark:border-secondary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+                  className="min-h-[120px]"
                   autoFocus
                 />
                 <p className="text-xs text-secondary-500 dark:text-secondary-400">
@@ -514,8 +514,11 @@ export default function APIKeysPage() {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm font-mono text-secondary-500 dark:text-secondary-400">
+                        <p className="text-sm font-mono text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                           {key.key_prefix}•••••••••
+                          <Tooltip content="Only the first few characters are shown for security. Copy the full key when creating it — it cannot be retrieved later.">
+                            <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                          </Tooltip>
                         </p>
                         <div className="flex items-center gap-3 text-xs text-secondary-400 dark:text-secondary-500">
                           <span className="flex items-center gap-1">
@@ -562,24 +565,26 @@ export default function APIKeysPage() {
                         <Settings className="w-4 h-4" />
                         Domains
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-secondary-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-500/10 gap-2"
-                        onClick={() => {
-                          if (confirm('Are you sure you want to delete this API key? This action cannot be undone.')) {
-                            deleteKey(key.id);
-                          }
-                        }}
-                        disabled={deletingId === key.id}
-                      >
-                        {deletingId === key.id ? (
-                          <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Trash2 className="w-4 h-4" />
-                        )}
-                        Delete
-                      </Button>
+                      <Tooltip content="Permanently invalidates this key. Any application using it will immediately lose access.">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-secondary-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-500/10 gap-2"
+                          onClick={() => {
+                            if (confirm('Are you sure you want to delete this API key? This action cannot be undone.')) {
+                              deleteKey(key.id);
+                            }
+                          }}
+                          disabled={deletingId === key.id}
+                        >
+                          {deletingId === key.id ? (
+                            <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                          Delete
+                        </Button>
+                      </Tooltip>
                     </div>
                   </div>
                 );

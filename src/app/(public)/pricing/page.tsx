@@ -95,26 +95,26 @@ const defaultPlanStyle = {
 
 const testimonials = [
   {
-    quote: "VocUI has transformed our customer support. We deployed a chatbot trained on our knowledge base in under an hour, and it handles 70% of inquiries on its own.",
-    author: "James Davidson",
-    role: "Marketing Consultant",
-    company: "Davidson Marketing Co.",
+    quote: "We deployed a chatbot trained on our knowledge base in under an hour. It now handles about 70% of support inquiries on its own — without us touching it.",
+    author: "J.D.",
+    role: "Marketing Director",
+    company: "E-commerce brand",
     initials: "JD",
     gradient: "from-primary-400 to-primary-600",
   },
   {
-    quote: "We embedded VocUI on our website and saw response times drop from hours to seconds. Our support team can finally focus on complex issues instead of answering the same questions.",
-    author: "Sarah Chen",
-    role: "VP of Sales",
-    company: "TechStart Inc.",
+    quote: "Response times went from hours to seconds after we embedded VocUI on our site. Our support team finally has time for the issues that actually need a human.",
+    author: "S.C.",
+    role: "VP of Customer Success",
+    company: "B2B SaaS company",
     initials: "SC",
     gradient: "from-emerald-400 to-emerald-600",
   },
   {
-    quote: "The chatbot saves me 5 hours a week. I trained it on our docs and FAQs, and it answers customer questions better than I expected. The Slack integration is a game-changer.",
-    author: "Michael Torres",
-    role: "Founder & CEO",
-    company: "Nexus Digital",
+    quote: "I trained it on our docs and FAQs in about 20 minutes. It answers questions more consistently than I did. The Slack integration alone is worth it.",
+    author: "M.T.",
+    role: "Founder",
+    company: "Digital agency",
     initials: "MT",
     gradient: "from-violet-400 to-violet-600",
   },
@@ -206,7 +206,7 @@ function buildComparisonFeatures(plans: SubscriptionPlan[]) {
 const faqs = [
   {
     question: 'What are credits?',
-    answer: 'Credits are consumed each time your chatbot answers a question or processes a knowledge source. A typical chatbot conversation uses 1-3 credits.',
+    answer: 'Credits are consumed each time your chatbot answers a question or processes a knowledge source. A simple one-line answer uses ~1 credit. A detailed multi-paragraph response uses 2–3 credits. A back-and-forth conversation of 10 messages typically uses 5–15 credits total.',
   },
   {
     question: 'Can I change plans anytime?',
@@ -304,7 +304,7 @@ export default function PricingPage() {
         <ToolsHero
           badge="Pricing"
           title="Simple, transparent pricing"
-          description="Choose the plan that's right for you. All plans include access to our core tools. Upgrade or downgrade anytime."
+          description="Choose the plan that fits your needs. All plans include chatbot building and deployment. Upgrade or downgrade anytime."
           breadcrumbs={[
             { label: 'Pricing' },
           ]}
@@ -477,7 +477,7 @@ export default function PricingPage() {
                               {creditsText} credits/month
                             </div>
                             <div className="text-xs text-secondary-500 dark:text-secondary-400">
-                              {plan.credits_monthly >= 1000 ? '~500 chatbot conversations' : '~50 chatbot conversations'}
+                              ~{Math.round(plan.credits_monthly / 2).toLocaleString()} chatbot conversations/month
                             </div>
                           </div>
                         )}
@@ -721,9 +721,9 @@ export default function PricingPage() {
         <section className="container mx-auto px-4 pb-16">
           <div className="max-w-3xl mx-auto text-center">
             <div className="rounded-3xl bg-gradient-to-br from-primary-700 to-primary-800 p-12 text-white shadow-xl">
-              <h2 className="text-3xl font-bold mb-4">Ready to boost your productivity?</h2>
+              <h2 className="text-3xl font-bold mb-4">Build your first chatbot today</h2>
               <p className="text-lg text-white/80 mb-8 max-w-xl mx-auto">
-                Start using VocUI today. Free tier available with no credit card required.
+                Train it on your content and deploy it in minutes. Free plan available — no credit card required.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button

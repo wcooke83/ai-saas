@@ -47,6 +47,7 @@ import { analyzeConversationSentiment, updateVisitorLoyalty } from '@/lib/chatbo
 import { CalendarService } from '@/lib/calendar/service';
 import { handleCalendarToolCall } from '@/lib/chatbots/tools/calendar-handler';
 import { attemptAutoTopup, triggerPreemptiveTopup } from '@/lib/chatbots/auto-topup';
+import { emitWebhookEvent } from '@/lib/webhooks/emit';
 
 // ── Per-stage timing helper ──────────────────────────────────────────
 function createStageTracker(t0: number) {
@@ -601,6 +602,16 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     _perf('parallel_done');
 
+    // Emit conversation.started on the first real user message
+    if (messages.length === 0) {
+      emitWebhookEvent(chatbot.user_id, 'conversation.started', {
+        chatbot_id: chatbotId,
+        chatbot_name: chatbot.name,
+        session_id: sessionId,
+        conversation_id: conversation.id,
+      }).catch(() => {});
+    }
+
     // Unpack attachment results
     const { aiImages, documentText } = attachmentResult;
 
@@ -793,6 +804,15 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
               JSON.stringify({ type: 'done', data: { message_id: assistantMessage.id } }) + '\n'
             ));
 
+            // Fire-and-forget: first-conversation activation
+            if (messages.length === 0) {
+              fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/activation/first-conversation`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chatbotId, userId: chatbot.user_id }),
+              }).catch(() => {});
+            }
+
             // Fire-and-forget: memory extraction + performance log
             if (chatbot.memory_enabled && input.visitor_id) {
               const allMessages = [...messages, { role: 'user', content: input.message } as Message, { role: 'assistant', content: processedResponse } as Message];
@@ -907,6 +927,15 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       latency_ms: latencyMs,
       context_chunks: ragContext.chunks.map((c) => c.id),
     }, supabase);
+
+    // Fire-and-forget: first-conversation activation
+    if (messages.length === 0) {
+      fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/activation/first-conversation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatbotId, userId: chatbot.user_id }),
+      }).catch(() => {});
+    }
 
     // Async memory extraction (non-blocking)
     if (chatbot.memory_enabled && input.visitor_id) {

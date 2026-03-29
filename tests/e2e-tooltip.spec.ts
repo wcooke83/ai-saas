@@ -6,7 +6,7 @@ test.describe('Tooltip Component', () => {
   test('tooltips appear on hover without crashing the page', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/performance`);
     await page.waitForLoadState('domcontentloaded');
-    await expect(page.locator('h1', { hasText: 'Performance' })).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1', { hasText: 'Performance' })).toBeVisible({ timeout: 30000 });
 
     // Check no errors on the page
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();

@@ -10,7 +10,7 @@ import {
   Palette,
   Code,
   BarChart3,
-  MessageSquare,
+  MoreHorizontal,
   Timer,
   Inbox,
   ClipboardList,
@@ -32,11 +32,11 @@ const primaryNav = [
   { href: '/customize', label: 'Customize', icon: Palette },
   { href: '/calendar', label: 'Calendar', icon: CalendarDays },
   { href: '/deploy', label: 'Deploy', icon: Code },
+  { href: '/conversations', label: 'Live Conversations', icon: Headphones },
+  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
 ];
 
 const secondaryNav = [
-  { href: '/conversations', label: 'Agent Console', icon: Headphones },
-  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/performance', label: 'Performance', icon: Timer },
   { href: '/leads', label: 'Leads', icon: Inbox },
   { href: '/surveys', label: 'Surveys', icon: ClipboardList },
@@ -123,7 +123,7 @@ export function ChatbotSubNav({ chatbotId }: { chatbotId: string }) {
               </>
             ) : (
               <>
-                <MessageSquare className="w-4 h-4" />
+                <MoreHorizontal className="w-4 h-4" />
                 More
               </>
             )}

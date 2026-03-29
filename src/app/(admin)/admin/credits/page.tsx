@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { H1 } from '@/components/ui/heading';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Shield,
   Plus,
@@ -389,12 +390,12 @@ export default function AdminCreditsPage() {
                 <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1">
                   Reason
                 </label>
-                <textarea
+                <Textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="e.g. Testing credit limit behavior, Goodwill credit for service issue..."
                   rows={2}
-                  className="w-full px-4 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                  className="resize-none"
                 />
               </div>
 

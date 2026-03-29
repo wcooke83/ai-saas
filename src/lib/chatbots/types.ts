@@ -671,6 +671,10 @@ export interface Chatbot {
   custom_text_updated_at: string | null;
   language_updated_at: string | null;
 
+  // Activation tracking (optional — added via migration, not in generated types until db:gen-types)
+  widget_reviewed_at?: string | null;
+  first_conversation_at?: string | null;
+
   created_at: string;
   updated_at: string;
 }

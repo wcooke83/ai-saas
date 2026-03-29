@@ -5,6 +5,7 @@
 
 import { NextRequest } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { emitWebhookEvent } from '@/lib/webhooks/emit';
 
 interface RouteParams {
   params: Promise<{ chatbotId: string }>;
@@ -57,6 +58,21 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     }
 
     console.log(`[Memory Leads] Lead saved for chatbot ${chatbotId}, session ${session_id}`);
+
+    // Emit lead.captured webhook (fire-and-forget)
+    const { data: chatbotRow } = await (supabase as any)
+      .from('chatbots')
+      .select('user_id')
+      .eq('id', chatbotId)
+      .single();
+    if (chatbotRow?.user_id) {
+      emitWebhookEvent(chatbotRow.user_id, 'lead.captured', {
+        chatbot_id: chatbotId,
+        lead_id: data.id,
+        session_id: session_id || null,
+        form_data,
+      }).catch(() => {});
+    }
 
     return new Response(
       JSON.stringify({ success: true, data: { lead_id: data.id } }),

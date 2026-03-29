@@ -1,0 +1,107 @@
+[
+  {
+    "label": "Total Generations tooltip",
+    "status": "FAIL",
+    "error": "Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object."
+  },
+  {
+    "label": "Satisfaction tooltip",
+    "status": "SKIP",
+    "note": "Page stuck in loading (6 skeleton elements)"
+  },
+  {
+    "label": "Analytics Conversations tooltip",
+    "status": "SKIP",
+    "note": "Page stuck in loading"
+  },
+  {
+    "label": "Analytics Messages tooltip",
+    "status": "SKIP",
+    "note": "Page stuck in loading"
+  },
+  {
+    "label": "Analytics Unique Visitors tooltip",
+    "status": "SKIP",
+    "note": "Page stuck in loading"
+  },
+  {
+    "label": "Analytics Satisfaction tooltip",
+    "status": "SKIP",
+    "note": "Page stuck in loading"
+  },
+  {
+    "label": "Today's Activity tooltip",
+    "status": "SKIP",
+    "note": "Page stuck in loading"
+  },
+  {
+    "label": "\"Powered by\" tooltip",
+    "status": "SKIP",
+    "note": "Page stuck in loading"
+  },
+  {
+    "label": "Widget Radius tooltip",
+    "status": "SKIP",
+    "note": "Page stuck in loading"
+  },
+  {
+    "label": "Usage — Tokens Used tooltip",
+    "status": "FAIL",
+    "error": "Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object."
+  },
+  {
+    "label": "Usage — API Calls tooltip",
+    "status": "FAIL",
+    "error": "Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object."
+  },
+  {
+    "label": "API key prefix tooltip",
+    "status": "SKIP",
+    "note": "No API keys exist"
+  },
+  {
+    "label": "API key revoke tooltip",
+    "status": "SKIP",
+    "note": "No API keys exist"
+  },
+  {
+    "label": "Auto top-up threshold tooltip",
+    "status": "SKIP",
+    "note": "Auto top-up section not found"
+  },
+  {
+    "label": "Auto top-up amount tooltip",
+    "status": "SKIP",
+    "note": "Auto top-up section not found"
+  },
+  {
+    "label": "No redundant \"Edit service/provider\" tooltip",
+    "status": "PASS",
+    "note": "No services to test"
+  },
+  {
+    "label": "\"Delete service\" consequence text",
+    "status": "SKIP",
+    "note": "No services exist to test"
+  },
+  {
+    "label": "Articles knowledge tooltip",
+    "status": "PASS",
+    "note": "\"Help articles are added to your chatbot's knowledge base automatically. Visitors\""
+  },
+  {
+    "label": "Settings — Chatbot Instructions tooltip",
+    "status": "FAIL",
+    "error": "Label \"Chatbot Instructions\" not found"
+  },
+  {
+    "label": "Settings — Proactive Trigger Type tooltip",
+    "status": "FAIL",
+    "error": "Label \"Trigger Type\" not found"
+  },
+  {
+    "label": "Settings — Post-Chat Survey Question Type tooltip",
+    "status": "FAIL",
+    "error": "Label \"Question Type\" not found"
+  }
+]

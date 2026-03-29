@@ -22,7 +22,7 @@ const CATEGORY_LABELS = ['All', 'General', 'Sales & Revenue', 'Support', 'Engage
 async function gotoPromptSection(page: Page) {
   await page.goto(SETTINGS_URL, { waitUntil: 'domcontentloaded' });
   await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
-  await page.locator('nav button', { hasText: 'System Prompt' }).click();
+  await page.locator('nav button', { hasText: 'Chatbot Instructions' }).click();
   await expect(page.locator('textarea#system_prompt').first()).toBeVisible({ timeout: 10000 });
 }
 
@@ -82,13 +82,17 @@ test.describe('Quick Templates — Settings Page', () => {
     await gotoPromptSection(page);
 
     const promptField = page.locator('textarea#system_prompt').first();
-    const beforeVal = await promptField.inputValue();
 
-    // Click a template card
+    // First click a known template to set a baseline value
+    await page.locator('.grid button', { hasText: 'FAQ Bot' }).first().click({ force: true });
+    await expect(promptField).not.toHaveValue('', { timeout: 5000 });
+    const faqVal = await promptField.inputValue();
+    expect(faqVal.length).toBeGreaterThan(100);
+
+    // Now click a different template — value must change
     await page.locator('.grid button', { hasText: 'Sales Assistant' }).first().click({ force: true });
-    await expect(promptField).not.toHaveValue(beforeVal, { timeout: 5000 });
+    await expect(promptField).not.toHaveValue(faqVal, { timeout: 5000 });
 
-    // Textarea should have changed and contain substantial content
     const afterVal = await promptField.inputValue();
     expect(afterVal.length).toBeGreaterThan(100);
   });
@@ -301,231 +305,299 @@ test.describe('Quick Templates — New Chatbot Wizard', () => {
 test.describe('Chatbot CRUD with Templates', () => {
   let tempChatbotId: string | null = null;
 
-  test('QT-CRUD-001: Create chatbot with Sales Assistant template via API', async ({ page }) => {
-    const salesPrompt = 'You are a consultative sales assistant.';
-    const response = await page.request.post('/api/chatbots', {
-      data: {
-        name: `E2E Sales Template Bot ${Date.now()}`,
-        system_prompt: salesPrompt + ' Your goal is to understand what visitors need and guide them toward the right solution.',
-      },
-    });
-
-    if (response.ok()) {
-      const body = await response.json();
-      tempChatbotId = body.data?.id || body.data?.chatbot?.id || null;
-      expect(tempChatbotId).toBeTruthy();
-    } else {
-      expect(response.status()).toBeLessThan(500);
+  // Clean up any leftover temp chatbots from previous failed test runs.
+  // Uses API because there's no UI to search/filter chatbots by name.
+  test.beforeAll(async ({ request }) => {
+    const res = await request.get('/api/chatbots');
+    if (!res.ok()) return;
+    const body = await res.json();
+    const bots: Array<{ id: string; name: string }> = body.data?.chatbots || [];
+    const E2E_MAIN_ID = 'e2e00000-0000-0000-0000-000000000001';
+    for (const bot of bots) {
+      if (bot.id !== E2E_MAIN_ID && (
+        bot.name.startsWith('E2E Sales Template Bot') ||
+        bot.name.startsWith('E2E Test Bot')
+      )) {
+        await request.delete(`/api/chatbots/${bot.id}`);
+      }
     }
   });
 
-  test('QT-CRUD-002: Update chatbot template via PATCH', async ({ page }) => {
+  test('QT-CRUD-001: Create chatbot with Sales Assistant template via wizard', async ({ page }) => {
+    const botName = `E2E Sales Template Bot ${Date.now()}`;
+
+    // Step 1: Basic Info
+    await page.goto('/dashboard/chatbots/new', { waitUntil: 'domcontentloaded' });
+    const nameInput = page.locator('input#name');
+    await expect(nameInput).toBeVisible({ timeout: 15000 });
+    await nameInput.fill(botName);
+
+    const nextBtn = page.locator('button', { hasText: /Next/ });
+    await expect(nextBtn).toBeEnabled({ timeout: 5000 });
+    await nextBtn.click();
+
+    // Step 2: Choose template — select Sales Assistant
+    await expect(page.locator('text=Choose a Template')).toBeVisible({ timeout: 10000 });
+    await page.locator('.grid button', { hasText: 'Sales Assistant' }).first().click({ force: true });
+
+    const promptField = page.locator('textarea#system_prompt').first();
+    await expect(promptField).toHaveValue(/sales/i, { timeout: 5000 });
+
+    // Go to step 3
+    await nextBtn.click();
+
+    // Step 3: Review — verify bot name shown, then create
+    await expect(page.locator(`text=${botName}`)).toBeVisible({ timeout: 5000 });
+    const createBtn = page.locator('button', { hasText: 'Create Chatbot' });
+    await expect(createBtn).toBeEnabled({ timeout: 5000 });
+
+    const createPromise = page.waitForResponse(
+      (res) => res.url().includes('/api/chatbots') && res.request().method() === 'POST',
+      { timeout: 30000 }
+    );
+    await createBtn.click();
+    const createResponse = await createPromise;
+    const createBody = await createResponse.text();
+    expect(createResponse.ok(), `Chatbot creation failed: ${createResponse.status()} — ${createBody}`).toBeTruthy();
+
+    const body = JSON.parse(createBody);
+    tempChatbotId = body.data?.chatbot?.id || null;
+    expect(tempChatbotId).toBeTruthy();
+    await page.waitForURL(`**/dashboard/chatbots/${tempChatbotId}/knowledge`, { timeout: 30000 });
+  });
+
+  test('QT-CRUD-002: Update chatbot template via settings UI', async ({ page }) => {
     test.skip(!tempChatbotId, 'No chatbot created');
 
-    const newPrompt = 'You are a customer support agent focused on resolving issues quickly while building loyalty.';
-    const response = await page.request.patch(`/api/chatbots/${tempChatbotId}`, {
-      data: { system_prompt: newPrompt },
-    });
+    // Navigate to the new chatbot's settings page
+    await page.goto(`/dashboard/chatbots/${tempChatbotId}/settings`, { waitUntil: 'domcontentloaded' });
+    await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
+    await page.locator('nav button', { hasText: 'Chatbot Instructions' }).first().click();
 
-    expect(response.ok()).toBeTruthy();
-    if (response.ok()) {
-      const body = await response.json();
-      const savedPrompt = body.data?.system_prompt || body.data?.chatbot?.system_prompt || '';
-      expect(savedPrompt).toContain('customer support');
-    }
+    const promptField = page.locator('textarea#system_prompt').first();
+    await expect(promptField).toBeVisible({ timeout: 10000 });
+
+    // Select Customer Support template
+    await page.locator('.grid button', { hasText: 'Customer Support' }).first().click({ force: true });
+    await expect(promptField).toHaveValue(/support/i, { timeout: 5000 });
+
+    // Save
+    await page.locator('button', { hasText: 'Save Changes' }).first().click();
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: /saved/i })).toBeVisible({ timeout: 15000 }).catch(() => {});
+
+    // Reload and verify persistence
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
+    await page.locator('nav button', { hasText: 'Chatbot Instructions' }).first().click();
+    const reloadedPrompt = page.locator('textarea#system_prompt').first();
+    await expect(reloadedPrompt).toBeVisible({ timeout: 10000 });
+    const savedValue = await reloadedPrompt.inputValue();
+    expect(savedValue.toLowerCase()).toContain('support');
   });
 
   test('QT-CRUD-003: Each template can be saved and retrieved', async ({ page }) => {
     test.skip(!tempChatbotId, 'No chatbot created');
 
-    const testPrompts = [
-      { name: 'Lead Gen', excerpt: 'friendly assistant focused on helping visitors and capturing leads' },
-      { name: 'Tech Support', excerpt: 'technical support specialist' },
-      { name: 'Onboarding', excerpt: 'onboarding assistant' },
+    const templateTests = [
+      { templateName: 'Lead Generation', excerpt: 'lead' },
+      { templateName: 'Technical Support', excerpt: 'technical' },
+      { templateName: 'Onboarding Guide', excerpt: 'onboarding' },
     ];
 
-    for (const { excerpt } of testPrompts) {
-      const patchRes = await page.request.patch(`/api/chatbots/${tempChatbotId}`, {
-        data: { system_prompt: `You are a ${excerpt}. Help users effectively.` },
-      });
-      expect(patchRes.ok()).toBeTruthy();
+    for (const { templateName, excerpt } of templateTests) {
+      // Navigate to settings and select template
+      await page.goto(`/dashboard/chatbots/${tempChatbotId}/settings`, { waitUntil: 'domcontentloaded' });
+      await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
+      await page.locator('nav button', { hasText: 'Chatbot Instructions' }).first().click();
 
-      if (patchRes.ok()) {
-        const getRes = await page.request.get(`/api/chatbots/${tempChatbotId}`);
-        if (getRes.ok()) {
-          const body = await getRes.json();
-          const saved = body.data?.system_prompt || body.data?.chatbot?.system_prompt || '';
-          expect(saved).toContain(excerpt);
-        }
-      }
+      const promptField = page.locator('textarea#system_prompt').first();
+      await expect(promptField).toBeVisible({ timeout: 10000 });
+
+      // Select template
+      await page.locator('.grid button', { hasText: templateName }).first().click({ force: true });
+      await expect(promptField).toHaveValue(new RegExp(excerpt, 'i'), { timeout: 5000 });
+
+      // Save
+      await page.locator('button', { hasText: 'Save Changes' }).first().click();
+      await expect(page.locator('[data-sonner-toast]').filter({ hasText: /saved/i })).toBeVisible({ timeout: 15000 }).catch(() => {});
+
+      // Reload and verify the template persisted
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
+      await page.locator('nav button', { hasText: 'Chatbot Instructions' }).first().click();
+      const reloaded = page.locator('textarea#system_prompt').first();
+      await expect(reloaded).toBeVisible({ timeout: 10000 });
+      const saved = await reloaded.inputValue();
+      expect(saved.toLowerCase()).toContain(excerpt);
     }
   });
 
   test('QT-CRUD-004: Cleanup temp chatbot', async ({ page }) => {
     test.skip(!tempChatbotId, 'No chatbot created');
-    const response = await page.request.delete(`/api/chatbots/${tempChatbotId}`);
-    expect(response.ok()).toBeTruthy();
+
+    // Navigate to chatbot list and delete via the three-dot menu
+    await page.goto('/dashboard/chatbots', { waitUntil: 'domcontentloaded' });
+    await page.locator('.grid').first().waitFor({ state: 'visible', timeout: 15000 });
+
+    // Find the card for our temp chatbot — wait for the link to be present first
+    const chatbotLink = page.locator(`a[href="/dashboard/chatbots/${tempChatbotId}"]`);
+    await expect(chatbotLink).toBeVisible({ timeout: 20000 });
+
+    const card = page.locator('.relative.group', { has: chatbotLink }).first();
+    await card.hover();
+    await card.locator('button[aria-label="Chatbot actions"]').click();
+    await expect(page.locator('[role="menu"]')).toBeVisible({ timeout: 5000 });
+    await page.locator('[role="menu"] button', { hasText: 'Delete' }).click();
+    // Confirm the delete dialog
+    const confirmBtn = page.locator('button', { hasText: 'Delete' }).last();
+    await expect(confirmBtn).toBeVisible({ timeout: 5000 });
+    await confirmBtn.click();
+    await expect(chatbotLink).not.toBeVisible({ timeout: 15000 });
     tempChatbotId = null;
   });
 });
 
 // ─── CHATBOT BEHAVIOR PER TEMPLATE ─────────────────────────────────
 
+/** Apply a template via settings UI, save, then verify chat works via the widget */
+async function setTemplateAndSave(page: Page, templateName: string) {
+  await gotoPromptSection(page);
+  const promptField = page.locator('textarea#system_prompt').first();
+
+  // Select the template
+  await page.locator('.grid button', { hasText: templateName }).first().click({ force: true });
+  await expect(promptField).not.toHaveValue('', { timeout: 5000 });
+
+  // Save changes
+  await page.locator('button', { hasText: 'Save Changes' }).first().click();
+  await expect(page.locator('[data-sonner-toast]').filter({ hasText: /saved/i })).toBeVisible({ timeout: 15000 }).catch(() => {});
+  await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
+}
+
+/** Ensure the E2E chatbot is published so the widget can serve it */
+async function ensurePublished(page: Page) {
+  await page.goto(`/dashboard/chatbots/${CHATBOT_ID}`);
+  await page.waitForLoadState('domcontentloaded');
+  // Wait for React hydration before checking button state
+  await expect(page.getByRole('heading').first()).toBeVisible({ timeout: 30000 });
+
+  const unpublishBtn = page.getByRole('button', { name: 'Unpublish' });
+  const publishBtn = page.getByRole('button', { name: 'Publish' });
+  await expect(unpublishBtn.or(publishBtn)).toBeVisible({ timeout: 15000 });
+
+  if (await publishBtn.isVisible().catch(() => false)) {
+    await publishBtn.click();
+    await expect(unpublishBtn).toBeVisible({ timeout: 15000 });
+  }
+  // else: already published — nothing to do
+}
+
+/** Open widget and send a message, assert a response appears */
+async function chatViaWidget(page: Page, message: string) {
+  // Ensure published via API (more reliable than UI — avoids skeleton-state race)
+  await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`).catch(() => {});
+  // Reset message count so a near-limit chatbot doesn't block unrelated widget tests
+  await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
+    data: { messages_this_month: 0, monthly_message_limit: 1000 },
+  }).catch(() => {});
+
+  await page.goto(`/widget/${CHATBOT_ID}`, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('.chat-widget-container, .chat-widget-button', { timeout: 30000 });
+
+  // Open the widget if collapsed behind a button
+  const btn = page.locator('.chat-widget-button');
+  if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await btn.click();
+    await expect(page.locator('.chat-widget-container')).toBeVisible({ timeout: 5000 });
+  }
+
+  // Wait for the chat input to be ready
+  const input = page.locator('.chat-widget-container textarea, .chat-widget-container input[type="text"]');
+  await expect(input).toBeVisible({ timeout: 15000 });
+  await input.fill(message);
+  await input.press('Enter');
+
+  // Wait for an assistant response with actual text (not typing indicator)
+  // The typing indicator has empty textContent; wait until a message with real content appears
+  await page.waitForFunction(() => {
+    const messages = document.querySelectorAll('.chat-widget-messages [class*="message"]');
+    const texts = Array.from(messages).map(m => (m.textContent || '').trim());
+    return texts.some(t => t.length > 10);
+  }, undefined, { timeout: 45000 });
+
+  // Verify the last meaningful message has content
+  const meaningfulMsg = page.locator('.chat-widget-messages [class*="message"]').filter({ hasText: /\w{5,}/ }).last();
+  const responseText = await meaningfulMsg.textContent();
+  expect((responseText || '').trim().length).toBeGreaterThan(0);
+}
+
 test.describe('Template-Driven Chatbot Behavior', () => {
   test('QT-BEH-001: Chat works with Customer Support template', async ({ page }) => {
-    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
-      data: { system_prompt: 'You are a customer support agent focused on resolving issues quickly while building loyalty.' },
-    });
-    await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
-
-    const chatRes = await page.request.post(`/api/chat/${CHATBOT_ID}`, {
-      data: { message: 'I need help with my account', stream: false, session_id: `support-test-${Date.now()}` },
-    });
-    if (chatRes.ok()) {
-      const body = await chatRes.json();
-      expect((body.data?.message || body.data?.content || '').length).toBeGreaterThan(0);
-    }
+    await setTemplateAndSave(page, 'Customer Support');
+    await ensurePublished(page);
+    await chatViaWidget(page, 'I need help with my account');
   });
 
   test('QT-BEH-002: Chat works with Sales Assistant template', async ({ page }) => {
-    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
-      data: { system_prompt: 'You are a consultative sales assistant. Your goal is to understand what visitors need.' },
-    });
-    await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
-
-    const chatRes = await page.request.post(`/api/chat/${CHATBOT_ID}`, {
-      data: { message: 'What products do you offer?', stream: false, session_id: `sales-test-${Date.now()}` },
-    });
-    if (chatRes.ok()) {
-      const body = await chatRes.json();
-      expect((body.data?.message || body.data?.content || '').length).toBeGreaterThan(0);
-    }
+    await setTemplateAndSave(page, 'Sales Assistant');
+    await ensurePublished(page);
+    await chatViaWidget(page, 'What products do you offer?');
   });
 
   test('QT-BEH-003: Chat works with Lead Generation template', async ({ page }) => {
-    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
-      data: { system_prompt: 'You are a friendly assistant focused on helping visitors and capturing leads.' },
-    });
-    await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
-
-    const chatRes = await page.request.post(`/api/chat/${CHATBOT_ID}`, {
-      data: { message: 'Tell me about your services', stream: false, session_id: `lead-test-${Date.now()}` },
-    });
-    if (chatRes.ok()) {
-      const body = await chatRes.json();
-      expect((body.data?.message || body.data?.content || '').length).toBeGreaterThan(0);
-    }
+    await setTemplateAndSave(page, 'Lead Generation');
+    await ensurePublished(page);
+    await chatViaWidget(page, 'Tell me about your services');
   });
 
   test('QT-BEH-004: Chat works with E-Commerce template', async ({ page }) => {
-    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
-      data: { system_prompt: 'You are a product advisor for this store. Help shoppers find the right products.' },
-    });
-    await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
-
-    const chatRes = await page.request.post(`/api/chat/${CHATBOT_ID}`, {
-      data: { message: 'What do you recommend?', stream: false, session_id: `ecom-test-${Date.now()}` },
-    });
-    if (chatRes.ok()) {
-      const body = await chatRes.json();
-      expect((body.data?.message || body.data?.content || '').length).toBeGreaterThan(0);
-    }
+    await setTemplateAndSave(page, 'E-Commerce');
+    await ensurePublished(page);
+    await chatViaWidget(page, 'What do you recommend?');
   });
 
   test('QT-BEH-005: Chat works with Appointment Booking template', async ({ page }) => {
-    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
-      data: { system_prompt: 'You are a scheduling assistant. Guide visitors toward booking a meeting.' },
-    });
-    await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
-
-    const chatRes = await page.request.post(`/api/chat/${CHATBOT_ID}`, {
-      data: { message: 'I want to book a demo', stream: false, session_id: `booking-test-${Date.now()}` },
-    });
-    if (chatRes.ok()) {
-      const body = await chatRes.json();
-      expect((body.data?.message || body.data?.content || '').length).toBeGreaterThan(0);
-    }
+    await setTemplateAndSave(page, 'Appointment Booking');
+    await ensurePublished(page);
+    await chatViaWidget(page, 'I want to book a demo');
   });
 
   test('QT-BEH-006: Chat works with Technical Support template', async ({ page }) => {
-    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
-      data: { system_prompt: 'You are a technical support specialist. Diagnose and resolve technical issues.' },
-    });
-    await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
-
-    const chatRes = await page.request.post(`/api/chat/${CHATBOT_ID}`, {
-      data: { message: 'My app keeps crashing', stream: false, session_id: `tech-test-${Date.now()}` },
-    });
-    if (chatRes.ok()) {
-      const body = await chatRes.json();
-      expect((body.data?.message || body.data?.content || '').length).toBeGreaterThan(0);
-    }
+    await setTemplateAndSave(page, 'Technical Support');
+    await ensurePublished(page);
+    await chatViaWidget(page, 'My app keeps crashing');
   });
 
   test('QT-BEH-007: Chat works with Onboarding Guide template', async ({ page }) => {
-    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
-      data: { system_prompt: 'You are an onboarding assistant. Help new users get set up quickly.' },
-    });
-    await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
-
-    const chatRes = await page.request.post(`/api/chat/${CHATBOT_ID}`, {
-      data: { message: 'I just signed up, what should I do first?', stream: false, session_id: `onboard-test-${Date.now()}` },
-    });
-    if (chatRes.ok()) {
-      const body = await chatRes.json();
-      expect((body.data?.message || body.data?.content || '').length).toBeGreaterThan(0);
-    }
+    await setTemplateAndSave(page, 'Onboarding Guide');
+    await ensurePublished(page);
+    await chatViaWidget(page, 'I just signed up, what should I do first?');
   });
 
   test('QT-BEH-008: Chat works with Re-Engagement template', async ({ page }) => {
-    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
-      data: { system_prompt: 'You are a re-engagement assistant. Welcome back returning visitors.' },
-    });
-    await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
-
-    const chatRes = await page.request.post(`/api/chat/${CHATBOT_ID}`, {
-      data: { message: 'I was here last week', stream: false, session_id: `reengage-test-${Date.now()}` },
-    });
-    if (chatRes.ok()) {
-      const body = await chatRes.json();
-      expect((body.data?.message || body.data?.content || '').length).toBeGreaterThan(0);
-    }
+    await setTemplateAndSave(page, 'Re-Engagement');
+    await ensurePublished(page);
+    await chatViaWidget(page, 'I was here last week');
   });
 
   test('QT-BEH-009: Chat works with FAQ Bot template', async ({ page }) => {
-    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
-      data: { system_prompt: 'You are a concise FAQ assistant. Answer questions accurately.' },
-    });
-    await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
-
-    const chatRes = await page.request.post(`/api/chat/${CHATBOT_ID}`, {
-      data: { message: 'What are your business hours?', stream: false, session_id: `faq-test-${Date.now()}` },
-    });
-    if (chatRes.ok()) {
-      const body = await chatRes.json();
-      expect((body.data?.message || body.data?.content || '').length).toBeGreaterThan(0);
-    }
+    await setTemplateAndSave(page, 'FAQ Bot');
+    await ensurePublished(page);
+    await chatViaWidget(page, 'What are your business hours?');
   });
 
   test('QT-BEH-010: Chat works with Helpful Assistant template', async ({ page }) => {
-    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
-      data: { system_prompt: 'You are a friendly, knowledgeable assistant for this business.' },
-    });
-    await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
-
-    const chatRes = await page.request.post(`/api/chat/${CHATBOT_ID}`, {
-      data: { message: 'Can you help me?', stream: false, session_id: `helpful-test-${Date.now()}` },
-    });
-    if (chatRes.ok()) {
-      const body = await chatRes.json();
-      expect((body.data?.message || body.data?.content || '').length).toBeGreaterThan(0);
-    }
+    await setTemplateAndSave(page, 'Helpful Assistant');
+    await ensurePublished(page);
+    await chatViaWidget(page, 'Can you help me?');
   });
 
   test('QT-BEH-CLEANUP: Restore E2E bot prompt', async ({ page }) => {
-    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
-      data: { system_prompt: 'You are a helpful test assistant.' },
-    });
+    await gotoPromptSection(page);
+    const promptField = page.locator('textarea#system_prompt').first();
+    await promptField.fill('You are a helpful test assistant.');
+    await page.locator('button', { hasText: 'Save Changes' }).first().click();
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: /saved/i })).toBeVisible({ timeout: 15000 }).catch(() => {});
   });
 });
 
@@ -543,23 +615,29 @@ test.describe('Template Save Flow via UI', () => {
 
     // Click Save Changes
     await page.locator('button', { hasText: 'Save Changes' }).first().click();
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: /saved/i })).toBeVisible({ timeout: 15000 }).catch(() => {});
 
     // Verify save succeeded
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
   });
 
   test('QT-SAVE-002: Saved template persists on page reload', async ({ page }) => {
-    // Save a known prompt via API (avoids Tooltip click-interception issues)
-    const testPrompt = 'You are a re-engagement assistant. Saved for persistence test.';
-    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
-      data: { system_prompt: testPrompt },
-    });
-
-    // Load settings page and verify it shows the saved prompt
+    // Save a known prompt via the settings UI
     await gotoPromptSection(page);
     const promptField = page.locator('textarea#system_prompt').first();
-    await expect(promptField).toHaveValue(testPrompt, { timeout: 10000 });
+    const testPrompt = 'You are a re-engagement assistant. Saved for persistence test.';
+    await promptField.fill(testPrompt);
+
+    // Save changes
+    await page.locator('button', { hasText: 'Save Changes' }).first().click();
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: /saved/i })).toBeVisible({ timeout: 15000 }).catch(() => {});
+
+    // Reload and verify it persisted
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
+    await page.locator('nav button', { hasText: 'Chatbot Instructions' }).click();
+    const reloadedField = page.locator('textarea#system_prompt').first();
+    await expect(reloadedField).toHaveValue(testPrompt, { timeout: 10000 });
   });
 
   test('QT-SAVE-CLEANUP: Restore E2E bot prompt', async ({ page }) => {
@@ -569,6 +647,6 @@ test.describe('Template Save Flow via UI', () => {
 
     await promptField.fill('You are a helpful test assistant.');
     await page.locator('button', { hasText: 'Save Changes' }).first().click();
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: /saved/i })).toBeVisible({ timeout: 15000 }).catch(() => {});
   });
 });

@@ -8,6 +8,8 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import type { EscalationReason, EscalationConfig, TelegramConfig } from '@/lib/chatbots/types';
 import { DEFAULT_TELEGRAM_CONFIG, DEFAULT_LIVE_HANDOFF_CONFIG } from '@/lib/chatbots/types';
 import { initiateHandoff } from '@/lib/telegram/handoff';
+import { emitWebhookEvent } from '@/lib/webhooks/emit';
+import { sendNewEscalationNotification } from '@/lib/email/resend';
 
 const VALID_REASONS: EscalationReason[] = ['wrong_answer', 'offensive_content', 'need_human_help', 'other'];
 const MAX_REPORTS_PER_HOUR = 5;
@@ -48,7 +50,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     // Verify chatbot exists and is active
     const { data: chatbot, error: chatbotError } = await (supabase as any)
       .from('chatbots')
-      .select('id, status, escalation_config, live_handoff_config, telegram_config')
+      .select('id, user_id, status, escalation_config, live_handoff_config, telegram_config')
       .eq('id', chatbotId)
       .single();
 
@@ -133,6 +135,38 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     }
 
     console.log(`[Escalation] Report saved for chatbot ${chatbotId}, session ${session_id}, reason: ${reason}`);
+
+    // Emit escalation.created webhook (fire-and-forget)
+    if (chatbot.user_id) {
+      emitWebhookEvent(chatbot.user_id, 'escalation.created', {
+        chatbot_id: chatbotId,
+        escalation_id: result.id,
+        session_id,
+        conversation_id: conversation_id || null,
+        reason,
+        details: details || null,
+      }).catch(() => {});
+    }
+
+    // Notify chatbot owner if they have the preference enabled
+    if (chatbot.user_id) {
+      const chatbotName = (chatbot as any).name as string | undefined;
+      supabase
+        .from('profiles')
+        .select('email, notify_new_escalation')
+        .eq('id', chatbot.user_id)
+        .single()
+        .then(({ data: ownerProfile }) => {
+          if (ownerProfile?.notify_new_escalation) {
+            sendNewEscalationNotification(ownerProfile.email, {
+              visitorName: body.visitor_name,
+              reason,
+              chatbotName: chatbotName || chatbotId,
+              dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/chatbots/${chatbotId}/tickets`,
+            }).catch(() => {});
+          }
+        }, () => {});
+    }
 
     // Auto-trigger handoff when user requests human help
     let handoffInitiated = false;

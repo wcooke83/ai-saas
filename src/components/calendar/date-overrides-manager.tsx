@@ -213,7 +213,7 @@ export function DateOverridesManager({
             </CardDescription>
           </div>
           {!showForm && (
-            <Tooltip content="Add a date override">
+            <Tooltip content="Set custom hours for a specific date, overriding regular business hours.">
               <Button size="sm" variant="outline" onClick={() => { resetForm(); setShowForm(true); }}>
                 <Plus className="w-3.5 h-3.5 mr-1" />
                 Add Date Override
@@ -401,8 +401,7 @@ export function DateOverridesManager({
                         )}
                       </div>
                       <div className="flex items-center gap-1 flex-shrink-0">
-                        <Tooltip content="Edit this date override">
-                          <Button
+                        <Button
                             size="sm"
                             variant="ghost"
                             className="text-secondary-500 hover:text-secondary-700 h-7 w-7 p-0"
@@ -410,9 +409,7 @@ export function DateOverridesManager({
                           >
                             <Pencil className="w-3.5 h-3.5" />
                           </Button>
-                        </Tooltip>
-                        <Tooltip content="Remove this date override">
-                          <Button
+                        <Button
                             size="sm"
                             variant="ghost"
                             className="text-red-500 hover:text-red-700 h-7 w-7 p-0"
@@ -420,7 +417,6 @@ export function DateOverridesManager({
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
-                        </Tooltip>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">

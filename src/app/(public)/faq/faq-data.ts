@@ -31,7 +31,7 @@ export const faqCategories: FaqCategory[] = [
       {
         id: 'credits-what',
         question: 'What are credits?',
-        answer: 'Credits are consumed each time your chatbot answers a question or processes a knowledge source. A typical chatbot conversation uses 1-3 credits depending on the length of the response.',
+        answer: 'Credits are consumed each time your chatbot answers a question or processes a knowledge source. A simple one-line answer uses ~1 credit. A detailed multi-paragraph response uses 2–3 credits. A back-and-forth conversation of 10 messages typically uses 5–15 credits total.',
         popular: true,
       },
       {

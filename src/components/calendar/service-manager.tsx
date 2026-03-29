@@ -440,8 +440,7 @@ export function ServiceManager({
                 )}
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
-                <Tooltip content="Edit service">
-                  <Button
+                <Button
                     size="icon"
                     variant="ghost"
                     className="h-8 w-8"
@@ -450,8 +449,7 @@ export function ServiceManager({
                   >
                     <Pencil className="w-4 h-4" />
                   </Button>
-                </Tooltip>
-                <Tooltip content="Delete service">
+                <Tooltip content="Permanently delete this service. Existing bookings are not affected.">
                   <Button
                     size="icon"
                     variant="ghost"

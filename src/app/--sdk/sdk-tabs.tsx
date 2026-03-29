@@ -501,9 +501,9 @@ const themeColorVariables = {
     ],
     // Tooltip
     tooltip: [
-      { name: '--tooltip-bg', label: 'Background', defaultValue: '15 23 42' },
-      { name: '--tooltip-border', label: 'Border', defaultValue: '51 65 85' },
-      { name: '--tooltip-text', label: 'Text', defaultValue: '241 245 249' },
+      { name: '--tooltip-bg', label: 'Background', defaultValue: '241 245 249' },
+      { name: '--tooltip-border', label: 'Border', defaultValue: '148 163 184' },
+      { name: '--tooltip-text', label: 'Text', defaultValue: '15 23 42' },
     ],
     // Toast
     toastSuccess: [

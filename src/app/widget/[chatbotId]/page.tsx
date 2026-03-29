@@ -33,6 +33,8 @@ export default function WidgetPage({ params }: WidgetPageProps) {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notPublished, setNotPublished] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
+  const [chatbotName, setChatbotName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<Record<string, string> | null>(null);
   const [userContext, setUserContext] = useState<Record<string, unknown> | null>(null);
@@ -68,6 +70,18 @@ export default function WidgetPage({ params }: WidgetPageProps) {
         const response = await fetch(configUrl);
         if (response.status === 404) {
           setNotPublished(true);
+          // Try to detect if the current user owns this chatbot.
+          // May silently fail in partitioned iframe contexts — that's expected.
+          try {
+            const ownerRes = await fetch(`/api/chatbots/${chatbotId}`);
+            if (ownerRes.ok) {
+              const ownerData = await ownerRes.json();
+              setIsOwner(true);
+              setChatbotName(ownerData.data?.name ?? null);
+            }
+          } catch {
+            // Ignore — generic message will show
+          }
           return;
         }
         const data = await response.json();
@@ -95,13 +109,26 @@ export default function WidgetPage({ params }: WidgetPageProps) {
   }
 
   if (notPublished) {
+    if (isOwner) {
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-transparent">
+          <div className="text-center p-6 max-w-sm">
+            <p className="font-medium text-gray-700">
+              {chatbotName ? `"${chatbotName}" isn't published yet.` : "This chatbot isn't published yet."}
+            </p>
+            <p className="text-sm mt-2">
+              <a href={`/dashboard/chatbots/${chatbotId}`} className="text-gray-500 underline underline-offset-2">
+                Publish it now →
+              </a>
+            </p>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="flex items-center justify-center min-h-screen bg-transparent">
         <div className="text-center p-6 max-w-sm">
-          <p className="font-medium text-gray-700">This chatbot is not yet published.</p>
-          <p className="text-sm text-gray-500 mt-2">
-            If you own this chatbot, publish it from your VocUI dashboard.
-          </p>
+          <p className="font-medium text-gray-700">This chatbot isn&apos;t available yet.</p>
         </div>
       </div>
     );

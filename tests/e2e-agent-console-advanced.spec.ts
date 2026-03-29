@@ -16,6 +16,8 @@ const WIDGET_URL = `/widget/${DASHBOARD_CHATBOT_ID}`;
 const SETTINGS_URL = `/dashboard/chatbots/${DASHBOARD_CHATBOT_ID}/settings`;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const E2E_SECRET = process.env.E2E_TEST_SECRET!;
+const BASE_URL = 'http://localhost:3030';
 
 const createdConversationIds: string[] = [];
 
@@ -41,6 +43,20 @@ async function supabaseSelect(table: string, filter: string) {
     },
   });
   return res.json();
+}
+
+/** Upsert a row via Supabase REST API */
+async function supabaseUpsert(table: string, data: Record<string, unknown>) {
+  await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SERVICE_KEY,
+      'Authorization': `Bearer ${SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates,return=minimal',
+    },
+    body: JSON.stringify(data),
+  });
 }
 
 /** Open widget page and wait for chat to be ready */
@@ -115,7 +131,7 @@ async function gotoAgentConsole(page: Page) {
 /** Enable escalation on the dashboard chatbot via the settings UI */
 async function enableEscalationViaUI(page: Page): Promise<void> {
   await page.goto(SETTINGS_URL);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   const escalationSection = page.locator('text=Allow visitors to report wrong answers').locator('..');
   const toggle = escalationSection.locator('button[role="switch"]');
@@ -137,11 +153,39 @@ async function enableEscalationViaUI(page: Page): Promise<void> {
 test.describe('29. Agent Console Advanced Behaviors', () => {
   test.setTimeout(180_000);
 
-  test.beforeAll(async ({ browser }) => {
-    // Step 1: Enable escalation on the chatbot via settings UI
-    const setupPage = await browser.newPage();
+  test.beforeAll(async ({ browser }, testInfo) => {
+    testInfo.setTimeout(180_000);
+    // Step 0: Ensure the e2e chatbot exists and is published via app API
+    await fetch(`${BASE_URL}/api/e2e/ensure-chatbot`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        secret: E2E_SECRET,
+        chatbot_id: DASHBOARD_CHATBOT_ID,
+        is_published: true,
+      }),
+    });
+
+    // Step 1: Verify publish status via the dashboard UI, then enable escalation
+    const authCtx = await browser.newContext({ storageState: 'tests/auth/e2e-storage.json' });
+    const setupPage = await authCtx.newPage();
+    await setupPage.goto(`/dashboard/chatbots/${DASHBOARD_CHATBOT_ID}`);
+    await setupPage.waitForLoadState('domcontentloaded');
+    // If not yet published, click Publish
+    const publishBtn = setupPage.getByRole('button', { name: 'Publish' });
+    if (await publishBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const publishPromise = setupPage.waitForResponse(
+        (res) => res.url().includes(`/api/chatbots/${DASHBOARD_CHATBOT_ID}/publish`) && res.request().method() === 'POST',
+        { timeout: 15000 }
+      );
+      await publishBtn.click();
+      await publishPromise;
+    }
+
+    // Step 2: Enable escalation on the chatbot via settings UI
     await enableEscalationViaUI(setupPage);
     await setupPage.close();
+    await authCtx.close();
 
     // Step 2: Create 3 conversations via the widget UI
     const messages = [
@@ -169,7 +213,8 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     await escalatePage.close();
 
     // Step 4: Use agent console UI to take over conv 1 and conv 2
-    const agentPage = await browser.newPage();
+    const agentCtx = await browser.newContext({ storageState: 'tests/auth/e2e-storage.json' });
+    const agentPage = await agentCtx.newPage();
     await gotoAgentConsole(agentPage);
 
     // Take over first pending (becomes conv 1 - active)
@@ -205,6 +250,7 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     }
 
     await agentPage.close();
+    await agentCtx.close();
   });
 
   test.afterAll(async () => {

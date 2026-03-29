@@ -15,6 +15,7 @@ import {
   Zap,
   Shield,
 } from 'lucide-react';
+import { InfoTooltip } from '@/components/ui/tooltip';
 import type { AutoTopupSettings as AutoTopupSettingsType } from '@/types/billing';
 
 interface AutoTopupSettingsProps {
@@ -155,8 +156,9 @@ export default function AutoTopupSettings({ purchaseSource }: AutoTopupSettingsP
         {/* Enable/Disable Toggle */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">
+            <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 flex items-center gap-1">
               Enable Auto Top-up
+              <InfoTooltip content="Automatically purchases credits when your balance falls below the threshold, so your chatbot never goes offline due to insufficient credits." />
             </p>
             <p className="text-xs text-secondary-500 dark:text-secondary-400">
               Automatically purchase credits when balance drops below threshold
@@ -188,8 +190,9 @@ export default function AutoTopupSettings({ purchaseSource }: AutoTopupSettingsP
         <div className={`space-y-4 ${!enabled ? 'opacity-50 pointer-events-none' : ''}`}>
           {/* Threshold */}
           <div>
-            <Label htmlFor="threshold" className="text-sm font-medium">
+            <Label htmlFor="threshold" className="text-sm font-medium flex items-center gap-1">
               Trigger Threshold (credits)
+              <InfoTooltip content="Your balance must fall below this level to trigger an automatic top-up. Set it high enough to avoid gaps in service." />
             </Label>
             <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-1.5">
               Auto top-up triggers when your total balance falls below this amount
@@ -206,8 +209,9 @@ export default function AutoTopupSettings({ purchaseSource }: AutoTopupSettingsP
 
           {/* Amount */}
           <div>
-            <Label htmlFor="amount" className="text-sm font-medium">
+            <Label htmlFor="amount" className="text-sm font-medium flex items-center gap-1">
               Top-up Amount (credits)
+              <InfoTooltip content="The number of credits purchased each time auto top-up triggers." />
             </Label>
             <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-1.5">
               Number of credits to purchase each time ({estimatedCost} USD per top-up)

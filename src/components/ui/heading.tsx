@@ -8,7 +8,7 @@ interface H1Props {
 }
 
 const variantStyles = {
-  public: 'text-5xl font-bold tracking-tight sm:text-6xl lg:text-8xl',
+  public: 'text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl',
   dashboard: 'text-2xl font-bold',
 };
 

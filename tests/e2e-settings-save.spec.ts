@@ -30,6 +30,10 @@ test.describe('Chatbot Settings Save', () => {
   test('update system prompt via settings form', async ({ page }) => {
     await page.goto(SETTINGS_URL);
     await page.waitForLoadState('domcontentloaded');
+    await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
+
+    // Navigate to Chatbot Instructions section (formerly "System Prompt")
+    await page.locator('nav button', { hasText: 'Chatbot Instructions' }).click();
 
     const promptTextarea = page.locator('#system_prompt');
     await expect(promptTextarea).toBeVisible({ timeout: 10000 });
@@ -48,12 +52,10 @@ test.describe('Chatbot Settings Save', () => {
   test('update temperature via settings form', async ({ page }) => {
     await page.goto(SETTINGS_URL);
     await page.waitForLoadState('domcontentloaded');
+    await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
 
-    // Navigate to the Model section if needed
-    const modelSection = page.locator('nav button', { hasText: 'Model' });
-    if (await modelSection.isVisible().catch(() => false)) {
-      await modelSection.click();
-    }
+    // Navigate to AI Model section
+    await page.locator('nav button', { hasText: 'AI Model' }).click();
 
     const tempSlider = page.locator('#temperature');
     await expect(tempSlider).toBeVisible({ timeout: 10000 });

@@ -3173,7 +3173,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                     fontSize: '13px', color: config.botBubbleTextColor || '#0f172a', opacity: 0.8,
                   }}>
                     {chatDisabled === 'message_limit'
-                      ? 'Our chat assistant is temporarily unavailable. Please try again later or use one of the options below.'
+                      ? 'This chatbot has reached its message limit for now. Please check back later.'
                       : 'This chatbot is currently unavailable. Please check back later.'}
                   </span>
                 </div>

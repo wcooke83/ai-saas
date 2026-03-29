@@ -9,6 +9,8 @@ test.describe('Chatbot Publish/Unpublish', () => {
 
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}`);
     await page.waitForLoadState('domcontentloaded');
+    // Wait for React hydration (same pattern as test 3 which passes)
+    await expect(page.getByRole('heading').first()).toBeVisible({ timeout: 30000 });
 
     // Click the Publish button on the overview page
     const publishButton = page.getByRole('button', { name: 'Publish' });
@@ -21,8 +23,8 @@ test.describe('Chatbot Publish/Unpublish', () => {
     const publishResponse = await publishPromise;
     expect(publishResponse.ok()).toBeTruthy();
 
-    // Verify Published badge appears
-    await expect(page.getByText('Published')).toBeVisible({ timeout: 5000 });
+    // Verify Published badge appears (exact: true avoids matching the toast notification)
+    await expect(page.getByText('Published', { exact: true })).toBeVisible({ timeout: 5000 });
   });
 
   test('post-publish toast has Go to Deploy action button (P2 fix)', async ({ page }) => {
@@ -31,6 +33,7 @@ test.describe('Chatbot Publish/Unpublish', () => {
 
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}`);
     await page.waitForLoadState('domcontentloaded');
+    await expect(page.getByRole('heading').first()).toBeVisible({ timeout: 30000 });
 
     const publishButton = page.getByRole('button', { name: 'Publish' });
     await expect(publishButton).toBeVisible({ timeout: 10000 });
@@ -89,22 +92,27 @@ test.describe('Chatbot Publish/Unpublish', () => {
     const publishResponse = await publishPromise;
     expect(publishResponse.ok()).toBeTruthy();
 
-    // Verify both Published badge and active status are shown
-    await expect(page.getByText('Published')).toBeVisible({ timeout: 5000 });
+    // Verify both Published badge and active status are shown (exact: true avoids matching toast)
+    await expect(page.getByText('Published', { exact: true })).toBeVisible({ timeout: 5000 });
     await expect(page.getByText('active', { exact: true }).or(page.getByText('Active', { exact: true }))).toBeVisible({ timeout: 5000 });
   });
 
   test('published chatbot widget config is accessible', async ({ page }) => {
+    // Ensure published before navigating (don't depend on prior test state)
+    await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
+
     // Navigate to deploy page and verify widget preview is accessible
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/deploy`);
     await page.waitForLoadState('domcontentloaded');
+    // Wait for React hydration — deploy page heading
+    await expect(page.getByRole('heading', { name: /Deploy/i })).toBeVisible({ timeout: 20000 });
 
     // The deploy page should NOT show the "Chatbot not published" banner
     await expect(page.getByText('Chatbot not published')).not.toBeVisible();
 
     // Widget embed tab should be visible with embed codes
-    await expect(page.getByText('Widget Embed')).toBeVisible();
-    await expect(page.getByText('Script Tag')).toBeVisible();
+    await expect(page.getByText('Widget Embed')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Script Tag')).toBeVisible({ timeout: 5000 });
   });
 
   test('unpublish chatbot via overview page button', async ({ page }) => {
@@ -123,7 +131,7 @@ test.describe('Chatbot Publish/Unpublish', () => {
     expect(unpublishResponse.ok()).toBeTruthy();
 
     // Verify Published badge is no longer visible
-    await expect(page.getByText('Published').first()).not.toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('Published', { exact: true })).not.toBeVisible({ timeout: 5000 });
   });
 
   test('deploy page shows unpublished warning', async ({ page }) => {
@@ -136,7 +144,10 @@ test.describe('Chatbot Publish/Unpublish', () => {
     await expect(page.getByRole('button', { name: /Publish now/i })).toBeVisible();
   });
 
-  test('re-publish for other tests', async ({ page }) => {
+  test('re-publish for other tests', async ({ page, request }) => {
+    // Ensure unpublished first so we can always click Publish
+    await request.delete(`/api/chatbots/${CHATBOT_ID}/publish`).catch(() => {});
+
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}`);
     await page.waitForLoadState('domcontentloaded');
 

@@ -27,6 +27,7 @@ const defaultNavItems: NavItem[] = [
 
 const menuLinks = {
   product: [
+    { label: 'Appointment Booking', href: '/chatbot-booking' },
     { label: 'Pricing', href: '/pricing' },
     { label: 'SDK', href: '/sdk' },
     { label: 'Dashboard', href: '/dashboard' },

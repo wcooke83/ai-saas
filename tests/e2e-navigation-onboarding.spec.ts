@@ -24,7 +24,7 @@ test.describe('24. Navigation & Onboarding', () => {
     await expect(nav.getByText('Deploy')).toBeVisible();
 
     // "More" dropdown trigger
-    const moreButton = nav.getByRole('button').filter({ hasText: /More|Analytics|Performance|Leads|Surveys|Sentiment|Reports|Agent Console/ });
+    const moreButton = nav.getByRole('button').filter({ hasText: /More|Performance|Leads|Surveys|Sentiment|Issues|Tickets|Contact|Articles|Live Conversations/ });
     await expect(moreButton).toBeVisible();
   });
 
@@ -34,13 +34,13 @@ test.describe('24. Navigation & Onboarding', () => {
     const nav = page.locator('nav[aria-label="Chatbot navigation"]');
     await expect(nav).toBeVisible({ timeout: 15000 });
 
-    const moreButton = nav.getByRole('button').filter({ hasText: /More|Analytics|Performance|Leads|Surveys|Sentiment|Reports|Agent Console/ });
+    const moreButton = nav.getByRole('button').filter({ hasText: /More|Performance|Leads|Surveys|Sentiment|Issues|Tickets|Contact|Articles|Live Conversations/ });
     await moreButton.click();
     await expect(moreButton).toHaveAttribute('aria-expanded', 'true');
 
-    // Dropdown items
-    await expect(page.getByText('Agent Console')).toBeVisible();
-    await expect(page.getByText('Analytics')).toBeVisible();
+    // Dropdown items — Agent Console was renamed to Live Conversations; Analytics is now primary nav
+    await expect(page.getByText('Performance')).toBeVisible();
+    await expect(page.getByText('Leads')).toBeVisible();
 
     // Close by clicking outside
     await page.locator('body').click({ position: { x: 10, y: 10 } });
@@ -48,15 +48,15 @@ test.describe('24. Navigation & Onboarding', () => {
   });
 
   test('NAV-003: Active secondary item shown in trigger', async ({ page }) => {
-    await page.goto(`${BASE}/analytics`, { waitUntil: 'commit' });
+    // Analytics is now in primary nav — use /performance (a secondary nav item) instead
+    await page.goto(`${BASE}/performance`, { waitUntil: 'commit' });
     await page.waitForLoadState('domcontentloaded');
 
     const nav = page.locator('nav[aria-label="Chatbot navigation"]');
     await expect(nav).toBeVisible({ timeout: 15000 });
-    await expect(nav).toBeVisible({ timeout: 15000 });
 
-    // The dropdown button should show "Analytics" when on analytics page
-    const moreButton = nav.getByRole('button').filter({ hasText: /Analytics/ });
+    // The dropdown button should show "Performance" when on the performance page
+    const moreButton = nav.getByRole('button').filter({ hasText: /Performance/ });
     await expect(moreButton).toBeVisible({ timeout: 10000 });
   });
 
@@ -174,13 +174,13 @@ test.describe('37. Layout & Breadcrumb', () => {
     const nav = page.locator('nav[aria-label="Chatbot navigation"]');
     await expect(nav).toBeVisible({ timeout: 15000 });
 
-    const moreButton = nav.getByRole('button').filter({ hasText: /More|Analytics|Performance|Leads|Surveys|Sentiment|Reports|Agent Console/ });
+    const moreButton = nav.getByRole('button').filter({ hasText: /More|Performance|Leads|Surveys|Sentiment|Issues|Tickets|Contact|Articles|Live Conversations/ });
     await moreButton.click();
     await expect(moreButton).toHaveAttribute('aria-expanded', 'true');
 
-    // Click a dropdown item to navigate
-    const analyticsLink = page.getByRole('link', { name: /Analytics/i });
-    await analyticsLink.click();
+    // Click a dropdown item to navigate (items have role="menuitem", not "link")
+    const analyticsItem = page.getByRole('menuitem', { name: /Analytics/i });
+    await analyticsItem.click();
 
     await page.waitForURL(`**/${CHATBOT_ID}/analytics`, { timeout: 15000 });
 

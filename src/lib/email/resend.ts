@@ -346,6 +346,173 @@ export async function sendCreditPurchaseConfirmation(
   return data;
 }
 
+export async function sendCreditAlert75Email(to: string, firstName: string) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const { data, error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: "You've used 75% of your VocUI credits this month",
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #6366f1;">Heads up on your credits</h2>
+        <p>Hi ${firstName},</p>
+        <p>You've used 75% of your monthly credits on VocUI. Your chatbots are still running fine — this is just a heads-up.</p>
+        <p>If you run out, your chatbots will stop responding until credits are renewed or topped up.</p>
+        <p><strong>Two ways to stay covered:</strong></p>
+        <ul>
+          <li>Enable auto-topup so credits refill automatically when you run low</li>
+          <li>Buy a one-time credit pack now</li>
+        </ul>
+        <p>
+          <a href="${appUrl}/dashboard/billing"
+             style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+            Add Credits
+          </a>
+        </p>
+        <p style="color: #666; font-size: 14px; margin-top: 32px;">The VocUI Team</p>
+      </div>
+    `,
+  });
+
+  if (error) {
+    console.error('Failed to send credit alert 75% email:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function sendCreditAlert90Email(to: string, firstName: string) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const { data, error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: 'Action needed: your VocUI credits are almost gone',
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #6366f1;">Your credits are almost gone</h2>
+        <p>Hi ${firstName},</p>
+        <p>You have less than 10% of your monthly credits left. When credits hit zero, your chatbots go offline and stop responding to users.</p>
+        <p>To keep them running without interruption, enable auto-topup or add credits now.</p>
+        <p>
+          <a href="${appUrl}/dashboard/billing"
+             style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+            Add Credits
+          </a>
+        </p>
+        <p style="color: #666; font-size: 14px; margin-top: 32px;">The VocUI Team</p>
+      </div>
+    `,
+  });
+
+  if (error) {
+    console.error('Failed to send credit alert 90% email:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function sendFirstConversationEmail(to: string, chatbotName: string) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const { data, error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `"${chatbotName}" just answered its first question`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #6366f1;">Your chatbot is live and working</h2>
+        <p>${chatbotName} just answered its first question from a real visitor.</p>
+        <p>Check the conversation in your dashboard to see how it went.</p>
+        <p>
+          <a href="${appUrl}/dashboard/chatbots"
+             style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+            View Conversations
+          </a>
+        </p>
+        <p style="color: #666; font-size: 14px; margin-top: 32px;">The VocUI Team</p>
+      </div>
+    `,
+  });
+
+  if (error) {
+    console.error('Failed to send first conversation email:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function sendNewTicketNotification(
+  to: string,
+  { ticketId, visitorName, subject, chatbotName, dashboardUrl }: {
+    ticketId: string; visitorName: string; subject?: string; chatbotName: string; dashboardUrl: string;
+  }
+) {
+  const { data, error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `New ticket from ${visitorName} — ${chatbotName}`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #6366f1; margin-bottom: 4px;">New support ticket</h2>
+        <p style="color: #666; margin-top: 0;">A visitor submitted a ticket through <strong>${chatbotName}</strong>.</p>
+        <div style="background: #f3f4f6; border-radius: 8px; padding: 16px; margin: 16px 0;">
+          <p style="margin: 0 0 8px;"><strong>From:</strong> ${visitorName}</p>
+          <p style="margin: 0 0 8px;"><strong>Reference:</strong> ${ticketId}</p>
+          ${subject ? `<p style="margin: 0;"><strong>Subject:</strong> ${subject}</p>` : ''}
+        </div>
+        <p>
+          <a href="${dashboardUrl}" style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+            View Ticket
+          </a>
+        </p>
+      </div>
+    `,
+  });
+
+  if (error) {
+    console.error('Failed to send new ticket notification:', error);
+    throw error;
+  }
+  return data;
+}
+
+export async function sendNewEscalationNotification(
+  to: string,
+  { visitorName, reason, chatbotName, dashboardUrl }: {
+    visitorName?: string; reason: string; chatbotName: string; dashboardUrl: string;
+  }
+) {
+  const fromLabel = visitorName || 'A visitor';
+  const { data, error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `Escalation flagged in ${chatbotName}`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #f97316; margin-bottom: 4px;">Escalation flagged</h2>
+        <p style="color: #666; margin-top: 0;">${fromLabel} escalated a conversation in <strong>${chatbotName}</strong>.</p>
+        <div style="background: #f3f4f6; border-radius: 8px; padding: 16px; margin: 16px 0;">
+          <p style="margin: 0 0 8px;"><strong>Visitor:</strong> ${fromLabel}</p>
+          <p style="margin: 0;"><strong>Reason:</strong> ${reason}</p>
+        </div>
+        <p>
+          <a href="${dashboardUrl}" style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+            View Issues
+          </a>
+        </p>
+      </div>
+    `,
+  });
+
+  if (error) {
+    console.error('Failed to send new escalation notification:', error);
+    throw error;
+  }
+  return data;
+}
+
 export async function sendApiKeyCreatedEmail(to: string, keyName: string, keyPrefix: string) {
   const { data, error } = await resend.emails.send({
     from: FROM_EMAIL,

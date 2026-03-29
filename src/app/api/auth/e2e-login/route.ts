@@ -49,19 +49,22 @@ export async function POST(req: NextRequest) {
       });
       await new Promise(r => setTimeout(r, 500));
 
-      // Set subscription to pro
-      const { createClient: createAdmin } = await import('@/lib/supabase/admin');
-      const db = createAdmin();
-      const { data: users } = await adminClient.auth.admin.listUsers();
-      const user = users?.users?.find(u => u.email === E2E_TEST_EMAIL);
-      if (user) {
-        await (db as any).from('subscriptions').update({ plan: 'pro', status: 'active' }).eq('user_id', user.id);
-      }
-
       linkResult = await adminClient.auth.admin.generateLink({
         type: 'magiclink',
         email: E2E_TEST_EMAIL,
       });
+    }
+
+    // Always ensure E2E user has pro subscription so tests can create chatbots etc.
+    const { createClient: createAdmin } = await import('@/lib/supabase/admin');
+    const db = createAdmin();
+    const { data: users } = await adminClient.auth.admin.listUsers();
+    const e2eUser = users?.users?.find(u => u.email === E2E_TEST_EMAIL);
+    if (e2eUser) {
+      await (db as any).from('subscriptions').upsert(
+        { user_id: e2eUser.id, plan: 'pro', status: 'active' },
+        { onConflict: 'user_id' }
+      );
     }
 
     if (linkResult.error || !linkResult.data) {

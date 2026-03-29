@@ -25,7 +25,9 @@ import {
   Activity,
   Download,
   Shield,
+  Info,
 } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import type { Database } from '@/types/database';
 
@@ -397,7 +399,12 @@ export default function UsagePage() {
                 <Sparkles className="w-6 h-6 text-primary-600 dark:text-primary-400" aria-hidden="true" />
               </div>
               <div>
-                <p className="text-sm text-secondary-500 dark:text-secondary-400">Tokens Used</p>
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
+                  Tokens Used
+                  <Tooltip content="Total tokens processed by AI models. Tokens are units of text — roughly 1 token per word. Credit usage is based on tokens.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                   {creditsUsed.toLocaleString()}
                   <span className="text-sm font-normal text-secondary-500 dark:text-secondary-400">
@@ -479,7 +486,12 @@ export default function UsagePage() {
                 <ScrollText className="w-6 h-6 text-green-600 dark:text-green-400" aria-hidden="true" />
               </div>
               <div>
-                <p className="text-sm text-secondary-500 dark:text-secondary-400">API Calls</p>
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
+                  API Calls
+                  <Tooltip content="Total API calls made using your API keys. Does not include widget chat traffic.">
+                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                  </Tooltip>
+                </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">{stats.apiCalls}</p>
               </div>
             </div>

@@ -3,13 +3,14 @@
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { Save, RotateCcw, Check, Palette, Type, Layout, Code, MousePointerClick, Flag, Info } from 'lucide-react';
+import { Save, RotateCcw, Check, Palette, Type, Layout, Code, MousePointerClick, Flag, Info, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip } from '@/components/ui/tooltip';
+import { Textarea } from '@/components/ui/textarea';
 import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
 import type { Chatbot, WidgetConfig } from '@/lib/chatbots/types';
 import { DEFAULT_WIDGET_CONFIG } from '@/lib/chatbots/types';
@@ -66,14 +67,23 @@ function ColorPicker({
   label,
   value,
   onChange,
+  tooltip,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  tooltip?: string;
 }) {
   return (
     <div className="space-y-2">
-      <Label className="text-sm">{label}</Label>
+      <Label className="text-sm flex items-center gap-1">
+        {label}
+        {tooltip && (
+          <Tooltip content={tooltip}>
+            <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+          </Tooltip>
+        )}
+      </Label>
       <div className="flex items-center gap-2">
         <div
           className="w-10 h-10 rounded-lg border border-secondary-200 dark:border-secondary-700 cursor-pointer overflow-hidden"
@@ -146,6 +156,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isFreePlan, setIsFreePlan] = useState(false);
   const [previewMode, setPreviewMode] = useState<'chat' | 'form' | 'verify' | 'survey' | 'feedback' | 'escalation' | 'handoff'>('form');
   const [selectedReportReason, setSelectedReportReason] = useState<string | null>(null);
   const [showAllColors, setShowAllColors] = useState(false);
@@ -178,14 +189,24 @@ export default function CustomizePage({ params }: CustomizePageProps) {
   useEffect(() => {
     async function fetchChatbot() {
       try {
-        const response = await fetch(`/api/chatbots/${id}`);
-        if (!response.ok) throw new Error('Failed to fetch chatbot');
-        const data = await response.json();
+        const [chatbotRes, plansRes] = await Promise.all([
+          fetch(`/api/chatbots/${id}`),
+          fetch('/api/billing/plans'),
+        ]);
+        if (!chatbotRes.ok) throw new Error('Failed to fetch chatbot');
+        const data = await chatbotRes.json();
         setChatbot(data.data.chatbot);
         setConfig({
           ...DEFAULT_WIDGET_CONFIG,
           ...(data.data.chatbot.widget_config || {}),
         });
+        if (plansRes.ok) {
+          const plansData = await plansRes.json();
+          const slug = plansData.currentPlanSlug;
+          setIsFreePlan(!slug || slug === 'free');
+        } else {
+          setIsFreePlan(true);
+        }
       } catch (err) {
         setLoadError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -308,16 +329,19 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                     label="Primary Color"
                     value={config.primaryColor}
                     onChange={(v) => updateConfig('primaryColor', v)}
+                    tooltip="The main accent color used for the chat header, send button, and interactive elements."
                   />
                   <ColorPicker
                     label="Background Color"
                     value={config.backgroundColor}
                     onChange={(v) => updateConfig('backgroundColor', v)}
+                    tooltip="Background color of the chat window."
                   />
                   <ColorPicker
                     label="Text Color"
                     value={config.textColor}
                     onChange={(v) => updateConfig('textColor', v)}
+                    tooltip="Text color used inside the bot's chat bubbles."
                   />
                 </div>
               </div>)}
@@ -746,19 +770,26 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                   aria-label="Button border radius"
                 />
               </div>
-              <div className="flex items-center gap-3">
+              <div className={`flex items-center gap-3 ${isFreePlan ? 'opacity-50' : ''}`}>
                 <input
                   type="checkbox"
                   id="showBranding"
-                  checked={config.showBranding}
-                  onChange={(e) => updateConfig('showBranding', e.target.checked)}
-                  className="rounded border-secondary-300 dark:border-secondary-600"
+                  checked={isFreePlan ? true : config.showBranding}
+                  onChange={(e) => { if (!isFreePlan) updateConfig('showBranding', e.target.checked); }}
+                  disabled={isFreePlan}
+                  className={`rounded border-secondary-300 dark:border-secondary-600 ${isFreePlan ? 'cursor-not-allowed' : ''}`}
                 />
-                <Label htmlFor="showBranding" className="flex items-center gap-1">
+                <Label htmlFor="showBranding" className={`flex items-center gap-2 ${isFreePlan ? 'cursor-not-allowed' : ''}`}>
                   Show &quot;Powered by&quot; branding
-                  <Tooltip content="Displays a small 'Powered by VocUI' link at the bottom of the widget.">
+                  <Tooltip content="Displays a 'Powered by VocUI' link at the bottom of the widget. Only removable on paid plans.">
                     <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
                   </Tooltip>
+                  {isFreePlan && (
+                    <Link href="/dashboard/billing" className="inline-flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 font-medium hover:underline" onClick={(e) => e.stopPropagation()}>
+                      <Lock className="w-3 h-3" />
+                      Paid plan
+                    </Link>
+                  )}
                 </Label>
               </div>
             </CardContent>
@@ -779,15 +810,11 @@ export default function CustomizePage({ params }: CustomizePageProps) {
               </div>
             </CardHeader>
             <CardContent>
-              <textarea
+              <Textarea
                 value={config.customCss}
                 onChange={(e) => updateConfig('customCss', e.target.value)}
-                placeholder={`/* Add custom CSS here */
-.chat-widget-container {
-
-}`}
-                className="w-full h-32 rounded-md border border-secondary-200 dark:border-secondary-700 px-3 py-2 font-mono text-sm"
-                style={{ backgroundColor: 'rgb(var(--form-element-bg))' }}
+                placeholder={`/* Add custom CSS here */\n.chat-widget-container {\n\n}`}
+                className="h-32 font-mono"
               />
             </CardContent>
           </Card>

@@ -14,6 +14,7 @@ const defaultFeatures: Record<string, string[]> = {
     'Chatbot builder',
     '3 knowledge sources per chatbot',
     'Web widget embed',
+    'Remove VocUI branding',
     'Community support',
   ],
   pro: [
