@@ -142,24 +142,72 @@ export default function ChatbotsPage() {
 
       {/* Empty state */}
       {chatbots.length === 0 && (
-        <Card className="py-16">
-          <CardContent className="flex flex-col items-center justify-center text-center">
-            <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/50 rounded-full flex items-center justify-center mb-4">
-              <Bot className="w-8 h-8 text-primary-600 dark:text-primary-400" />
+        <Card className="rounded-xl py-8 px-4 md:py-12 md:px-8">
+          <CardContent className="p-0">
+            {/* Header */}
+            <div className="max-w-lg mx-auto text-center">
+              <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900/50 rounded-full flex items-center justify-center mx-auto">
+                <Bot className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mt-4">
+                Your first chatbot is 3 steps away
+              </h3>
+              <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-1">
+                Train it on your docs and FAQs, then add it to your website or Slack — no coding needed.
+              </p>
             </div>
-            <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-2">
-              No chatbots yet
-            </h3>
-            <p className="text-secondary-600 dark:text-secondary-400 mb-6 max-w-md">
-              Create your first AI chatbot to start engaging with your customers.
-              Train it with your knowledge base and deploy it on your website, Slack, or Telegram.
+
+            {/* Steps */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-10">
+              {/* Step 1 — Active */}
+              <div className="border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 rounded-lg p-5">
+                <div className="w-7 h-7 rounded-full bg-primary-500 text-white flex items-center justify-center text-sm font-bold">
+                  1
+                </div>
+                <p className="text-sm font-semibold text-secondary-900 dark:text-secondary-100 mt-3">
+                  Name your chatbot
+                </p>
+                <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                  Pick a name and choose how it should behave with customers.
+                </p>
+                <Button asChild size="sm" className="w-full mt-4">
+                  <Link href="/dashboard/chatbots/new">
+                    Get started
+                  </Link>
+                </Button>
+              </div>
+
+              {/* Step 2 — Dimmed */}
+              <div className="border border-secondary-200 dark:border-secondary-700 rounded-lg p-5 opacity-60">
+                <div className="w-7 h-7 rounded-full bg-secondary-200 dark:bg-secondary-700 text-secondary-600 dark:text-secondary-400 flex items-center justify-center text-sm font-bold">
+                  2
+                </div>
+                <p className="text-sm font-semibold text-secondary-900 dark:text-secondary-100 mt-3">
+                  Add your content
+                </p>
+                <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                  Paste a URL or upload a PDF. Your chatbot learns from it automatically.
+                </p>
+              </div>
+
+              {/* Step 3 — Dimmed */}
+              <div className="border border-secondary-200 dark:border-secondary-700 rounded-lg p-5 opacity-60">
+                <div className="w-7 h-7 rounded-full bg-secondary-200 dark:bg-secondary-700 text-secondary-600 dark:text-secondary-400 flex items-center justify-center text-sm font-bold">
+                  3
+                </div>
+                <p className="text-sm font-semibold text-secondary-900 dark:text-secondary-100 mt-3">
+                  Go live
+                </p>
+                <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                  Copy one line of code to your website, or connect to Slack or Telegram.
+                </p>
+              </div>
+            </div>
+
+            {/* Social proof */}
+            <p className="text-xs text-secondary-400 dark:text-secondary-500 text-center mt-8">
+              Most businesses have their chatbot live within an hour.
             </p>
-            <Button asChild>
-              <Link href="/dashboard/chatbots/new">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Your First Chatbot
-              </Link>
-            </Button>
           </CardContent>
         </Card>
       )}
@@ -196,6 +244,12 @@ function ChatbotCard({ chatbot, onDelete }: ChatbotCardProps) {
     archived: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
   };
 
+  const limit = chatbot.monthly_message_limit ?? 0;
+  const used = chatbot.messages_this_month ?? 0;
+  const purchasedRemaining = (chatbot as any).purchased_credits_remaining ?? 0;
+  const limitReached = limit > 0 && used >= limit && purchasedRemaining === 0;
+  const nearLimit = limit > 0 && used >= limit * 0.8 && !limitReached;
+
   return (
     <Card className="relative group">
       <CardHeader className="pb-3">
@@ -231,6 +285,17 @@ function ChatbotCard({ chatbot, onDelete }: ChatbotCardProps) {
                       Needs Update
                     </Badge>
                   </Link>
+                )}
+                {limitReached && (
+                  <Badge className="bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300">
+                    <AlertTriangle className="w-3 h-3 mr-1" />
+                    Limit Reached
+                  </Badge>
+                )}
+                {nearLimit && (
+                  <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
+                    Near Limit
+                  </Badge>
                 )}
                 {(chatbot as any).live_handoff_config?.enabled && (
                   <span className={`inline-flex items-center gap-1 text-xs ${
@@ -350,9 +415,13 @@ function ChatbotCard({ chatbot, onDelete }: ChatbotCardProps) {
             <Users className="w-4 h-4 text-secondary-400" />
             <div>
               <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">
-                {chatbot.total_messages ?? 0}
+                {limit > 0
+                  ? `${used.toLocaleString()} / ${limit.toLocaleString()}`
+                  : (chatbot.total_messages ?? 0).toLocaleString()}
               </p>
-              <p className="text-xs text-secondary-500 dark:text-secondary-400">Messages</p>
+              <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                {limit > 0 ? 'Messages this month' : 'Messages'}
+              </p>
             </div>
           </div>
         </div>

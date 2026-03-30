@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -11,23 +12,23 @@ import { UsageChart } from '@/components/dashboard/UsageChart';
 import { UserLogEntry, type UserAPILog } from '@/components/dashboard/UserLogEntry';
 import {
   BarChart3,
-  TrendingUp,
-  TrendingDown,
   Calendar,
   Sparkles,
   FileText,
   Clock,
   ArrowUpRight,
   Filter,
-  Zap,
   ScrollText,
   RefreshCw,
   Activity,
   Download,
+  MessageSquare,
+  Users,
+  Bot,
+  ThumbsUp,
   Shield,
-  Info,
 } from 'lucide-react';
-import { Tooltip } from '@/components/ui/tooltip';
+import { Tooltip, InfoTooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import type { Database } from '@/types/database';
 
@@ -63,6 +64,7 @@ export default function UsagePage() {
   const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan | null>(null);
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [apiLogs, setApiLogs] = useState<UserAPILog[]>([]);
+  const [chartApiLogs, setChartApiLogs] = useState<UserAPILog[]>([]);
   const [creditAdjustments, setCreditAdjustments] = useState<CreditAdjustment[]>([]);
   const [totalTokensUsed, setTotalTokensUsed] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -73,7 +75,19 @@ export default function UsagePage() {
   const [chartPeriod, setChartPeriod] = useState<'7d' | '14d' | '30d'>('14d');
   const [expandedLogIds, setExpandedLogIds] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
-  const [lastMonthTokens, setLastMonthTokens] = useState(0);
+  const [totalConversations, setTotalConversations] = useState(0);
+  const [uniqueVisitors, setUniqueVisitors] = useState(0);
+  const [activeChatbots, setActiveChatbots] = useState(0);
+  const [satisfactionRate, setSatisfactionRate] = useState<number | null>(null);
+
+  interface ChatbotUsageRow {
+    id: string;
+    name: string;
+    messages_this_month: number | null;
+    monthly_message_limit: number | null;
+    purchased_credits_remaining: number | null;
+  }
+  const [chatbotsUsage, setChatbotsUsage] = useState<ChatbotUsageRow[]>([]);
 
   const router = useRouter();
   const supabase = createClient() as any;
@@ -163,25 +177,81 @@ export default function UsagePage() {
         const total = tokenData.reduce((sum: number, log: { tokens_total: number | null }) => sum + (log.tokens_total || 0), 0);
         setTotalTokensUsed(total);
       }
+
+      // Fetch successful api_logs for the chart (period-filtered, no errors)
+      const { data: chartLogsData } = await supabase
+        .from('api_logs')
+        .select('id, endpoint, status_code, provider, model, tokens_input, tokens_output, tokens_billed, duration_ms, error_message, request_body, response_body, created_at')
+        .eq('user_id', user.id)
+        .gte('created_at', periodStart)
+        .lt('status_code', 400);
+
+      if (chartLogsData) {
+        setChartApiLogs(chartLogsData);
+      }
     }
 
-    // Calculate last month's tokens for comparison
-    if (periodStart) {
-      const lastMonthStart = new Date(periodStart);
-      lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
-      const lastMonthEnd = new Date(periodStart);
+    // Fetch chatbot engagement stats for the current billing period
+    const { data: chatbotsData } = await supabase
+      .from('chatbots')
+      .select('id')
+      .eq('user_id', user.id);
 
-      const { data: lastMonthData } = await supabase
-        .from('api_logs')
-        .select('tokens_total')
-        .eq('user_id', user.id)
-        .gte('created_at', lastMonthStart.toISOString())
-        .lt('created_at', lastMonthEnd.toISOString());
+    const chatbotIds = (chatbotsData || []).map((c: { id: string }) => c.id);
 
-      if (lastMonthData) {
-        const lastTotal = lastMonthData.reduce((sum: number, log: { tokens_total: number | null }) => sum + (log.tokens_total || 0), 0);
-        setLastMonthTokens(lastTotal);
+    if (chatbotIds.length > 0 && periodStart) {
+      const [convsResult, visitorsResult, activeBotsResult, satisfactionResult] = await Promise.all([
+        supabase
+          .from('conversations')
+          .select('*', { count: 'exact', head: true })
+          .in('chatbot_id', chatbotIds)
+          .gte('created_at', periodStart),
+        supabase
+          .from('conversations')
+          .select('visitor_id')
+          .in('chatbot_id', chatbotIds)
+          .gte('created_at', periodStart),
+        supabase
+          .from('conversations')
+          .select('chatbot_id')
+          .in('chatbot_id', chatbotIds)
+          .gte('created_at', periodStart),
+        supabase
+          .from('conversations')
+          .select('rating')
+          .in('chatbot_id', chatbotIds)
+          .gte('created_at', periodStart)
+          .not('rating', 'is', null),
+      ]);
+
+      if (convsResult.count !== null) setTotalConversations(convsResult.count);
+
+      if (visitorsResult.data) {
+        const uniqueVisitorIds = new Set(visitorsResult.data.map((r: { visitor_id: string }) => r.visitor_id).filter(Boolean));
+        setUniqueVisitors(uniqueVisitorIds.size);
       }
+
+      if (activeBotsResult.data) {
+        const activeBotIds = new Set(activeBotsResult.data.map((r: { chatbot_id: string }) => r.chatbot_id));
+        setActiveChatbots(activeBotIds.size);
+      }
+
+      if (satisfactionResult.data && satisfactionResult.data.length > 0) {
+        const ratings = satisfactionResult.data.map((r: { rating: number }) => r.rating);
+        const avg = ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length;
+        setSatisfactionRate(Math.round(((avg - 1) / 4) * 100));
+      }
+    }
+
+    // Fetch per-chatbot message usage for the billing period
+    const { data: chatbotsUsageData } = await supabase
+      .from('chatbots')
+      .select('id, name, messages_this_month, monthly_message_limit, purchased_credits_remaining')
+      .eq('user_id', user.id)
+      .order('messages_this_month', { ascending: false });
+
+    if (chatbotsUsageData) {
+      setChatbotsUsage(chatbotsUsageData);
     }
 
     setLoading(false);
@@ -230,8 +300,8 @@ export default function UsagePage() {
       aggregated[date].outputTokens += gen.tokens_output ?? 0;
     });
 
-    // Also include API logs tokens
-    apiLogs.forEach((log) => {
+    // Also include API logs tokens (period-filtered successful calls only)
+    chartApiLogs.forEach((log) => {
       const date = new Date(log.created_at).toISOString().split('T')[0];
       if (!aggregated[date]) {
         aggregated[date] = { tokens: 0, inputTokens: 0, outputTokens: 0 };
@@ -245,7 +315,7 @@ export default function UsagePage() {
       .map(([date, data]) => ({ date, ...data }))
       .sort((a, b) => a.date.localeCompare(b.date))
       .slice(-days);
-  }, [generations, apiLogs, chartPeriod]);
+  }, [generations, chartApiLogs, chartPeriod]);
 
   const filteredGenerations = generations.filter((gen) => {
     if (filter === 'all') return true;
@@ -318,11 +388,14 @@ export default function UsagePage() {
   const creditsUsed = totalTokensUsed;
   const creditPercentage = creditsLimit > 0 ? (creditsUsed / creditsLimit) * 100 : 0;
 
-  // Calculate month-over-month change
-  const monthOverMonthChange = lastMonthTokens > 0 
-    ? ((creditsUsed - lastMonthTokens) / lastMonthTokens) * 100 
-    : creditsUsed > 0 ? 100 : 0;
-  const isIncreasing = monthOverMonthChange > 0;
+  const daysInPeriod = usage?.period_end && usage?.period_start
+    ? Math.ceil((new Date(usage.period_end).getTime() - new Date(usage.period_start).getTime()) / (1000 * 60 * 60 * 24))
+    : 30;
+  const daysElapsed = usage?.period_start
+    ? Math.max(1, Math.ceil((Date.now() - new Date(usage.period_start).getTime()) / (1000 * 60 * 60 * 24)))
+    : 1;
+  const projectedTokens = Math.round((creditsUsed / daysElapsed) * daysInPeriod);
+  const projectedPercentage = creditsLimit > 0 ? (projectedTokens / creditsLimit) * 100 : 0;
 
   return (
     <div className="space-y-6">
@@ -393,127 +466,225 @@ export default function UsagePage() {
       {/* Stats Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
+          <CardContent className="pt-6 flex flex-col justify-between h-full">
+            <div className="flex flex-col items-center text-center gap-3">
               <div className="p-3 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
                 <Sparkles className="w-6 h-6 text-primary-600 dark:text-primary-400" aria-hidden="true" />
               </div>
               <div>
-                <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center justify-center gap-1">
                   Tokens Used
-                  <Tooltip content="Total tokens processed by AI models. Tokens are units of text — roughly 1 token per word. Credit usage is based on tokens.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Total tokens processed by AI models in the current billing period. Tokens are units of text — roughly 1 token per word." />
                 </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                   {creditsUsed.toLocaleString()}
-                  <span className="text-sm font-normal text-secondary-500 dark:text-secondary-400">
-                    /{creditsLimit.toLocaleString()}
-                  </span>
+                </p>
+                <p className="text-sm text-secondary-500 dark:text-secondary-400">
+                  /{creditsLimit.toLocaleString()}
                 </p>
               </div>
             </div>
             <div className="mt-4">
-              <div
-                className="w-full bg-secondary-100 dark:bg-secondary-700 rounded-full h-2"
-                role="progressbar"
-                aria-valuenow={creditsUsed}
-                aria-valuemin={0}
-                aria-valuemax={creditsLimit}
+              <Tooltip
+                content={`Projected: ${projectedTokens.toLocaleString()} tokens (${Math.round(projectedPercentage)}% of limit) by end of billing period`}
+                side="bottom"
+                wrapperClassName="w-full block"
               >
                 <div
-                  className={`h-2 rounded-full transition-all ${
-                    creditPercentage > 80 ? 'bg-red-500' :
-                    creditPercentage > 50 ? 'bg-yellow-500' :
-                    'bg-primary-500'
-                  }`}
-                  style={{ width: `${Math.min(creditPercentage, 100)}%` }}
-                />
-              </div>
+                  className="w-full bg-secondary-100 dark:bg-secondary-700 rounded-full h-2 cursor-default"
+                  role="progressbar"
+                  aria-valuenow={creditsUsed}
+                  aria-valuemin={0}
+                  aria-valuemax={creditsLimit}
+                >
+                  <div
+                    className={`h-2 rounded-full transition-all ${
+                      creditPercentage > 80 ? 'bg-red-500' :
+                      creditPercentage > 50 ? 'bg-yellow-500' :
+                      'bg-primary-500'
+                    }`}
+                    style={{ width: `${Math.min(creditPercentage, 100)}%` }}
+                  />
+                </div>
+              </Tooltip>
+              <p className="text-xs mt-1.5 text-secondary-400 dark:text-secondary-500 text-center">
+                {creditPercentage > 100
+                  ? 'Usage tracking — not a hard limit on this plan'
+                  : `Resets in ${Math.max(0, daysInPeriod - daysElapsed)} days`}
+              </p>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-lg ${
-                isIncreasing 
-                  ? 'bg-green-100 dark:bg-green-900/30' 
-                  : monthOverMonthChange < 0 
-                  ? 'bg-red-100 dark:bg-red-900/30'
-                  : 'bg-blue-100 dark:bg-blue-900/30'
-              }`}>
-                {isIncreasing ? (
-                  <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" aria-hidden="true" />
-                ) : monthOverMonthChange < 0 ? (
-                  <TrendingDown className="w-6 h-6 text-red-600 dark:text-red-400" aria-hidden="true" />
-                ) : (
-                  <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+          <CardContent className="pt-6 flex flex-col items-center text-center gap-3">
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <MessageSquare className="w-6 h-6 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center justify-center gap-1">
+                  Total Conversations
+                  <InfoTooltip content="Total chat sessions started across all your chatbots in the current billing period." />
+                </p>
+                <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  {totalConversations.toLocaleString()}
+                </p>
+                {daysElapsed >= 7 && (
+                  <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-0.5 -mx-6">
+                    ~{Math.round(totalConversations / daysElapsed).toLocaleString()} per day ({daysElapsed}-day avg)
+                  </p>
                 )}
               </div>
-              <div>
-                <p className="text-sm text-secondary-500 dark:text-secondary-400">vs Last Month</p>
-                <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
-                  {monthOverMonthChange > 0 ? '+' : ''}{monthOverMonthChange.toFixed(1)}%
-                </p>
-                <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-1">
-                  {lastMonthTokens.toLocaleString()} tokens
-                </p>
-              </div>
-            </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                <BarChart3 className="w-6 h-6 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-sm text-secondary-500 dark:text-secondary-400">Total Generations</p>
-                <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">{stats.totalGenerations}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                <ScrollText className="w-6 h-6 text-green-600 dark:text-green-400" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
-                  API Calls
-                  <Tooltip content="Total API calls made using your API keys. Does not include widget chat traffic.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
-                </p>
-                <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">{stats.apiCalls}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
+          <CardContent className="pt-6 flex flex-col items-center text-center gap-3">
               <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                <Clock className="w-6 h-6 text-purple-600 dark:text-purple-400" aria-hidden="true" />
+                <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" aria-hidden="true" />
               </div>
               <div>
-                <p className="text-sm text-secondary-500 dark:text-secondary-400">Avg Response</p>
-                <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
-                  {stats.avgDuration > 0 ? `${(stats.avgDuration / 1000).toFixed(1)}s` : '-'}
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center justify-center gap-1">
+                  Unique Visitors
+                  <InfoTooltip content="Distinct visitors who started a chat this billing period. A visitor may have multiple sessions — on different devices or browsers — which is why avg sessions per visitor can exceed 1." />
                 </p>
+                <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  {uniqueVisitors.toLocaleString()}
+                </p>
+                <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-0.5 -mx-6">
+                  {totalConversations > 0 && uniqueVisitors > 0
+                    ? `${(totalConversations / uniqueVisitors).toFixed(1)} avg sessions / visitor`
+                    : 'No conversations yet'}
+                </p>
+              </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6 flex flex-col items-center text-center gap-3">
+              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                <Bot className="w-6 h-6 text-green-600 dark:text-green-400" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center justify-center gap-1">
+                  Active Chatbots
+                  <InfoTooltip content="Chatbots that received at least one conversation this billing period." />
+                </p>
+                <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  {activeChatbots.toLocaleString()}
+                </p>
+                <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-0.5 -mx-6">
+                  this billing period
+                </p>
+              </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6 flex flex-col justify-between h-full">
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                <ThumbsUp className="w-6 h-6 text-yellow-600 dark:text-yellow-400" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center justify-center gap-1">
+                  Satisfaction Rate
+                  <InfoTooltip content="Average satisfaction rating across all chatbots. Requires post-chat surveys to be enabled." />
+                </p>
+                {satisfactionRate !== null ? (
+                  <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                    {satisfactionRate}%
+                  </p>
+                ) : (
+                  <div className="mt-1">
+                    <p className="text-lg font-semibold text-secondary-400 dark:text-secondary-500">—</p>
+                    <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-0.5">
+                      <a href="/dashboard/chatbots" className="underline hover:text-primary-600">Enable Surveys</a>
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Chatbot Message Usage */}
+      {chatbotsUsage.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <Bot className="w-5 h-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+              </div>
+              <div>
+                <CardTitle>Chatbot Message Usage</CardTitle>
+                <CardDescription>Per-chatbot message consumption for the current billing period</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {chatbotsUsage.map((chatbot) => {
+                const used = chatbot.messages_this_month ?? 0;
+                const limit = chatbot.monthly_message_limit ?? 0;
+                const hasLimit = limit > 0;
+                const msgPercent = hasLimit ? Math.min((used / limit) * 100, 100) : 0;
+                const purchased = chatbot.purchased_credits_remaining ?? 0;
+                const isLimitReached = hasLimit && used >= limit && purchased === 0;
+                const isNearLimit = hasLimit && !isLimitReached && msgPercent >= 80;
+
+                return (
+                  <div
+                    key={chatbot.id}
+                    className="flex items-center justify-between p-4 border border-secondary-100 dark:border-secondary-800 rounded-lg hover:bg-secondary-50 dark:hover:bg-secondary-800/50 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0 mr-4">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Link
+                          href={`/dashboard/chatbots/${chatbot.id}/settings`}
+                          className="font-medium text-secondary-900 dark:text-secondary-100 hover:text-primary-600 dark:hover:text-primary-400 truncate"
+                        >
+                          {chatbot.name}
+                        </Link>
+                        {isLimitReached && (
+                          <Badge variant="destructive">Limit Reached</Badge>
+                        )}
+                        {isNearLimit && (
+                          <Badge variant="warning">Near Limit</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-secondary-500 dark:text-secondary-400">
+                          {used.toLocaleString()} / {hasLimit ? limit.toLocaleString() : 'Unlimited'} messages
+                        </span>
+                        {hasLimit && (
+                          <div className="flex-1 max-w-[160px] bg-secondary-100 dark:bg-secondary-700 rounded-full h-1.5">
+                            <div
+                              className={`h-1.5 rounded-full transition-all ${
+                                isLimitReached ? 'bg-red-500' :
+                                isNearLimit ? 'bg-yellow-500' :
+                                'bg-primary-500'
+                              }`}
+                              style={{ width: `${msgPercent}%` }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <Link
+                      href={`/dashboard/chatbots/${chatbot.id}/settings`}
+                      className="text-xs text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 shrink-0"
+                    >
+                      Settings
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Billing Period */}
       {usage && (

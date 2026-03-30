@@ -281,22 +281,39 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-yellow-100 dark:bg-yellow-900/50 rounded-lg">
-                <MessageSquare className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
-                  {chatbot.messages_this_month}
-                </p>
-                <p className="text-sm text-secondary-500 flex items-center gap-1">
-                  This Month
-                  <Tooltip content="Total messages sent and received during the current calendar month.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
-                </p>
-              </div>
-            </div>
+            {(() => {
+              const limit = chatbot.monthly_message_limit ?? 0;
+              const used = chatbot.messages_this_month ?? 0;
+              const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+              const atLimit = limit > 0 && pct >= 100;
+              const nearLimit = limit > 0 && pct >= 80 && !atLimit;
+              return (
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${atLimit ? 'bg-red-100 dark:bg-red-900/50' : nearLimit ? 'bg-amber-100 dark:bg-amber-900/50' : 'bg-yellow-100 dark:bg-yellow-900/50'}`}>
+                    <MessageSquare className={`w-5 h-5 ${atLimit ? 'text-red-600 dark:text-red-400' : nearLimit ? 'text-amber-600 dark:text-amber-400' : 'text-yellow-600 dark:text-yellow-400'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                      {limit > 0 ? `${used.toLocaleString()} / ${limit.toLocaleString()}` : used.toLocaleString()}
+                    </p>
+                    <p className={`text-sm flex items-center gap-1 ${atLimit ? 'text-red-600 dark:text-red-400 font-medium' : 'text-secondary-500'}`}>
+                      {atLimit ? 'Limit Reached' : 'This Month'}
+                      <Tooltip content="Total messages sent and received during the current calendar month.">
+                        <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
+                      </Tooltip>
+                    </p>
+                    {limit > 0 && (
+                      <div className="mt-1.5 h-1.5 w-full bg-secondary-100 dark:bg-secondary-700 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${atLimit ? 'bg-red-500' : nearLimit ? 'bg-amber-500' : 'bg-yellow-400'}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>

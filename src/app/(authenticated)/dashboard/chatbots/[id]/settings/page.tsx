@@ -2042,19 +2042,66 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
         </Card>
       )}
 
-      {/* Credit Exhaustion Fallback */}
+      {/* Limits & Fallback */}
       {activeSection === 'fallback' && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-primary-500" />
-              Credit Exhaustion Fallback
+              Limits &amp; Fallback
             </CardTitle>
             <CardDescription>
-              Configure what happens when your chatbot runs out of credits
+              View your monthly message limit and configure what happens when your chatbot runs out of credits
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Monthly limit info block */}
+            {(() => {
+              const limit = chatbot?.monthly_message_limit ?? 0;
+              const used = chatbot?.messages_this_month ?? 0;
+              const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+              const atLimit = limit > 0 && pct >= 100;
+              const nearLimit = limit > 0 && pct >= 80 && !atLimit;
+              const today = new Date('2026-03-31');
+              const nextReset = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+              const resetStr = nextReset.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+              return (
+                <div className="rounded-lg border border-secondary-200 dark:border-secondary-700 p-4 space-y-3">
+                  <h4 className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Monthly Message Limit</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-0.5">Current limit</p>
+                      <p className="font-medium text-secondary-900 dark:text-secondary-100">
+                        {limit > 0 ? `${limit.toLocaleString()} messages / month` : 'Unlimited'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-0.5">Resets</p>
+                      <p className="font-medium text-secondary-900 dark:text-secondary-100">{resetStr}</p>
+                    </div>
+                  </div>
+                  {limit > 0 && (
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400">Used this month</p>
+                        <p className={`text-xs font-medium ${atLimit ? 'text-red-600 dark:text-red-400' : nearLimit ? 'text-amber-600 dark:text-amber-400' : 'text-secondary-700 dark:text-secondary-300'}`}>
+                          {used.toLocaleString()} / {limit.toLocaleString()} ({pct}%)
+                        </p>
+                      </div>
+                      <div className="h-2 w-full bg-secondary-100 dark:bg-secondary-700 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${atLimit ? 'bg-red-500' : nearLimit ? 'bg-amber-500' : 'bg-primary-500'}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      {atLimit && (
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-1 font-medium">Limit reached — visitors are currently blocked.</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             {/* Mode Selection */}
             <div className="space-y-3">
               <div className="flex items-center gap-1.5">

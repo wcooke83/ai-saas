@@ -377,7 +377,7 @@ export async function POST(req: NextRequest) {
           await Promise.allSettled(
             set.providerIds.map(pid =>
               ea.updateProvider(Number(pid), {
-                settings: { workingPlan: workingPlan as import('@/lib/calendar/types').EAWorkingPlan },
+                settings: { workingPlan: workingPlan as unknown as import('@/lib/calendar/types').EAWorkingPlan },
               } as Parameters<typeof ea.updateProvider>[1])
             )
           );

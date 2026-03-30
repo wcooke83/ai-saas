@@ -726,15 +726,20 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
               JSON.stringify({ type: 'meta', data: { conversation_id: conversation.id, session_id: sessionId, language: activeLanguage } }) + '\n'
             ));
 
-            // Stream AI tokens
+            // Stream AI tokens — use manual iteration to capture the GenerateResult return value
             let _firstToken = true;
-            for await (const chunk of generator) {
+            let streamResult: import('@/lib/ai/provider').GenerateResult | null = null;
+            let next = await generator.next();
+            while (!next.done) {
+              const chunk = next.value as string;
               if (_firstToken) { _perf('first_token'); _stages.end('first_token'); _stages.start('stream_complete'); _firstToken = false; }
               fullResponse += chunk;
               controller.enqueue(encoder.encode(
                 JSON.stringify({ type: 'token', content: chunk }) + '\n'
               ));
+              next = await generator.next();
             }
+            streamResult = next.value as import('@/lib/ai/provider').GenerateResult;
             _perf('stream_complete');
             _stages.end('stream_complete');
 
@@ -873,6 +878,22 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
               user_message: input.message,
               assistant_response: fullResponse,
             });
+
+            // Fire-and-forget: log API call for usage/token tracking
+            logAPICall({
+              user_id: chatbot.user_id,
+              endpoint: `/api/chat/${chatbotId}`,
+              method: 'POST',
+              request_body: { message: input.message, stream: true },
+              response_body: { message: fullResponse },
+              status_code: 200,
+              provider: streamResult?.provider ?? chatbot.model,
+              model: streamResult?.model ?? chatbot.model,
+              tokens_input: streamResult?.tokensInput ?? Math.ceil(userPrompt.length / 4),
+              tokens_output: streamResult?.tokensOutput ?? Math.ceil(fullResponse.length / 4),
+              tokens_billed: (streamResult?.tokensInput ?? Math.ceil(userPrompt.length / 4)) + (streamResult?.tokensOutput ?? Math.ceil(fullResponse.length / 4)),
+              duration_ms: streamResult?.durationMs ?? _timings.stream_complete,
+            }).catch(() => {});
 
             // Close the stream after all data has been enqueued
             controller.close();
