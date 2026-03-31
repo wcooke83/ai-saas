@@ -49,13 +49,15 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
     const supabase = createAdminClient();
 
-    // Find conversations for this visitor + chatbot
+    // Find recent conversations for this visitor + chatbot
+    // Limit to 50 most recent to avoid HeadersOverflowError when using .in() filter
     let convoQuery = supabase
       .from('conversations')
       .select('id, created_at')
       .eq('chatbot_id', chatbotId)
       .eq('visitor_id', visitorId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(50);
 
     const { data: conversations, error: convoError } = await convoQuery;
 
