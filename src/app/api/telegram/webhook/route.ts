@@ -1,10 +1,10 @@
 /**
- * Telegram Webhook Handler
+ * Telegram Webhook Handler (Legacy/Shared)
  * POST /api/telegram/webhook
  *
- * Receives messages from Telegram bots and routes them back to visitor conversations.
- * Since this is multi-tenant, we look up which chatbot the message belongs to
- * by checking the telegram_message_mappings table.
+ * Backwards-compatible shared webhook endpoint. New setups use per-chatbot
+ * URLs (/api/telegram/webhook/[chatbotId]), but existing bots may still
+ * point here. Supports both agent handoff replies and AI chat responses.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -20,6 +20,7 @@ import {
   getTelegramConfig,
 } from '@/lib/telegram/handoff';
 import { handleBotCommand, isBotCommand } from '@/lib/telegram/commands';
+import { handleTelegramChat } from '@/lib/telegram/chat';
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,6 +33,11 @@ export async function POST(request: NextRequest) {
     const message = update.message;
     const text = message.text!;
     const from = message.from!;
+
+    // Skip messages from bots (prevent self-reply loops)
+    if (from.is_bot) {
+      return NextResponse.json({ ok: true });
+    }
 
     // Determine which chatbot this message is for
     let chatbotId: string | null = null;
@@ -106,12 +112,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // Regular message — this is an agent replying to a visitor
-    if (!conversationId) {
-      console.warn('[Telegram Webhook] Agent reply but no conversation found');
+    // If this is a reply to a handoff notification, treat as agent reply
+    if (conversationId && message.reply_to_message) {
+      const agentName = `${from.first_name}${from.last_name ? ` ${from.last_name}` : ''}`;
+
+      const result = await handleAgentReply({
+        chatbotId,
+        conversationId,
+        agentName,
+        agentTelegramId: from.id,
+        content: text,
+      });
+
+      if (!result.success) {
+        console.error('[Telegram Webhook] Failed to handle agent reply:', result.error);
+      }
       return NextResponse.json({ ok: true });
     }
 
+    // AI bot mode: respond to regular messages if enabled
+    if (config.ai_responses_enabled) {
+      await handleTelegramChat(chatbotId, config, message).catch((err) => {
+        console.error('[Telegram Webhook] AI chat error:', err);
+      });
+      return NextResponse.json({ ok: true });
+    }
+
+    // No AI mode and not a handoff reply — nothing to do
+    if (!conversationId) {
+      return NextResponse.json({ ok: true });
+    }
+
+    // Legacy fallback: treat as agent reply if we found a conversation
     const agentName = `${from.first_name}${from.last_name ? ` ${from.last_name}` : ''}`;
 
     const result = await handleAgentReply({

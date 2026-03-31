@@ -46,8 +46,10 @@ export async function handleBotCommand(
 
   switch (command) {
     case '/start':
+      result = handleStart(config);
+      break;
     case '/help':
-      result = handleHelp();
+      result = handleHelp(config);
       break;
     case '/resolve':
       result = await handleResolve(chatbotId, message, args);
@@ -82,7 +84,33 @@ export async function handleBotCommand(
   return result;
 }
 
-function handleHelp(): CommandResult {
+function handleStart(config: TelegramConfig): CommandResult {
+  if (config.ai_responses_enabled) {
+    return {
+      success: true,
+      message: `👋 Welcome! I'm an AI assistant. Ask me anything and I'll answer based on my knowledge base.\n\nType /help to see available commands.`,
+    };
+  }
+  return {
+    success: true,
+    message: `👋 Welcome! This bot supports live handoff to a human agent.\n\nType /help to see available commands.`,
+  };
+}
+
+function handleHelp(config: TelegramConfig): CommandResult {
+  if (config.ai_responses_enabled) {
+    return {
+      success: true,
+      message: `📚 Available Commands:
+
+/help - Show this help message
+/resolve <conversation_id> - Resolve/close a handoff session
+/active - Show active handoff sessions
+
+🤖 AI responses are enabled — send any message and I'll answer from the knowledge base.
+💡 If you need a human, an agent can be handed off to via the support group.`,
+    };
+  }
   return {
     success: true,
     message: `📚 Available Commands:

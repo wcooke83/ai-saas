@@ -9,6 +9,8 @@ import type { Json } from '@/types/database';
 import { sendTelegramMessage, formatHandoffMessage, formatVisitorMessage } from './client';
 import type { TelegramConfig, HandoffSession } from './types';
 import { DEFAULT_TELEGRAM_CONFIG } from './types';
+import { decryptTelegramConfig } from './crypto';
+import { emitTypedWebhookEvent } from '@/lib/webhooks/emit';
 
 /**
  * Get the Telegram config for a chatbot
@@ -22,7 +24,8 @@ export async function getTelegramConfig(chatbotId: string): Promise<TelegramConf
     .single();
 
   if (!data?.telegram_config || typeof data.telegram_config !== 'object' || Array.isArray(data.telegram_config)) return DEFAULT_TELEGRAM_CONFIG;
-  return { ...DEFAULT_TELEGRAM_CONFIG, ...(data.telegram_config as Record<string, unknown>) } as TelegramConfig;
+  const merged = { ...DEFAULT_TELEGRAM_CONFIG, ...(data.telegram_config as Record<string, unknown>) } as unknown as Record<string, unknown>;
+  return decryptTelegramConfig(merged) as unknown as TelegramConfig;
 }
 
 /**
@@ -71,10 +74,10 @@ export async function initiateHandoff(params: {
   const rawConfig = chatbot.telegram_config && typeof chatbot.telegram_config === 'object' && !Array.isArray(chatbot.telegram_config)
     ? chatbot.telegram_config as Record<string, unknown>
     : {};
-  const config: TelegramConfig = {
+  const config: TelegramConfig = decryptTelegramConfig({
     ...DEFAULT_TELEGRAM_CONFIG,
     ...rawConfig,
-  } as TelegramConfig;
+  } as unknown as Record<string, unknown>) as unknown as TelegramConfig;
 
   if (!config.enabled || !config.bot_token || !config.chat_id) {
     return { success: false, error: 'Telegram handoff not configured' };
@@ -152,6 +155,25 @@ export async function initiateHandoff(params: {
     conversationId: params.conversationId,
     telegramMessageId: telegramMsg.message_id,
   });
+
+  // Emit handoff.started webhook (need chatbot owner user_id)
+  const { data: chatbotOwner } = await supabase
+    .from('chatbots')
+    .select('user_id')
+    .eq('id', params.chatbotId)
+    .single();
+
+  if (chatbotOwner?.user_id) {
+    emitTypedWebhookEvent(chatbotOwner.user_id, params.chatbotId, 'handoff.started', {
+      conversation_id: params.conversationId,
+      handoff_id: handoff.id,
+      reason: params.reason,
+      visitor: {
+        name: params.visitorName,
+        email: params.visitorEmail,
+      },
+    }).catch(() => {});
+  }
 
   return { success: true, handoffId: handoff.id };
 }
@@ -280,11 +302,21 @@ export async function handleAgentReply(params: {
 export async function resolveHandoff(conversationId: string): Promise<boolean> {
   const supabase = createAdminClient();
 
+  // Get handoff details before resolving (for webhook)
+  const { data: session } = await supabase
+    .from('telegram_handoff_sessions')
+    .select('id, chatbot_id, agent_name')
+    .eq('conversation_id', conversationId)
+    .in('status', ['pending', 'active'])
+    .single();
+
+  const resolvedAt = new Date().toISOString();
+
   const { error } = await supabase
     .from('telegram_handoff_sessions')
     .update({
       status: 'resolved',
-      resolved_at: new Date().toISOString(),
+      resolved_at: resolvedAt,
     })
     .eq('conversation_id', conversationId)
     .in('status', ['pending', 'active']);
@@ -292,6 +324,24 @@ export async function resolveHandoff(conversationId: string): Promise<boolean> {
   if (error) {
     console.error('[Handoff] Failed to resolve:', error);
     return false;
+  }
+
+  // Emit handoff.resolved webhook
+  if (session) {
+    const { data: chatbot } = await supabase
+      .from('chatbots')
+      .select('user_id')
+      .eq('id', session.chatbot_id)
+      .single();
+
+    if (chatbot?.user_id) {
+      emitTypedWebhookEvent(chatbot.user_id, session.chatbot_id, 'handoff.resolved', {
+        conversation_id: conversationId,
+        handoff_id: session.id,
+        agent_name: session.agent_name,
+        resolved_at: resolvedAt,
+      }).catch(() => {});
+    }
   }
 
   return true;

@@ -1967,6 +1967,37 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                     />
                   </div>
 
+                  {/* AI Responses toggle */}
+                  <div className="flex items-center justify-between rounded-lg border border-secondary-200 dark:border-secondary-700 p-3">
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">AI Bot Responses</p>
+                        <InfoTooltip content="When enabled, your Telegram bot will automatically answer messages using your chatbot's knowledge base. In group chats, the bot only responds when @mentioned. Users can still escalate to human agents via /help." />
+                      </div>
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">
+                        Let the bot answer messages with AI-powered responses from your knowledge base.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-label="Enable AI-powered bot responses in Telegram"
+                      aria-checked={telegramConfig.ai_responses_enabled || false}
+                      onClick={() => setValue('telegramConfig', { ...telegramConfig, ai_responses_enabled: !telegramConfig.ai_responses_enabled }, { shouldDirty: true })}
+                      className={cn(
+                        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0',
+                        telegramConfig.ai_responses_enabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                          telegramConfig.ai_responses_enabled ? 'translate-x-6' : 'translate-x-1'
+                        )}
+                      />
+                    </button>
+                  </div>
+
                   {/* Webhook setup button */}
                   {telegramConfig.bot_token && telegramConfig.chat_id && (
                     <div className="border-t border-secondary-200 dark:border-secondary-700 pt-4">

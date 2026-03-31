@@ -15,11 +15,13 @@ import {
 } from '@/lib/telegram/client';
 import { DEFAULT_TELEGRAM_CONFIG } from '@/lib/telegram/types';
 import type { TelegramConfig } from '@/lib/telegram/types';
+import { decryptTelegramConfig } from '@/lib/telegram/crypto';
 import type { Json } from '@/types/database';
 
 function parseTelegramConfig(raw: Json | null): TelegramConfig {
   const obj = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Record<string, unknown> : {};
-  return { ...DEFAULT_TELEGRAM_CONFIG, ...obj } as TelegramConfig;
+  const merged = { ...DEFAULT_TELEGRAM_CONFIG, ...obj } as unknown as Record<string, unknown>;
+  return decryptTelegramConfig(merged) as unknown as TelegramConfig;
 }
 
 async function getAuthenticatedChatbot(req: NextRequest) {
@@ -68,7 +70,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const webhookUrl = `${appUrl.startsWith('http') ? appUrl : `https://${appUrl}`}/api/telegram/webhook`;
+    const baseUrl = appUrl.startsWith('http') ? appUrl : `https://${appUrl}`;
+    const webhookUrl = `${baseUrl}/api/telegram/webhook/${chatbot.id}`;
 
     const success = await setTelegramWebhook(config, webhookUrl);
     if (!success) {
