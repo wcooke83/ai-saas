@@ -14,12 +14,11 @@ import {
   Meh,
   Frown,
   BarChart3,
-  Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip } from '@/components/ui/tooltip';
+import { InfoTooltip } from '@/components/ui/tooltip';
 import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
 import type { Chatbot } from '@/lib/chatbots/types';
 
@@ -288,9 +287,7 @@ export default function SentimentPage({ params }: SentimentPageProps) {
                 <div>
                   <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                     Avg. Sentiment
-                    <Tooltip content="Average sentiment score from 1 (very negative) to 5 (very positive), calculated by AI analysis of each conversation.">
-                      <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                    </Tooltip>
+                    <InfoTooltip content="Average sentiment score from 1 (very negative) to 5 (very positive), calculated by AI analysis of each conversation." />
                   </p>
                   <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                     {stats.avg_score.toFixed(1)}<span className="text-sm font-normal text-secondary-400"> / 5</span>
@@ -309,9 +306,7 @@ export default function SentimentPage({ params }: SentimentPageProps) {
                 <div>
                   <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                     Positive
-                    <Tooltip content="Percentage of conversations rated as positive or very positive sentiment.">
-                      <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                    </Tooltip>
+                    <InfoTooltip content="Percentage of conversations rated as positive or very positive sentiment." />
                   </p>
                   <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                     {stats.positive_pct}%
@@ -330,9 +325,7 @@ export default function SentimentPage({ params }: SentimentPageProps) {
                 <div>
                   <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                     Neutral
-                    <Tooltip content="Percentage of conversations with neither clearly positive nor negative sentiment.">
-                      <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                    </Tooltip>
+                    <InfoTooltip content="Percentage of conversations with neither clearly positive nor negative sentiment." />
                   </p>
                   <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                     {stats.neutral_pct}%
@@ -351,9 +344,7 @@ export default function SentimentPage({ params }: SentimentPageProps) {
                 <div>
                   <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                     Negative
-                    <Tooltip content="Percentage of conversations rated as negative or very negative sentiment.">
-                      <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                    </Tooltip>
+                    <InfoTooltip content="Percentage of conversations rated as negative or very negative sentiment." />
                   </p>
                   <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                     {stats.negative_pct}%
@@ -417,25 +408,19 @@ export default function SentimentPage({ params }: SentimentPageProps) {
                     <th className="text-left py-3 px-3 font-medium text-secondary-500 dark:text-secondary-400">
                       <span className="flex items-center gap-1">
                         Sentiment
-                        <Tooltip content="AI-analyzed sentiment score (1-5) and label for each conversation." side="bottom">
-                          <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                        </Tooltip>
+                        <InfoTooltip content="AI-analyzed sentiment score (1-5) and label for each conversation." />
                       </span>
                     </th>
                     <th className="text-left py-3 px-3 font-medium text-secondary-500 dark:text-secondary-400">
                       <span className="flex items-center gap-1">
                         Loyalty
-                        <Tooltip content="Loyalty score (1-5) based on repeat visits and overall satisfaction across sessions." side="bottom">
-                          <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                        </Tooltip>
+                        <InfoTooltip content="Loyalty score (1-5) based on repeat visits and overall satisfaction across sessions." />
                       </span>
                     </th>
                     <th className="text-left py-3 px-3 font-medium text-secondary-500 dark:text-secondary-400">
                       <span className="flex items-center gap-1">
                         Trend
-                        <Tooltip content="Visitor's sentiment direction over time: improving, declining, or stable." side="bottom">
-                          <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                        </Tooltip>
+                        <InfoTooltip content="Visitor's sentiment direction over time: improving, declining, or stable." />
                       </span>
                     </th>
                     <th className="text-left py-3 px-3 font-medium text-secondary-500 dark:text-secondary-400">Summary</th>

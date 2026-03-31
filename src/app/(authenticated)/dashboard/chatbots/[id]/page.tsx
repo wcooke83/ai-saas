@@ -18,8 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip } from '@/components/ui/tooltip';
-import { Info } from 'lucide-react';
+import { InfoTooltip } from '@/components/ui/tooltip';
 import { H1 } from '@/components/ui/heading';
 import { OnboardingChecklist } from '@/components/chatbots/OnboardingChecklist';
 import type { Chatbot } from '@/lib/chatbots/types';
@@ -231,9 +230,7 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
                 </p>
                 <p className="text-sm text-secondary-500 flex items-center gap-1">
                   Conversations
-                  <Tooltip content="Total unique chat sessions started by visitors on this chatbot.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Total unique chat sessions started by visitors on this chatbot." />
                 </p>
               </div>
             </div>
@@ -251,9 +248,7 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
                 </p>
                 <p className="text-sm text-secondary-500 flex items-center gap-1">
                   Messages
-                  <Tooltip content="Total messages exchanged, including both visitor and bot messages.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Total messages exchanged, including both visitor and bot messages." />
                 </p>
               </div>
             </div>
@@ -271,9 +266,7 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
                 </p>
                 <p className="text-sm text-secondary-500 flex items-center gap-1">
                   Satisfaction
-                  <Tooltip content="Positive survey rating rate. Requires the post-chat survey to be enabled in Settings.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Positive survey rating rate. Requires the post-chat survey to be enabled in Settings." />
                 </p>
               </div>
             </div>
@@ -298,9 +291,7 @@ export default function ChatbotDetailPage({ params }: ChatbotDetailProps) {
                     </p>
                     <p className={`text-sm flex items-center gap-1 ${atLimit ? 'text-red-600 dark:text-red-400 font-medium' : 'text-secondary-500'}`}>
                       {atLimit ? 'Limit Reached' : 'This Month'}
-                      <Tooltip content="Total messages sent and received during the current calendar month.">
-                        <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                      </Tooltip>
+                      <InfoTooltip content="Total messages sent and received during the current calendar month." />
                     </p>
                     {limit > 0 && (
                       <div className="mt-1.5 h-1.5 w-full bg-secondary-100 dark:bg-secondary-700 rounded-full overflow-hidden">

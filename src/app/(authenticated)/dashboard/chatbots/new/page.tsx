@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip } from '@/components/ui/tooltip';
+import { Tooltip, InfoTooltip } from '@/components/ui/tooltip';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { SYSTEM_PROMPT_TEMPLATES, SYSTEM_PROMPT_TEMPLATE_CATEGORIES } from '@/lib/chatbots/types';
@@ -265,9 +265,7 @@ function BasicInfoStep({ formData, updateField }: StepProps) {
       <div className="space-y-2">
         <Label htmlFor="name" className="flex items-center gap-1">
           Chatbot Name *
-          <Tooltip content="Used as the chatbot's display name in the widget header and your dashboard.">
-            <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-          </Tooltip>
+          <InfoTooltip content="Used as the chatbot's display name in the widget header and your dashboard." />
         </Label>
         <Input
           id="name"

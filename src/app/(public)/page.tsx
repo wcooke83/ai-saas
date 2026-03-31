@@ -162,35 +162,123 @@ export default function HomePage() {
       <main id="main-content">
 
         {/* ── Hero ──────────────────────────────────────────────────────────── */}
-        <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center container mx-auto px-4 py-16 text-center">
-          <Badge className="mb-6">AI Customer Support, Done Right</Badge>
+        <section className="min-h-[calc(100vh-4rem)] flex items-center container mx-auto px-4 py-16">
+          <div className="grid lg:grid-cols-2 gap-12 xl:gap-20 items-center w-full">
 
-          <H1 className="max-w-4xl mb-6">
-            Stop answering the same questions twice.{' '}
-            <span className="text-primary-500">Your knowledge base</span>{' '}
-            becomes a chatbot that handles it.
-          </H1>
+            {/* Left column */}
+            <div className="flex flex-col items-start text-left">
+              <Badge className="mb-6">AI Customer Support, Done Right</Badge>
 
-          <p className="mx-auto max-w-2xl text-lg text-secondary-600 dark:text-secondary-400 mb-10">
-            VocUI turns your docs, URLs, and FAQs into an AI chatbot that deflects support tickets,
-            captures leads, and books appointments — deployed on your site in under an hour.
-          </p>
+              <H1 className="mb-6">
+                Stop answering the same questions twice.{' '}
+                <span className="text-primary-500">Your knowledge base</span>{' '}
+                becomes a chatbot that handles it.
+              </H1>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Button size="xl" asChild>
-              <Link href="/signup">
-                Build Your Chatbot Free
-                <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-              </Link>
-            </Button>
-            <Button size="xl" variant="outline" asChild>
-              <Link href="/pricing">See Pricing</Link>
-            </Button>
+              <p className="text-lg text-secondary-600 dark:text-secondary-400 mb-10 max-w-xl">
+                VocUI turns your docs, URLs, and FAQs into an AI chatbot that deflects support tickets,
+                captures leads, and books appointments — deployed on your site in under an hour.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                <Button size="xl" asChild>
+                  <Link href="/signup">
+                    Build Your Chatbot Free
+                    <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                  </Link>
+                </Button>
+                <Button size="xl" variant="outline" asChild>
+                  <Link href="/pricing">See Pricing</Link>
+                </Button>
+              </div>
+
+              <p className="text-sm text-secondary-500 dark:text-secondary-400">
+                No credit card required &mdash; free plan available
+              </p>
+            </div>
+
+            {/* Right column — chat widget mockup */}
+            <div className="hidden lg:flex items-center justify-center">
+              <div className="relative w-full max-w-sm rotate-1 hover:rotate-0 transition-transform duration-500">
+                {/* Drop shadow layer */}
+                <div className="absolute inset-0 rounded-2xl bg-primary-500/10 blur-2xl scale-105" aria-hidden="true" />
+
+                {/* Card */}
+                <div className="relative rounded-2xl border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-900 shadow-2xl overflow-hidden">
+
+                  {/* Browser chrome */}
+                  <div className="flex items-center gap-1.5 px-4 py-3 bg-secondary-50 dark:bg-secondary-800 border-b border-secondary-200 dark:border-secondary-700">
+                    <span className="w-3 h-3 rounded-full bg-red-400" aria-hidden="true" />
+                    <span className="w-3 h-3 rounded-full bg-amber-400" aria-hidden="true" />
+                    <span className="w-3 h-3 rounded-full bg-green-400" aria-hidden="true" />
+                    <div className="ml-3 flex-1 h-5 rounded bg-secondary-200 dark:bg-secondary-700 flex items-center px-2">
+                      <span className="text-xs text-secondary-400 dark:text-secondary-500 truncate">yoursite.com</span>
+                    </div>
+                  </div>
+
+                  {/* Chat widget header */}
+                  <div className="flex items-center gap-3 px-4 py-3 bg-primary-600">
+                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                      <Bot className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-white leading-none">VocUI Assistant</p>
+                      <p className="text-xs text-white/70 mt-0.5">Online &bull; Typically replies instantly</p>
+                    </div>
+                  </div>
+
+                  {/* Chat messages */}
+                  <div className="px-4 py-4 space-y-3 bg-secondary-50 dark:bg-secondary-900/50 min-h-[200px]" role="log" aria-label="Sample chat conversation">
+                    {/* Bot message */}
+                    <div className="flex gap-2 items-end">
+                      <div className="w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                        <Bot className="w-3 h-3 text-primary-500" />
+                      </div>
+                      <div className="bg-primary-500 text-white text-sm rounded-2xl rounded-bl-sm px-3 py-2 max-w-[80%] leading-relaxed shadow-sm">
+                        Hi! I&apos;m trained on your knowledge base. How can I help you today?
+                      </div>
+                    </div>
+
+                    {/* User message */}
+                    <div className="flex justify-end">
+                      <div className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 text-secondary-800 dark:text-secondary-200 text-sm rounded-2xl rounded-br-sm px-3 py-2 max-w-[80%] leading-relaxed shadow-sm">
+                        What&apos;s your refund policy?
+                      </div>
+                    </div>
+
+                    {/* Bot message */}
+                    <div className="flex gap-2 items-end">
+                      <div className="w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                        <Bot className="w-3 h-3 text-primary-500" />
+                      </div>
+                      <div className="bg-primary-500 text-white text-sm rounded-2xl rounded-bl-sm px-3 py-2 max-w-[80%] leading-relaxed shadow-sm">
+                        We offer a 30-day money-back guarantee on all plans, no questions asked. Want me to start a refund for your account?
+                      </div>
+                    </div>
+
+                    {/* User message */}
+                    <div className="flex justify-end">
+                      <div className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 text-secondary-800 dark:text-secondary-200 text-sm rounded-2xl rounded-br-sm px-3 py-2 max-w-[80%] leading-relaxed shadow-sm">
+                        Yes please!
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Input bar */}
+                  <div className="flex items-center gap-2 px-3 py-3 border-t border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-900">
+                    <div className="flex-1 h-8 rounded-full bg-secondary-100 dark:bg-secondary-800 px-3 flex items-center">
+                      <span className="text-xs text-secondary-400 dark:text-secondary-500">Type a message…</span>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                      <ArrowRight className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
           </div>
-
-          <p className="text-sm text-secondary-500 dark:text-secondary-400">
-            No credit card required &mdash; free plan available
-          </p>
         </section>
 
         {/* ── Trust Bar ─────────────────────────────────────────────────────── */}
@@ -204,53 +292,6 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* ── Testimonials ──────────────────────────────────────────────────── */}
-        <section className="container mx-auto px-4 py-24">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
-              Teams shipping faster with VocUI
-            </h2>
-            <p className="text-secondary-500 dark:text-secondary-400">
-              From solo founders to support teams at scale
-            </p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
-            {testimonials.map((t) => (
-              <div
-                key={t.author}
-                className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-600 rounded-xl p-6"
-              >
-                <div className="flex items-center gap-1 mb-4" aria-label="5 out of 5 stars">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" aria-hidden="true" />
-                  ))}
-                </div>
-                <blockquote className="text-secondary-700 dark:text-secondary-300 mb-4 text-sm leading-relaxed">
-                  &ldquo;{t.quote}&rdquo;
-                </blockquote>
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`flex-shrink-0 w-10 h-10 bg-gradient-to-br ${t.gradient} rounded-full flex items-center justify-center text-white font-bold text-sm`}
-                    aria-hidden="true"
-                  >
-                    {t.initials}
-                  </div>
-                  <div>
-                    <cite className="not-italic">
-                      <strong className="text-sm text-secondary-900 dark:text-secondary-100 block">{t.author}</strong>
-                      <span className="text-xs text-secondary-500 dark:text-secondary-400">{t.role}</span>
-                    </cite>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <Building2 className="w-3 h-3 text-secondary-400" aria-hidden="true" />
-                      <span className="text-xs text-secondary-500 dark:text-secondary-400">{t.company}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
         </section>
 
@@ -293,6 +334,53 @@ export default function HomePage() {
                 );
               })}
             </div>
+          </div>
+        </section>
+
+        {/* ── Testimonials ──────────────────────────────────────────────────── */}
+        <section className="container mx-auto px-4 py-24">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
+              Hear what users love
+            </h2>
+            <p className="text-secondary-500 dark:text-secondary-400">
+              From solo founders to support teams at scale
+            </p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
+            {testimonials.map((t) => (
+              <div
+                key={t.author}
+                className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-600 rounded-xl p-6"
+              >
+                <div className="flex items-center gap-1 mb-4" aria-label="5 out of 5 stars">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" aria-hidden="true" />
+                  ))}
+                </div>
+                <blockquote className="text-secondary-700 dark:text-secondary-300 mb-4 text-sm leading-relaxed">
+                  &ldquo;{t.quote}&rdquo;
+                </blockquote>
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`flex-shrink-0 w-10 h-10 bg-gradient-to-br ${t.gradient} rounded-full flex items-center justify-center text-white font-bold text-sm`}
+                    aria-hidden="true"
+                  >
+                    {t.initials}
+                  </div>
+                  <div>
+                    <cite className="not-italic">
+                      <strong className="text-sm text-secondary-900 dark:text-secondary-100 block">{t.author}</strong>
+                      <span className="text-xs text-secondary-500 dark:text-secondary-400">{t.role}</span>
+                    </cite>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <Building2 className="w-3 h-3 text-secondary-400" aria-hidden="true" />
+                      <span className="text-xs text-secondary-500 dark:text-secondary-400">{t.company}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 

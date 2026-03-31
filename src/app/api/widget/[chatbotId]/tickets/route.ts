@@ -132,12 +132,12 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     // Notify chatbot owner if they have the preference enabled
     if ((chatbot as any).user_id) {
-      supabase
+      (supabase as any)
         .from('profiles')
         .select('email, notify_new_ticket')
         .eq('id', (chatbot as any).user_id)
         .single()
-        .then(({ data: ownerProfile }) => {
+        .then(({ data: ownerProfile }: { data: { email: string; notify_new_ticket: boolean } | null }) => {
           if (ownerProfile?.notify_new_ticket) {
             sendNewTicketNotification(ownerProfile.email, {
               ticketId: ticketRef,

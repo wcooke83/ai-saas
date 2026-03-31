@@ -12,19 +12,19 @@ export async function POST(req: NextRequest) {
     const supabase = createAdminClient();
 
     // Check if already activated (idempotent)
-    const { data: chatbotRow } = await supabase
+    const { data: chatbotRow } = await (supabase as any)
       .from('chatbots')
       .select('first_conversation_at, name')
       .eq('id', chatbotId)
       .eq('user_id', userId)
-      .single();
+      .single() as { data: { first_conversation_at: string | null; name: string } | null };
 
     if (!chatbotRow || chatbotRow.first_conversation_at) {
       return new Response(JSON.stringify({ activated: false }), { status: 200 });
     }
 
     // Set first_conversation_at
-    await supabase
+    await (supabase as any)
       .from('chatbots')
       .update({ first_conversation_at: new Date().toISOString() })
       .eq('id', chatbotId)

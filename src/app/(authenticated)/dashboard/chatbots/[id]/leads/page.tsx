@@ -17,13 +17,12 @@ import {
   Mail,
   X,
   Settings,
-  Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip } from '@/components/ui/tooltip';
+import { InfoTooltip } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SortableTable, Column } from '@/components/ui/sortable-table';
 import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
@@ -432,9 +431,7 @@ export default function ChatbotLeadsPage({ params }: ChatbotLeadsPageProps) {
               <div>
                 <p className="text-sm text-secondary-500 flex items-center gap-1">
                   Total Leads
-                  <Tooltip content="Visitors who submitted the pre-chat form before starting a conversation.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Visitors who submitted the pre-chat form before starting a conversation." />
                 </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-1">
                   {stats.totalLeads}
@@ -458,9 +455,7 @@ export default function ChatbotLeadsPage({ params }: ChatbotLeadsPageProps) {
               <div>
                 <p className="text-sm text-secondary-500 flex items-center gap-1">
                   Total Conversations
-                  <Tooltip content="All chat sessions, including those from visitors who skipped the pre-chat form.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="All chat sessions, including those from visitors who skipped the pre-chat form." />
                 </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-1">
                   {stats.totalConversations}
@@ -484,9 +479,7 @@ export default function ChatbotLeadsPage({ params }: ChatbotLeadsPageProps) {
               <div>
                 <p className="text-sm text-secondary-500 flex items-center gap-1">
                   Today&apos;s Activity
-                  <Tooltip content="Leads and conversations in the last 24 hours.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Leads and conversations in the last 24 hours." />
                 </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-1">
                   {stats.todayLeads + stats.todayConversations}
@@ -511,9 +504,7 @@ export default function ChatbotLeadsPage({ params }: ChatbotLeadsPageProps) {
               <div>
                 <p className="text-sm text-secondary-500 flex items-center gap-1">
                   Conversion Rate
-                  <Tooltip content="Percentage of conversations where the visitor also submitted the pre-chat form.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Percentage of conversations where the visitor also submitted the pre-chat form." />
                 </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-1">
                   {stats.totalConversations > 0

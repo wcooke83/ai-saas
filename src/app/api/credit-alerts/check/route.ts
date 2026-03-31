@@ -41,13 +41,13 @@ export async function POST(req: NextRequest) {
     const firstName = emailLocalPart.charAt(0).toUpperCase() + emailLocalPart.slice(1);
 
     // Get usage row for alert tracking columns
-    const { data: usageRow } = await supabase
+    const { data: usageRow } = await (supabase as any)
       .from('usage')
       .select('period_start, credit_alert_75_sent_at, credit_alert_90_sent_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(1)
-      .maybeSingle();
+      .maybeSingle() as { data: { period_start: string | null; credit_alert_75_sent_at: string | null; credit_alert_90_sent_at: string | null } | null };
 
     const periodStart = usageRow?.period_start ? new Date(usageRow.period_start) : null;
 
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
 
     if (percentUsed >= 90 && !alert90AlreadySent) {
       await sendCreditAlert90Email(email, firstName);
-      await supabase
+      await (supabase as any)
         .from('usage')
         .update({ credit_alert_90_sent_at: new Date().toISOString() })
         .eq('user_id', userId);
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
 
     if (percentUsed >= 75 && !alert75AlreadySent) {
       await sendCreditAlert75Email(email, firstName);
-      await supabase
+      await (supabase as any)
         .from('usage')
         .update({ credit_alert_75_sent_at: new Date().toISOString() })
         .eq('user_id', userId);

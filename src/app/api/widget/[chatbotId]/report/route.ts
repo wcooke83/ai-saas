@@ -151,12 +151,12 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     // Notify chatbot owner if they have the preference enabled
     if (chatbot.user_id) {
       const chatbotName = (chatbot as any).name as string | undefined;
-      supabase
+      (supabase as any)
         .from('profiles')
         .select('email, notify_new_escalation')
         .eq('id', chatbot.user_id)
         .single()
-        .then(({ data: ownerProfile }) => {
+        .then(({ data: ownerProfile }: { data: { email: string; notify_new_escalation: boolean } | null }) => {
           if (ownerProfile?.notify_new_escalation) {
             sendNewEscalationNotification(ownerProfile.email, {
               visitorName: body.visitor_name,

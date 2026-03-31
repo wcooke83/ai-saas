@@ -16,8 +16,7 @@ import {
   Code,
   Bot,
 } from 'lucide-react';
-import { Tooltip } from '@/components/ui/tooltip';
-import { Info } from 'lucide-react';
+import { InfoTooltip } from '@/components/ui/tooltip';
 import { H1 } from '@/components/ui/heading';
 import { NewUserWelcome } from '@/components/dashboard/new-user-welcome';
 import type { Database } from '@/types/database';
@@ -212,9 +211,7 @@ export default async function DashboardPage() {
             <div className="flex items-center justify-between">
               <CardDescription className="flex items-center gap-1">
                 Credits Remaining
-                <Tooltip content="Credits remaining this billing period. Credits are used when your chatbot answers questions and processes knowledge sources.">
-                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                </Tooltip>
+                <InfoTooltip content="Credits remaining this billing period. Credits are used when your chatbot answers questions and processes knowledge sources." />
               </CardDescription>
               <Sparkles className="w-4 h-4 text-secondary-400" aria-hidden="true" />
             </div>
@@ -247,9 +244,7 @@ export default async function DashboardPage() {
             <div className="flex items-center justify-between">
               <CardDescription className="flex items-center gap-1">
                 API Keys
-                <Tooltip content="Number of active API keys. Use these to integrate VocUI into your own applications.">
-                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                </Tooltip>
+                <InfoTooltip content="Number of active API keys. Use these to integrate VocUI into your own applications." />
               </CardDescription>
               <Key className="w-4 h-4 text-secondary-400" aria-hidden="true" />
             </div>
@@ -271,9 +266,7 @@ export default async function DashboardPage() {
             <div className="flex items-center justify-between">
               <CardDescription className="flex items-center gap-1">
                 Total Generations
-                <Tooltip content="Total chatbot responses generated since your account was created.">
-                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                </Tooltip>
+                <InfoTooltip content="Total chatbot responses generated since your account was created." />
               </CardDescription>
               <TrendingUp className="w-4 h-4 text-secondary-400" aria-hidden="true" />
             </div>
