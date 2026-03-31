@@ -33,7 +33,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 let testCustomerId: string;
 let testPaymentMethodId: string;
-let testPackageId: string;
+let testPackageId = '';
 
 async function patchBot(data: Record<string, unknown>) {
   return fetch(`${BASE_URL}/api/chatbots/${BOT_ID}`, {
