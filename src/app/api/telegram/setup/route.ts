@@ -16,6 +16,7 @@ import {
 import { DEFAULT_TELEGRAM_CONFIG } from '@/lib/telegram/types';
 import type { TelegramConfig } from '@/lib/telegram/types';
 import { decryptTelegramConfig } from '@/lib/telegram/crypto';
+import { CHATBOT_PLAN_LIMITS } from '@/lib/chatbots/types';
 import type { Json } from '@/types/database';
 
 function parseTelegramConfig(raw: Json | null): TelegramConfig {
@@ -40,7 +41,18 @@ async function getAuthenticatedChatbot(req: NextRequest) {
     .eq('user_id', user.id)
     .single();
 
-  return chatbot || null;
+  return chatbot ? { ...chatbot, _userId: user.id } : null;
+}
+
+async function checkTelegramPlanGate(userId: string): Promise<boolean> {
+  const admin = createAdminClient();
+  const { data: sub } = await admin
+    .from('subscriptions')
+    .select('plan')
+    .eq('user_id', userId)
+    .single();
+  const planSlug = sub?.plan || 'free';
+  return CHATBOT_PLAN_LIMITS[planSlug]?.telegramIntegration ?? false;
 }
 
 /**
@@ -51,6 +63,15 @@ export async function POST(req: NextRequest) {
     const chatbot = await getAuthenticatedChatbot(req);
     if (!chatbot) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Plan gate: require Telegram integration permission
+    const allowed = await checkTelegramPlanGate(chatbot._userId);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Telegram integration requires a Pro or Agency plan' },
+        { status: 403 }
+      );
     }
 
     const config = parseTelegramConfig(chatbot.telegram_config);

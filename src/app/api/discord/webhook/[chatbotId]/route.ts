@@ -11,19 +11,14 @@
  * - For commands: return { type: 5 } (DEFERRED) as the HTTP body, then
  *   send the real answer as a follow-up via the webhooks REST endpoint.
  *
- * In Next.js Node.js runtime, we can't return a response AND continue
- * processing in the same handler (the response is sent when handler returns).
- * So the pattern is:
+ * Pattern:
  * 1. For PING: return PONG immediately (no async work needed).
- * 2. For commands: return DEFERRED immediately AND fire off the async work.
- *    In Node.js serverless, the process may die after the response is sent,
- *    so we await the chat promise before returning to keep the process alive.
- *    Discord is tolerant of a slightly delayed HTTP response (< ~5s in practice)
- *    as long as the response type is DEFERRED.
- *    For true fire-and-forget, we would need edge runtime + waitUntil.
+ * 2. For commands: return DEFERRED immediately, then use Next.js after()
+ *    to process the AI response after the HTTP response is sent.
+ *    after() keeps the process alive on serverless without blocking the response.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyDiscordSignature, sendFollowup } from '@/lib/discord/client';
 import { handleDiscordInteraction } from '@/lib/discord/chat';
@@ -99,23 +94,21 @@ export async function POST(
         decryptedConfig.bot_token = decryptToken(decryptedConfig.bot_token);
       }
 
-      // Process the AI response asynchronously.
-      // handleDiscordInteraction sends the result via follow-up webhook.
-      const chatPromise = handleDiscordInteraction(chatbotId, decryptedConfig, interaction).catch(
-        (err) => {
-          console.error('[Discord Webhook] AI chat error:', err);
-          sendFollowup(
-            interaction.application_id,
-            interaction.token,
-            'Sorry, an error occurred while processing your question. Please try again.'
-          ).catch(() => {});
-        }
+      // Return DEFERRED immediately (Discord requires response within 3s).
+      // Schedule AI processing to run after the response is sent using
+      // Next.js after() — keeps the process alive without blocking the response.
+      after(
+        handleDiscordInteraction(chatbotId, decryptedConfig, interaction).catch(
+          (err) => {
+            console.error('[Discord Webhook] AI chat error:', err);
+            sendFollowup(
+              interaction.application_id,
+              interaction.token,
+              'Sorry, an error occurred while processing your question. Please try again.'
+            ).catch(() => {});
+          }
+        )
       );
-
-      // Await to keep the Node.js process alive (same pattern as Telegram).
-      // The DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE response type tells Discord
-      // to show a "thinking..." indicator while we process.
-      await chatPromise;
 
       return NextResponse.json({
         type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,

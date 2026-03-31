@@ -90,9 +90,20 @@ export async function POST(req: NextRequest) {
 
     // Save to chatbot record
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from('chatbots') as any)
+    const { error: updateError } = await (supabase.from('chatbots') as any)
       .update({ discord_config: config })
       .eq('id', input.chatbot_id);
+
+    if (updateError) {
+      // Rollback: deregister the slash command we just created
+      await deleteSlashCommand(
+        input.application_id,
+        input.bot_token,
+        registration.commandId!,
+        input.guild_id
+      ).catch(() => {});
+      throw new APIError('Failed to save Discord configuration', 500);
+    }
 
     // Build webhook URL
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('.supabase.co', '.vercel.app') || '';
@@ -192,9 +203,13 @@ export async function DELETE(req: NextRequest) {
 
     // Clear config
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from('chatbots') as any)
+    const { error: clearError } = await (supabase.from('chatbots') as any)
       .update({ discord_config: null })
       .eq('id', chatbotId);
+
+    if (clearError) {
+      throw new APIError('Failed to remove Discord configuration', 500);
+    }
 
     return successResponse({ message: 'Discord integration removed' });
   } catch (error) {
