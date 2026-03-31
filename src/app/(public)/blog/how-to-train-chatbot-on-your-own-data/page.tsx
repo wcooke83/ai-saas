@@ -5,6 +5,7 @@ import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import { AuthorByline } from '@/components/blog/author-byline';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -41,6 +42,22 @@ const jsonLd = {
       description:
         'A step-by-step guide to training an AI chatbot on your own documents, PDFs, and URLs with no ML experience required.',
       url: 'https://vocui.com/blog/how-to-train-chatbot-on-your-own-data',
+      datePublished: '2025-03-31',
+      dateModified: '2025-03-31',
+      author: {
+        '@type': 'Person',
+        name: 'Will Cooke',
+        url: 'https://vocui.com/about',
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'VocUI',
+        url: 'https://vocui.com',
+        logo: {
+          '@type': 'ImageObject',
+          url: 'https://vocui.com/logo.png',
+        },
+      },
       step: [
         {
           '@type': 'HowToStep',
@@ -149,8 +166,10 @@ export default function HowToTrainChatbotPage() {
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
                   Guide
                 </span>
+                <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">9 min read</span>
               </div>
+              <AuthorByline className="mb-4" />
               <h1 className="text-4xl font-bold text-secondary-900 dark:text-secondary-100 leading-tight mb-4">
                 How to Train a Chatbot on Your Own Data
               </h1>
@@ -458,12 +477,12 @@ export default function HowToTrainChatbotPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Ready to build your first chatbot?</h2>
+            <h2 className="text-2xl font-bold mb-3">Your turn — build it in under 5 minutes</h2>
             <p className="text-white/80 mb-2">
-              Free plan, no credit card required. Most businesses are live within an hour.
+              Follow the steps you just read, but with your own content. Upload your docs, customize the look, and go live.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Train on your own docs, embed on your site, start answering questions today.
+              Free plan included. No code, no developers, no waiting.
             </p>
             <Button
               size="xl"
@@ -476,7 +495,7 @@ export default function HowToTrainChatbotPage() {
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
-            <p className="text-xs text-white/50 mt-4">Start free — no credit card required</p>
+            <p className="text-xs text-white/50 mt-4">Join 1,000+ businesses already using VocUI</p>
           </div>
         </div>
       </main>

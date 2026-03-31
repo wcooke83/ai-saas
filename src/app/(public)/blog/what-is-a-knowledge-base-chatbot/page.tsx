@@ -5,6 +5,7 @@ import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import { AuthorByline } from '@/components/blog/author-byline';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -41,8 +42,22 @@ const jsonLd = {
       description:
         'An explainer on what a knowledge base chatbot is, how it works technically, and when to use one for your business.',
       url: 'https://vocui.com/blog/what-is-a-knowledge-base-chatbot',
-      author: { '@type': 'Organization', name: 'VocUI' },
-      publisher: { '@type': 'Organization', name: 'VocUI', url: 'https://vocui.com' },
+      datePublished: '2025-03-31',
+      dateModified: '2025-03-31',
+      author: {
+        '@type': 'Person',
+        name: 'Will Cooke',
+        url: 'https://vocui.com/about',
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'VocUI',
+        url: 'https://vocui.com',
+        logo: {
+          '@type': 'ImageObject',
+          url: 'https://vocui.com/logo.png',
+        },
+      },
     },
     {
       '@type': 'FAQPage',
@@ -129,8 +144,10 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
                   Explainer
                 </span>
+                <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">7 min read</span>
               </div>
+              <AuthorByline className="mb-4" />
               <h1 className="text-4xl font-bold text-secondary-900 dark:text-secondary-100 leading-tight mb-4">
                 What Is a Knowledge Base Chatbot?
               </h1>
@@ -382,11 +399,7 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
                 </ol>
                 <p className="mt-4">
                   The free plan gets you started with no credit card required. Most businesses are
-                  live in under an hour. See{' '}
-                  <Link href="/pricing" className="text-primary-600 dark:text-primary-400 hover:underline">
-                    VocUI pricing
-                  </Link>{' '}
-                  for plan details, or read our step-by-step guide on{' '}
+                  live in under an hour. Read our step-by-step guide on{' '}
                   <Link href="/blog/how-to-add-chatbot-to-website" className="text-primary-600 dark:text-primary-400 hover:underline">
                     adding a chatbot to your website
                   </Link>
@@ -433,12 +446,12 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Ready to build your first chatbot?</h2>
+            <h2 className="text-2xl font-bold mb-3">Now see it in action — with your own content</h2>
             <p className="text-white/80 mb-2">
-              Free plan, no credit card required. Most businesses are live within an hour.
+              You understand how it works. Try it yourself: upload a document, ask a question, and watch your chatbot answer from your knowledge.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Train on your own docs, embed on your site, start answering questions today.
+              Free to start. Takes about 2 minutes to see your first answer.
             </p>
             <Button
               size="xl"
@@ -451,7 +464,7 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
-            <p className="text-xs text-white/50 mt-4">Start free — no credit card required</p>
+            <p className="text-xs text-white/50 mt-4">No setup fee, no commitments</p>
           </div>
         </div>
       </main>

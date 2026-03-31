@@ -5,6 +5,7 @@ import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle2, XCircle, MinusCircle } from 'lucide-react';
+import { AuthorByline } from '@/components/blog/author-byline';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -41,8 +42,22 @@ const jsonLd = {
       description:
         'A comparison of the top AI chatbot builders for small businesses looking for a Chatbase alternative.',
       url: 'https://vocui.com/blog/chatbase-alternatives',
-      author: { '@type': 'Organization', name: 'VocUI' },
-      publisher: { '@type': 'Organization', name: 'VocUI', url: 'https://vocui.com' },
+      datePublished: '2025-03-31',
+      dateModified: '2025-03-31',
+      author: {
+        '@type': 'Person',
+        name: 'Will Cooke',
+        url: 'https://vocui.com/about',
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'VocUI',
+        url: 'https://vocui.com',
+        logo: {
+          '@type': 'ImageObject',
+          url: 'https://vocui.com/logo.png',
+        },
+      },
     },
     {
       '@type': 'ItemList',
@@ -55,6 +70,43 @@ const jsonLd = {
         { '@type': 'ListItem', position: 5, name: 'CustomGPT.ai', url: 'https://customgpt.ai' },
       ],
     },
+    {
+      '@type': 'FAQPage',
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: 'Is Chatbase free?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: "Chatbase has a free tier, but it's very limited \u2014 a small number of messages per month and one chatbot. Most real use cases require a paid plan.",
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Can I migrate my Chatbase knowledge base to another tool?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: "Most tools accept the same source formats (URLs, PDFs, text). You'll need to re-add your sources, but there's no proprietary format that would trap you in Chatbase.",
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Which Chatbase alternative is best for Slack?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'VocUI and Botpress both have genuine Slack integration. VocUI is easier to set up for non-developers. Botpress offers more customization.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Does VocUI work for non-English content?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes. VocUI supports 20+ languages. You can train the knowledge base in any language and the chatbot will respond in the language the visitor is writing in.',
+          },
+        },
+      ],
+    },
   ],
 };
 
@@ -65,58 +117,58 @@ type SupportLevel = 'yes' | 'no' | 'partial';
 interface ToolRow {
   tool: string;
   startingPrice: string;
-  knowledgeBase: SupportLevel;
-  slackIntegration: SupportLevel;
-  embedWidget: SupportLevel;
-  livAgentHandoff: SupportLevel;
-  noCodeSetup: SupportLevel;
+  knowledgeBaseTraining: SupportLevel;
+  aiModelChoice: SupportLevel;
+  customBranding: SupportLevel;
+  analyticsDashboard: SupportLevel;
+  apiAccess: SupportLevel;
 }
 
 const comparisonData: ToolRow[] = [
   {
     tool: 'VocUI',
     startingPrice: 'Free / $29+',
-    knowledgeBase: 'yes',
-    slackIntegration: 'yes',
-    embedWidget: 'yes',
-    livAgentHandoff: 'yes',
-    noCodeSetup: 'yes',
+    knowledgeBaseTraining: 'yes',
+    aiModelChoice: 'yes',
+    customBranding: 'yes',
+    analyticsDashboard: 'yes',
+    apiAccess: 'yes',
   },
   {
     tool: 'Botpress',
     startingPrice: 'Free / $89+',
-    knowledgeBase: 'yes',
-    slackIntegration: 'yes',
-    embedWidget: 'yes',
-    livAgentHandoff: 'partial',
-    noCodeSetup: 'partial',
+    knowledgeBaseTraining: 'yes',
+    aiModelChoice: 'partial',
+    customBranding: 'yes',
+    analyticsDashboard: 'yes',
+    apiAccess: 'yes',
   },
   {
     tool: 'Tidio',
     startingPrice: 'Free / $29+',
-    knowledgeBase: 'partial',
-    slackIntegration: 'no',
-    embedWidget: 'yes',
-    livAgentHandoff: 'yes',
-    noCodeSetup: 'yes',
+    knowledgeBaseTraining: 'partial',
+    aiModelChoice: 'no',
+    customBranding: 'yes',
+    analyticsDashboard: 'yes',
+    apiAccess: 'partial',
   },
   {
     tool: 'Intercom Fin',
     startingPrice: '$74+',
-    knowledgeBase: 'yes',
-    slackIntegration: 'partial',
-    embedWidget: 'yes',
-    livAgentHandoff: 'yes',
-    noCodeSetup: 'yes',
+    knowledgeBaseTraining: 'yes',
+    aiModelChoice: 'no',
+    customBranding: 'yes',
+    analyticsDashboard: 'yes',
+    apiAccess: 'yes',
   },
   {
     tool: 'CustomGPT.ai',
     startingPrice: '$49+',
-    knowledgeBase: 'yes',
-    slackIntegration: 'no',
-    embedWidget: 'yes',
-    livAgentHandoff: 'no',
-    noCodeSetup: 'yes',
+    knowledgeBaseTraining: 'yes',
+    aiModelChoice: 'partial',
+    customBranding: 'partial',
+    analyticsDashboard: 'partial',
+    apiAccess: 'yes',
   },
 ];
 
@@ -163,8 +215,10 @@ export default function ChatbaseAlternativesPage() {
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
                   Comparison
                 </span>
+                <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">11 min read</span>
               </div>
+              <AuthorByline className="mb-4" />
               <h1 className="text-4xl font-bold text-secondary-900 dark:text-secondary-100 leading-tight mb-4">
                 5 Chatbase Alternatives Worth Trying in 2025
               </h1>
@@ -174,6 +228,10 @@ export default function ChatbaseAlternativesPage() {
                 cases, it&apos;s not the best one either. Here&apos;s how the top alternatives stack up.
               </p>
             </header>
+
+            <p className="text-sm text-secondary-500 dark:text-secondary-400 italic mb-8">
+              Disclosure: VocUI is our product. We&apos;ve aimed to be fair in this comparison, but we recommend trying any tool yourself before committing. All pricing and feature information was accurate at time of writing.
+            </p>
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
 
@@ -215,14 +273,15 @@ export default function ChatbaseAlternativesPage() {
                   How we compared these tools
                 </h2>
                 <p>
-                  We evaluated each tool on five criteria that matter most to small business owners:
+                  Since Chatbase is primarily a knowledge-base chatbot builder, we focused on the
+                  criteria that matter most when comparing tools in this specific category:
                 </p>
                 <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li><strong className="text-secondary-800 dark:text-secondary-200">Knowledge base support</strong> — can you train the bot on your own content?</li>
-                  <li><strong className="text-secondary-800 dark:text-secondary-200">Slack integration</strong> — does it work in Slack for internal use?</li>
-                  <li><strong className="text-secondary-800 dark:text-secondary-200">Website embed widget</strong> — can you embed it on your site easily?</li>
-                  <li><strong className="text-secondary-800 dark:text-secondary-200">Live agent handoff</strong> — can a human take over the conversation?</li>
-                  <li><strong className="text-secondary-800 dark:text-secondary-200">No-code setup</strong> — can a non-developer get it running without engineering help?</li>
+                  <li><strong className="text-secondary-800 dark:text-secondary-200">Knowledge base training</strong> — how deep and flexible is the content ingestion?</li>
+                  <li><strong className="text-secondary-800 dark:text-secondary-200">AI model choice</strong> — can you select which AI model powers responses?</li>
+                  <li><strong className="text-secondary-800 dark:text-secondary-200">Custom branding</strong> — can you make the widget match your brand?</li>
+                  <li><strong className="text-secondary-800 dark:text-secondary-200">Analytics dashboard</strong> — can you see what questions users ask and how the bot performs?</li>
+                  <li><strong className="text-secondary-800 dark:text-secondary-200">API access</strong> — can you integrate the chatbot into your own applications programmatically?</li>
                 </ul>
               </section>
 
@@ -265,6 +324,13 @@ export default function ChatbaseAlternativesPage() {
                     VocUI pricing
                   </Link>{' '}
                   for full details.
+                </p>
+                <p className="mt-4">
+                  <strong className="text-secondary-800 dark:text-secondary-200">Where VocUI falls short:</strong> VocUI
+                  doesn&apos;t have a visual conversation flow builder. If you need complex branching
+                  logic or multi-step workflows beyond what AI handles naturally, Botpress gives
+                  you more control. VocUI also has fewer third-party integrations than Chatbase&apos;s
+                  higher-tier plans.
                 </p>
                 <p className="mt-4">
                   <strong className="text-secondary-800 dark:text-secondary-200">Best for:</strong> Small businesses that need a knowledge base
@@ -417,11 +483,11 @@ export default function ChatbaseAlternativesPage() {
                       <tr className="bg-secondary-50 dark:bg-secondary-800/60">
                         <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Tool</th>
                         <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Starting price</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Knowledge base</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Slack</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Embed widget</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Live handoff</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">No-code</th>
+                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">KB training</th>
+                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Model choice</th>
+                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Branding</th>
+                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Analytics</th>
+                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">API access</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700">
@@ -438,11 +504,11 @@ export default function ChatbaseAlternativesPage() {
                             {i === 0 ? <strong>{row.tool}</strong> : row.tool}
                           </td>
                           <td className="px-4 py-3 text-secondary-600 dark:text-secondary-400">{row.startingPrice}</td>
-                          <td className="px-4 py-3 text-center"><SupportIcon level={row.knowledgeBase} /></td>
-                          <td className="px-4 py-3 text-center"><SupportIcon level={row.slackIntegration} /></td>
-                          <td className="px-4 py-3 text-center"><SupportIcon level={row.embedWidget} /></td>
-                          <td className="px-4 py-3 text-center"><SupportIcon level={row.livAgentHandoff} /></td>
-                          <td className="px-4 py-3 text-center"><SupportIcon level={row.noCodeSetup} /></td>
+                          <td className="px-4 py-3 text-center"><SupportIcon level={row.knowledgeBaseTraining} /></td>
+                          <td className="px-4 py-3 text-center"><SupportIcon level={row.aiModelChoice} /></td>
+                          <td className="px-4 py-3 text-center"><SupportIcon level={row.customBranding} /></td>
+                          <td className="px-4 py-3 text-center"><SupportIcon level={row.analyticsDashboard} /></td>
+                          <td className="px-4 py-3 text-center"><SupportIcon level={row.apiAccess} /></td>
                         </tr>
                       ))}
                     </tbody>
@@ -528,12 +594,12 @@ export default function ChatbaseAlternativesPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Ready to build your first chatbot?</h2>
+            <h2 className="text-2xl font-bold mb-3">Try VocUI free and compare for yourself</h2>
             <p className="text-white/80 mb-2">
-              Free plan, no credit card required. Most businesses are live within an hour.
+              The best way to evaluate a chatbot platform is to use it. Create a free chatbot, train it on your content, and see the difference.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Train on your own docs, embed on your site, start answering questions today.
+              No sales calls. No credit card. Just results you can measure.
             </p>
             <Button
               size="xl"
@@ -546,7 +612,7 @@ export default function ChatbaseAlternativesPage() {
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
-            <p className="text-xs text-white/50 mt-4">Start free — no credit card required</p>
+            <p className="text-xs text-white/50 mt-4">Switch in minutes — import your content and go live today</p>
           </div>
         </div>
       </main>

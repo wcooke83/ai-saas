@@ -166,6 +166,133 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.6,
     },
+    // ─── Batch 1: How-To Guides ──────────────────────────────────────────────
+    ...[
+      'how-to-create-faq-chatbot',
+      'how-to-build-internal-knowledge-bot',
+      'how-to-embed-chatbot-in-wordpress',
+      'how-to-embed-chatbot-in-shopify',
+      'how-to-write-chatbot-system-prompt',
+    ].map((slug) => ({
+      url: `${BASE_URL}/blog/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })),
+    // ─── Batch 2: How-To Guides + Setup ──────────────────────────────────────
+    ...[
+      'how-to-embed-chatbot-in-squarespace',
+      'how-to-embed-chatbot-in-wix',
+      'how-to-measure-chatbot-roi',
+      'how-to-improve-chatbot-accuracy',
+      'how-to-set-up-slack-chatbot-for-team',
+    ].map((slug) => ({
+      url: `${BASE_URL}/blog/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })),
+    // ─── Batch 3: Industry Use Cases ─────────────────────────────────────────
+    ...[
+      'chatbot-for-saas-onboarding',
+      'chatbot-for-restaurants',
+      'chatbot-for-education',
+      'chatbot-for-financial-services',
+      'chatbot-for-recruitment',
+    ].map((slug) => ({
+      url: `${BASE_URL}/blog/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })),
+    // ─── Batch 4: Industry Use Cases ─────────────────────────────────────────
+    ...[
+      'chatbot-for-nonprofits',
+      'chatbot-for-insurance',
+      'chatbot-for-travel-agencies',
+      'chatbot-for-fitness-studios',
+      'chatbot-for-accounting-firms',
+    ].map((slug) => ({
+      url: `${BASE_URL}/blog/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })),
+    // ─── Batch 5: Strategy & Business Value ──────────────────────────────────
+    ...[
+      'ai-chatbot-vs-live-chat',
+      'chatbot-lead-generation-strategies',
+      'reduce-employee-onboarding-time-with-ai',
+      'ai-customer-service-statistics',
+      'small-business-ai-automation-guide',
+    ].map((slug) => ({
+      url: `${BASE_URL}/blog/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })),
+    // ─── Batch 6: Strategy & Business Value ──────────────────────────────────
+    ...[
+      'chatbot-conversion-rate-optimization',
+      'cost-of-customer-support-without-ai',
+      'ai-chatbot-for-after-hours-support',
+    ].map((slug) => ({
+      url: `${BASE_URL}/blog/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })),
+    // ─── Batch 7: Explainers ─────────────────────────────────────────────────
+    ...[
+      'what-is-rag-retrieval-augmented-generation',
+      'what-are-embeddings-explained-simply',
+      'what-is-a-chatbot-widget',
+      'what-is-conversational-ai',
+    ].map((slug) => ({
+      url: `${BASE_URL}/blog/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })),
+    // ─── Batch 8: Explainers + Technical ─────────────────────────────────────
+    ...[
+      'what-is-vector-search',
+      'ai-hallucination-what-it-is-how-to-prevent-it',
+      'chatbot-vs-virtual-assistant',
+      'how-ai-chatbots-understand-questions',
+      'what-is-prompt-engineering',
+    ].map((slug) => ({
+      url: `${BASE_URL}/blog/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })),
+    // ─── Batch 9: Comparisons & Alternatives ─────────────────────────────────
+    ...[
+      'tidio-alternatives',
+      'intercom-alternatives',
+      'drift-alternatives',
+      'zendesk-chat-alternatives',
+      'freshchat-alternatives',
+    ].map((slug) => ({
+      url: `${BASE_URL}/blog/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })),
+    // ─── Batch 10: Best Practices ────────────────────────────────────────────
+    ...[
+      'chatbot-best-practices-for-small-business',
+      'knowledge-base-content-best-practices',
+      'chatbot-personality-and-tone-guide',
+      'chatbot-security-and-privacy-guide',
+      'chatbot-analytics-what-to-track',
+    ].map((slug) => ({
+      url: `${BASE_URL}/blog/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })),
     {
       url: `${BASE_URL}/wiki`,
       lastModified: new Date(),
