@@ -53,12 +53,12 @@ test.describe('Fallback Help Articles', () => {
 
   test('ARTICLE-006: Credit exhaustion mode can be set to help_articles via settings', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/settings`);
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
 
     // Navigate to Credit Exhaustion section
     await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
-    await page.locator('nav button', { hasText: 'Credit Exhaustion' }).click();
-    await expect(page.getByRole('heading', { name: 'Credit Exhaustion Fallback' })).toBeVisible({ timeout: 10000 });
+    await page.locator('nav button').filter({ hasText: 'Credit Exhaustion' }).click();
+    await expect(page.getByRole('heading', { name: 'Limits & Fallback' })).toBeVisible({ timeout: 10000 });
 
     // Select Help Articles mode
     await page.locator('input[value="help_articles"]').click({ force: true });

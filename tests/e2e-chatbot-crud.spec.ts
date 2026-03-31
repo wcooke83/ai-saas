@@ -22,14 +22,14 @@ test.describe('Chatbot CRUD', () => {
     await page.locator('#description').fill('A temporary bot created by E2E tests.');
     await page.locator('#welcome_message').fill('Hello from E2E!');
 
-    // Click Next to go to System Prompt step
-    await page.getByRole('button', { name: 'Next' }).click();
-    await expect(page.getByText('System Prompt')).toBeVisible();
+    // Click Next to go to Chatbot Instructions step
+    await page.getByRole('button', { name: 'Next' }).first().click();
+    await expect(page.locator('#system_prompt')).toBeVisible();
 
-    // Step 2: System Prompt — keep the default template prompt
+    // Step 2: Chatbot Instructions — keep the default template prompt
     // Click Next to go to Review step
-    await page.getByRole('button', { name: 'Next' }).click();
-    await expect(page.getByText('Review')).toBeVisible();
+    await page.getByRole('button', { name: 'Next' }).first().click();
+    await expect(page.getByRole('button', { name: 'Create Chatbot' })).toBeVisible({ timeout: 5000 });
 
     // Step 3: Review — verify details shown
     await expect(page.getByText('E2E Temp Bot')).toBeVisible();

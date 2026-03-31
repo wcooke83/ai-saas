@@ -1,0 +1,1 @@
+- [Slack Integration Competitive Positioning](project_slack_positioning.md) — VocUI Slack vs Slack AI: different jobs-to-be-done, positioning should emphasize knowledge ownership not "AI in Slack"

@@ -127,7 +127,7 @@ export function Tooltip({
     };
   }, []);
 
-  const tooltipContent = isVisible && mounted && (
+  const tooltipContent = isVisible && mounted && content && (
     <div
       ref={tooltipRef}
       role="tooltip"

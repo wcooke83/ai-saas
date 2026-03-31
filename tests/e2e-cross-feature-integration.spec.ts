@@ -27,15 +27,14 @@ async function resetCredits(page: Page) {
  */
 async function setCreditExhaustionModeViaUI(page: Page, mode: 'tickets' | 'contact_form' | 'purchase_credits' | 'help_articles') {
   await page.goto(`${DASH_BASE}/settings`);
-  await page.waitForLoadState('domcontentloaded');
-  await expect(page.locator('#main-content, main')).toBeVisible({ timeout: 15000 });
-
-  // Click the "Credit Exhaustion" section in the sidebar nav
-  const sectionBtn = page.locator('button:has-text("Credit Exhaustion")');
-  await sectionBtn.first().click();
+  await page.waitForLoadState('networkidle');
+  // Use nav button specifically — mobile tab strip uses a div, avoiding DOM-order first() issues
+  const sectionBtn = page.locator('nav button').filter({ hasText: 'Credit Exhaustion' });
+  await sectionBtn.waitFor({ state: 'visible', timeout: 30000 });
+  await sectionBtn.click();
 
   // Wait for the fallback card to be visible
-  await expect(page.locator('text=Credit Exhaustion Fallback')).toBeVisible({ timeout: 10000 });
+  await expect(page.locator('text=Limits & Fallback')).toBeVisible({ timeout: 10000 });
 
   // Select the desired mode radio button
   const modeLabels: Record<string, string> = {

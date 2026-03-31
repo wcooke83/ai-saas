@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { Tooltip } from '@/components/ui/tooltip';
 
 interface UsageData {
   credits_used: number;
@@ -61,15 +62,12 @@ export function CreditMeter({ collapsed }: CreditMeterProps) {
 
   if (collapsed) {
     return (
-      <div className="relative group flex items-center justify-center py-1">
+      <Tooltip content={`Credits: ${percentUsed}% used this period`} side="right" wrapperClassName="flex items-center justify-center py-1">
         <div
           className={`w-2 h-2 rounded-full ${dotColor}`}
           aria-label={`Credits: ${percentUsed}% used this period`}
         />
-        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-secondary-900 dark:bg-secondary-700 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity whitespace-nowrap z-50 pointer-events-none">
-          Credits: {percentUsed}% used this period
-        </div>
-      </div>
+      </Tooltip>
     );
   }
 

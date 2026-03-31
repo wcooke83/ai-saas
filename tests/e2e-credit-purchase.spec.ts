@@ -14,7 +14,7 @@ test.describe('Credit Packs – Database-Driven Packages', () => {
     await gotoBilling(page);
 
     // Wait for the Purchase Credits card to appear
-    await expect(page.getByText('Purchase Credits')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Purchase Credits').first()).toBeVisible({ timeout: 15000 });
 
     // The Credit Packs heading should be visible if packages exist
     const creditPacksHeading = page.getByText('Credit Packs');
@@ -42,7 +42,7 @@ test.describe('Credit Packs – Database-Driven Packages', () => {
   test('CREDIT-002: clicking a credit pack opens confirmation dialog', async ({ page }) => {
     await gotoBilling(page);
 
-    await expect(page.getByText('Purchase Credits')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Purchase Credits').first()).toBeVisible({ timeout: 15000 });
 
     const creditPacksHeading = page.getByText('Credit Packs');
     const hasPacks = await creditPacksHeading.isVisible({ timeout: 10000 }).catch(() => false);
@@ -78,7 +78,7 @@ test.describe('Credit Packs – Database-Driven Packages', () => {
   test('CREDIT-003: confirmation dialog Cancel button closes it', async ({ page }) => {
     await gotoBilling(page);
 
-    await expect(page.getByText('Purchase Credits')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Purchase Credits').first()).toBeVisible({ timeout: 15000 });
 
     const creditPacksHeading = page.getByText('Credit Packs');
     const hasPacks = await creditPacksHeading.isVisible({ timeout: 10000 }).catch(() => false);
@@ -105,7 +105,7 @@ test.describe('Credit Packs – Database-Driven Packages', () => {
   test('CREDIT-004: dialog shows correct info bullets', async ({ page }) => {
     await gotoBilling(page);
 
-    await expect(page.getByText('Purchase Credits')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Purchase Credits').first()).toBeVisible({ timeout: 15000 });
 
     const creditPacksHeading = page.getByText('Credit Packs');
     const hasPacks = await creditPacksHeading.isVisible({ timeout: 10000 }).catch(() => false);
@@ -131,7 +131,7 @@ test.describe('Credit Purchase – Custom Amount', () => {
   test('CREDIT-010: custom amount input and Buy button are visible', async ({ page }) => {
     await gotoBilling(page);
 
-    await expect(page.getByText('Purchase Credits')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Purchase Credits').first()).toBeVisible({ timeout: 15000 });
 
     // Custom Amount section
     await expect(page.getByText('Custom Amount')).toBeVisible();
@@ -148,7 +148,7 @@ test.describe('Credit Purchase – Custom Amount', () => {
   test('CREDIT-011: Buy button enables when valid amount entered', async ({ page }) => {
     await gotoBilling(page);
 
-    await expect(page.getByText('Purchase Credits')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Purchase Credits').first()).toBeVisible({ timeout: 15000 });
 
     const customInput = page.getByPlaceholder('Enter credit amount (min 100)');
     const buyButton = page.getByRole('button', { name: /Buy/i });
@@ -161,7 +161,7 @@ test.describe('Credit Purchase – Custom Amount', () => {
   test('CREDIT-012: Buy button stays disabled for amounts below 100', async ({ page }) => {
     await gotoBilling(page);
 
-    await expect(page.getByText('Purchase Credits')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Purchase Credits').first()).toBeVisible({ timeout: 15000 });
 
     const customInput = page.getByPlaceholder('Enter credit amount (min 100)');
     const buyButton = page.getByRole('button', { name: /Buy/i });
@@ -174,7 +174,7 @@ test.describe('Credit Purchase – Custom Amount', () => {
   test('CREDIT-013: clicking Buy with valid amount opens confirmation dialog', async ({ page }) => {
     await gotoBilling(page);
 
-    await expect(page.getByText('Purchase Credits')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Purchase Credits').first()).toBeVisible({ timeout: 15000 });
 
     const customInput = page.getByPlaceholder('Enter credit amount (min 100)');
     await customInput.fill('500');
@@ -193,7 +193,7 @@ test.describe('Credit Purchase – Custom Amount', () => {
   test('CREDIT-014: pricing info text is displayed', async ({ page }) => {
     await gotoBilling(page);
 
-    await expect(page.getByText('Purchase Credits')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Purchase Credits').first()).toBeVisible({ timeout: 15000 });
 
     // Pricing info line
     await expect(
@@ -204,7 +204,7 @@ test.describe('Credit Purchase – Custom Amount', () => {
   test('CREDIT-015: current balance section shows plan, purchased, and bonus credits', async ({ page }) => {
     await gotoBilling(page);
 
-    await expect(page.getByText('Purchase Credits')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Purchase Credits').first()).toBeVisible({ timeout: 15000 });
 
     // Balance grid labels
     await expect(page.getByText('Plan Credits')).toBeVisible();

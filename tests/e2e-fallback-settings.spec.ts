@@ -6,10 +6,10 @@ const SETTINGS_URL = `/dashboard/chatbots/${CHATBOT_ID}/settings`;
 /** Navigate to Credit Exhaustion section in settings */
 async function navigateToCreditExhaustion(page: import('@playwright/test').Page) {
   await page.goto(SETTINGS_URL);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('networkidle');
   await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
-  await page.locator('nav button', { hasText: 'Credit Exhaustion' }).click();
-  await expect(page.getByRole('heading', { name: 'Credit Exhaustion Fallback' })).toBeVisible({ timeout: 10000 });
+  await page.locator('nav button').filter({ hasText: 'Credit Exhaustion' }).click();
+  await expect(page.getByRole('heading', { name: 'Limits & Fallback' })).toBeVisible({ timeout: 10000 });
 }
 
 test.describe('Credit Exhaustion Fallback Settings', () => {

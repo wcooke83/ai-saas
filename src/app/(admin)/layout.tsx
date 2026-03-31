@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { ThemeToggleSimple } from '@/components/ui/theme-toggle';
 import { useFocusTrap } from '@/hooks/use-focus-trap';
 import { LucideIcon } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip';
 
 interface NavItem {
   href: string;
@@ -232,14 +233,13 @@ export default function AdminLayout({
                 "flex items-center min-w-0",
                 sidebarCollapsed ? "justify-center" : "gap-3"
               )}>
-                <div
-                  className="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center flex-shrink-0"
-                  title={sidebarCollapsed ? user?.email : undefined}
-                >
-                  <span className="text-sm font-medium text-primary-700 dark:text-primary-300">
-                    {user?.email?.[0].toUpperCase()}
-                  </span>
-                </div>
+                <Tooltip content={sidebarCollapsed ? user?.email : undefined} side="right">
+                  <div className="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-medium text-primary-700 dark:text-primary-300">
+                      {user?.email?.[0].toUpperCase()}
+                    </span>
+                  </div>
+                </Tooltip>
                 {!sidebarCollapsed && (
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 truncate">
@@ -266,23 +266,24 @@ export default function AdminLayout({
               const isExpanded = expandedMenus.has(item.href);
 
               return (
-                <div key={item.href} className="relative group">
+                <div key={item.href} className="relative">
                   {hasChildren ? (
                     <>
                       {sidebarCollapsed ? (
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            'flex items-center justify-center p-2.5 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500',
-                            isActive
-                              ? 'bg-primary-50 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300'
-                              : 'text-secondary-600 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-700 hover:text-secondary-900 dark:hover:text-secondary-100'
-                          )}
-                          aria-current={isExactActive ? 'page' : undefined}
-                          title={item.label}
-                        >
-                          <Icon className="w-5 h-5" aria-hidden="true" />
-                        </Link>
+                        <Tooltip content={item.label} side="right" wrapperClassName="block">
+                          <Link
+                            href={item.href}
+                            className={cn(
+                              'flex items-center justify-center p-2.5 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500',
+                              isActive
+                                ? 'bg-primary-50 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300'
+                                : 'text-secondary-600 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-700 hover:text-secondary-900 dark:hover:text-secondary-100'
+                            )}
+                            aria-current={isExactActive ? 'page' : undefined}
+                          >
+                            <Icon className="w-5 h-5" aria-hidden="true" />
+                          </Link>
+                        </Tooltip>
                       ) : (
                         <>
                           <div className="flex items-center">
@@ -348,31 +349,38 @@ export default function AdminLayout({
                       )}
                     </>
                   ) : (
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        'flex items-center rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500',
-                        sidebarCollapsed
-                          ? 'justify-center p-2.5'
-                          : 'gap-3 px-3 py-2.5 text-sm font-medium',
-                        isActive
-                          ? sidebarCollapsed
-                            ? 'bg-primary-50 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300'
-                            : 'bg-primary-50 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 border-l-2 border-primary-500 -ml-0.5 pl-[calc(0.75rem+2px)]'
-                          : 'text-secondary-600 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-700 hover:text-secondary-900 dark:hover:text-secondary-100'
+                    <>
+                      {sidebarCollapsed ? (
+                        <Tooltip content={item.label} side="right" wrapperClassName="block">
+                          <Link
+                            href={item.href}
+                            className={cn(
+                              'flex items-center justify-center p-2.5 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500',
+                              isActive
+                                ? 'bg-primary-50 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300'
+                                : 'text-secondary-600 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-700 hover:text-secondary-900 dark:hover:text-secondary-100'
+                            )}
+                            aria-current={isActive ? 'page' : undefined}
+                          >
+                            <Icon className="w-5 h-5" aria-hidden="true" />
+                          </Link>
+                        </Tooltip>
+                      ) : (
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            'flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500',
+                            isActive
+                              ? 'bg-primary-50 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 border-l-2 border-primary-500 -ml-0.5 pl-[calc(0.75rem+2px)]'
+                              : 'text-secondary-600 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-700 hover:text-secondary-900 dark:hover:text-secondary-100'
+                          )}
+                          aria-current={isActive ? 'page' : undefined}
+                        >
+                          <Icon className="w-5 h-5" aria-hidden="true" />
+                          {item.label}
+                        </Link>
                       )}
-                      aria-current={isActive ? 'page' : undefined}
-                      title={sidebarCollapsed ? item.label : undefined}
-                    >
-                      <Icon className="w-5 h-5" aria-hidden="true" />
-                      {!sidebarCollapsed && item.label}
-                    </Link>
-                  )}
-                  {/* Tooltip for collapsed state */}
-                  {sidebarCollapsed && (
-                    <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-secondary-900 dark:bg-secondary-700 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity whitespace-nowrap z-50 pointer-events-none">
-                      {item.label}
-                    </div>
+                    </>
                   )}
                 </div>
               );
@@ -385,15 +393,16 @@ export default function AdminLayout({
             sidebarCollapsed ? "p-2" : "p-4"
           )}>
             {sidebarCollapsed ? (
-              <button
-                type="button"
-                onClick={toggleSidebarCollapsed}
-                className="w-full flex items-center justify-center p-2.5 text-sm text-secondary-500 dark:text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
-                title="Expand sidebar"
-                aria-label="Expand sidebar"
-              >
-                <ChevronRight className="w-4 h-4" aria-hidden="true" />
-              </button>
+              <Tooltip content="Expand sidebar" side="right" wrapperClassName="block">
+                <button
+                  type="button"
+                  onClick={toggleSidebarCollapsed}
+                  className="w-full flex items-center justify-center p-2.5 text-sm text-secondary-500 dark:text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  aria-label="Expand sidebar"
+                >
+                  <ChevronRight className="w-4 h-4" aria-hidden="true" />
+                </button>
+              </Tooltip>
             ) : (
               <div className="flex items-center justify-between gap-2">
                 <button
@@ -404,15 +413,16 @@ export default function AdminLayout({
                   <LogOut className="w-4 h-4" aria-hidden="true" />
                   Sign out
                 </button>
-                <button
-                  type="button"
-                  onClick={toggleSidebarCollapsed}
-                  className="hidden lg:flex items-center p-2 text-secondary-500 dark:text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  title="Collapse sidebar"
-                  aria-label="Collapse sidebar"
-                >
-                  <ChevronLeft className="w-4 h-4" aria-hidden="true" />
-                </button>
+                <Tooltip content="Collapse sidebar" side="right">
+                  <button
+                    type="button"
+                    onClick={toggleSidebarCollapsed}
+                    className="hidden lg:flex items-center p-2 text-secondary-500 dark:text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    aria-label="Collapse sidebar"
+                  >
+                    <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+                  </button>
+                </Tooltip>
               </div>
             )}
           </div>

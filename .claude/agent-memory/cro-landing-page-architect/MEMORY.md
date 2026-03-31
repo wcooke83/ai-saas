@@ -1,0 +1,2 @@
+- [VocUI Project Context](project_vocui_context.md) — Product details, page inventory, trust signal gaps, header CTA friction confirmed in code
+- [VocUI Activation Funnel Audit](project_activation_funnel.md) — Signup-to-deployment drop-off points, barrier analysis, prioritised fixes (2026-03-31)

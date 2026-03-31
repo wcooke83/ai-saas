@@ -35,3 +35,43 @@ Medium priority (vertical targeting):
 Lower priority (informational, top-of-funnel):
 - Blog: "How to reduce support tickets with AI chatbots"
 - Blog: "AI appointment scheduling: what it is and how it works"
+
+## Blog post strategy (fully specced 2026-03-31, not yet built)
+
+Five posts. Specs cover: target keyword, secondary keywords, intent, difficulty, slug, title, meta description, H1, H2 outline, word count, internal links, JSON-LD schema type.
+
+1. `/blog/how-to-add-chatbot-to-website`
+   - Primary: "how to add a chatbot to your website"
+   - Schema: HowTo + FAQPage
+   - Word count: 1,400–1,800
+   - Internal links: /knowledge-base-chatbot, /chatbot-for-customer-support, /chatbot-for-lead-capture, /pricing
+
+2. `/blog/how-to-train-chatbot-on-your-own-data`
+   - Primary: "how to train a chatbot on your own data"
+   - Schema: HowTo + FAQPage
+   - Word count: 1,600–2,000
+   - Internal links: /knowledge-base-chatbot, post 5, /chatbot-for-lawyers, /pricing
+
+3. `/blog/chatbase-alternatives`
+   - Primary: "Chatbase alternatives"
+   - Schema: Article + ItemList
+   - Word count: 2,000–2,400
+   - Internal links: /vs-tidio, /vs-intercom, /slack-chatbot, /knowledge-base-chatbot, /pricing
+
+4. `/blog/how-to-reduce-customer-support-tickets`
+   - Primary: "how to reduce customer support tickets"
+   - Schema: Article + FAQPage
+   - Word count: 1,800–2,200
+   - Internal links: /chatbot-for-customer-support (×2), /knowledge-base-chatbot, post 1, /pricing
+   - Note: highest-conversion post in the set
+
+5. `/blog/what-is-a-knowledge-base-chatbot`
+   - Primary: "what is a knowledge base chatbot"
+   - Schema: FAQPage + Article
+   - Word count: 1,400–1,700
+   - Internal links: /knowledge-base-chatbot, post 2, /chatbot-for-lawyers, /chatbot-for-healthcare, /chatbot-for-real-estate
+   - Note: featured-snippet optimized; direct-answer paragraph immediately after H1
+
+Posts 2 and 5 cross-link to each other and both funnel to /knowledge-base-chatbot.
+Post 3 funnels to /vs-tidio and /vs-intercom to reinforce comparison cluster.
+Post 4 is the strongest conversion post; primary CTA to /chatbot-for-customer-support (appears twice).

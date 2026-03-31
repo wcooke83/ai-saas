@@ -1,23 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { H1 } from '@/components/ui/heading';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { WEBHOOK_EVENTS } from '@/lib/sdk/webhook';
 import {
   Plus,
+  X,
   Trash2,
   Copy,
   Check,
   AlertTriangle,
   Webhook,
   ChevronDown,
-  ChevronUp,
+  Shield,
 } from 'lucide-react';
 
 interface WebhookRow {
@@ -62,6 +64,26 @@ export default function WebhooksPage() {
   const [copiedSecret, setCopiedSecret] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showDocs, setShowDocs] = useState(false);
+
+  const { confirm: confirmDelete, ConfirmDialog: DeleteConfirmDialog } = useConfirmDialog({
+    title: 'Delete webhook?',
+    description: 'This cannot be undone. The endpoint will stop receiving events immediately.',
+    confirmText: 'Delete',
+    cancelText: 'Cancel',
+    variant: 'danger',
+  });
+
+  const urlError = useMemo(() => {
+    if (!formUrl) return null;
+    try {
+      const u = new URL(formUrl);
+      if (u.protocol !== 'https:') return 'URL must use HTTPS.';
+      return null;
+    } catch {
+      return 'Please enter a valid URL.';
+    }
+  }, [formUrl]);
 
   useEffect(() => {
     fetchWebhooks();
@@ -136,7 +158,8 @@ export default function WebhooksPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this webhook? This cannot be undone.')) return;
+    const confirmed = await confirmDelete();
+    if (!confirmed) return;
 
     setDeletingId(id);
     try {
@@ -173,7 +196,7 @@ export default function WebhooksPage() {
           </div>
         </div>
         <Button onClick={() => setShowForm((v) => !v)} className="flex items-center gap-2">
-          {showForm ? <ChevronUp className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+          {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
           {showForm ? 'Cancel' : 'Add Webhook'}
         </Button>
       </div>
@@ -192,7 +215,7 @@ export default function WebhooksPage() {
                   Use it to verify incoming webhook signatures via HMAC-SHA256.
                 </p>
                 <div className="mt-3 flex items-center gap-2">
-                  <code className="flex-1 px-3 py-2 text-xs font-mono bg-amber-100 dark:bg-amber-900/40 border border-amber-200 dark:border-amber-700 rounded-md truncate">
+                  <code className="flex-1 px-3 py-2 text-xs font-mono bg-amber-100 dark:bg-amber-900/40 border border-amber-200 dark:border-amber-700 rounded-md break-all select-all">
                     {newSecret}
                   </code>
                   <Button
@@ -212,10 +235,10 @@ export default function WebhooksPage() {
               <button
                 type="button"
                 onClick={() => setNewSecret(null)}
-                className="text-amber-500 hover:text-amber-700 dark:hover:text-amber-300 text-lg leading-none"
+                className="flex items-center justify-center w-8 h-8 rounded-md text-amber-500 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/30 focus:outline-none focus:ring-2 focus:ring-amber-500 flex-shrink-0"
                 aria-label="Dismiss"
               >
-                &times;
+                <X className="w-4 h-4" />
               </button>
             </div>
           </CardContent>
@@ -239,12 +262,37 @@ export default function WebhooksPage() {
                   value={formUrl}
                   onChange={(e) => setFormUrl(e.target.value)}
                   required
+                  autoFocus
+                  className={urlError ? 'border-red-400 focus-visible:ring-red-400' : ''}
+                  aria-describedby="webhook-url-hint webhook-url-error"
                 />
-                <p className="text-xs text-secondary-500">Must be an HTTPS URL.</p>
+                {urlError ? (
+                  <p id="webhook-url-error" className="text-xs text-red-600 dark:text-red-400" role="alert">{urlError}</p>
+                ) : (
+                  <p id="webhook-url-hint" className="text-xs text-secondary-500">Must be an HTTPS URL.</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label>Events</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Events</Label>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+                      onClick={() => setFormEvents(ALL_EVENTS as unknown as string[])}
+                    >
+                      Select all
+                    </button>
+                    <button
+                      type="button"
+                      className="text-xs text-secondary-500 hover:underline"
+                      onClick={() => setFormEvents([])}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
                 <p className="text-xs text-secondary-500">
                   Leave all unchecked to receive every event.
                 </p>
@@ -252,11 +300,14 @@ export default function WebhooksPage() {
                   {ALL_EVENTS.map((event) => (
                     <label
                       key={event}
+                      htmlFor={`event-${event}`}
                       className="flex items-start gap-2.5 p-2.5 rounded-md border border-secondary-200 dark:border-secondary-700 hover:bg-secondary-50 dark:hover:bg-secondary-800 cursor-pointer"
                     >
                       <input
+                        id={`event-${event}`}
                         type="checkbox"
-                        className="mt-0.5 rounded"
+                        className="mt-0.5 rounded accent-primary-600 w-4 h-4 cursor-pointer"
+                        aria-describedby={`event-${event}-desc`}
                         checked={formEvents.includes(event)}
                         onChange={() => toggleEvent(event)}
                       />
@@ -264,7 +315,7 @@ export default function WebhooksPage() {
                         <span className="block text-sm font-mono text-secondary-800 dark:text-secondary-200 truncate">
                           {event}
                         </span>
-                        <span className="block text-xs text-secondary-500 mt-0.5">
+                        <span id={`event-${event}-desc`} className="block text-xs text-secondary-500 mt-0.5">
                           {WEBHOOK_EVENTS[event]}
                         </span>
                       </span>
@@ -277,7 +328,7 @@ export default function WebhooksPage() {
                 <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={submitting || !formUrl.trim()}>
+                <Button type="submit" disabled={submitting || !formUrl.trim() || !!urlError}>
                   {submitting ? 'Creating…' : 'Create Webhook'}
                 </Button>
               </div>
@@ -290,29 +341,45 @@ export default function WebhooksPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            {loading ? 'Loading…' : `${webhooks.length} Webhook${webhooks.length !== 1 ? 's' : ''}`}
+            {loading ? 'Webhooks' : `${webhooks.length} Webhook${webhooks.length !== 1 ? 's' : ''}`}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
             <div className="divide-y divide-secondary-100 dark:divide-secondary-800">
-              {[1, 2].map((i) => (
+              {[1, 2, 3].map((i) => (
                 <div key={i} className="px-6 py-4 animate-pulse">
-                  <div className="h-4 w-64 bg-secondary-100 dark:bg-secondary-800 rounded mb-2" />
-                  <div className="h-3 w-40 bg-secondary-100 dark:bg-secondary-800 rounded" />
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-56 bg-secondary-100 dark:bg-secondary-800 rounded" />
+                        <div className="h-5 w-14 bg-secondary-100 dark:bg-secondary-800 rounded-full" />
+                      </div>
+                      <div className="flex gap-1">
+                        <div className="h-5 w-20 bg-secondary-100 dark:bg-secondary-800 rounded-full" />
+                        <div className="h-5 w-24 bg-secondary-100 dark:bg-secondary-800 rounded-full" />
+                      </div>
+                      <div className="h-3 w-36 bg-secondary-100 dark:bg-secondary-800 rounded" />
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="h-9 w-16 bg-secondary-100 dark:bg-secondary-800 rounded-md" />
+                      <div className="h-9 w-9 bg-secondary-100 dark:bg-secondary-800 rounded-md" />
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
           ) : webhooks.length === 0 ? (
-            <div className="px-6 py-12 text-center">
-              <Webhook className="w-10 h-10 text-secondary-300 dark:text-secondary-600 mx-auto mb-3" />
-              <p className="text-sm text-secondary-500">No webhooks yet.</p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-4"
-                onClick={() => setShowForm(true)}
-              >
+            <div className="px-6 py-16 text-center">
+              <div className="mx-auto w-12 h-12 bg-secondary-100 dark:bg-secondary-800 rounded-full flex items-center justify-center mb-4">
+                <Webhook className="w-6 h-6 text-secondary-400" aria-hidden="true" />
+              </div>
+              <h3 className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">No webhooks configured</h3>
+              <p className="text-sm text-secondary-500 dark:text-secondary-400 mb-4 max-w-xs mx-auto">
+                Webhooks let you receive HTTP POST notifications when events happen in your chatbots.
+              </p>
+              <Button variant="outline" size="sm" onClick={() => setShowForm(true)} className="gap-2">
+                <Plus className="w-4 h-4" />
                 Add your first webhook
               </Button>
             </div>
@@ -320,7 +387,7 @@ export default function WebhooksPage() {
             <div className="divide-y divide-secondary-100 dark:divide-secondary-800">
               {webhooks.map((wh) => (
                 <div key={wh.id} className="px-6 py-4">
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start justify-between gap-4 flex-wrap sm:flex-nowrap">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono text-sm text-secondary-900 dark:text-secondary-100 truncate">
@@ -368,11 +435,11 @@ export default function WebhooksPage() {
                         onClick={() => handleToggle(wh)}
                         disabled={togglingId === wh.id}
                       >
-                        {togglingId === wh.id
-                          ? '…'
-                          : wh.is_active
-                          ? 'Disable'
-                          : 'Enable'}
+                        {togglingId === wh.id ? (
+                          <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          wh.is_active ? 'Disable' : 'Enable'
+                        )}
                       </Button>
                       <Button
                         variant="outline"
@@ -382,7 +449,7 @@ export default function WebhooksPage() {
                         className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300"
                       >
                         {deletingId === wh.id ? (
-                          '…'
+                          <div className="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
                         ) : (
                           <Trash2 className="w-4 h-4" />
                         )}
@@ -395,6 +462,53 @@ export default function WebhooksPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Signature verification docs */}
+      <Card className="group">
+        <CardHeader
+          className="cursor-pointer"
+          onClick={() => setShowDocs(!showDocs)}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-primary-500" />
+              <div>
+                <CardTitle className="text-base">Verifying Webhook Signatures</CardTitle>
+                <CardDescription>How to validate incoming webhook requests</CardDescription>
+              </div>
+            </div>
+            <ChevronDown className={`w-5 h-5 text-secondary-500 transition-transform duration-200 ${showDocs ? 'rotate-180' : ''}`} />
+          </div>
+        </CardHeader>
+        {showDocs && (
+          <CardContent className="space-y-4 pt-0">
+            <p className="text-sm text-secondary-600 dark:text-secondary-400">
+              Each request includes three headers. Compute{' '}
+              <code className="text-xs font-mono bg-secondary-100 dark:bg-secondary-800 px-1 rounded">
+                HMAC-SHA256(timestamp + &quot;.&quot; + body, secret)
+              </code>{' '}
+              and compare against{' '}
+              <code className="text-xs font-mono bg-secondary-100 dark:bg-secondary-800 px-1 rounded">
+                X-Webhook-Signature
+              </code>.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[
+                { header: 'X-Webhook-Signature', desc: 'HMAC-SHA256 hex digest' },
+                { header: 'X-Webhook-Timestamp', desc: 'Unix epoch seconds' },
+                { header: 'X-Webhook-Event', desc: 'Event name e.g. lead.captured' },
+              ].map(({ header, desc }) => (
+                <div key={header} className="p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg space-y-1">
+                  <code className="text-xs font-mono text-secondary-800 dark:text-secondary-200 break-all">{header}</code>
+                  <p className="text-xs text-secondary-500">{desc}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        )}
+      </Card>
+
+      <DeleteConfirmDialog />
     </div>
   );
 }

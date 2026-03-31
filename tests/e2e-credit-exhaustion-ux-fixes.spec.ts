@@ -31,10 +31,11 @@ const SETTINGS_URL = `/dashboard/chatbots/${BOT_ID}/settings`;
  */
 async function setFallbackModeViaUI(page: Page, mode: 'tickets' | 'contact_form' | 'purchase_credits' | 'help_articles') {
   await page.goto(SETTINGS_URL);
-  await page.waitForLoadState('domcontentloaded');
-  await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
-  await page.locator('nav button', { hasText: 'Credit Exhaustion' }).click();
-  await expect(page.getByRole('heading', { name: 'Credit Exhaustion Fallback' })).toBeVisible({ timeout: 10000 });
+  await page.waitForLoadState('networkidle');
+  const navBtn = page.locator('nav button').filter({ hasText: 'Credit Exhaustion' });
+  await navBtn.waitFor({ state: 'visible', timeout: 30000 });
+  await navBtn.click();
+  await expect(page.getByRole('heading', { name: 'Limits & Fallback' })).toBeVisible({ timeout: 10000 });
 
   // Select the desired mode radio button
   await page.locator(`input[value="${mode}"]`).click({ force: true });
@@ -102,10 +103,11 @@ async function ensureTestArticle(page: Page): Promise<{ id: string; title: strin
   }
   // No articles exist — generate them via the settings UI
   await page.goto(SETTINGS_URL);
-  await page.waitForLoadState('domcontentloaded');
-  await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
-  await page.locator('nav button', { hasText: 'Credit Exhaustion' }).click();
-  await expect(page.getByRole('heading', { name: 'Credit Exhaustion Fallback' })).toBeVisible({ timeout: 10000 });
+  await page.waitForLoadState('networkidle');
+  const navBtn = page.locator('nav button').filter({ hasText: 'Credit Exhaustion' });
+  await navBtn.waitFor({ state: 'visible', timeout: 30000 });
+  await navBtn.click();
+  await expect(page.getByRole('heading', { name: 'Limits & Fallback' })).toBeVisible({ timeout: 10000 });
   await page.locator('input[value="help_articles"]').click({ force: true });
   // Click generate button and wait
   const genBtn = page.getByText('Generate Articles from Knowledge Sources');
@@ -1037,7 +1039,7 @@ test.describe('9. Settings Credit Exhaustion UI', () => {
     await page.waitForLoadState('domcontentloaded');
     await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
     await page.locator('nav button', { hasText: 'Credit Exhaustion' }).click();
-    await expect(page.getByRole('heading', { name: 'Credit Exhaustion Fallback' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Limits & Fallback' })).toBeVisible({ timeout: 10000 });
 
     // Select purchase mode
     await page.locator('input[value="purchase_credits"]').click({ force: true });
@@ -1061,7 +1063,7 @@ test.describe('9. Settings Credit Exhaustion UI', () => {
     await page.waitForLoadState('domcontentloaded');
     await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
     await page.locator('nav button', { hasText: 'Credit Exhaustion' }).click();
-    await expect(page.getByRole('heading', { name: 'Credit Exhaustion Fallback' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Limits & Fallback' })).toBeVisible({ timeout: 10000 });
 
     await page.locator('input[value="purchase_credits"]').click({ force: true });
 
@@ -1075,7 +1077,7 @@ test.describe('9. Settings Credit Exhaustion UI', () => {
     await page.waitForLoadState('domcontentloaded');
     await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
     await page.locator('nav button', { hasText: 'Credit Exhaustion' }).click();
-    await expect(page.getByRole('heading', { name: 'Credit Exhaustion Fallback' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Limits & Fallback' })).toBeVisible({ timeout: 10000 });
 
     await page.locator('input[value="purchase_credits"]').click({ force: true });
 
@@ -1095,7 +1097,7 @@ test.describe('9. Settings Credit Exhaustion UI', () => {
     await page.waitForLoadState('domcontentloaded');
     await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
     await page.locator('nav button', { hasText: 'Credit Exhaustion' }).click();
-    await expect(page.getByRole('heading', { name: 'Credit Exhaustion Fallback' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Limits & Fallback' })).toBeVisible({ timeout: 10000 });
 
     await page.locator('input[value="help_articles"]').click({ force: true });
 

@@ -793,13 +793,18 @@ test.describe('Calendar Booking Integration', () => {
 
     test('CAL-129: Dashboard shows connection status', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('networkidle');
-      await expect(page.getByText('Easy!Appointments Connection').first()).toBeVisible({ timeout: 10000 });
+      await page.waitForLoadState('domcontentloaded');
+      await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
+      // Connection status area contains EA-related text in all states
+      await expect(page.getByText(/Easy!Appointments/i).first()).toBeVisible({ timeout: 10000 });
     });
 
     test('CAL-130: Dashboard shows appointment settings', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
+      await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
+      // Appointment Settings is in the Scheduling tab — click it first
+      await page.locator('[value="scheduling"]').click();
       await expect(page.locator('text=Appointment Settings')).toBeVisible({ timeout: 5000 });
     });
   });
@@ -817,6 +822,8 @@ test.describe('Calendar Booking Integration', () => {
 
       // Should show the configuration sections
       await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
+      // Appointment Settings is in the Scheduling tab — click it first
+      await page.locator('[value="scheduling"]').click();
       await expect(page.locator('text=Appointment Settings')).toBeVisible({ timeout: 5000 });
     });
 
