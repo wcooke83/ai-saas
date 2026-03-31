@@ -513,6 +513,40 @@ export async function sendNewEscalationNotification(
   return data;
 }
 
+export async function sendReengagementEmail(to: string, name?: string) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const { data, error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: 'Your chatbot is waiting — takes 2 minutes to finish',
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <span style="display:none; max-height:0; overflow:hidden;">The hardest part is already done. Here's the one step that makes your chatbot actually work.</span>
+        <h2 style="color: #6366f1;">Your chatbot is almost ready</h2>
+        ${name ? `<p>Hi ${name},</p>` : ''}
+        <p>You've already done the hard part — you created your account and set up your chatbot. The only thing left is giving it something to know.</p>
+        <p>Just paste a URL to your website or upload a PDF, and your chatbot learns your content automatically. That's it. No coding, no setup, no technical stuff.</p>
+        <p>Most people have their chatbot live on their site within the hour.</p>
+        <p>Ready to finish?</p>
+        <p>
+          <a href="${appUrl}/dashboard/chatbots"
+             style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+            Add Your Content
+          </a>
+        </p>
+        <p style="color: #666; font-size: 14px; margin-top: 32px;">The VocUI Team</p>
+      </div>
+    `,
+  });
+
+  if (error) {
+    console.error('Failed to send re-engagement email:', error);
+    throw error;
+  }
+
+  return data;
+}
+
 export async function sendApiKeyCreatedEmail(to: string, keyName: string, keyPrefix: string) {
   const { data, error } = await resend.emails.send({
     from: FROM_EMAIL,

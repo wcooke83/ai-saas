@@ -242,11 +242,11 @@
     --inner-card-secondary-btn-hover-text: 15 23 42; /* secondary-900 */
 
     /* Code Card */
-    --code-card-bg: 15 23 42; /* secondary-900 */
-    --code-card-bg-gradient-from: 15 23 42; /* secondary-900 */
-    --code-card-bg-gradient-to: 30 41 59; /* secondary-800 */
-    --code-card-border: 51 65 85; /* secondary-700 */
-    --code-card-text: 241 245 249; /* secondary-100 */
+    --code-card-bg: 241 245 249; /* secondary-100 */
+    --code-card-bg-gradient-from: 241 245 249; /* secondary-100 */
+    --code-card-bg-gradient-to: 226 232 240; /* secondary-200 */
+    --code-card-border: 226 232 240; /* secondary-200 */
+    --code-card-text: 30 41 59; /* secondary-800 */
 
     /* Info Card */
     --info-card-bg: 238 242 255; /* indigo-50 */

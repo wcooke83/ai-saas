@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import {
   Code, Copy, Check, ExternalLink, Globe, Terminal,
   Info, BookOpen, FileCode, Zap, Headphones, ChevronDown, AlertTriangle,
-  Eye, EyeOff, Loader2
+  Eye, EyeOff, Loader2, MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -80,6 +80,61 @@ export default function DeployPage({ params }: DeployPageProps) {
   const [showPreview, setShowPreview] = useState(true);
   const [previewExpanded, setPreviewExpanded] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [slackStatus, setSlackStatus] = useState<{
+    connected: boolean;
+    team_name?: string;
+    workspace_taken_by?: { chatbot_id: string; chatbot_name: string; team_name: string } | null;
+  } | null>(null);
+  const [slackLoading, setSlackLoading] = useState(true);
+  const [slackConnecting, setSlackConnecting] = useState(false);
+  const [slackDisconnecting, setSlackDisconnecting] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('slack_connected')) {
+      toast.success('Slack connected successfully');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    const slackError = params.get('slack_error');
+    if (slackError) {
+      toast.error(`Slack connection failed: ${slackError}`);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    fetch(`/api/chatbots/${id}/integrations/slack`)
+      .then(r => r.json())
+      .then(d => setSlackStatus(d.data))
+      .finally(() => setSlackLoading(false));
+  }, [id]);
+
+  const handleSlackConnect = async () => {
+    setSlackConnecting(true);
+    try {
+      const res = await fetch(`/api/chatbots/${id}/integrations/slack`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error?.message || 'Failed to start Slack connection');
+        return;
+      }
+      window.location.href = data.data.oauth_url;
+    } catch {
+      toast.error('Failed to start Slack connection');
+    } finally {
+      setSlackConnecting(false);
+    }
+  };
+
+  const handleSlackDisconnect = async () => {
+    setSlackDisconnecting(true);
+    try {
+      await fetch(`/api/chatbots/${id}/integrations/slack`, { method: 'DELETE' });
+      setSlackStatus({ connected: false });
+      toast.success('Slack disconnected');
+    } catch {
+      toast.error('Failed to disconnect Slack');
+    } finally {
+      setSlackDisconnecting(false);
+    }
+  };
 
   // Handle expand/shrink messages from the widget iframe
   useEffect(() => {
@@ -307,6 +362,10 @@ const data = await res.json();`;
           <TabsTrigger value="api" className="gap-1.5">
             <Terminal className="w-3.5 h-3.5" />
             REST API
+          </TabsTrigger>
+          <TabsTrigger value="slack" className="gap-1.5">
+            <MessageSquare className="w-3.5 h-3.5" />
+            Slack
           </TabsTrigger>
         </TabsList>
 
@@ -697,6 +756,92 @@ const data = await res.json();`;
                     </p>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* ========== SLACK TAB ========== */}
+        <TabsContent value="slack">
+          <div className="space-y-6 mt-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg">
+                    <MessageSquare className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div>
+                    <CardTitle>Slack</CardTitle>
+                    <CardDescription>Deploy this chatbot to your Slack workspace so your team can query its knowledge base directly in channels or DMs</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {slackLoading ? (
+                  <Skeleton className="h-20 w-full" />
+                ) : slackStatus?.connected ? (
+                  <>
+                    <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        <div>
+                          <p className="text-sm font-medium text-green-900 dark:text-green-100">Connected to Slack</p>
+                          {slackStatus.team_name && (
+                            <p className="text-xs text-green-700 dark:text-green-300">Workspace: {slackStatus.team_name}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSlackDisconnect}
+                        disabled={slackDisconnecting}
+                        className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      >
+                        {slackDisconnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Disconnect'}
+                      </Button>
+                    </div>
+                    <div className="flex items-start gap-3 p-4 bg-secondary-50 dark:bg-secondary-800/50 border border-secondary-200 dark:border-secondary-700 rounded-lg">
+                      <Info className="w-5 h-5 text-secondary-500 flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                        Mention the bot in any channel or send it a DM to get answers from your knowledge base. The bot responds in-thread.
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {slackStatus?.workspace_taken_by && (
+                      <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                        <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-amber-900 dark:text-amber-100">Workspace already connected</p>
+                          <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                            <span className="font-medium">{slackStatus.workspace_taken_by.team_name}</span> is already connected to <span className="font-medium">{slackStatus.workspace_taken_by.chatbot_name}</span>. Only one chatbot can be connected per workspace.
+                          </p>
+                          <Link
+                            href={`/dashboard/chatbots/${slackStatus.workspace_taken_by.chatbot_id}/deploy`}
+                            className="inline-flex items-center gap-1 text-xs text-amber-800 dark:text-amber-200 underline hover:no-underline mt-2"
+                          >
+                            View {slackStatus.workspace_taken_by.chatbot_name}
+                            <ExternalLink className="w-3 h-3" />
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                      Connect your Slack workspace to deploy this chatbot. Once connected, your team can @mention the bot or DM it to query your knowledge base.
+                    </p>
+                    {!slackStatus?.workspace_taken_by && (
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                        One Slack workspace per account. Connecting here will use your plan&apos;s Slack integration slot.
+                      </p>
+                    )}
+                    <Button onClick={handleSlackConnect} disabled={slackConnecting} className="gap-2">
+                      {slackConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4" />}
+                      {slackConnecting ? 'Redirecting to Slack...' : 'Connect to Slack'}
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
