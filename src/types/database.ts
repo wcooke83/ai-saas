@@ -1055,10 +1055,13 @@ export type Database = {
           credit_exhaustion_mode: string
           custom_text_updated_at: string | null
           description: string | null
+          discord_config: Json | null
           enable_prompt_protection: boolean
           escalation_config: Json
           feedback_config: Json | null
           file_upload_config: Json
+          first_knowledge_ready_at: string | null
+          first_knowledge_source_at: string | null
           id: string
           is_published: boolean | null
           language: string
@@ -1073,6 +1076,7 @@ export type Database = {
           model: string | null
           monthly_message_limit: number | null
           name: string
+          onboarding_step: number | null
           placeholder_text: string | null
           post_chat_survey_config: Json | null
           pre_chat_form_config: Json | null
@@ -1084,12 +1088,14 @@ export type Database = {
           status: string | null
           stripe_product_id: string | null
           system_prompt: string
+          teams_config: Json | null
           telegram_config: Json
           temperature: number | null
           transcript_config: Json
           updated_at: string | null
           user_id: string
           welcome_message: string | null
+          whatsapp_config: Json | null
           widget_config: Json | null
         }
         Insert: {
@@ -1104,10 +1110,13 @@ export type Database = {
           credit_exhaustion_mode?: string
           custom_text_updated_at?: string | null
           description?: string | null
+          discord_config?: Json | null
           enable_prompt_protection?: boolean
           escalation_config?: Json
           feedback_config?: Json | null
           file_upload_config?: Json
+          first_knowledge_ready_at?: string | null
+          first_knowledge_source_at?: string | null
           id?: string
           is_published?: boolean | null
           language?: string
@@ -1122,6 +1131,7 @@ export type Database = {
           model?: string | null
           monthly_message_limit?: number | null
           name: string
+          onboarding_step?: number | null
           placeholder_text?: string | null
           post_chat_survey_config?: Json | null
           pre_chat_form_config?: Json | null
@@ -1133,12 +1143,14 @@ export type Database = {
           status?: string | null
           stripe_product_id?: string | null
           system_prompt?: string
+          teams_config?: Json | null
           telegram_config?: Json
           temperature?: number | null
           transcript_config?: Json
           updated_at?: string | null
           user_id: string
           welcome_message?: string | null
+          whatsapp_config?: Json | null
           widget_config?: Json | null
         }
         Update: {
@@ -1153,10 +1165,13 @@ export type Database = {
           credit_exhaustion_mode?: string
           custom_text_updated_at?: string | null
           description?: string | null
+          discord_config?: Json | null
           enable_prompt_protection?: boolean
           escalation_config?: Json
           feedback_config?: Json | null
           file_upload_config?: Json
+          first_knowledge_ready_at?: string | null
+          first_knowledge_source_at?: string | null
           id?: string
           is_published?: boolean | null
           language?: string
@@ -1171,6 +1186,7 @@ export type Database = {
           model?: string | null
           monthly_message_limit?: number | null
           name?: string
+          onboarding_step?: number | null
           placeholder_text?: string | null
           post_chat_survey_config?: Json | null
           pre_chat_form_config?: Json | null
@@ -1182,12 +1198,14 @@ export type Database = {
           status?: string | null
           stripe_product_id?: string | null
           system_prompt?: string
+          teams_config?: Json | null
           telegram_config?: Json
           temperature?: number | null
           transcript_config?: Json
           updated_at?: string | null
           user_id?: string
           welcome_message?: string | null
+          whatsapp_config?: Json | null
           widget_config?: Json | null
         }
         Relationships: [
@@ -2161,6 +2179,7 @@ export type Database = {
           id: string
           is_admin: boolean
           is_affiliate: boolean | null
+          onboarding_milestones: Json | null
           preferred_model_id: string | null
           reengagement_email_sent: boolean
           updated_at: string | null
@@ -2173,6 +2192,7 @@ export type Database = {
           id: string
           is_admin?: boolean
           is_affiliate?: boolean | null
+          onboarding_milestones?: Json | null
           preferred_model_id?: string | null
           reengagement_email_sent?: boolean
           updated_at?: string | null
@@ -2185,6 +2205,7 @@ export type Database = {
           id?: string
           is_admin?: boolean
           is_affiliate?: boolean | null
+          onboarding_milestones?: Json | null
           preferred_model_id?: string | null
           reengagement_email_sent?: boolean
           updated_at?: string | null

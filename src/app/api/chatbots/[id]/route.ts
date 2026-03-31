@@ -15,8 +15,11 @@ import {
   deleteChatbot,
   generateUniqueSlug,
 } from '@/lib/chatbots/api';
-import { DEFAULT_WIDGET_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, type WidgetConfig, type FileUploadConfig } from '@/lib/chatbots/types';
+import { DEFAULT_WIDGET_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, CHATBOT_PLAN_LIMITS, type WidgetConfig, type FileUploadConfig } from '@/lib/chatbots/types';
 import { checkReembedStatus } from '@/lib/chatbots/reembed-check';
+import { encryptTelegramConfig, decryptTelegramConfig, encryptToken, decryptToken } from '@/lib/telegram/crypto';
+import { encryptWhatsAppConfig, decryptWhatsAppConfig } from '@/lib/whatsapp/crypto';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 // Update chatbot validation schema
 const updateChatbotSchema = z.object({
@@ -45,6 +48,9 @@ const updateChatbotSchema = z.object({
   feedback_config: z.record(z.unknown()).optional(),
   live_handoff_config: z.record(z.unknown()).optional(),
   telegram_config: z.record(z.unknown()).optional(),
+  whatsapp_config: z.record(z.unknown()).optional(),
+  teams_config: z.record(z.unknown()).optional(),
+  discord_config: z.record(z.unknown()).optional(),
   live_fetch_threshold: z.number().min(0.5).max(0.95).optional(),
   credit_exhaustion_mode: z.enum(['tickets', 'contact_form', 'purchase_credits', 'help_articles']).optional(),
   credit_exhaustion_config: z.record(z.unknown()).optional(),
@@ -76,6 +82,36 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     }
 
     const reembedStatus = await checkReembedStatus(id);
+
+    // Decrypt telegram bot token before sending to client
+    if (chatbot.telegram_config && typeof chatbot.telegram_config === 'object' && !Array.isArray(chatbot.telegram_config)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (chatbot as any).telegram_config = decryptTelegramConfig(chatbot.telegram_config as unknown as Record<string, unknown>);
+    }
+
+    // Decrypt whatsapp access token before sending to client
+    if (chatbot.whatsapp_config && typeof chatbot.whatsapp_config === 'object' && !Array.isArray(chatbot.whatsapp_config)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (chatbot as any).whatsapp_config = decryptWhatsAppConfig(chatbot.whatsapp_config as unknown as Record<string, unknown>);
+    }
+
+    // Decrypt discord bot token before sending to client
+    if (chatbot.discord_config && typeof chatbot.discord_config === 'object' && !Array.isArray(chatbot.discord_config)) {
+      const dc = chatbot.discord_config as unknown as Record<string, unknown>;
+      if (dc.bot_token && typeof dc.bot_token === 'string') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (chatbot as any).discord_config = { ...dc, bot_token: decryptToken(dc.bot_token as string) };
+      }
+    }
+
+    // Decrypt teams app secret before sending to client
+    if (chatbot.teams_config && typeof chatbot.teams_config === 'object' && !Array.isArray(chatbot.teams_config)) {
+      const tc = chatbot.teams_config as unknown as Record<string, unknown>;
+      if (tc.app_secret && typeof tc.app_secret === 'string') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (chatbot as any).teams_config = { ...tc, app_secret: decryptToken(tc.app_secret as string) };
+      }
+    }
 
     return successResponse({ chatbot, ...reembedStatus });
   } catch (error) {
@@ -131,6 +167,104 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           ...(inputConfig.allowed_types || {}),
         },
       };
+    }
+
+    // Gate Telegram integration behind Pro+ plan
+    if (input.telegram_config && typeof input.telegram_config === 'object') {
+      const tc = input.telegram_config as Record<string, unknown>;
+      if (tc.enabled === true || tc.ai_responses_enabled === true) {
+        const adminSupabase = createAdminClient();
+        const { data: sub } = await adminSupabase
+          .from('subscriptions')
+          .select('plan')
+          .eq('user_id', user.id)
+          .single();
+        const planSlug = sub?.plan || 'free';
+        const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.telegramIntegration ?? false;
+        if (!planAllowed) {
+          throw APIError.forbidden('Telegram integration requires a Pro or Agency plan');
+        }
+      }
+    }
+
+    // Encrypt telegram bot token before storing
+    if (input.telegram_config && typeof input.telegram_config === 'object') {
+      input.telegram_config = encryptTelegramConfig(input.telegram_config as Record<string, unknown>);
+    }
+
+    // Gate WhatsApp integration behind Pro+ plan
+    if (input.whatsapp_config && typeof input.whatsapp_config === 'object') {
+      const wc = input.whatsapp_config as Record<string, unknown>;
+      if (wc.enabled === true || wc.ai_responses_enabled === true) {
+        const adminSupabase = createAdminClient();
+        const { data: sub } = await adminSupabase
+          .from('subscriptions')
+          .select('plan')
+          .eq('user_id', user.id)
+          .single();
+        const planSlug = sub?.plan || 'free';
+        const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.whatsappIntegration ?? false;
+        if (!planAllowed) {
+          throw APIError.forbidden('WhatsApp integration requires a Pro or Agency plan');
+        }
+      }
+    }
+
+    // Encrypt whatsapp access token before storing
+    if (input.whatsapp_config && typeof input.whatsapp_config === 'object') {
+      input.whatsapp_config = encryptWhatsAppConfig(input.whatsapp_config as Record<string, unknown>);
+    }
+
+    // Gate Discord integration behind Pro+ plan
+    if (input.discord_config && typeof input.discord_config === 'object') {
+      const dc = input.discord_config as Record<string, unknown>;
+      if (dc.enabled === true || dc.ai_responses_enabled === true) {
+        const adminSupabase = createAdminClient();
+        const { data: sub } = await adminSupabase
+          .from('subscriptions')
+          .select('plan')
+          .eq('user_id', user.id)
+          .single();
+        const planSlug = sub?.plan || 'free';
+        const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.discordIntegration ?? false;
+        if (!planAllowed) {
+          throw APIError.forbidden('Discord integration requires a Pro or Agency plan');
+        }
+      }
+    }
+
+    // Encrypt discord bot token before storing
+    if (input.discord_config && typeof input.discord_config === 'object') {
+      const dc = input.discord_config as Record<string, unknown>;
+      if (dc.bot_token && typeof dc.bot_token === 'string' && !dc.bot_token.startsWith('enc:')) {
+        input.discord_config = { ...dc, bot_token: encryptToken(dc.bot_token) };
+      }
+    }
+
+    // Gate Teams integration behind Pro+ plan
+    if (input.teams_config && typeof input.teams_config === 'object') {
+      const tc = input.teams_config as Record<string, unknown>;
+      if (tc.enabled === true || tc.ai_responses_enabled === true) {
+        const adminSupabase = createAdminClient();
+        const { data: sub } = await adminSupabase
+          .from('subscriptions')
+          .select('plan')
+          .eq('user_id', user.id)
+          .single();
+        const planSlug = sub?.plan || 'free';
+        const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.teamsIntegration ?? false;
+        if (!planAllowed) {
+          throw APIError.forbidden('Teams integration requires a Pro or Agency plan');
+        }
+      }
+    }
+
+    // Encrypt teams app secret before storing
+    if (input.teams_config && typeof input.teams_config === 'object') {
+      const tc = input.teams_config as Record<string, unknown>;
+      if (tc.app_secret && typeof tc.app_secret === 'string' && !tc.app_secret.startsWith('enc:')) {
+        input.teams_config = { ...tc, app_secret: encryptToken(tc.app_secret) };
+      }
     }
 
     // Build update payload

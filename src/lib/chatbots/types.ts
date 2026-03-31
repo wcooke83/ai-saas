@@ -480,11 +480,51 @@ export interface TelegramConfig {
   chat_id?: string;
   webhook_secret?: string;
   auto_handoff_on_escalation?: boolean;
+  ai_responses_enabled?: boolean;
 }
 
 export const DEFAULT_TELEGRAM_CONFIG: TelegramConfig = {
   enabled: false,
   auto_handoff_on_escalation: true,
+  ai_responses_enabled: false,
+};
+
+export interface WhatsAppConfig {
+  enabled: boolean;
+  phone_number_id?: string;
+  access_token?: string;
+  ai_responses_enabled?: boolean;
+}
+
+export const DEFAULT_WHATSAPP_CONFIG: WhatsAppConfig = {
+  enabled: false,
+  ai_responses_enabled: false,
+};
+
+export interface TeamsConfig {
+  enabled: boolean;
+  app_id?: string;
+  app_secret?: string;
+  bot_name?: string;
+  ai_responses_enabled?: boolean;
+}
+
+export const DEFAULT_TEAMS_CONFIG: TeamsConfig = {
+  enabled: false,
+  ai_responses_enabled: false,
+};
+
+export interface DiscordConfig {
+  enabled: boolean;
+  application_id?: string;
+  bot_token?: string;
+  public_key?: string;
+  ai_responses_enabled?: boolean;
+}
+
+export const DEFAULT_DISCORD_CONFIG: DiscordConfig = {
+  enabled: false,
+  ai_responses_enabled: false,
 };
 
 export interface Escalation {
@@ -657,6 +697,15 @@ export interface Chatbot {
   // Telegram Handoff
   telegram_config?: TelegramConfig;
 
+  // WhatsApp
+  whatsapp_config?: WhatsAppConfig;
+
+  // Microsoft Teams
+  teams_config?: TeamsConfig;
+
+  // Discord
+  discord_config?: DiscordConfig;
+
   // Credit Exhaustion Fallback
   credit_exhaustion_mode: CreditExhaustionMode;
   credit_exhaustion_config: CreditExhaustionConfig;
@@ -674,6 +723,11 @@ export interface Chatbot {
   // Activation tracking (optional — added via migration, not in generated types until db:gen-types)
   widget_reviewed_at?: string | null;
   first_conversation_at?: string | null;
+
+  // Onboarding wizard tracking
+  onboarding_step?: number | null;
+  first_knowledge_source_at?: string | null;
+  first_knowledge_ready_at?: string | null;
 
   created_at: string;
   updated_at: string;
@@ -710,11 +764,13 @@ export interface ChatbotInsert {
   feedback_config?: FeedbackConfig;
   live_handoff_config?: LiveHandoffConfig;
   telegram_config?: TelegramConfig;
+  whatsapp_config?: WhatsAppConfig;
   credit_exhaustion_mode?: CreditExhaustionMode;
   credit_exhaustion_config?: CreditExhaustionConfig;
   allowed_origins?: string[] | null;
   custom_text_updated_at?: string | null;
   language_updated_at?: string | null;
+  onboarding_step?: number | null;
 }
 
 export interface ChatbotUpdate {
@@ -747,12 +803,17 @@ export interface ChatbotUpdate {
   feedback_config?: FeedbackConfig;
   live_handoff_config?: LiveHandoffConfig;
   telegram_config?: TelegramConfig;
+  whatsapp_config?: WhatsAppConfig;
+  teams_config?: TeamsConfig;
+  discord_config?: DiscordConfig;
   credit_exhaustion_mode?: CreditExhaustionMode;
   credit_exhaustion_config?: CreditExhaustionConfig;
   allowed_origins?: string[] | null;
   live_fetch_threshold?: number;
   custom_text_updated_at?: string | null;
   language_updated_at?: string | null;
+  onboarding_step?: number | null;
+  widget_reviewed_at?: string | null;
 }
 
 // Chatbot with stats for list view
@@ -858,7 +919,7 @@ export interface KnowledgeChunkMatch {
 // CONVERSATIONS
 // ============================================
 
-export type ConversationChannel = 'widget' | 'api' | 'slack';
+export type ConversationChannel = 'widget' | 'api' | 'slack' | 'telegram' | 'whatsapp' | 'discord' | 'teams';
 export type ConversationStatus = 'active' | 'closed' | 'archived';
 
 export interface ConversationMemory {
@@ -1139,6 +1200,10 @@ export interface ChatbotPlanLimits {
   maxFileSize: number; // in bytes
   customBranding: boolean;
   slackIntegration: boolean;
+  telegramIntegration: boolean;
+  whatsappIntegration: boolean;
+  discordIntegration: boolean;
+  teamsIntegration: boolean;
   apiAccess: boolean;
 }
 
@@ -1150,6 +1215,10 @@ export const CHATBOT_PLAN_LIMITS: Record<string, ChatbotPlanLimits> = {
     maxFileSize: 5 * 1024 * 1024, // 5MB
     customBranding: false,
     slackIntegration: false,
+    telegramIntegration: false,
+    whatsappIntegration: false,
+    discordIntegration: false,
+    teamsIntegration: false,
     apiAccess: false,
   },
   pro: {
@@ -1159,6 +1228,10 @@ export const CHATBOT_PLAN_LIMITS: Record<string, ChatbotPlanLimits> = {
     maxFileSize: 25 * 1024 * 1024, // 25MB
     customBranding: true,
     slackIntegration: true,
+    telegramIntegration: true,
+    whatsappIntegration: true,
+    discordIntegration: true,
+    teamsIntegration: true,
     apiAccess: true,
   },
   agency: {
@@ -1168,6 +1241,10 @@ export const CHATBOT_PLAN_LIMITS: Record<string, ChatbotPlanLimits> = {
     maxFileSize: 100 * 1024 * 1024, // 100MB
     customBranding: true,
     slackIntegration: true,
+    telegramIntegration: true,
+    whatsappIntegration: true,
+    discordIntegration: true,
+    teamsIntegration: true,
     apiAccess: true,
   },
 };

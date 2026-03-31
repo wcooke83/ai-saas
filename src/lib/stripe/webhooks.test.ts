@@ -280,14 +280,7 @@ describe('handleCheckoutCompleted', () => {
   });
 
   describe('chatbot credit purchase', () => {
-    it('increases monthly_message_limit on the chatbot', async () => {
-      tableOverrides['chatbots'] = (chain) => {
-        chain.single = vi.fn().mockResolvedValue({
-          data: { monthly_message_limit: 100 },
-          error: null,
-        });
-      };
-
+    it('marks credit_purchases completed and calls add_chatbot_purchased_credits RPC', async () => {
       const session = makeSession({
         mode: 'payment',
         metadata: {
@@ -299,9 +292,21 @@ describe('handleCheckoutCompleted', () => {
 
       await handleCheckoutCompleted(session);
 
-      const chatbotUpdate = dbOps.find((op) => op.table === 'chatbots' && op.op === 'update');
-      expect(chatbotUpdate).toBeDefined();
-      expect(chatbotUpdate!.args).toMatchObject({ monthly_message_limit: 300 }); // 100 + 200
+      // Should mark credit_purchases as completed
+      const purchaseUpdate = dbOps.find(
+        (op) => op.table === 'credit_purchases' && op.op === 'update'
+      );
+      expect(purchaseUpdate).toBeDefined();
+      expect(purchaseUpdate!.args).toMatchObject({ status: 'completed' });
+
+      // Should call RPC to add purchased credits
+      const rpcCall = dbOps.find((op) => op.table === '__rpc');
+      expect(rpcCall).toBeDefined();
+      expect(rpcCall!.args[0]).toBe('add_chatbot_purchased_credits');
+      expect(rpcCall!.args[1]).toMatchObject({
+        p_chatbot_id: 'bot-1',
+        p_amount: 200,
+      });
     });
 
     it('skips when chatbot_id is missing', async () => {
@@ -315,8 +320,24 @@ describe('handleCheckoutCompleted', () => {
 
       await handleCheckoutCompleted(session);
 
-      const chatbotUpdate = dbOps.filter((op) => op.table === 'chatbots' && op.op === 'update');
-      expect(chatbotUpdate).toHaveLength(0);
+      const rpcCall = dbOps.find((op) => op.table === '__rpc');
+      expect(rpcCall).toBeUndefined();
+    });
+
+    it('skips when credit_amount is 0', async () => {
+      const session = makeSession({
+        mode: 'payment',
+        metadata: {
+          type: 'credit_purchase',
+          chatbot_id: 'bot-1',
+          credit_amount: '0',
+        } as any,
+      });
+
+      await handleCheckoutCompleted(session);
+
+      const rpcCall = dbOps.find((op) => op.table === '__rpc');
+      expect(rpcCall).toBeUndefined();
     });
   });
 });

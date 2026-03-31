@@ -6,14 +6,17 @@
 export interface TelegramConfig {
   enabled: boolean;
   bot_token?: string;
+  bot_username?: string;
   chat_id?: string;
   webhook_secret?: string;
   auto_handoff_on_escalation?: boolean;
+  ai_responses_enabled?: boolean;
 }
 
 export const DEFAULT_TELEGRAM_CONFIG: TelegramConfig = {
   enabled: false,
   auto_handoff_on_escalation: true,
+  ai_responses_enabled: false,
 };
 
 export interface TelegramMessage {
@@ -24,6 +27,7 @@ export interface TelegramMessage {
   };
   from?: {
     id: number;
+    is_bot?: boolean;
     username?: string;
     first_name: string;
     last_name?: string;

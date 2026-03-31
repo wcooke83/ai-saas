@@ -6,8 +6,34 @@
 
 import type { TelegramConfig, TelegramMessage } from './types';
 
+const TELEGRAM_MAX_MSG_LENGTH = 4000;
+
 /**
- * Send a message via Telegram Bot API
+ * Split text into chunks at the nearest newline or space boundary.
+ * Uses 4000 char limit to leave margin under Telegram's 4096 hard limit.
+ */
+export function splitTelegramMessage(text: string, maxLength = TELEGRAM_MAX_MSG_LENGTH): string[] {
+  if (text.length <= maxLength) return [text];
+
+  const chunks: string[] = [];
+  let remaining = text;
+
+  while (remaining.length > maxLength) {
+    let splitIdx = remaining.lastIndexOf('\n', maxLength);
+    if (splitIdx <= 0) splitIdx = remaining.lastIndexOf(' ', maxLength);
+    if (splitIdx <= 0) splitIdx = maxLength;
+
+    chunks.push(remaining.slice(0, splitIdx));
+    remaining = remaining.slice(splitIdx).trimStart();
+  }
+
+  if (remaining) chunks.push(remaining);
+  return chunks;
+}
+
+/**
+ * Send a message via Telegram Bot API.
+ * Automatically splits messages exceeding the 4096 char limit.
  */
 export async function sendTelegramMessage(
   config: TelegramConfig,
@@ -24,42 +50,48 @@ export async function sendTelegramMessage(
   }
 
   const chatId = options?.chatId || config.chat_id;
+  const chunks = splitTelegramMessage(text);
+  let lastResult: TelegramMessage | null = null;
 
-  try {
-    const params: Record<string, unknown> = {
-      chat_id: chatId,
-      text,
-    };
+  for (const chunk of chunks) {
+    try {
+      const params: Record<string, unknown> = {
+        chat_id: chatId,
+        text: chunk,
+      };
 
-    if (options?.replyToMessageId) {
-      params.reply_to_message_id = options.replyToMessageId;
-    }
-
-    if (options?.parseMode) {
-      params.parse_mode = options.parseMode;
-    }
-
-    const response = await fetch(
-      `https://api.telegram.org/bot${config.bot_token}/sendMessage`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params),
+      if (options?.replyToMessageId) {
+        params.reply_to_message_id = options.replyToMessageId;
       }
-    );
 
-    const data = await response.json();
+      if (options?.parseMode) {
+        params.parse_mode = options.parseMode;
+      }
 
-    if (!data.ok) {
-      console.error('[Telegram] API error:', data.description);
+      const response = await fetch(
+        `https://api.telegram.org/bot${config.bot_token}/sendMessage`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(params),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!data.ok) {
+        console.error('[Telegram] API error:', data.description);
+        return null;
+      }
+
+      lastResult = data.result;
+    } catch (error) {
+      console.error('[Telegram] Failed to send message:', error);
       return null;
     }
-
-    return data.result;
-  } catch (error) {
-    console.error('[Telegram] Failed to send message:', error);
-    return null;
   }
+
+  return lastResult;
 }
 
 /**
