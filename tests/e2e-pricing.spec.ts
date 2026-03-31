@@ -186,7 +186,7 @@ test.describe('Pricing Page', () => {
     const pulseElements = freshPage.locator('.animate-pulse');
     // After loading, there should be no visible skeleton pulses on the pricing page
     const visiblePulses = await pulseElements.evaluateAll(
-      (els) => els.filter(el => el.offsetParent !== null).length
+      (els) => els.filter(el => el instanceof HTMLElement && el.offsetParent !== null).length
     );
     expect(visiblePulses).toBe(0);
   });

@@ -41,6 +41,7 @@ async function getDashboardData() {
     apiLogsResult,
     apiLogsCountResult,
     chatbotsCountResult,
+    onboardingChatbotResult,
   ] = await Promise.all([
     supabase.from('subscriptions').select('*').eq('user_id', user.id).single(),
     supabase.from('usage').select('*').eq('user_id', user.id).order('period_start', { ascending: false }).limit(1).single(),
@@ -52,6 +53,7 @@ async function getDashboardData() {
     // Get count for total generations (use api_logs if generations is empty)
     supabase.from('api_logs').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
     supabase.from('chatbots').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
+    supabase.from('chatbots').select('id, name, onboarding_step').eq('user_id', user.id).not('onboarding_step', 'is', null).order('created_at', { ascending: false }).limit(1).single(),
   ]);
 
   // Fetch subscription plan details if user has a plan
@@ -99,6 +101,7 @@ async function getDashboardData() {
     apiKeysCount: apiKeysResult.count || 0,
     totalTokensUsed,
     chatbotCount: chatbotsCountResult.count ?? 0,
+    onboardingChatbot: onboardingChatbotResult.data as { id: string; name: string; onboarding_step: number } | null,
   };
 }
 
@@ -153,7 +156,7 @@ export default async function DashboardPage() {
     return <DashboardSkeleton />;
   }
 
-  const { subscription, subscriptionPlan, usage, recentGenerations, recentApiLogs, totalGenerations, apiKeysCount, totalTokensUsed, chatbotCount } = data;
+  const { subscription, subscriptionPlan, usage, recentGenerations, recentApiLogs, totalGenerations, apiKeysCount, totalTokensUsed, chatbotCount, onboardingChatbot } = data;
 
   if (chatbotCount === 0) {
     return <NewUserWelcome />;
@@ -184,6 +187,29 @@ export default async function DashboardPage() {
           <p className="text-secondary-600 dark:text-secondary-400">Here&apos;s what&apos;s happening with your chatbots.</p>
         </div>
       </div>
+
+      {/* Resume onboarding banner */}
+      {onboardingChatbot && (
+        <div className="flex items-center justify-between rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 p-4">
+          <div>
+            <p className="font-medium text-secondary-900 dark:text-secondary-100">
+              Continue setting up &ldquo;{onboardingChatbot.name}&rdquo;
+            </p>
+            <p className="text-sm text-secondary-500 dark:text-secondary-400">
+              Pick up where you left off in the setup wizard.
+            </p>
+          </div>
+          <Link
+            href={`/onboarding/${onboardingChatbot.id}/step/${onboardingChatbot.onboarding_step}`}
+            className="shrink-0"
+          >
+            <Button size="sm">
+              Continue setup
+              <ArrowRight className="w-3 h-3 ml-1.5" />
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* Stats grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">

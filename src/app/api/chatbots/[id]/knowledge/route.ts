@@ -14,6 +14,7 @@ import {
   createKnowledgeSource,
   checkKnowledgeSourceLimit,
 } from '@/lib/chatbots/api';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { processKnowledgeSource, processUrlWithCrawl } from '@/lib/chatbots/knowledge/processor';
 
 // Add knowledge source validation schema
@@ -137,6 +138,15 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       question: input.question || null,
       answer: input.answer || null,
     });
+
+    // Record first knowledge source milestone (fire-and-forget)
+    const admin = createAdminClient();
+    admin
+      .from('chatbots')
+      .update({ first_knowledge_source_at: new Date().toISOString() })
+      .eq('id', id)
+      .is('first_knowledge_source_at', null)
+      .then(() => {});
 
     // Trigger async processing (don't await)
     if (input.type === 'url' && input.crawl) {

@@ -272,6 +272,18 @@ function ChatbotCard({ chatbot, onDelete }: ChatbotCardProps) {
                 <Badge className={statusColors[chatbot.status]}>
                   {chatbot.status}
                 </Badge>
+                {(chatbot as any).onboarding_step != null && (
+                  <Link
+                    href={`/onboarding/${chatbot.id}/step/${(chatbot as any).onboarding_step}`}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <Badge
+                      className="bg-primary-100 dark:bg-primary-900/50 text-primary-800 dark:text-primary-200 cursor-pointer hover:bg-primary-200 dark:hover:bg-primary-800/60 transition-colors"
+                    >
+                      Setup incomplete
+                    </Badge>
+                  </Link>
+                )}
                 {(chatbot as any).needs_reembed && (
                   <Link
                     href={`/dashboard/chatbots/${chatbot.id}/knowledge`}

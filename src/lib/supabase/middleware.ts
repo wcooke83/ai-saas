@@ -89,6 +89,7 @@ export async function updateSession(request: NextRequest) {
 export const protectedRoutes = [
   '/dashboard',
   '/admin',
+  '/onboarding',
 ];
 
 export const authRoutes = ['/login', '/signup', '/forgot-password'];

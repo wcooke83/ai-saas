@@ -188,11 +188,18 @@ export async function unpublishChatbot(chatbotId: string): Promise<Chatbot> {
 // ============================================
 
 export function generateSlug(name: string): string {
-  return name
+  const slug = name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .substring(0, 50);
+
+  // If the name was entirely special characters, fall back to a random slug
+  if (!slug) {
+    return `chatbot-${crypto.randomUUID().substring(0, 8)}`;
+  }
+
+  return slug;
 }
 
 export async function generateUniqueSlug(userId: string, name: string): Promise<string> {

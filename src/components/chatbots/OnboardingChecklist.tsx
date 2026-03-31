@@ -27,6 +27,7 @@ interface OnboardingChecklistProps {
   hasKnowledgeSources: boolean;
   isPublished: boolean;
   widgetReviewedAt: string | null;
+  onboardingStep?: number | null;
 }
 
 const DISMISS_KEY_PREFIX = 'chatbot-onboarding-dismissed-';
@@ -37,6 +38,7 @@ export function OnboardingChecklist({
   hasKnowledgeSources,
   isPublished,
   widgetReviewedAt,
+  onboardingStep,
 }: OnboardingChecklistProps) {
   const [dismissed, setDismissed] = useState(true); // start hidden to avoid flash
   const [widgetReviewed, setWidgetReviewed] = useState(!!widgetReviewedAt);
@@ -83,7 +85,8 @@ export function OnboardingChecklist({
   const completedCount = steps.filter((s) => s.completed).length;
   const allComplete = completedCount === steps.length;
 
-  if (dismissed || allComplete) {
+  // Hide checklist when wizard is active (onboarding_step is set)
+  if (onboardingStep != null || dismissed || allComplete) {
     return null;
   }
 

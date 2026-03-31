@@ -13,7 +13,7 @@ export function NewUserWelcome() {
       </p>
 
       <Button asChild size="lg" className="mb-12">
-        <Link href="/dashboard/chatbots/new">
+        <Link href="/onboarding">
           Create your first chatbot
           <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
         </Link>
