@@ -28,24 +28,25 @@ const defaultNavItems: NavItem[] = [
 const menuLinks = {
   product: [
     { label: 'Appointment Booking', href: '/chatbot-booking' },
+    { label: 'Solutions', href: '/solutions' },
+    { label: 'Industries', href: '/industries' },
     { label: 'Pricing', href: '/pricing' },
     { label: 'SDK', href: '/sdk' },
-    { label: 'Dashboard', href: '/dashboard' },
   ],
   resources: [
     { label: 'Documentation', href: '/wiki' },
     { label: 'Help Center', href: '/help' },
     { label: 'FAQ', href: '/faq' },
+    { label: 'Changelog', href: '/changelog' },
   ],
   company: [
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
-    { label: 'Careers', href: '/careers' },
+    { label: 'Blog', href: '/blog' },
   ],
   legal: [
     { label: 'Privacy Policy', href: '/privacy' },
     { label: 'Terms of Service', href: '/terms' },
-    { label: 'Cookie Policy', href: '/cookies' },
   ],
 };
 

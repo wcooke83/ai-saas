@@ -33,10 +33,7 @@ const sections = [
   {
     heading: 'Industries',
     links: [
-      { label: 'Chatbot for Law Firms', href: '/chatbot-for-lawyers', description: 'Client intake and legal FAQ automation' },
-      { label: 'Chatbot for Healthcare', href: '/chatbot-for-healthcare', description: 'Patient FAQ and appointment booking' },
-      { label: 'Chatbot for Real Estate', href: '/chatbot-for-real-estate', description: '24/7 lead capture and viewing bookings' },
-      { label: 'Chatbot for E-commerce', href: '/chatbot-for-ecommerce', description: 'Product Q&A and support deflection' },
+      { label: 'Industries', href: '/industries', description: 'AI chatbot solutions for every industry' },
     ],
   },
   {
