@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'Your chatbot system prompt controls its personality, accuracy, and boundaries. Learn how to write one that keeps responses helpful, on-brand, and hallucination-free.',
       url: 'https://vocui.com/blog/how-to-write-chatbot-system-prompt',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/how-to-write-chatbot-system-prompt',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },

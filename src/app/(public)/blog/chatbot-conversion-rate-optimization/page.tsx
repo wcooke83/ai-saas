@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'AI chatbots improve website conversion rates by engaging visitors, answering objections in real time, and guiding prospects toward action.',
       url: 'https://vocui.com/blog/chatbot-conversion-rate-optimization',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/chatbot-conversion-rate-optimization',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },

@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'SaaS companies use AI chatbots to guide new users through onboarding, answer setup questions, and reduce time-to-value. Here\'s how it works.',
       url: 'https://vocui.com/blog/chatbot-for-saas-onboarding',
-      datePublished: '2025-03-31',
-      dateModified: '2026-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/chatbot-for-saas-onboarding',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },

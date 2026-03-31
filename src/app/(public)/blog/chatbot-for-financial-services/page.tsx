@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'Financial advisors and service firms use AI chatbots to answer client questions about services, fees, and processes — while staying compliant with SEC and FINRA rules.',
       url: 'https://vocui.com/blog/chatbot-for-financial-services',
-      datePublished: '2025-03-31',
-      dateModified: '2026-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/chatbot-for-financial-services',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },
@@ -148,7 +152,7 @@ export default function ChatbotForFinancialServicesPage() {
                 </span>
                 <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">
-                  9 min read
+                  12 min read
                 </span>
               </div>
               <AuthorByline className="mb-4" />
@@ -292,7 +296,65 @@ export default function ChatbotForFinancialServicesPage() {
                 </p>
               </section>
 
-              {/* Section 4 — training content */}
+              {/* Section 4 — client onboarding workflow — unique to financial services */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  How a Chatbot Fits Into the Client Onboarding Workflow
+                </h2>
+                <p>
+                  Financial advisory onboarding is a multi-step process. The chatbot plays a
+                  role at the front end — the discovery and qualification stage — so your
+                  advisors can focus on the relationship-building stages that require human
+                  judgment.
+                </p>
+
+                {/* Onboarding workflow — unique to financial services post */}
+                <div className="mt-6 mb-6 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-sm font-bold text-primary-700 dark:text-primary-300">1</span>
+                    <div>
+                      <p className="font-medium text-secondary-900 dark:text-secondary-100">Discovery (chatbot-assisted)</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">Prospect visits your website, asks about services, fees, minimums, and process. Chatbot answers from your approved content.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-sm font-bold text-primary-700 dark:text-primary-300">2</span>
+                    <div>
+                      <p className="font-medium text-secondary-900 dark:text-secondary-100">Qualification (chatbot-assisted)</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">Chatbot shares your engagement criteria and suggests booking a consultation. Prospect arrives informed about your minimum account size and service model.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary-200 dark:bg-secondary-700 flex items-center justify-center text-sm font-bold text-secondary-700 dark:text-secondary-300">3</span>
+                    <div>
+                      <p className="font-medium text-secondary-900 dark:text-secondary-100">Initial consultation (advisor-led)</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">Advisor meets an informed prospect. Less time explaining basics, more time understanding the client&apos;s situation.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary-200 dark:bg-secondary-700 flex items-center justify-center text-sm font-bold text-secondary-700 dark:text-secondary-300">4</span>
+                    <div>
+                      <p className="font-medium text-secondary-900 dark:text-secondary-100">Proposal and agreement (advisor-led)</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">Advisor presents the plan. Chatbot can answer post-meeting questions about documents needed for account opening.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary-200 dark:bg-secondary-700 flex items-center justify-center text-sm font-bold text-secondary-700 dark:text-secondary-300">5</span>
+                    <div>
+                      <p className="font-medium text-secondary-900 dark:text-secondary-100">Account setup and onboarding (hybrid)</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">Chatbot answers process questions (&quot;What forms do I need?&quot; &quot;How long does the transfer take?&quot;) while the advisor handles account configuration.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <p>
+                  The chatbot handles steps 1-2 entirely and supports step 5. This means your
+                  advisors spend their time on the high-value conversations in steps 3-4 where
+                  human expertise and trust-building matter most.
+                </p>
+              </section>
+
+              {/* Section 5 — training content */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   What to Train It On (and What to Keep Out)
@@ -342,6 +404,37 @@ export default function ChatbotForFinancialServicesPage() {
                     pricing page
                   </Link>
                   {' '}to find the right plan for your firm.
+                </p>
+              </section>
+
+              {/* Section 7 — required disclaimers — unique to financial services */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  Disclaimer Language Every Financial Chatbot Needs
+                </h2>
+
+                {/* Disclaimer template — unique to financial services post */}
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-6 py-5 mb-6">
+                  <p className="text-sm font-semibold text-amber-800 dark:text-amber-200 mb-2">
+                    Sample system prompt disclaimer block
+                  </p>
+                  <div className="bg-white dark:bg-secondary-900 rounded-lg p-4 mt-3 text-sm text-secondary-600 dark:text-secondary-400 font-mono">
+                    <p>&quot;You are an informational assistant for [Firm Name], a registered investment advisor. You provide general information about our services, fees, and process.</p>
+                    <p className="mt-2">RULES:</p>
+                    <p>- Never provide personalized financial, tax, or legal advice.</p>
+                    <p>- Never recommend specific investments, products, or strategies.</p>
+                    <p>- When asked for advice on a specific situation, explain that personalized guidance requires a consultation with a licensed advisor and provide the booking link.</p>
+                    <p>- Include this disclaimer when discussing financial topics: &apos;This is general information and not personalized financial advice. Consult a licensed advisor for guidance specific to your situation.&apos;&quot;</p>
+                  </div>
+                </div>
+
+                <p>
+                  This disclaimer block should be in every financial services chatbot&apos;s
+                  personality configuration. It sets the behavioral boundary that keeps the chatbot
+                  informational rather than advisory. Your compliance officer should review and
+                  approve the exact language before deployment. Some firms add a visible
+                  disclaimer at the bottom of the chat widget as well — a belt-and-suspenders
+                  approach that protects both the firm and the client.
                 </p>
               </section>
 

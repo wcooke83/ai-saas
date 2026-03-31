@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'A comparison of five AI chat platforms for small businesses looking for a Tidio alternative.',
       url: 'https://vocui.com/blog/tidio-alternatives',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/tidio-alternatives',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,8 +59,14 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/tidio-alternatives/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {

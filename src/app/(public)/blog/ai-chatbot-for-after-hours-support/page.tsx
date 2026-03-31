@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'Most customer questions happen outside business hours. An AI chatbot answers them instantly — so you never lose a lead or leave a customer waiting.',
       url: 'https://vocui.com/blog/ai-chatbot-for-after-hours-support',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/ai-chatbot-for-after-hours-support',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },

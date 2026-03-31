@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'AI chatbots don\'t just match keywords — they understand meaning. Learn how natural language processing, embeddings, and LLMs work together to interpret questions.',
       url: 'https://vocui.com/blog/how-ai-chatbots-understand-questions',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/how-ai-chatbots-understand-questions',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },

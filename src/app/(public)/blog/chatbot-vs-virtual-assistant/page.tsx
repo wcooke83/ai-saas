@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'Chatbots and virtual assistants are often confused. Learn the key differences — from scope and intelligence to cost and use cases — and which one your business needs.',
       url: 'https://vocui.com/blog/chatbot-vs-virtual-assistant',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/chatbot-vs-virtual-assistant',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },

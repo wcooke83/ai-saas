@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'New hires ask the same questions every time. An AI knowledge bot trained on your internal docs cuts onboarding time and frees up managers.',
       url: 'https://vocui.com/blog/reduce-employee-onboarding-time-with-ai',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/reduce-employee-onboarding-time-with-ai',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },

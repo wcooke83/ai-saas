@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'A beginner-friendly guide to conversational AI — what it is, how it differs from simple chatbots, the technology behind it, and how businesses use it today.',
       url: 'https://vocui.com/blog/what-is-conversational-ai',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/what-is-conversational-ai',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,8 +59,14 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/what-is-conversational-ai/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {

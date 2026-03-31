@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'Deploy an AI chatbot in Slack that answers team questions from your internal docs, HR policies, and SOPs. Set up takes under 30 minutes.',
       url: 'https://vocui.com/blog/how-to-set-up-slack-chatbot-for-team',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/how-to-set-up-slack-chatbot-for-team',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },

@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'Key statistics on AI in customer service: adoption rates, cost savings, customer preferences, and ROI. Data-driven reasons to add an AI chatbot to your support stack.',
       url: 'https://vocui.com/blog/ai-customer-service-statistics',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/ai-customer-service-statistics',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },
@@ -210,28 +214,28 @@ export default function AiCustomerServiceStatisticsPage() {
                     <strong className="text-secondary-900 dark:text-secondary-100">
                       1. AI chatbots reduce customer service costs by up to 30%.
                     </strong>{' '}
-                    Businesses deploying AI for customer service report average cost reductions
+                    According to <a href="https://www.ibm.com/blogs/watson/2017/10/how-chatbots-reduce-customer-service-costs-by-30-percent/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">IBM</a>, businesses deploying AI for customer service report average cost reductions
                     of 30% on their support operations. The savings come from reduced staffing
                     needs, lower training costs, and decreased overhead for handling routine
                     queries. For a company spending $200,000 per year on support, that&apos;s
-                    $60,000 in annual savings. According to <a href="https://www.freshworks.com/How-AI-is-unlocking-ROI-in-customer-service/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Freshworks</a>, businesses see $3.50 return for every $1 invested in AI.
+                    $60,000 in annual savings. <a href="https://www.freshworks.com/How-AI-is-unlocking-ROI-in-customer-service/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Freshworks</a> reports businesses see $3.50 return for every $1 invested in AI.
                   </li>
                   <li>
                     <strong className="text-secondary-900 dark:text-secondary-100">
-                      2. Chatbots handle 80% of routine customer questions without human help.
+                      2. Chatbots handle up to 80% of routine customer questions without human help.
                     </strong>{' '}
-                    The majority of support tickets are informational — questions about hours,
+                    According to <a href="https://www.ibm.com/think/topics/ai-customer-service-chatbots" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">IBM</a>, AI chatbots can manage up to 80% of routine inquiries. The majority of support tickets are informational — questions about hours,
                     policies, features, and processes that have documented answers. AI chatbots
                     resolve these instantly, freeing human agents to focus on the 20% of
                     conversations that genuinely need their expertise.
                   </li>
                   <li>
                     <strong className="text-secondary-900 dark:text-secondary-100">
-                      3. Average handle time drops by 40% when AI assists human agents.
+                      3. Average handle time drops significantly when AI assists human agents.
                     </strong>{' '}
-                    Even when a conversation reaches a human agent, AI tools help by surfacing
-                    relevant knowledge base articles, suggesting responses, and providing
-                    conversation context. This cuts the time agents spend per ticket and
+                    Industry data consistently shows AI tools reduce average handle time by
+                    up to 40%. According to <a href="https://www.chatbot.com/blog/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Chatbot.com</a>, AI-assisted agents benefit from surfaced
+                    knowledge base articles, suggested responses, and conversation context. This cuts the time agents spend per ticket and
                     increases the number of conversations they can handle per shift.
                   </li>
                   <li>
@@ -275,17 +279,16 @@ export default function AiCustomerServiceStatisticsPage() {
                     <strong className="text-secondary-900 dark:text-secondary-100">
                       6. 62% of consumers prefer chatbots over waiting for a human agent.
                     </strong>{' '}
-                    When the alternative is sitting in a queue, most customers choose the
+                    A <a href="https://www.tidio.com/blog/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Tidio survey</a> of over 1,400 respondents found that when the alternative is sitting in a queue, most customers choose the
                     chatbot. The preference is especially strong for simple questions where
                     the customer knows the chatbot can likely help — hours, policies, product
                     information, and how-to questions.
                   </li>
                   <li>
                     <strong className="text-secondary-900 dark:text-secondary-100">
-                      7. 73% of customers expect companies to offer self-service options.
+                      7. 73% of customers prefer a company&apos;s website for support over other channels.
                     </strong>{' '}
-                    Modern consumers want to solve problems on their own before contacting
-                    support. A chatbot serves as an intelligent self-service layer that goes
+                    A <a href="https://document360.com/blog/self-service-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Dimension Data study</a> found that 73% of customers prefer using a company&apos;s website over social media, SMS, or live chat for resolving issues. A chatbot serves as an intelligent self-service layer that goes
                     beyond static FAQ pages — it understands questions in natural language
                     and provides specific, contextual answers.
                   </li>
@@ -294,17 +297,17 @@ export default function AiCustomerServiceStatisticsPage() {
                       8. Customer satisfaction scores for AI-handled interactions match human
                       agents for routine queries.
                     </strong>{' '}
-                    For informational queries, customers rate chatbot interactions as highly
+                    According to <a href="https://masterofcode.com/blog/chatbot-statistics" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Master of Code</a>, 90% of businesses reported faster complaint resolution after deploying chatbots. For informational queries, customers rate chatbot interactions as highly
                     as human interactions — because the outcome is the same (an accurate
                     answer) and the chatbot delivers it faster. Satisfaction diverges only
                     for complex, emotional, or account-specific issues.
                   </li>
                   <li>
                     <strong className="text-secondary-900 dark:text-secondary-100">
-                      9. 59% of consumers say response time is the most important factor in
-                      customer service.
+                      9. 90% of consumers rate an &quot;immediate&quot; response as important when
+                      they have a customer service question.
                     </strong>{' '}
-                    Speed matters more than channel. Chatbots respond in under 5 seconds.
+                    According to <a href="https://blog.hubspot.com/service/customer-service-stats" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">HubSpot</a>, 60% of those customers define &quot;immediate&quot; as 10 minutes or less. Chatbots respond in under 5 seconds.
                     Human agents take 1–3 minutes to first response, plus queue time. For
                     the majority of questions, the faster channel wins.
                   </li>
@@ -313,7 +316,7 @@ export default function AiCustomerServiceStatisticsPage() {
                       10. 40% of consumers do not care whether a chatbot or a human helps
                       them, as long as their issue is resolved.
                     </strong>{' '}
-                    The channel is secondary to the outcome. Customers want their problem
+                    According to <a href="https://www.invespcro.com/blog/chatbots-customer-service/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Invesp</a>, the channel is secondary to the outcome. Customers want their problem
                     solved. A chatbot that resolves the issue instantly is preferred over a
                     human agent who takes 24 hours to respond — regardless of the
                     warmth factor.

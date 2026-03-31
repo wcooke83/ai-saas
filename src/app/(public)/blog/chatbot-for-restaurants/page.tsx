@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'AI chatbots help restaurants answer questions about menus, hours, reservations, and dietary options — without tying up staff on the phone.',
       url: 'https://vocui.com/blog/chatbot-for-restaurants',
-      datePublished: '2025-03-31',
-      dateModified: '2026-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/chatbot-for-restaurants',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },
@@ -92,6 +96,22 @@ const jsonLd = {
           acceptedAnswer: {
             '@type': 'Answer',
             text: 'No. VocUI is designed for non-technical users. You create your chatbot, paste in your website URL or upload your menu PDF, customize the widget appearance, and copy a single embed code into your website. If you use Squarespace, Wix, or WordPress, you add the chatbot through their built-in code embed features — no developer needed. Most restaurant owners have their chatbot live in under an hour.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Can it handle takeout and delivery questions?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes. Train the chatbot on your takeout and delivery policies: which platforms you use (DoorDash, Uber Eats, your own ordering system), delivery radius, minimum order amounts, packaging fees, and estimated wait times. When a visitor asks "Do you deliver to my area?" the chatbot shares your delivery zone and links to your ordering platform. If you handle orders directly, include your phone number or online ordering URL.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Does the chatbot slow down my website?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'No. The VocUI widget loads asynchronously, which means your website content appears first and the chatbot loads in the background without affecting page speed. The widget itself is lightweight — it adds minimal load time. This matters for restaurants because Google uses page speed as a ranking factor, and hungry customers are not going to wait for a slow-loading site.',
           },
         },
       ],
@@ -140,7 +160,7 @@ export default function ChatbotForRestaurantsPage() {
                 </span>
                 <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">
-                  7 min read
+                  10 min read
                 </span>
               </div>
               <AuthorByline className="mb-4" />
@@ -242,7 +262,45 @@ export default function ChatbotForRestaurantsPage() {
                 </p>
               </section>
 
-              {/* Section 3 — reservation system integration */}
+              {/* Section 3 — peak hours vs off-hours — unique to restaurant post */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  Peak Hours vs. Off-Hours: When Chatbots Help Most
+                </h2>
+                <p>
+                  Restaurant chatbot value is not evenly distributed across the day. The
+                  highest-impact moments are the ones where your staff physically cannot
+                  answer the phone:
+                </p>
+
+                {/* Peak/off-hours breakdown — unique element */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-6">
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-5">
+                    <p className="font-semibold text-red-800 dark:text-red-200 mb-3">Peak hours (highest chatbot value)</p>
+                    <ul className="space-y-2 text-sm text-secondary-600 dark:text-secondary-400">
+                      <li><strong>Friday-Saturday 5-9 PM:</strong> Dinner rush. Staff is on the floor, phones go unanswered.</li>
+                      <li><strong>Sunday 10 AM-1 PM:</strong> Brunch volume. &quot;Do you take reservations?&quot; spikes.</li>
+                      <li><strong>Holidays:</strong> &quot;Are you open on Christmas Eve?&quot; surges 2-3 weeks before.</li>
+                    </ul>
+                  </div>
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-5">
+                    <p className="font-semibold text-blue-800 dark:text-blue-200 mb-3">Off-hours (steady chatbot value)</p>
+                    <ul className="space-y-2 text-sm text-secondary-600 dark:text-secondary-400">
+                      <li><strong>9 PM-midnight:</strong> Late-night planners researching for tomorrow.</li>
+                      <li><strong>Monday-Tuesday:</strong> Lower foot traffic, but website research is active.</li>
+                      <li><strong>Between meal services:</strong> Staff prepping, not available for calls.</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <p>
+                  The common thread: the people most likely to become your customers are making
+                  decisions exactly when you are least available to help them. A chatbot flips
+                  this dynamic. Your busiest and your quietest hours both get full coverage.
+                </p>
+              </section>
+
+              {/* Section 4 — reservation system integration */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Connecting to OpenTable, Resy, and Yelp Reservations
@@ -255,7 +313,7 @@ export default function ChatbotForRestaurantsPage() {
                   a direct link to your OpenTable, Resy, Yelp, or custom booking page.
                 </p>
                 <p className="mt-4">
-                  Configure your chatbot&apos;s system prompt to include reservation links and
+                  Configure your chatbot&apos;s personality to include reservation links and
                   policies. For example: &quot;When asked about reservations, share the booking link
                   and mention that parties of 8+ should call directly.&quot; The chatbot also
                   answers the pre-booking questions that often prevent customers from completing a
@@ -271,7 +329,30 @@ export default function ChatbotForRestaurantsPage() {
                 </p>
               </section>
 
-              {/* Section 4 — training and setup */}
+              {/* Section 5 — multi-location angle — unique to restaurant post */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  Multi-Location Restaurants: One Bot or One Per Location?
+                </h2>
+                <p>
+                  If you operate more than one restaurant location, you have two options. A
+                  single chatbot trained on all locations works when the menu is identical and
+                  hours are the same — it can answer &quot;Which location is closest to
+                  downtown?&quot; and share both addresses. Separate chatbots per location work
+                  better when menus, hours, or policies differ — the Midtown location has a
+                  rooftop bar, the Westside location does not, and a visitor asking about
+                  outdoor seating needs the right answer for the location they are considering.
+                </p>
+                <p className="mt-4">
+                  Deploy each location&apos;s chatbot on its respective page. If you have a
+                  single website for all locations, a shared chatbot trained on clearly
+                  organized content (&quot;Midtown menu,&quot; &quot;Westside hours&quot;) can
+                  route accurately. The key is making sure the training content labels which
+                  information applies to which location.
+                </p>
+              </section>
+
+              {/* Section 6 — training and setup */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Getting Your Menu and Allergen Info Into the Chatbot
@@ -338,6 +419,14 @@ export default function ChatbotForRestaurantsPage() {
                       q: 'Do I need a developer to set this up?',
                       a: "No. VocUI is designed for non-technical users. You create your chatbot, paste in your website URL or upload your menu PDF, customize the widget appearance, and copy a single embed code into your website. If you use Squarespace, Wix, or WordPress, you add the chatbot through their built-in code embed features \u2014 no developer needed. Most restaurant owners have their chatbot live in under an hour.",
                     },
+                    {
+                      q: 'Can it handle takeout and delivery questions?',
+                      a: "Yes. Train the chatbot on your takeout and delivery policies: which platforms you use (DoorDash, Uber Eats, your own ordering system), delivery radius, minimum order amounts, packaging fees, and estimated wait times. When a visitor asks \u201CDo you deliver to my area?\u201D the chatbot shares your delivery zone and links to your ordering platform. If you handle orders directly, include your phone number or online ordering URL.",
+                    },
+                    {
+                      q: 'Does the chatbot slow down my website?',
+                      a: "No. The VocUI widget loads asynchronously, which means your website content appears first and the chatbot loads in the background without affecting page speed. The widget itself is lightweight \u2014 it adds minimal load time. This matters for restaurants because Google uses page speed as a ranking factor, and hungry customers are not going to wait for a slow-loading site.",
+                    },
                   ].map(({ q, a }) => (
                     <div
                       key={q}
@@ -356,12 +445,12 @@ export default function ChatbotForRestaurantsPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">See how businesses like yours use VocUI</h2>
+            <h2 className="text-2xl font-bold mb-3">Stop losing tables to unanswered questions</h2>
             <p className="text-white/80 mb-2">
-              Upload your docs, train a chatbot on your content, and deploy it where your customers already are.
+              Upload your menu and policies, train a chatbot in minutes, and let it handle the questions that cost you reservations.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan included. Most teams are live in under an hour.
+              Free plan included. Most restaurants are live before dinner service.
             </p>
             <Button
               size="xl"

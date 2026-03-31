@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'Insurance agencies use AI chatbots to answer policy questions, explain coverage options, and qualify leads — reducing call volume and improving response time.',
       url: 'https://vocui.com/blog/chatbot-for-insurance',
-      datePublished: '2025-03-31',
-      dateModified: '2026-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/chatbot-for-insurance',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },

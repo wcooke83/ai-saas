@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'Build an internal knowledge bot that lets your team find answers to HR, policy, and process questions instantly — deployed in Slack or on your intranet.',
       url: 'https://vocui.com/blog/how-to-build-internal-knowledge-bot',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/how-to-build-internal-knowledge-bot',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },

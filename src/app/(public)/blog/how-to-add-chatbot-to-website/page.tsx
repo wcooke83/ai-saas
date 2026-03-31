@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'A step-by-step guide to adding an AI chatbot to your website without any coding.',
       url: 'https://vocui.com/blog/how-to-add-chatbot-to-website',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/how-to-add-chatbot-to-website',
+      },
+      datePublished: '2026-03-28',
+      dateModified: '2026-03-28',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
       step: [
@@ -90,6 +94,12 @@ const jsonLd = {
           text: 'Open your website and chat with the bot. Ask it a question your knowledge base covers and verify the answer.',
         },
       ],
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/how-to-add-chatbot-to-website/opengraph-image',
+        width: 1200,
+        height: 630,
+      },
     },
     {
       '@type': 'FAQPage',

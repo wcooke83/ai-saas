@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'Track the right chatbot metrics to improve performance. Learn which analytics matter \u2014 from conversation volume and deflection rate to satisfaction and conversion.',
       url: 'https://vocui.com/blog/chatbot-analytics-what-to-track',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/chatbot-analytics-what-to-track',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,8 +59,14 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/chatbot-analytics-what-to-track/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {

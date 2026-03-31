@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'Understand the security and privacy considerations for business chatbots \u2014 data storage, encryption, compliance, and what to ask your chatbot provider.',
       url: 'https://vocui.com/blog/chatbot-security-and-privacy-guide',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/chatbot-security-and-privacy-guide',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },

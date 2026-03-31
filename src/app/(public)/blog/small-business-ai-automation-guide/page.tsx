@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'A practical guide to AI automation for small businesses — what to automate first, which tools to use, and how to start without technical skills or a big budget.',
       url: 'https://vocui.com/blog/small-business-ai-automation-guide',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/small-business-ai-automation-guide',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,8 +59,14 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/small-business-ai-automation-guide/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {

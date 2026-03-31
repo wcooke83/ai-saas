@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'Learn how to create an FAQ chatbot that answers common customer questions instantly. No coding required — just upload your FAQs and go live.',
       url: 'https://vocui.com/blog/how-to-create-faq-chatbot',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/how-to-create-faq-chatbot',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,8 +59,14 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/how-to-create-faq-chatbot/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {

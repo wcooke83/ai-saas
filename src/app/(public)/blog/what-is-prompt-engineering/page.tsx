@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'Prompt engineering is the art of writing instructions that get better results from AI. Learn the basics and how to apply them to your business chatbot.',
       url: 'https://vocui.com/blog/what-is-prompt-engineering',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/what-is-prompt-engineering',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },

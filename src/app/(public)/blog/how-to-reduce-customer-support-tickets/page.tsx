@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'A practical guide to using an AI chatbot to deflect repetitive support tickets and reduce overall support volume.',
       url: 'https://vocui.com/blog/how-to-reduce-customer-support-tickets',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/how-to-reduce-customer-support-tickets',
+      },
+      datePublished: '2026-03-28',
+      dateModified: '2026-03-28',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,8 +59,14 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/how-to-reduce-customer-support-tickets/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {

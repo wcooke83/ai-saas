@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'A step-by-step guide to training an AI chatbot on your own documents, PDFs, and URLs with no ML experience required.',
       url: 'https://vocui.com/blog/how-to-train-chatbot-on-your-own-data',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/how-to-train-chatbot-on-your-own-data',
+      },
+      datePublished: '2026-03-28',
+      dateModified: '2026-03-28',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
       step: [
@@ -84,6 +88,12 @@ const jsonLd = {
           text: 'Add a system prompt to constrain the chatbot\'s scope, personality, and escalation behavior.',
         },
       ],
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/how-to-train-chatbot-on-your-own-data/opengraph-image',
+        width: 1200,
+        height: 630,
+      },
     },
     {
       '@type': 'FAQPage',

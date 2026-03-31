@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'Universities and online course platforms use AI chatbots to answer student questions about enrollment, deadlines, and course content around the clock.',
       url: 'https://vocui.com/blog/chatbot-for-education',
-      datePublished: '2025-03-31',
-      dateModified: '2026-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/chatbot-for-education',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },
@@ -100,6 +104,22 @@ const jsonLd = {
           acceptedAnswer: {
             '@type': 'Answer',
             text: 'This is one of the highest-impact use cases. Deploy the chatbot on your admissions and program pages to answer questions about application requirements, deadlines, campus visits, financial aid, and program offerings. Prospective students research schools at all hours — evenings, weekends, holidays. A chatbot that answers their questions instantly keeps your institution in the running when the admissions office is closed. Some schools run separate chatbots for prospects and enrolled students with different knowledge bases and tones.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Can staff use the chatbot for internal HR and IT questions?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes. Create a separate chatbot trained on your staff handbook, HR policies, benefits guides, and IT documentation. Deploy it on your internal staff portal. Faculty and staff ask repetitive questions about benefits enrollment, leave policies, room scheduling, and technology requests — the same questions that consume administrative time. An internal chatbot handles these without diverting student-facing support resources.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How do we handle multi-campus or multi-school deployments?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'For multi-campus institutions, you can run a single chatbot with campus-specific content clearly labeled in the knowledge base, or deploy separate chatbots per campus with targeted content. Separate bots work best when campuses have different programs, schedules, or policies. A shared bot works when the content is mostly the same and the chatbot can route based on campus-specific questions. For K-12 districts with multiple schools, separate bots per school keeps answers accurate for each community.',
           },
         },
       ],
@@ -148,7 +168,7 @@ export default function ChatbotForEducationPage() {
                 </span>
                 <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">
-                  10 min read
+                  13 min read
                 </span>
               </div>
               <AuthorByline className="mb-4" />
@@ -298,6 +318,39 @@ export default function ChatbotForEducationPage() {
                   </Link>
                   {' '}to understand data handling for your tier.
                 </p>
+
+                {/* FERPA compliance checklist — unique to education post */}
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl px-6 py-5 mt-6">
+                  <p className="text-sm font-semibold text-green-800 dark:text-green-200 mb-3">
+                    FERPA compliance checklist for chatbot deployment
+                  </p>
+                  <ul className="space-y-2 text-sm text-secondary-600 dark:text-secondary-400">
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">1.</span>
+                      <span>Train only on publicly available institutional content (catalogs, calendars, policy pages).</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">2.</span>
+                      <span>Never upload documents containing student names, IDs, grades, or enrollment data.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">3.</span>
+                      <span>Configure the chatbot personality to redirect personal record requests to authenticated portals.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">4.</span>
+                      <span>Confirm no SIS, LMS backend, or financial aid system connections exist.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">5.</span>
+                      <span>Review conversation logs periodically; delete any that inadvertently contain student PII.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">6.</span>
+                      <span>Document your chatbot&apos;s data scope in your institution&apos;s FERPA compliance records.</span>
+                    </li>
+                  </ul>
+                </div>
               </section>
 
               {/* Section 4 — LMS integration — unique to education */}
@@ -330,7 +383,64 @@ export default function ChatbotForEducationPage() {
                 </p>
               </section>
 
-              {/* Section 5 — prospective vs enrolled */}
+              {/* Section 5 — Student vs Staff Use Cases — unique to education post */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  Student-Facing vs. Staff-Facing Chatbot Use Cases
+                </h2>
+                <p>
+                  An education chatbot does not only serve students. Faculty and staff have
+                  their own set of repetitive questions — HR policies, IT procedures, facility
+                  requests — that consume administrative time. Some institutions deploy
+                  separate chatbots for each audience.
+                </p>
+
+                {/* Comparison table — unique to education post */}
+                <div className="overflow-x-auto mt-6 mb-6">
+                  <table className="w-full text-left text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg overflow-hidden">
+                    <thead className="bg-secondary-50 dark:bg-secondary-800/50">
+                      <tr>
+                        <th className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Audience</th>
+                        <th className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Common Questions</th>
+                        <th className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Best Placement</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700">
+                      <tr>
+                        <td className="px-4 py-3 font-medium">Prospective students</td>
+                        <td className="px-4 py-3">Application deadlines, program requirements, campus visits, financial aid</td>
+                        <td className="px-4 py-3">Admissions and program pages</td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-3 font-medium">Enrolled students</td>
+                        <td className="px-4 py-3">Registration, drop/add, LMS help, campus services, graduation</td>
+                        <td className="px-4 py-3">Student portal or intranet</td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-3 font-medium">Parents (K-12)</td>
+                        <td className="px-4 py-3">School calendar, transportation, lunch menus, after-school programs</td>
+                        <td className="px-4 py-3">School homepage</td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-3 font-medium">Faculty &amp; staff</td>
+                        <td className="px-4 py-3">HR policies, benefits enrollment, IT requests, room scheduling</td>
+                        <td className="px-4 py-3">Internal staff portal</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <p>
+                  A student-facing chatbot trained on course catalogs and a staff-facing chatbot
+                  trained on HR handbooks serve completely different purposes. Deploying them
+                  separately means each audience gets relevant answers without content
+                  cross-contamination — a student should never see answers about faculty
+                  benefits, and a staff member looking up PTO policy should not get course
+                  registration instructions.
+                </p>
+              </section>
+
+              {/* Section 6 — prospective vs enrolled */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   One Bot or Two? Prospective vs. Enrolled Students
@@ -429,6 +539,14 @@ export default function ChatbotForEducationPage() {
                       q: 'Can prospective students use it during the admissions process?',
                       a: "This is one of the highest-impact use cases. Deploy the chatbot on your admissions and program pages to answer questions about application requirements, deadlines, campus visits, financial aid, and program offerings. Prospective students research schools at all hours \u2014 evenings, weekends, holidays. A chatbot that answers their questions instantly keeps your institution in the running when the admissions office is closed. Some schools run separate chatbots for prospects and enrolled students with different knowledge bases and tones.",
                     },
+                    {
+                      q: 'Can staff use the chatbot for internal HR and IT questions?',
+                      a: "Yes. Create a separate chatbot trained on your staff handbook, HR policies, benefits guides, and IT documentation. Deploy it on your internal staff portal. Faculty and staff ask repetitive questions about benefits enrollment, leave policies, room scheduling, and technology requests \u2014 the same questions that consume administrative time. An internal chatbot handles these without diverting student-facing support resources.",
+                    },
+                    {
+                      q: 'How do we handle multi-campus or multi-school deployments?',
+                      a: "For multi-campus institutions, you can run a single chatbot with campus-specific content clearly labeled in the knowledge base, or deploy separate chatbots per campus with targeted content. Separate bots work best when campuses have different programs, schedules, or policies. A shared bot works when the content is mostly the same and the chatbot can route based on campus-specific questions. For K-12 districts with multiple schools, separate bots per school keeps answers accurate for each community.",
+                    },
                   ].map(({ q, a }) => (
                     <div
                       key={q}
@@ -447,12 +565,12 @@ export default function ChatbotForEducationPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">See how businesses like yours use VocUI</h2>
+            <h2 className="text-2xl font-bold mb-3">Answer the enrollment questions that keep your staff up at night</h2>
             <p className="text-white/80 mb-2">
-              Upload your docs, train a chatbot on your content, and deploy it where your students already are.
+              Train a chatbot on your catalog and policies. Let it handle the 10,000 questions your admissions office answers every semester.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan included. Most institutions are live in under an hour.
+              Free plan included. Most institutions are live before the next enrollment cycle.
             </p>
             <Button
               size="xl"

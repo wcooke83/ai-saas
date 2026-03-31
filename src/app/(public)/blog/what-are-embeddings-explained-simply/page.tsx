@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'A jargon-free guide to embeddings — the numerical representations that let AI chatbots understand meaning and find relevant answers from your content.',
       url: 'https://vocui.com/blog/what-are-embeddings-explained-simply',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/what-are-embeddings-explained-simply',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },

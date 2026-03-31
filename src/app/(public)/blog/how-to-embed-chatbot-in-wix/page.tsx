@@ -42,8 +42,12 @@ const jsonLd = {
       description:
         'Embed an AI chatbot on your Wix website in minutes. Use Wix\'s custom code feature to add a single script tag and start answering questions automatically.',
       url: 'https://vocui.com/blog/how-to-embed-chatbot-in-wix',
-      datePublished: '2025-03-31',
-      dateModified: '2025-03-31',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://vocui.com/blog/how-to-embed-chatbot-in-wix',
+      },
+      datePublished: '2026-04-01',
+      dateModified: '2026-04-01',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -55,7 +59,7 @@ const jsonLd = {
         url: 'https://vocui.com',
         logo: {
           '@type': 'ImageObject',
-          url: 'https://vocui.com/logo.png',
+          url: 'https://vocui.com/icon.png',
         },
       },
     },
