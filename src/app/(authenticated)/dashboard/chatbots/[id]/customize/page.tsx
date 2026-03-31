@@ -3,13 +3,13 @@
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { Save, RotateCcw, Check, Palette, Type, Layout, Code, MousePointerClick, Flag, Info, Lock } from 'lucide-react';
+import { Save, RotateCcw, Check, Palette, Type, Layout, Code, MousePointerClick, Flag, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip } from '@/components/ui/tooltip';
+import { InfoTooltip } from '@/components/ui/tooltip';
 import { Textarea } from '@/components/ui/textarea';
 import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
 import type { Chatbot, WidgetConfig } from '@/lib/chatbots/types';
@@ -79,9 +79,7 @@ function ColorPicker({
       <Label className="text-sm flex items-center gap-1">
         {label}
         {tooltip && (
-          <Tooltip content={tooltip}>
-            <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-          </Tooltip>
+          <InfoTooltip content={tooltip} />
         )}
       </Label>
       <div className="flex items-center gap-2">
@@ -603,9 +601,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
               <div className="space-y-2">
                 <Label className="flex items-center gap-1">
                   Font Family
-                  <Tooltip content="Google Fonts are loaded automatically. System fonts load instantly with no network request.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Google Fonts are loaded automatically. System fonts load instantly with no network request." />
                 </Label>
                 <select
                   value={config.fontFamily}
@@ -724,9 +720,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
               <div className="space-y-2">
                 <Label className="flex items-center gap-1">
                   Container Border Radius: {config.containerBorderRadius}px
-                  <Tooltip content="Rounds the corners of the entire chat widget container.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Rounds the corners of the entire chat widget container." />
                 </Label>
                 <input
                   type="range"
@@ -755,9 +749,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
               <div className="space-y-2">
                 <Label className="flex items-center gap-1">
                   Button Border Radius: {config.buttonBorderRadius}%
-                  <Tooltip content="Controls how round the send button appears. 50% creates a perfect circle.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Controls how round the send button appears. 50% creates a perfect circle." />
                 </Label>
                 <input
                   type="range"
@@ -781,9 +773,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                 />
                 <Label htmlFor="showBranding" className={`flex items-center gap-2 ${isFreePlan ? 'cursor-not-allowed' : ''}`}>
                   Show &quot;Powered by&quot; branding
-                  <Tooltip content="Displays a 'Powered by VocUI' link at the bottom of the widget. Only removable on paid plans.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Displays a 'Powered by VocUI' link at the bottom of the widget. Only removable on paid plans." />
                   {isFreePlan && (
                     <Link href="/dashboard/billing" className="inline-flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 font-medium hover:underline" onClick={(e) => e.stopPropagation()}>
                       <Lock className="w-3 h-3" />
@@ -804,9 +794,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
               </CardTitle>
               <div className="flex items-center gap-1 text-sm text-secondary-500 dark:text-secondary-400">
                 Add custom styles (advanced)
-                <Tooltip content="Override any widget style with CSS. Use .chat-widget-container as the root selector.">
-                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                </Tooltip>
+                <InfoTooltip content="Override any widget style with CSS. Use .chat-widget-container as the root selector." />
               </div>
             </CardHeader>
             <CardContent>
@@ -835,9 +823,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                   <div>
                     <Label htmlFor="autoOpen" className="flex items-center gap-1">
                       Auto Open
-                      <Tooltip content="Automatically opens the chat widget after the specified delay. Only triggers once per visitor session.">
-                        <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                      </Tooltip>
+                      <InfoTooltip content="Automatically opens the chat widget after the specified delay. Only triggers once per visitor session." />
                     </Label>
                     <p className="text-xs text-secondary-500 dark:text-secondary-400">
                       Automatically open the widget after a delay
@@ -890,9 +876,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                 <div>
                   <Label htmlFor="soundEnabled" className="flex items-center gap-1">
                     Sound Notifications
-                    <Tooltip content="Plays an audio chime when the bot sends a new message. Requires browser audio permission.">
-                      <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                    </Tooltip>
+                    <InfoTooltip content="Plays an audio chime when the bot sends a new message. Requires browser audio permission." />
                   </Label>
                   <p className="text-xs text-secondary-500 dark:text-secondary-400">
                     Play a sound when new messages arrive
@@ -920,9 +904,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
               <div className="space-y-2">
                 <Label className="flex items-center gap-1">
                   Button Size: {config.buttonSize}px
-                  <Tooltip content="The size of the floating chat button that visitors click to open the widget.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="The size of the floating chat button that visitors click to open the widget." />
                 </Label>
                 <input
                   type="range"
@@ -945,9 +927,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                 <div className="space-y-2">
                   <Label className="flex items-center gap-1">
                     Offset X: {config.offsetX}px
-                    <Tooltip content="Horizontal distance from the edge of the screen to the widget button.">
-                      <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                    </Tooltip>
+                    <InfoTooltip content="Horizontal distance from the edge of the screen to the widget button." />
                   </Label>
                   <input
                     type="range"
@@ -963,9 +943,7 @@ export default function CustomizePage({ params }: CustomizePageProps) {
                 <div className="space-y-2">
                   <Label className="flex items-center gap-1">
                     Offset Y: {config.offsetY}px
-                    <Tooltip content="Vertical distance from the edge of the screen to the widget button.">
-                      <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                    </Tooltip>
+                    <InfoTooltip content="Vertical distance from the edge of the screen to the widget button." />
                   </Label>
                   <input
                     type="range"

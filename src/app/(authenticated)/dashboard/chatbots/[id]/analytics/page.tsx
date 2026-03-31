@@ -10,13 +10,12 @@ import {
   Download,
   Calendar,
   Clock,
-  Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip } from '@/components/ui/tooltip';
+import { InfoTooltip } from '@/components/ui/tooltip';
 import { ChatbotPageHeader } from '@/components/chatbots/ChatbotPageHeader';
 import type { Chatbot } from '@/lib/chatbots/types';
 
@@ -210,9 +209,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
               <div>
                 <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                   Total Conversations
-                  <Tooltip content="Total unique chat sessions started by visitors during the selected period.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Total unique chat sessions started by visitors during the selected period." />
                 </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                   {defaultAnalytics.total_conversations.toLocaleString()}
@@ -231,9 +228,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
               <div>
                 <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                   Total Messages
-                  <Tooltip content="Total messages exchanged, including both visitor and bot messages, during the selected period.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Total messages exchanged, including both visitor and bot messages, during the selected period." />
                 </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                   {defaultAnalytics.total_messages.toLocaleString()}
@@ -252,9 +247,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
               <div>
                 <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                   Unique Visitors
-                  <Tooltip content="Number of distinct visitors identified by session cookies during the selected period. The same person on a different device or browser counts as a new visitor.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Number of distinct visitors identified by session cookies during the selected period. The same person on a different device or browser counts as a new visitor." />
                 </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                   {defaultAnalytics.unique_visitors.toLocaleString()}
@@ -273,9 +266,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
               <div>
                 <p className="text-sm text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                   Satisfaction Rate
-                  <Tooltip content="Positive survey rating rate during the selected period. Requires the post-chat survey to be enabled in Settings.">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Positive survey rating rate during the selected period. Requires the post-chat survey to be enabled in Settings." />
                 </p>
                 <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                   {defaultAnalytics.satisfaction_rate}%
@@ -340,9 +331,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
                 <Clock className="w-4 h-4" />
                 <span className="text-sm flex items-center gap-1">
                   Avg. Messages/Conv
-                  <Tooltip content="Average number of messages per conversation during the selected period. Higher values may indicate users are engaging deeply or struggling to get answers.">
-                    <Info className="w-3.5 h-3.5 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Average number of messages per conversation during the selected period. Higher values may indicate users are engaging deeply or struggling to get answers." />
                 </span>
               </div>
               <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
@@ -355,9 +344,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
                 <Calendar className="w-4 h-4" />
                 <span className="text-sm flex items-center gap-1">
                   Daily Average
-                  <Tooltip content="Average conversations per day during the selected period.">
-                    <Info className="w-3.5 h-3.5 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Average conversations per day during the selected period." />
                 </span>
               </div>
               <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
@@ -373,9 +360,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
                 <MessageSquare className="w-4 h-4" />
                 <span className="text-sm flex items-center gap-1">
                   Message Growth
-                  <Tooltip content="Percentage change in messages compared to the previous equivalent period.">
-                    <Info className="w-3.5 h-3.5 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Percentage change in messages compared to the previous equivalent period." />
                 </span>
               </div>
               <Badge variant="success">Active</Badge>

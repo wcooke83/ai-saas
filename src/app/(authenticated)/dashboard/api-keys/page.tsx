@@ -27,9 +27,8 @@ import {
   Globe,
   X,
   Settings,
-  Info,
 } from 'lucide-react';
-import { Tooltip } from '@/components/ui/tooltip';
+import { Tooltip, InfoTooltip } from '@/components/ui/tooltip';
 
 interface APIKey {
   id: string;
@@ -516,9 +515,7 @@ export default function APIKeysPage() {
                         </div>
                         <p className="text-sm font-mono text-secondary-500 dark:text-secondary-400 flex items-center gap-1">
                           {key.key_prefix}•••••••••
-                          <Tooltip content="Only the first few characters are shown for security. Copy the full key when creating it — it cannot be retrieved later.">
-                            <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                          </Tooltip>
+                          <InfoTooltip content="Only the first few characters are shown for security. Copy the full key when creating it — it cannot be retrieved later." />
                         </p>
                         <div className="flex items-center gap-3 text-xs text-secondary-400 dark:text-secondary-500">
                           <span className="flex items-center gap-1">
