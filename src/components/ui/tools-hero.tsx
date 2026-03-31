@@ -10,6 +10,8 @@ interface ToolsHeroProps {
   description: string;
   breadcrumbs?: BreadcrumbItem[];
   children?: ReactNode;
+  /** When true, removes full-viewport height and uses compact padding instead. */
+  compact?: boolean;
 }
 
 export function ToolsHero({
@@ -18,15 +20,16 @@ export function ToolsHero({
   description,
   breadcrumbs,
   children,
+  compact,
 }: ToolsHeroProps) {
   return (
-    <section className="min-h-[calc(100vh-4rem)] flex flex-col container mx-auto px-4 py-12">
+    <section className={compact ? "container mx-auto px-4 py-16" : "min-h-[calc(100vh-4rem)] flex flex-col container mx-auto px-4 py-12"}>
       {breadcrumbs && (
         <div className="mb-8">
           <Breadcrumbs items={breadcrumbs} />
         </div>
       )}
-      <div className="flex-1 flex flex-col items-center justify-center text-center">
+      <div className={compact ? "text-center" : "flex-1 flex flex-col items-center justify-center text-center"}>
       {badge && (
         <Badge className="mb-4">
           <Sparkles className="w-3 h-3 mr-1" aria-hidden="true" />

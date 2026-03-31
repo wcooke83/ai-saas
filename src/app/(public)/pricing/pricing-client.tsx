@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -47,8 +48,8 @@ const planStyles: Record<string, {
     iconBg: 'bg-secondary-100 dark:bg-secondary-700',
     iconColor: 'text-secondary-600 dark:text-secondary-200',
     cardClass: 'border-secondary-200 dark:border-secondary-600 bg-white dark:bg-secondary-800',
-    cta: 'Get Started',
-    ctaVariant: 'ghost',
+    cta: 'Create Free Chatbot',
+    ctaVariant: 'outline',
     popular: false,
   },
   base: {
@@ -56,7 +57,7 @@ const planStyles: Record<string, {
     iconBg: 'bg-emerald-100 dark:bg-emerald-800/60',
     iconColor: 'text-emerald-600 dark:text-emerald-400',
     cardClass: 'border-emerald-200 dark:border-emerald-600 bg-white dark:bg-secondary-800',
-    cta: 'Get Started',
+    cta: 'Get Base Plan',
     ctaVariant: 'default',
     popular: false,
   },
@@ -231,6 +232,7 @@ const faqs = [
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
   const [isOpen, setIsOpen] = useState(false);
+  const id = `faq-${question.replace(/\s+/g, '-').toLowerCase()}`;
 
   return (
     <div className="border border-secondary-200 dark:border-secondary-600 rounded-lg overflow-hidden">
@@ -238,6 +240,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         onClick={() => setIsOpen(!isOpen)}
         className="w-full p-6 text-left bg-white dark:bg-secondary-800 hover:bg-secondary-50 dark:hover:bg-secondary-700/50 transition-colors flex items-center justify-between gap-4"
         aria-expanded={isOpen}
+        aria-controls={id}
       >
         <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">{question}</h3>
         <ChevronDown
@@ -246,6 +249,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         />
       </button>
       <div
+        id={id}
         className={`grid transition-all duration-200 ${isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
         aria-hidden={!isOpen}
       >
@@ -267,32 +271,22 @@ function FeatureValue({ value }: { value: boolean | string }) {
   return <span className="text-sm text-secondary-700 dark:text-secondary-300">{value}</span>;
 }
 
-export default function PricingClient() {
-  const [isYearly, setIsYearly] = useState(false);
-  const [showComparison, setShowComparison] = useState(false);
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function PricingClient({ plans }: { plans: SubscriptionPlan[] }) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [isYearly, setIsYearly] = useState(() => {
+    const billing = searchParams.get('billing');
+    return billing ? billing === 'annual' : true;
+  });
 
-  useEffect(() => {
-    async function fetchPlans() {
-      try {
-        // Use public API that filters out hidden plans
-        const response = await fetch('/api/plans');
-        if (!response.ok) {
-          throw new Error('Failed to fetch plans');
-        }
-        const data = await response.json();
-        setPlans(data.plans || []);
-      } catch (err) {
-        console.error('Error fetching plans:', err);
-        setError('Failed to load pricing plans');
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchPlans();
-  }, []);
+  function toggleBilling() {
+    const next = !isYearly;
+    setIsYearly(next);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('billing', next ? 'annual' : 'monthly');
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }
+  const [showComparison, setShowComparison] = useState(true);
 
   return (
     <PageBackground>
@@ -307,6 +301,7 @@ export default function PricingClient() {
           breadcrumbs={[
             { label: 'Pricing' },
           ]}
+          compact
         />
 
         {/* Billing Toggle */}
@@ -316,7 +311,7 @@ export default function PricingClient() {
               Monthly
             </span>
             <button
-              onClick={() => setIsYearly(!isYearly)}
+              onClick={toggleBilling}
               className={`relative w-16 h-11 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
                 isYearly ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
               }`}
@@ -333,9 +328,23 @@ export default function PricingClient() {
             <span className={`text-sm font-medium ${isYearly ? 'text-secondary-900 dark:text-secondary-100' : 'text-secondary-500 dark:text-secondary-400'}`}>
               Annual
             </span>
-            <Badge variant="outline" className="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-700">
-              Save 20%
-            </Badge>
+            {(() => {
+              const paidPlans = plans.filter(p => p.price_monthly_cents > 0 && p.price_yearly_cents && p.price_yearly_cents > 0);
+              if (paidPlans.length === 0) return null;
+              const avgSavings = Math.round(
+                paidPlans.reduce((sum, p) => {
+                  const monthlyTotal = p.price_monthly_cents * 12;
+                  const yearly = p.price_yearly_cents!;
+                  return sum + ((monthlyTotal - yearly) / monthlyTotal) * 100;
+                }, 0) / paidPlans.length
+              );
+              if (avgSavings <= 0) return null;
+              return (
+                <Badge variant="outline" className="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-700">
+                  Save {avgSavings}%
+                </Badge>
+              );
+            })()}
           </div>
         </section>
 
@@ -347,7 +356,7 @@ export default function PricingClient() {
               <span>Get started in minutes</span>
             </div>
             <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-500" aria-hidden="true" />
+              <Zap className="w-4 h-4 text-amber-500 dark:text-amber-400" aria-hidden="true" />
               <span>No credit card required</span>
             </div>
             <div className="flex items-center gap-2">
@@ -359,40 +368,7 @@ export default function PricingClient() {
 
         {/* Pricing Cards */}
         <section id="pricing" className="container mx-auto px-4 pb-24">
-          {loading ? (
-            <div className="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">
-              {[0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="rounded-xl border border-border p-6 flex flex-col gap-4 bg-white dark:bg-secondary-800"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-muted rounded-lg animate-pulse" />
-                    <div className="h-5 w-20 bg-muted rounded animate-pulse" />
-                  </div>
-                  <div className="h-9 w-28 bg-muted rounded animate-pulse" />
-                  <div className="h-4 w-32 bg-muted rounded animate-pulse" />
-                  <div className="h-10 w-full bg-muted rounded-lg animate-pulse" />
-                  <div className="space-y-2 pt-2">
-                    <div className="h-4 w-full bg-muted rounded animate-pulse" />
-                    <div className="h-4 w-4/5 bg-muted rounded animate-pulse" />
-                    <div className="h-4 w-3/4 bg-muted rounded animate-pulse" />
-                    <div className="h-4 w-full bg-muted rounded animate-pulse" />
-                    <div className="h-4 w-2/3 bg-muted rounded animate-pulse" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : error ? (
-            <div className="text-center py-16">
-              <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
-              <Button onClick={() => window.location.reload()} variant="outline">
-                Try Again
-              </Button>
-            </div>
-          ) : (
-            <>
-              <div className="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">
+          <div className="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">
                 {sortPlansByDisplayOrder(plans).map((plan) => {
                   const isCustom = isCustomPricingPlan(plan);
                   const style = planStyles[plan.slug] || defaultPlanStyle;
@@ -495,7 +471,7 @@ export default function PricingClient() {
                               {creditsText} credits/month
                             </div>
                             <div className="text-xs text-secondary-500 dark:text-secondary-400">
-                              ~{Math.round(plan.credits_monthly / 2).toLocaleString()} chatbot conversations/month
+                              ~{plan.credits_monthly === -1 ? 'Unlimited' : Math.round(plan.credits_monthly / 2).toLocaleString()} chatbot conversations/month
                             </div>
                           </div>
                         )}
@@ -583,7 +559,7 @@ export default function PricingClient() {
                             size="lg"
                             asChild
                           >
-                            <Link href={plan.slug === 'enterprise' ? '/help?subject=enterprise' : `/signup?plan=${plan.slug}`}>{style.cta}</Link>
+                            <Link href={plan.slug === 'enterprise' ? '/help?subject=enterprise' : `/signup?plan=${plan.slug}${isYearly ? '&interval=yearly' : ''}`}>{style.cta}</Link>
                           </Button>
                           {style.ctaSubtext && (
                             <p className="text-center text-xs text-secondary-500 dark:text-secondary-400">
@@ -601,9 +577,9 @@ export default function PricingClient() {
               <div className="max-w-6xl mx-auto mt-12">
                 <button
                   onClick={() => setShowComparison(!showComparison)}
-                  className="flex items-center gap-2 mx-auto text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium transition-colors"
+                  className="flex items-center gap-2 mx-auto text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded"
                 >
-                  <span>{showComparison ? 'Hide' : 'Compare all'} features</span>
+                  <span>{showComparison ? 'Hide all' : 'Show all'} features</span>
                   <ChevronDown className={`w-4 h-4 transition-transform ${showComparison ? 'rotate-180' : ''}`} />
                 </button>
 
@@ -666,14 +642,13 @@ export default function PricingClient() {
                   </div>
                 )}
               </div>
-            </>
-          )}
         </section>
 
         {/* Testimonials */}
         <section className="container mx-auto px-4 pb-24">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">Loved by professionals worldwide</h2>
+            <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">What early users are saying</h2>
+            <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-2">Illustrative feedback from early access users</p>
           </div>
           <div className="grid gap-6 md:grid-cols-3 max-w-6xl mx-auto">
             {testimonials.map((testimonial) => (

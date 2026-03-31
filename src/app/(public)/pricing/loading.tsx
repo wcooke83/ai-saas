@@ -7,7 +7,7 @@ export default function PricingLoading() {
       {/* Hero skeleton */}
       <div className="container mx-auto px-4 py-16 text-center space-y-4">
         <div className="h-4 w-20 bg-muted rounded animate-pulse mx-auto" />
-        <div className="h-10 w-96 bg-muted rounded animate-pulse mx-auto" />
+        <div className="h-12 w-96 bg-muted rounded animate-pulse mx-auto" />
         <div className="h-5 w-[480px] max-w-full bg-muted rounded animate-pulse mx-auto" />
       </div>
 
