@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Header } from '@/components/layout';
 import { ToolsHero } from '@/components/ui/tools-hero';
@@ -8,15 +9,51 @@ import { Badge } from '@/components/ui/badge';
 import { Mail, Clock, FileQuestion, Book } from 'lucide-react';
 import { HelpForm } from '../help/help-form';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Contact VocUI | Get in Touch',
-  description: 'Contact the VocUI team for support, sales inquiries, or general questions.',
+  description:
+    'Contact the VocUI team for support, sales inquiries, or general questions about our AI chatbot platform.',
+  openGraph: {
+    title: 'Contact VocUI | Get in Touch',
+    description:
+      'Contact the VocUI team for support, sales inquiries, or general questions about our AI chatbot platform.',
+    url: 'https://vocui.com/contact',
+    siteName: 'VocUI',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Contact VocUI | Get in Touch',
+    description:
+      'Contact the VocUI team for support, sales inquiries, or general questions about our AI chatbot platform.',
+  },
+  alternates: { canonical: 'https://vocui.com/contact' },
+  robots: { index: true, follow: true },
 };
 
 export default function ContactPage() {
   return (
     <PageBackground>
-      <Header cta={{ label: 'Sign In', href: '/login' }} />
+      <Header />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'ContactPage',
+            name: 'Contact VocUI | Get in Touch',
+            description:
+              'Contact the VocUI team for support, sales inquiries, or general questions about our AI chatbot platform.',
+            url: 'https://vocui.com/contact',
+            publisher: {
+              '@type': 'Organization',
+              name: 'VocUI',
+              url: 'https://vocui.com',
+            },
+          }),
+        }}
+      />
 
       <main id="main-content">
         <ToolsHero
@@ -50,7 +87,7 @@ export default function ContactPage() {
                   </div>
                   <Badge variant="outline" className="text-xs w-fit">
                     <Clock className="w-3 h-3 mr-1" aria-hidden="true" />
-                    Within 24h on business days
+                    Replies within 1 business day
                   </Badge>
                   <p className="text-xs text-secondary-500 dark:text-secondary-400">
                     For enterprise inquiries, mention it in your message.

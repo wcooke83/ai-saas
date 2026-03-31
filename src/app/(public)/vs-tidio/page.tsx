@@ -38,20 +38,63 @@ export function generateMetadata(): Metadata {
 
 // ─── Structured Data ───────────────────────────────────────────────────────────
 
+const faqItems = [
+  {
+    question: 'Can I switch from Tidio to VocUI easily?',
+    answer:
+      'Yes. VocUI doesn\'t require importing data from Tidio. You upload your knowledge base content (URLs, PDFs, docs) directly and VocUI trains a new chatbot. Most teams switch and go live in under an hour.',
+  },
+  {
+    question: 'How is VocUI\'s AI different from Tidio\'s?',
+    answer:
+      'Tidio uses template-based chatbot flows and a general-purpose AI. VocUI trains directly on your documents, URLs, and FAQs — so answers are grounded in your actual content, not generic responses.',
+  },
+  {
+    question: 'Does VocUI support live chat?',
+    answer:
+      'Yes. VocUI includes live agent handoff so your team can jump into any conversation. The AI handles the majority of questions automatically, and your team only steps in when needed.',
+  },
+  {
+    question: 'What\'s included in VocUI\'s free plan vs Tidio\'s?',
+    answer:
+      'VocUI\'s free plan includes document training, the embeddable widget, and sentiment scoring — no credit card required. Tidio\'s free plan is limited to basic live chat with a small number of conversations.',
+  },
+  {
+    question: 'Can I use VocUI on multiple websites?',
+    answer:
+      'Yes. You can deploy VocUI chatbots across multiple websites, plus Slack and Telegram — all powered by the same knowledge base. Tidio is primarily a single-site live chat tool.',
+  },
+];
+
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'WebPage',
-  name: 'VocUI vs Tidio: AI Chatbot Builder Comparison',
-  description:
-    'Compare VocUI and Tidio for AI chatbot building. VocUI trains on your own knowledge base and includes appointment booking. Tidio focuses on live chat and basic automation.',
-  url: 'https://vocui.com/vs-tidio',
-  breadcrumb: {
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
-      { '@type': 'ListItem', position: 2, name: 'VocUI vs Tidio', item: 'https://vocui.com/vs-tidio' },
-    ],
-  },
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      name: 'VocUI vs Tidio: AI Chatbot Builder Comparison',
+      description:
+        'Compare VocUI and Tidio for AI chatbot building. VocUI trains on your own knowledge base and includes appointment booking. Tidio focuses on live chat and basic automation.',
+      url: 'https://vocui.com/vs-tidio',
+      breadcrumb: {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+          { '@type': 'ListItem', position: 2, name: 'VocUI vs Tidio', item: 'https://vocui.com/vs-tidio' },
+        ],
+      },
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faqItems.map((item) => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer,
+        },
+      })),
+    },
+  ],
 };
 
 // ─── Data ──────────────────────────────────────────────────────────────────────
@@ -74,7 +117,7 @@ const comparisonRows: ComparisonRow[] = [
   { feature: 'Sentiment scoring', vocui: '✅', competitor: 'Limited' },
   { feature: 'Slack deployment', vocui: '✅', competitor: '❌' },
   { feature: 'Telegram deployment', vocui: '✅', competitor: '❌' },
-  { feature: 'Grounded AI answers (no hallucinations)', vocui: '✅', competitor: '❌' },
+  { feature: 'Answers grounded in your content', vocui: '✅', competitor: '❌' },
   { feature: 'Multilingual support', vocui: '20+ languages', competitor: '✅' },
 ];
 
@@ -260,7 +303,7 @@ export default function VsTidioPage() {
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
-              <Badge variant="outline" className="mb-4">Where VocUI wins</Badge>
+              <Badge variant="outline" className="mb-4">Key differences</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
                 What VocUI does that Tidio doesn&apos;t
               </h2>
@@ -308,6 +351,9 @@ export default function VsTidioPage() {
                 {[
                   { label: 'Free plan', vocui: '✅ Free forever', competitor: '✅ Limited free plan' },
                   { label: 'Entry paid plan', vocui: 'From $29/month', competitor: 'From $29/month' },
+                  { label: 'AI conversation limit', vocui: 'Included in plan', competitor: '50/month on Lyro AI' },
+                  { label: 'Seats included', vocui: 'Unlimited', competitor: '3 on free (paid add-on)' },
+                  { label: 'Contract required', vocui: 'Month-to-month', competitor: 'Month-to-month' },
                   { label: 'Document training', vocui: 'All paid plans', competitor: '❌ Not available' },
                 ].map((row, i) => (
                   <tr
@@ -329,6 +375,34 @@ export default function VsTidioPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </section>
+
+        {/* ── FAQ ────────────────────────────────────────────────────────────── */}
+        <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <Badge variant="outline" className="mb-4">Frequently asked questions</Badge>
+              <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
+                Thinking about switching from Tidio?
+              </h2>
+            </div>
+
+            <div className="max-w-3xl mx-auto space-y-4">
+              {faqItems.map((item) => (
+                <div
+                  key={item.question}
+                  className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-6"
+                >
+                  <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-2">
+                    {item.question}
+                  </h3>
+                  <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">
+                    {item.answer}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -363,6 +437,16 @@ export default function VsTidioPage() {
               </p>
             </div>
           </div>
+        </section>
+
+        {/* ── See Also ─────────────────────────────────────────────────────── */}
+        <section className="container mx-auto px-4 pb-20 text-center">
+          <p className="text-sm text-secondary-500 dark:text-secondary-400">
+            Also considering Intercom?{' '}
+            <Link href="/vs-intercom" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
+              Read our VocUI vs Intercom comparison
+            </Link>
+          </p>
         </section>
 
       </main>

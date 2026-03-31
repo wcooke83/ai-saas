@@ -12,11 +12,11 @@ import { ArrowRight, Check, X, BookOpen, CalendarCheck, Zap } from 'lucide-react
 
 export function generateMetadata(): Metadata {
   return {
-    title: 'VocUI vs Intercom: AI Chatbot Comparison for Small Business | VocUI',
+    title: 'VocUI vs Intercom: AI Chatbot Comparison | VocUI',
     description:
       'Compare VocUI and Intercom for AI chatbot and customer support. VocUI trains on your own knowledge base, includes appointment booking, and starts free.',
     openGraph: {
-      title: 'VocUI vs Intercom: AI Chatbot Comparison for Small Business | VocUI',
+      title: 'VocUI vs Intercom: AI Chatbot Comparison | VocUI',
       description:
         'Compare VocUI and Intercom for AI chatbot and customer support. VocUI trains on your own knowledge base, includes appointment booking, and starts free.',
       url: 'https://vocui.com/vs-intercom',
@@ -25,7 +25,7 @@ export function generateMetadata(): Metadata {
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'VocUI vs Intercom: AI Chatbot Comparison for Small Business | VocUI',
+      title: 'VocUI vs Intercom: AI Chatbot Comparison | VocUI',
       description:
         'Compare VocUI and Intercom for AI chatbot and customer support. VocUI trains on your own knowledge base, includes appointment booking, and starts free.',
     },
@@ -38,20 +38,63 @@ export function generateMetadata(): Metadata {
 
 // ─── Structured Data ───────────────────────────────────────────────────────────
 
+const faqItems = [
+  {
+    question: 'Can I migrate my data from Intercom to VocUI?',
+    answer:
+      'VocUI doesn\'t require a data migration. You upload your knowledge base content (URLs, PDFs, docs) directly, and VocUI trains your chatbot from scratch. Most teams are live within an hour without touching their Intercom data.',
+  },
+  {
+    question: 'How long does VocUI take to set up?',
+    answer:
+      'Most businesses go from signup to a working chatbot in under an hour. Upload your documents, customize the widget, and deploy — no engineering team or onboarding calls required.',
+  },
+  {
+    question: 'Does VocUI have live chat like Intercom?',
+    answer:
+      'Yes. VocUI includes live agent handoff so your team can take over conversations when the AI needs help. The difference is VocUI resolves most questions automatically because it\'s trained on your actual content.',
+  },
+  {
+    question: 'What if VocUI doesn\'t have a feature I use in Intercom?',
+    answer:
+      'VocUI focuses on AI-powered chat, knowledge-base training, and appointment booking. If you rely heavily on Intercom\'s CRM, helpdesk ticketing, or enterprise workflow automation, those aren\'t VocUI\'s focus — we do the chatbot part better and cheaper.',
+  },
+  {
+    question: 'Is there a free plan?',
+    answer:
+      'Yes. VocUI offers a free plan with no credit card required. You can build and deploy a chatbot trained on your content at no cost. Paid plans start at $29/month when you need more capacity.',
+  },
+];
+
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'WebPage',
-  name: 'VocUI vs Intercom: AI Chatbot Comparison for Small Business',
-  description:
-    'Compare VocUI and Intercom for AI chatbot and customer support. VocUI trains on your own knowledge base, includes appointment booking, and starts free.',
-  url: 'https://vocui.com/vs-intercom',
-  breadcrumb: {
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
-      { '@type': 'ListItem', position: 2, name: 'VocUI vs Intercom', item: 'https://vocui.com/vs-intercom' },
-    ],
-  },
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      name: 'VocUI vs Intercom: AI Chatbot Comparison for Small Business',
+      description:
+        'Compare VocUI and Intercom for AI chatbot and customer support. VocUI trains on your own knowledge base, includes appointment booking, and starts free.',
+      url: 'https://vocui.com/vs-intercom',
+      breadcrumb: {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+          { '@type': 'ListItem', position: 2, name: 'VocUI vs Intercom', item: 'https://vocui.com/vs-intercom' },
+        ],
+      },
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faqItems.map((item) => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer,
+        },
+      })),
+    },
+  ],
 };
 
 // ─── Data ──────────────────────────────────────────────────────────────────────
@@ -92,7 +135,7 @@ const advantages = [
   {
     icon: Zap,
     title: 'Start free, scale when ready',
-    body: "VocUI has a genuinely usable free plan. Intercom's entry pricing starts at $74/month with no free plan and requires a sales conversation at enterprise tiers.",
+    body: "VocUI has a genuinely usable free plan. Intercom starts at $74/month (as of early 2026) with no free tier — and enterprise pricing requires a sales conversation.",
   },
 ];
 
@@ -260,7 +303,7 @@ export default function VsIntercomPage() {
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
-              <Badge variant="outline" className="mb-4">Where VocUI wins</Badge>
+              <Badge variant="outline" className="mb-4">Key differences</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
                 What VocUI does that Intercom doesn&apos;t
               </h2>
@@ -308,6 +351,9 @@ export default function VsIntercomPage() {
                 {[
                   { label: 'Free plan', vocui: '✅ Free forever', competitor: '❌' },
                   { label: 'Entry paid plan', vocui: 'From $29/month', competitor: 'From $74/month' },
+                  { label: 'AI conversation cost', vocui: 'Included in plan', competitor: '$0.99/resolution' },
+                  { label: 'Seats included', vocui: 'Unlimited', competitor: '1 (add-ons extra)' },
+                  { label: 'Contract required', vocui: 'Month-to-month', competitor: 'Annual recommended' },
                   { label: 'No credit card to start', vocui: '✅', competitor: '❌' },
                 ].map((row, i) => (
                   <tr
@@ -329,6 +375,34 @@ export default function VsIntercomPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </section>
+
+        {/* ── FAQ ────────────────────────────────────────────────────────────── */}
+        <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <Badge variant="outline" className="mb-4">Frequently asked questions</Badge>
+              <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
+                Switching from Intercom? Here&apos;s what you need to know
+              </h2>
+            </div>
+
+            <div className="max-w-3xl mx-auto space-y-4">
+              {faqItems.map((item) => (
+                <div
+                  key={item.question}
+                  className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-6"
+                >
+                  <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-2">
+                    {item.question}
+                  </h3>
+                  <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">
+                    {item.answer}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -363,6 +437,16 @@ export default function VsIntercomPage() {
               </p>
             </div>
           </div>
+        </section>
+
+        {/* ── See Also ─────────────────────────────────────────────────────── */}
+        <section className="container mx-auto px-4 pb-20 text-center">
+          <p className="text-sm text-secondary-500 dark:text-secondary-400">
+            Also considering Tidio?{' '}
+            <Link href="/vs-tidio" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
+              Read our VocUI vs Tidio comparison
+            </Link>
+          </p>
         </section>
 
       </main>

@@ -31,6 +31,20 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'VocUI',
+              url: 'https://vocui.com',
+              description:
+                'AI-powered chatbot platform that lets businesses build, train, and deploy custom chatbots from their own content',
+              sameAs: [],
+            }),
+          }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

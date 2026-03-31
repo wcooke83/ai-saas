@@ -2,6 +2,7 @@ import type React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Header } from '@/components/layout';
+import { Button } from '@/components/ui/button';
 import { ToolsHero } from '@/components/ui/tools-hero';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
@@ -79,8 +80,8 @@ const compliance = [
 const responsibleAI = [
   {
     icon: Brain,
-    title: 'No hallucinations by design',
-    body: "VocUI chatbots are grounded in your knowledge base. When a question isn't covered by your content, the chatbot says so — it does not fabricate answers.",
+    title: 'Grounded in your content',
+    body: "VocUI chatbots answer from your knowledge base, not from general training data. When a question isn't covered by your content, the chatbot says so rather than guessing.",
   },
   {
     icon: UserCheck,
@@ -125,7 +126,7 @@ function SecurityGrid({ items }: { items: SecurityItem[] }) {
 export default function SecurityPage() {
   return (
     <PageBackground>
-      <Header cta={{ label: 'Sign In', href: '/login' }} />
+      <Header />
 
       <script
         type="application/ld+json"
@@ -196,16 +197,34 @@ export default function SecurityPage() {
           <SecurityGrid items={responsibleAI} />
         </section>
 
-        {/* Bottom CTA */}
-        <section className="container mx-auto px-4 pb-20 max-w-3xl">
-          <div className="border-t border-secondary-200 dark:border-secondary-800 pt-10">
-            <Link
-              href="/contact"
-              className="inline-flex items-center gap-1 text-primary-600 dark:text-primary-400 hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
-            >
-              Have a security question? Email security@vocui.com or contact us
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
+        {/* Final CTA */}
+        <section className="container mx-auto px-4 py-20 max-w-3xl">
+          <div className="rounded-3xl bg-gradient-to-br from-primary-600 to-primary-800 p-12 text-center text-white shadow-xl shadow-primary-500/20">
+            <h2 className="text-3xl font-bold mb-4">
+              Enterprise-grade security on every plan
+            </h2>
+            <p className="text-lg text-white/80 mb-8 max-w-xl mx-auto">
+              Your data stays yours. Build and deploy a secure chatbot today — free plan, no credit card required.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                size="xl"
+                variant="secondary"
+                className="bg-white text-primary-600 hover:bg-primary-50 font-semibold"
+                asChild
+              >
+                <Link href="/signup">
+                  Get Started Free
+                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                </Link>
+              </Button>
+              <Button size="xl" variant="outline-light" asChild>
+                <Link href="/contact">Security Questions?</Link>
+              </Button>
+            </div>
+            <p className="text-xs text-white/50 mt-6">
+              For DPAs, compliance docs, or security questionnaires — email security@vocui.com
+            </p>
           </div>
         </section>
       </main>

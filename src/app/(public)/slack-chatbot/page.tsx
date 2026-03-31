@@ -31,7 +31,7 @@ import {
 
 export function generateMetadata(): Metadata {
   return {
-    title: 'AI Chatbot for Slack | Train on Your Docs & Deploy to Slack | VocUI',
+    title: 'AI Chatbot for Slack | Train on Your Docs | VocUI',
     description:
       'Deploy an AI chatbot to your Slack workspace trained on your own documents, SOPs, and FAQs. Answer team questions instantly — no more searching through wikis.',
     keywords: [
@@ -43,7 +43,7 @@ export function generateMetadata(): Metadata {
       'internal knowledge bot Slack',
     ],
     openGraph: {
-      title: 'AI Chatbot for Slack | Train on Your Docs & Deploy to Slack | VocUI',
+      title: 'AI Chatbot for Slack | Train on Your Docs | VocUI',
       description:
         'Deploy an AI chatbot to your Slack workspace trained on your own documents, SOPs, and FAQs. Answer team questions instantly — no more searching through wikis.',
       url: 'https://vocui.com/slack-chatbot',
@@ -52,7 +52,7 @@ export function generateMetadata(): Metadata {
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'AI Chatbot for Slack | Train on Your Docs & Deploy to Slack | VocUI',
+      title: 'AI Chatbot for Slack | Train on Your Docs | VocUI',
       description:
         'Deploy an AI chatbot to your Slack workspace trained on your own documents, SOPs, and FAQs. Answer team questions instantly — no more searching through wikis.',
     },
@@ -64,28 +64,71 @@ export function generateMetadata(): Metadata {
 
 // ─── Structured Data ───────────────────────────────────────────────────────────
 
+const faqItems = [
+  {
+    question: 'Does the Slack chatbot work in private channels?',
+    answer:
+      'Yes. Once you invite the VocUI bot to a private channel, it responds to @mentions and direct questions just like in public channels. It only has access to channels you explicitly add it to.',
+  },
+  {
+    question: 'What Slack permissions does VocUI need?',
+    answer:
+      'VocUI requests the minimum permissions needed: reading messages in channels it\'s added to and posting replies. It does not access your DMs, files, or channels it hasn\'t been invited to.',
+  },
+  {
+    question: 'Can I control which channels the bot responds in?',
+    answer:
+      'Yes. The bot only responds in channels you invite it to. Remove it from a channel at any time and it stops responding there immediately.',
+  },
+  {
+    question: 'How does VocUI compare to Slack AI?',
+    answer:
+      'Slack AI summarises your Slack messages and threads. VocUI answers from your external documentation — PDFs, SOPs, and URLs. They solve different problems, and VocUI works on any Slack plan including free.',
+  },
+  {
+    question: 'Can the same chatbot work on both Slack and my website?',
+    answer:
+      'Yes. One VocUI knowledge base powers both your Slack bot and your website chat widget. Train once, deploy everywhere — your team and customers get the same accurate answers.',
+  },
+];
+
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'SoftwareApplication',
-  name: 'VocUI Slack Chatbot',
-  applicationCategory: 'BusinessApplication',
-  operatingSystem: 'Web',
-  description:
-    'Deploy an AI chatbot to your Slack workspace trained on your own documents, SOPs, and FAQs. Answer team questions instantly without hunting through wikis.',
-  url: 'https://vocui.com/slack-chatbot',
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'USD',
-    description: 'Free plan available',
-  },
-  featureList: [
-    'Slack workspace deployment',
-    'Document and PDF training',
-    'Natural language question answering',
-    'Source transparency',
-    'Multi-channel: Slack and website',
-    'Usage analytics',
+  '@graph': [
+    {
+      '@type': 'SoftwareApplication',
+      name: 'VocUI Slack Chatbot',
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web',
+      description:
+        'Deploy an AI chatbot to your Slack workspace trained on your own documents, SOPs, and FAQs. Answer team questions instantly without hunting through wikis.',
+      url: 'https://vocui.com/slack-chatbot',
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD',
+        description: 'Free plan available',
+      },
+      featureList: [
+        'Slack workspace deployment',
+        'Document and PDF training',
+        'Natural language question answering',
+        'Source transparency',
+        'Multi-channel: Slack and website',
+        'Usage analytics',
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faqItems.map((item) => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer,
+        },
+      })),
+    },
   ],
 };
 
@@ -240,9 +283,9 @@ const testimonials = [
   },
   {
     quote:
-      'I uploaded our entire help center in one afternoon. By the next morning, customers were getting answers without waiting for our team.',
+      'Our team used to ping me 10 times a day with the same onboarding questions. Now they ask the bot in Slack and get the answer in seconds.',
     author: 'M.T.',
-    role: 'Head of Customer Success',
+    role: 'Head of Customer Success, SaaS Company',
   },
 ];
 
@@ -270,9 +313,8 @@ export default function SlackChatbotPage() {
           </H1>
 
           <p className="mx-auto max-w-2xl text-lg text-secondary-600 dark:text-secondary-400 mb-10">
-            VocUI deploys an AI chatbot to Slack trained on your own docs, SOPs, and PDFs.
-            One knowledge base — answers in Slack and on your website. Team members get
-            instant answers without pinging a colleague or hunting through Notion.
+            Train an AI chatbot on your internal docs and deploy it to Slack.
+            Your team asks questions in natural language — the chatbot answers instantly, with sources.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
@@ -557,6 +599,32 @@ export default function SlackChatbotPage() {
           </div>
         </section>
 
+        {/* ── FAQ ──────────────────────────────────────────────────────────── */}
+        <section className="container mx-auto px-4 py-24">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <Badge variant="outline" className="mb-4">Frequently asked questions</Badge>
+            <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
+              Common questions about VocUI for Slack
+            </h2>
+          </div>
+
+          <div className="max-w-3xl mx-auto space-y-4">
+            {faqItems.map((item) => (
+              <div
+                key={item.question}
+                className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-6"
+              >
+                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-2">
+                  {item.question}
+                </h3>
+                <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">
+                  {item.answer}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* ── Final CTA ───────────────────────────────────────────────────────── */}
         <section className="container mx-auto px-4 py-20">
           <div className="max-w-3xl mx-auto">
@@ -568,8 +636,15 @@ export default function SlackChatbotPage() {
                 Deploy an AI chatbot to Slack trained on your own documentation — and give your team
                 instant answers.
               </p>
-              <p className="text-sm text-white/60 mb-10">
+              <p className="text-sm text-white/60 mb-4">
                 Free plan available &middot; No credit card required &middot; Live in your Slack workspace today
+              </p>
+              <p className="text-xs text-white/40 mb-6">
+                <Link href="/solutions" className="text-white/60 hover:text-white/80 underline">Explore all solutions</Link>
+                {' '}&middot;{' '}
+                <Link href="/vs-intercom" className="text-white/60 hover:text-white/80 underline">VocUI vs Intercom</Link>
+                {' '}&middot;{' '}
+                <Link href="/vs-tidio" className="text-white/60 hover:text-white/80 underline">VocUI vs Tidio</Link>
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button

@@ -1,15 +1,33 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Header } from '@/components/layout';
+import { Button } from '@/components/ui/button';
 import { ToolsHero } from '@/components/ui/tools-hero';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, Clock, Lock, Users } from 'lucide-react';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'About VocUI | AI Chatbot Builder',
   description:
     'VocUI is an AI chatbot platform that lets businesses build, train, and deploy custom chatbots from their own content.',
+  openGraph: {
+    title: 'About VocUI | AI Chatbot Builder',
+    description:
+      'VocUI is an AI chatbot platform that lets businesses build, train, and deploy custom chatbots from their own content.',
+    url: 'https://vocui.com/about',
+    siteName: 'VocUI',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'About VocUI | AI Chatbot Builder',
+    description:
+      'VocUI is an AI chatbot platform that lets businesses build, train, and deploy custom chatbots from their own content.',
+  },
+  alternates: { canonical: 'https://vocui.com/about' },
+  robots: { index: true, follow: true },
 };
 
 const beliefs = [
@@ -30,7 +48,26 @@ const beliefs = [
 export default function AboutPage() {
   return (
     <PageBackground>
-      <Header cta={{ label: 'Sign In', href: '/login' }} />
+      <Header />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'AboutPage',
+            name: 'About VocUI | AI Chatbot Builder',
+            description:
+              'VocUI is an AI chatbot platform that lets businesses build, train, and deploy custom chatbots from their own content.',
+            url: 'https://vocui.com/about',
+            publisher: {
+              '@type': 'Organization',
+              name: 'VocUI',
+              url: 'https://vocui.com',
+            },
+          }),
+        }}
+      />
 
       <main id="main-content">
         <ToolsHero
@@ -40,6 +77,16 @@ export default function AboutPage() {
           breadcrumbs={[{ label: 'About' }]}
         />
 
+        {/* Hero CTA — above the fold conversion point */}
+        <section className="container mx-auto px-4 pb-10 max-w-3xl">
+          <Button size="lg" asChild>
+            <Link href="/signup">
+              Build Your Chatbot Free
+              <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+            </Link>
+          </Button>
+        </section>
+
         {/* Body */}
         <section className="container mx-auto px-4 pb-16 max-w-3xl">
           <p className="text-lg text-secondary-600 dark:text-secondary-400 leading-relaxed mb-6">
@@ -47,7 +94,7 @@ export default function AboutPage() {
             an hour — no developers required.
           </p>
           <p className="text-lg text-secondary-600 dark:text-secondary-400 leading-relaxed">
-            Your chatbot can answer support questions, capture leads, book appointments, and hand
+            Your chatbot can <Link href="/chatbot-for-customer-support" className="text-primary-600 dark:text-primary-400 hover:underline">answer support questions</Link>, capture leads, <Link href="/chatbot-booking" className="text-primary-600 dark:text-primary-400 hover:underline">book appointments</Link>, and hand
             off to a human when needed. All from one platform, deployed wherever your customers
             already are.
           </p>
@@ -80,16 +127,31 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Contact nudge */}
-        <section className="container mx-auto px-4 pb-20 max-w-3xl">
-          <div className="border-t border-secondary-200 dark:border-secondary-800 pt-10">
-            <Link
-              href="/contact"
-              className="inline-flex items-center gap-1 text-primary-600 dark:text-primary-400 hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
-            >
-              Have questions? Get in touch
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
+        {/* Final CTA */}
+        <section className="container mx-auto px-4 py-20 max-w-3xl">
+          <div className="rounded-3xl bg-gradient-to-br from-primary-600 to-primary-800 p-12 text-center text-white shadow-xl shadow-primary-500/20">
+            <h2 className="text-3xl font-bold mb-4">
+              See what VocUI can do for your business
+            </h2>
+            <p className="text-lg text-white/80 mb-8 max-w-xl mx-auto">
+              Build a chatbot trained on your own content and deploy it today. Free plan, no credit card required.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                size="xl"
+                variant="secondary"
+                className="bg-white text-primary-600 hover:bg-primary-50 font-semibold"
+                asChild
+              >
+                <Link href="/signup">
+                  Get Started Free
+                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                </Link>
+              </Button>
+              <Button size="xl" variant="outline-light" asChild>
+                <Link href="/contact">Contact Us</Link>
+              </Button>
+            </div>
           </div>
         </section>
       </main>

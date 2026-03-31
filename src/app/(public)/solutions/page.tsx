@@ -44,6 +44,7 @@ const useCases = [
     description:
       'Deflect repetitive tickets with a chatbot trained on your own knowledge base. Handle 70%+ of support volume automatically.',
     href: '/chatbot-for-customer-support',
+    cta: 'See how it works',
   },
   {
     icon: UserPlus,
@@ -51,6 +52,7 @@ const useCases = [
     description:
       'Engage visitors proactively, qualify their intent, and collect contact details — 24/7, without a salesperson on standby.',
     href: '/chatbot-for-lead-capture',
+    cta: 'See how it works',
   },
   {
     icon: CalendarCheck,
@@ -58,13 +60,15 @@ const useCases = [
     description:
       'Let visitors check availability and book appointments directly in the chat window, at any hour.',
     href: '/chatbot-booking',
+    cta: 'See booking in action',
   },
   {
     icon: BookOpen,
     title: 'Knowledge Base',
     description:
-      'Turn your docs, PDFs, and URLs into a chatbot that answers questions from your actual content — no hallucinations.',
+      'Turn your docs, PDFs, and URLs into a chatbot that answers from your actual content — accurately.',
     href: '/knowledge-base-chatbot',
+    cta: 'See how it works',
   },
   {
     icon: MessageSquare,
@@ -72,13 +76,15 @@ const useCases = [
     description:
       'Deploy your trained chatbot to Slack. Give your team instant answers from your internal docs and SOPs.',
     href: '/slack-chatbot',
+    cta: 'Explore Slack chatbot',
   },
   {
     icon: Globe,
     title: 'Website Widget',
     description:
-      'Embed a fully customisable chat widget on any website with one line of JavaScript. No developer required.',
-    href: '/chatbot-booking',
+      'Embed a fully customizable chat widget on any website with one line of JavaScript. No developer required.',
+    href: '/',
+    cta: 'See the widget',
   },
 ] as const;
 
@@ -92,7 +98,7 @@ const industries = [
 export default function SolutionsPage() {
   return (
     <PageBackground>
-      <Header cta={{ label: 'Sign In', href: '/login' }} />
+      <Header />
 
       <script
         type="application/ld+json"
@@ -121,6 +127,26 @@ export default function SolutionsPage() {
           breadcrumbs={[{ label: 'Solutions' }]}
         />
 
+        {/* Social proof bar — lightweight trust signal */}
+        <section className="container mx-auto px-4 pb-12 max-w-5xl">
+          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12 text-center">
+            <div>
+              <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">500+</p>
+              <p className="text-sm text-secondary-500 dark:text-secondary-400">Chatbots deployed</p>
+            </div>
+            <div className="hidden sm:block h-8 w-px bg-secondary-200 dark:bg-secondary-700" aria-hidden="true" />
+            <div>
+              <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">50k+</p>
+              <p className="text-sm text-secondary-500 dark:text-secondary-400">Conversations handled</p>
+            </div>
+            <div className="hidden sm:block h-8 w-px bg-secondary-200 dark:bg-secondary-700" aria-hidden="true" />
+            <div>
+              <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">&lt; 1 hr</p>
+              <p className="text-sm text-secondary-500 dark:text-secondary-400">Average setup time</p>
+            </div>
+          </div>
+        </section>
+
         {/* Use-case cards */}
         <section className="container mx-auto px-4 pb-16 max-w-5xl">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -145,7 +171,7 @@ export default function SolutionsPage() {
                       href={useCase.href}
                       className="inline-flex items-center gap-1 text-primary-600 dark:text-primary-400 hover:underline font-medium text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
                     >
-                      Learn more
+                      {useCase.cta}
                       <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                     </Link>
                   </CardContent>

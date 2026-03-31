@@ -1,8 +1,10 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Header } from '@/components/layout';
+import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
+import { ArrowRight } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Changelog | VocUI',
@@ -44,7 +46,7 @@ const changelog: ChangelogMonth[] = [
         badge: 'New',
         title: 'Proactive Messaging',
         detail:
-          'Trigger chatbot messages automatically based on visitor behaviour. Configure up to 8 trigger types including scroll depth, time on page, exit intent, and URL match.',
+          'Trigger chatbot messages automatically based on visitor behavior. Configure up to 8 trigger types including scroll depth, time on page, exit intent, and URL match.',
       },
       {
         badge: 'New',
@@ -140,9 +142,9 @@ const changelog: ChangelogMonth[] = [
       },
       {
         badge: 'Improved',
-        title: 'Embedding Pipeline',
+        title: 'Knowledge Processing',
         detail:
-          'Faster knowledge source processing and improved similarity search accuracy for better chatbot answer quality.',
+          'Faster knowledge source processing and more accurate answer matching for better chatbot response quality.',
       },
       {
         badge: 'Fix',
@@ -153,6 +155,12 @@ const changelog: ChangelogMonth[] = [
     ],
   },
 ];
+
+const entryLinks: Record<string, string> = {
+  'Slack Integration': '/slack-chatbot',
+  'Proactive Messaging': '/chatbot-for-customer-support',
+  'In-Chat Appointment Booking': '/chatbot-booking',
+};
 
 const badgeClasses: Record<BadgeType, string> = {
   New: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -255,7 +263,13 @@ export default function ChangelogPage() {
                             {entry.badge}
                           </span>
                           <h3 className="text-base font-semibold text-[rgb(var(--text-heading))]">
-                            {entry.title}
+                            {entryLinks[entry.title] ? (
+                              <Link href={entryLinks[entry.title]} className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                                {entry.title}
+                              </Link>
+                            ) : (
+                              entry.title
+                            )}
                           </h3>
                         </div>
 
@@ -282,6 +296,33 @@ export default function ChangelogPage() {
               updates@vocui.com
             </a>
             .
+          </div>
+        </section>
+        {/* Closing CTA — gradient block matching other marketing pages */}
+        <section className="container mx-auto px-4 py-20 max-w-3xl">
+          <div className="rounded-3xl bg-gradient-to-br from-primary-600 to-primary-800 p-12 text-center text-white shadow-xl shadow-primary-500/20">
+            <h2 className="text-3xl font-bold mb-4">
+              See what VocUI can do
+            </h2>
+            <p className="text-lg text-white/80 mb-8 max-w-xl mx-auto">
+              Build a chatbot trained on your own content and deploy it today. Free plan, no credit card required.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                size="xl"
+                variant="secondary"
+                className="bg-white text-primary-600 hover:bg-primary-50 font-semibold"
+                asChild
+              >
+                <Link href="/signup">
+                  Build Your Chatbot Free
+                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                </Link>
+              </Button>
+              <Button size="xl" variant="outline-light" asChild>
+                <Link href="/pricing">View Pricing</Link>
+              </Button>
+            </div>
           </div>
         </section>
       </main>
