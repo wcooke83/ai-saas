@@ -8,22 +8,27 @@ import { getFooterGradientEnabledFromCookie } from '@/lib/ui-settings-cookies';
 const footerLinks = {
   product: [
     { label: 'Features', href: '/#features' },
+    { label: 'Solutions', href: '/solutions' },
+    { label: 'Industries', href: '/industries' },
     { label: 'Pricing', href: '/pricing' },
     { label: 'SDK', href: '/sdk' },
-    { label: 'Dashboard', href: '/dashboard' },
   ],
   resources: [
     { label: 'Documentation', href: '/wiki' },
     { label: 'Help Center', href: '/help' },
     { label: 'FAQ', href: '/faq' },
+    { label: 'Changelog', href: '/changelog' },
   ],
   company: [
-    { label: 'Help', href: '/help' },
-    { label: 'FAQ', href: '/faq' },
+    { label: 'About', href: '/about' },
+    { label: 'Contact', href: '/contact' },
+    { label: 'Blog', href: '/blog' },
+    { label: 'Security', href: '/security' },
   ],
   legal: [
     { label: 'Privacy Policy', href: '/privacy' },
     { label: 'Terms of Service', href: '/terms' },
+    { label: 'Sitemap', href: '/sitemap' },
   ],
 };
 
