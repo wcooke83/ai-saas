@@ -900,9 +900,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Label htmlFor="allowed_origins">Allowed Origins</Label>
-                <Tooltip content="Restricts which websites can embed this chatbot. Enter comma-separated origins, e.g. https://yoursite.com. Leave empty to allow any website — not recommended for production." side="right">
-                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                </Tooltip>
+                <InfoTooltip content="Restricts which websites can embed this chatbot. Enter comma-separated origins, e.g. https://yoursite.com. Leave empty to allow any website — not recommended for production." />
               </div>
               <Input
                 id="allowed_origins"
@@ -1076,9 +1074,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               <div className={cn("space-y-2", highlightField === 'systemPrompt' && "ring-2 ring-red-500 rounded-lg p-2 transition-all")} data-field="systemPrompt">
                 <div className="flex items-center gap-1.5">
                   <Label htmlFor="system_prompt">Chatbot Instructions *</Label>
-                  <Tooltip content="The system prompt defines your chatbot's persona, knowledge boundaries, and response style. It is never shown to visitors. Be specific — vague instructions lead to inconsistent responses." side="right">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="The system prompt defines your chatbot's persona, knowledge boundaries, and response style. It is never shown to visitors. Be specific — vague instructions lead to inconsistent responses." />
                 </div>
                 <Textarea
                   id="system_prompt"
@@ -1145,9 +1141,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <Label htmlFor="temperature">Temperature</Label>
-                  <Tooltip content="Controls randomness in AI responses. Use low values (0-0.3) for factual Q&A, medium (0.5-0.7) for general chat, and high (1.0+) for creative or brainstorming use cases." side="right">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Controls randomness in AI responses. Use low values (0-0.3) for factual Q&A, medium (0.5-0.7) for general chat, and high (1.0+) for creative or brainstorming use cases." />
                 </div>
                 <span className="text-sm font-mono text-secondary-700 dark:text-secondary-300 bg-secondary-100 dark:bg-secondary-800 px-2 py-0.5 rounded">
                   {temperature.toFixed(1)}
@@ -1173,9 +1167,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <Label htmlFor="max_tokens">Max Response Length</Label>
-                  <Tooltip content="Caps how long each AI reply can be. 1 token is roughly 1 word. Short limits (100-500) keep replies concise; longer limits (2000+) allow detailed explanations. Does not affect quality, only length." side="right">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="Caps how long each AI reply can be. 1 token is roughly 1 word. Short limits (100-500) keep replies concise; longer limits (2000+) allow detailed explanations. Does not affect quality, only length." />
                 </div>
                 <span className="text-sm font-mono text-secondary-700 dark:text-secondary-300 bg-secondary-100 dark:bg-secondary-800 px-2 py-0.5 rounded">
                   {maxTokens}
@@ -1201,9 +1193,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <Label htmlFor="live_fetch_threshold">Live Fetch Threshold</Label>
-                  <Tooltip content="When a visitor's question closely matches saved knowledge, the chatbot uses that directly. When the match is weak, it may fetch the live URL to get fresher content. A higher threshold means the bot is less likely to use the cached version and more likely to re-fetch — useful if your source URLs update frequently." side="right">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="When a visitor's question closely matches saved knowledge, the chatbot uses that directly. When the match is weak, it may fetch the live URL to get fresher content. A higher threshold means the bot is less likely to use the cached version and more likely to re-fetch — useful if your source URLs update frequently." />
                 </div>
                 <span className="text-sm font-mono text-secondary-700 dark:text-secondary-300 bg-secondary-100 dark:bg-secondary-800 px-2 py-0.5 rounded">
                   {liveFetchThreshold.toFixed(2)}
@@ -1271,9 +1261,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Label htmlFor="memory_days">Memory Retention</Label>
-                  <Tooltip content="How long the chatbot remembers facts about a returning visitor, such as their name, preferences, or past issues. After this period, the visitor starts fresh. Requires memory to be enabled." side="right">
-                    <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                  </Tooltip>
+                  <InfoTooltip content="How long the chatbot remembers facts about a returning visitor, such as their name, preferences, or past issues. After this period, the visitor starts fresh. Requires memory to be enabled." />
                 </div>
                 <div className="flex items-center gap-3 max-w-xs">
                   <select
@@ -1316,9 +1304,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Label htmlFor="session_ttl_hours">Session Duration</Label>
-                <Tooltip content="How long a chat session stays active. When a session expires, the visitor starts a new conversation. Previous conversations still appear as history if memory is enabled.">
-                  <Info className="w-4 h-4 text-secondary-400 cursor-help" />
-                </Tooltip>
+                <InfoTooltip content="How long a chat session stays active. When a session expires, the visitor starts a new conversation. Previous conversations still appear as history if memory is enabled." />
               </div>
               <div className="flex items-center gap-3 max-w-xs">
                 <select
@@ -1805,9 +1791,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                 <Label htmlFor="handoff-timeout-live" className="text-sm font-medium">
                   Handoff Inactivity Timeout
                 </Label>
-                <Tooltip content="If the visitor goes quiet after requesting a handoff, the handoff closes and the AI takes over again. Set to 0 to keep handoffs open until an agent resolves them." side="right">
-                  <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                </Tooltip>
+                <InfoTooltip content="If the visitor goes quiet after requesting a handoff, the handoff closes and the AI takes over again. Set to 0 to keep handoffs open until an agent resolves them." />
               </div>
               <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5 mb-2">
                 Minutes of visitor inactivity before the handoff closes automatically.
@@ -1943,9 +1927,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   <div className="space-y-2">
                     <div className="flex items-center gap-1.5">
                       <Label htmlFor="telegram-bot-token">Bot Token</Label>
-                      <Tooltip content="The API token for your Telegram bot. Create one by messaging @BotFather on Telegram and using the /newbot command. It looks like 123456:ABC-DEF..." side="right">
-                        <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                      </Tooltip>
+                      <InfoTooltip content="The API token for your Telegram bot. Create one by messaging @BotFather on Telegram and using the /newbot command. It looks like 123456:ABC-DEF..." />
                     </div>
                     <Input
                       id="telegram-bot-token"
@@ -1960,9 +1942,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   <div className="space-y-2">
                     <div className="flex items-center gap-1.5">
                       <Label htmlFor="telegram-chat-id">Support Group Chat ID</Label>
-                      <Tooltip content="The numeric ID of the Telegram group where handoff notifications are sent. To find it: add @userinfobot to your group and it will reply with the chat ID. Group IDs usually start with -100." side="right">
-                        <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                      </Tooltip>
+                      <InfoTooltip content="The numeric ID of the Telegram group where handoff notifications are sent. To find it: add @userinfobot to your group and it will reply with the chat ID. Group IDs usually start with -100." />
                     </div>
                     <Input
                       id="telegram-chat-id"
@@ -1976,9 +1956,7 @@ export default function ChatbotSettingsPage({ params }: SettingsPageProps) {
                   <div className="space-y-2">
                     <div className="flex items-center gap-1.5">
                       <Label htmlFor="telegram-webhook-secret">Webhook Secret (optional)</Label>
-                      <Tooltip content="An optional string you choose that Telegram includes in every webhook request. Your server checks it to confirm the message came from Telegram, not an attacker. Use any random string — at least 20 characters is recommended." side="right">
-                        <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-                      </Tooltip>
+                      <InfoTooltip content="An optional string you choose that Telegram includes in every webhook request. Your server checks it to confirm the message came from Telegram, not an attacker. Use any random string — at least 20 characters is recommended." />
                     </div>
                     <Input
                       id="telegram-webhook-secret"
@@ -2852,9 +2830,7 @@ function PreChatFormEditor({ config, onChange, language, shouldShowWarning, onOp
           <div className="space-y-2">
             <div className="flex items-center gap-1.5">
               <Label htmlFor="form_description">Form Description</Label>
-              <Tooltip content="Subtext displayed below the title. Explain why you're collecting this information to improve completion rates." side="right">
-                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-              </Tooltip>
+              <InfoTooltip content="Subtext displayed below the title. Explain why you're collecting this information to improve completion rates." />
             </div>
             <Input
               id="form_description"
@@ -2921,9 +2897,7 @@ function PreChatFormEditor({ config, onChange, language, shouldShowWarning, onOp
                   <div className="space-y-1">
                     <div className="flex items-center gap-1">
                       <Label className="text-xs">Field Type</Label>
-                      <Tooltip content="Text: single line input. Email: validated email field. Phone: phone number. Select: dropdown with predefined options. Textarea: multi-line free text." side="top">
-                        <Info className="w-3 h-3 text-secondary-400 cursor-help" />
-                      </Tooltip>
+                      <InfoTooltip content="Text: single line input. Email: validated email field. Phone: phone number. Select: dropdown with predefined options. Textarea: multi-line free text." />
                     </div>
                     <select
                       value={field.type}
@@ -2964,9 +2938,7 @@ function PreChatFormEditor({ config, onChange, language, shouldShowWarning, onOp
                         className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
                       />
                       <span className="text-sm text-secondary-700 dark:text-secondary-300">Required</span>
-                      <Tooltip content="Required fields must be completed before the visitor can open the chat. Use sparingly — too many required fields reduce form completion rates." side="top">
-                        <Info className="w-3 h-3 text-secondary-400 cursor-help" />
-                      </Tooltip>
+                      <InfoTooltip content="Required fields must be completed before the visitor can open the chat. Use sparingly — too many required fields reduce form completion rates." />
                     </label>
                   </div>
                 </div>
@@ -3127,9 +3099,7 @@ function PostChatSurveyEditor({ config, onChange, language, shouldShowWarning, o
           <div className="space-y-2">
             <div className="flex items-center gap-1.5">
               <Label htmlFor="survey_description">Survey Description</Label>
-              <Tooltip content="Optional subtext shown below the survey title. Use it to encourage participation, e.g. 'This takes less than 30 seconds.'" side="right">
-                <Info className="w-3.5 h-3.5 text-secondary-400 cursor-help" />
-              </Tooltip>
+              <InfoTooltip content="Optional subtext shown below the survey title. Use it to encourage participation, e.g. 'This takes less than 30 seconds.'" />
             </div>
             <Input
               id="survey_description"
@@ -3210,9 +3180,7 @@ function PostChatSurveyEditor({ config, onChange, language, shouldShowWarning, o
                   <div className="space-y-1">
                     <div className="flex items-center gap-1">
                       <Label className="text-xs">Type</Label>
-                      <Tooltip content="Star Rating: 1–5 (or custom range) star selector. Text: open-ended text input. Single Choice: one answer from a list. Multiple Choice: multiple answers from a list." side="top">
-                        <Info className="w-3 h-3 text-secondary-400 cursor-help" />
-                      </Tooltip>
+                      <InfoTooltip content="Star Rating: 1–5 (or custom range) star selector. Text: open-ended text input. Single Choice: one answer from a list. Multiple Choice: multiple answers from a list." />
                     </div>
                     <select
                       value={question.type}
@@ -3238,9 +3206,7 @@ function PostChatSurveyEditor({ config, onChange, language, shouldShowWarning, o
                       className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
                     />
                     <span className="text-sm text-secondary-700 dark:text-secondary-300">Required</span>
-                    <Tooltip content="Required questions must be answered before the visitor can submit the survey. Use sparingly — too many required fields reduce completion rates." side="top">
-                      <Info className="w-3 h-3 text-secondary-400 cursor-help" />
-                    </Tooltip>
+                    <InfoTooltip content="Required questions must be answered before the visitor can submit the survey. Use sparingly — too many required fields reduce completion rates." />
                   </label>
                 </div>
 
@@ -3249,9 +3215,7 @@ function PostChatSurveyEditor({ config, onChange, language, shouldShowWarning, o
                     <div className="space-y-1">
                       <div className="flex items-center gap-1">
                         <Label className="text-xs">Min Rating</Label>
-                        <Tooltip content="The lowest star value the visitor can select. Usually 1." side="top">
-                          <Info className="w-3 h-3 text-secondary-400 cursor-help" />
-                        </Tooltip>
+                        <InfoTooltip content="The lowest star value the visitor can select. Usually 1." />
                       </div>
                       <Input
                         type="number"
@@ -3264,9 +3228,7 @@ function PostChatSurveyEditor({ config, onChange, language, shouldShowWarning, o
                     <div className="space-y-1">
                       <div className="flex items-center gap-1">
                         <Label className="text-xs">Max Rating</Label>
-                        <Tooltip content="The highest star value the visitor can select. Usually 5." side="top">
-                          <Info className="w-3 h-3 text-secondary-400 cursor-help" />
-                        </Tooltip>
+                        <InfoTooltip content="The highest star value the visitor can select. Usually 5." />
                       </div>
                       <Input
                         type="number"
@@ -3778,9 +3740,7 @@ function ProactiveMessagesEditor({ config, onChange }: ProactiveMessagesEditorPr
                           <div className="space-y-1">
                             <div className="flex items-center gap-1">
                               <Label className="text-xs">Trigger Type</Label>
-                              <Tooltip content="Determines what visitor behaviour triggers this message. Each type exposes different configuration fields below." side="top">
-                                <Info className="w-3 h-3 text-secondary-400 cursor-help" />
-                              </Tooltip>
+                              <InfoTooltip content="Determines what visitor behaviour triggers this message. Each type exposes different configuration fields below." />
                             </div>
                             <select
                               value={rule.triggerType}
@@ -3813,9 +3773,7 @@ function ProactiveMessagesEditor({ config, onChange }: ProactiveMessagesEditorPr
                           <div className="space-y-1">
                             <div className="flex items-center gap-1">
                               <Label className="text-xs">Display Mode</Label>
-                              <Tooltip content="Bubble preview: shows a speech bubble next to the chat button without opening the widget. Auto-open widget: opens the full chat widget automatically." side="top">
-                                <Info className="w-3 h-3 text-secondary-400 cursor-help" />
-                              </Tooltip>
+                              <InfoTooltip content="Bubble preview: shows a speech bubble next to the chat button without opening the widget. Auto-open widget: opens the full chat widget automatically." />
                             </div>
                             <select
                               value={rule.displayMode}
@@ -3838,9 +3796,7 @@ function ProactiveMessagesEditor({ config, onChange }: ProactiveMessagesEditorPr
                           <div className="space-y-1 max-w-xs">
                             <div className="flex items-center gap-1">
                               <Label className="text-xs">Bubble Position</Label>
-                              <Tooltip content="Where the bubble preview appears relative to the chat button">
-                                <Info className="w-3 h-3 text-secondary-400 cursor-help" />
-                              </Tooltip>
+                              <InfoTooltip content="Where the bubble preview appears relative to the chat button" />
                             </div>
                             <select
                               value={rule.bubblePosition || 'bottom-left'}
@@ -3889,9 +3845,7 @@ function ProactiveMessagesEditor({ config, onChange }: ProactiveMessagesEditorPr
                           <div className="space-y-1">
                             <div className="flex items-center gap-1">
                               <Label className="text-xs">Delay (ms)</Label>
-                              <Tooltip content="Wait this many milliseconds after the trigger fires before showing the message.">
-                                <Info className="w-3 h-3 text-secondary-400 cursor-help" />
-                              </Tooltip>
+                              <InfoTooltip content="Wait this many milliseconds after the trigger fires before showing the message." />
                             </div>
                             <Input
                               type="number"
@@ -3904,9 +3858,7 @@ function ProactiveMessagesEditor({ config, onChange }: ProactiveMessagesEditorPr
                           <div className="space-y-1">
                             <div className="flex items-center gap-1">
                               <Label className="text-xs">Max Shows</Label>
-                              <Tooltip content="Maximum times this rule can fire per visitor session. 0 = unlimited.">
-                                <Info className="w-3 h-3 text-secondary-400 cursor-help" />
-                              </Tooltip>
+                              <InfoTooltip content="Maximum times this rule can fire per visitor session. 0 = unlimited." />
                             </div>
                             <Input
                               type="number"
@@ -3918,9 +3870,7 @@ function ProactiveMessagesEditor({ config, onChange }: ProactiveMessagesEditorPr
                           <div className="space-y-1">
                             <div className="flex items-center gap-1">
                               <Label className="text-xs">Priority</Label>
-                              <Tooltip content="Lower number = higher priority. When multiple rules fire, higher-priority rules are evaluated first.">
-                                <Info className="w-3 h-3 text-secondary-400 cursor-help" />
-                              </Tooltip>
+                              <InfoTooltip content="Lower number = higher priority. When multiple rules fire, higher-priority rules are evaluated first." />
                             </div>
                             <Input
                               type="number"
