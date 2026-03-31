@@ -6,8 +6,10 @@ import { toast } from 'sonner';
 import {
   Code, Copy, Check, ExternalLink, Globe, Terminal,
   Info, BookOpen, FileCode, Zap, Headphones, ChevronDown, AlertTriangle,
-  Eye, EyeOff, Loader2, MessageSquare
+  Eye, EyeOff, Loader2, MessageSquare, Settings, Send,
+  Phone, Users, Gamepad2
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -83,11 +85,58 @@ export default function DeployPage({ params }: DeployPageProps) {
   const [slackStatus, setSlackStatus] = useState<{
     connected: boolean;
     team_name?: string;
+    mention_only?: boolean;
+    channel_ids?: string[];
     workspace_taken_by?: { chatbot_id: string; chatbot_name: string; team_name: string } | null;
   } | null>(null);
   const [slackLoading, setSlackLoading] = useState(true);
   const [slackConnecting, setSlackConnecting] = useState(false);
   const [slackDisconnecting, setSlackDisconnecting] = useState(false);
+  const [slackMentionOnly, setSlackMentionOnly] = useState(false);
+  const [slackChannelIds, setSlackChannelIds] = useState('');
+  const [slackConfigSaving, setSlackConfigSaving] = useState(false);
+
+  // Telegram state
+  const [telegramBotToken, setTelegramBotToken] = useState('');
+  const [telegramConnecting, setTelegramConnecting] = useState(false);
+  const [telegramDisconnecting, setTelegramDisconnecting] = useState(false);
+  const [telegramLoading, setTelegramLoading] = useState(true);
+  const [telegramConnected, setTelegramConnected] = useState(false);
+  const [telegramBotUsername, setTelegramBotUsername] = useState<string | null>(null);
+  const [telegramAiEnabled, setTelegramAiEnabled] = useState(false);
+  const [telegramAiSaving, setTelegramAiSaving] = useState(false);
+
+  // WhatsApp state
+  const [whatsappPhoneNumberId, setWhatsappPhoneNumberId] = useState('');
+  const [whatsappAccessToken, setWhatsappAccessToken] = useState('');
+  const [whatsappConnecting, setWhatsappConnecting] = useState(false);
+  const [whatsappDisconnecting, setWhatsappDisconnecting] = useState(false);
+  const [whatsappLoading, setWhatsappLoading] = useState(true);
+  const [whatsappConnected, setWhatsappConnected] = useState(false);
+  const [whatsappAiEnabled, setWhatsappAiEnabled] = useState(false);
+  const [whatsappAiSaving, setWhatsappAiSaving] = useState(false);
+
+  // Teams state
+  const [teamsAppId, setTeamsAppId] = useState('');
+  const [teamsAppSecret, setTeamsAppSecret] = useState('');
+  const [teamsConnecting, setTeamsConnecting] = useState(false);
+  const [teamsDisconnecting, setTeamsDisconnecting] = useState(false);
+  const [teamsLoading, setTeamsLoading] = useState(true);
+  const [teamsConnected, setTeamsConnected] = useState(false);
+  const [teamsBotName, setTeamsBotName] = useState<string | null>(null);
+  const [teamsAiEnabled, setTeamsAiEnabled] = useState(false);
+  const [teamsAiSaving, setTeamsAiSaving] = useState(false);
+
+  // Discord state
+  const [discordAppId, setDiscordAppId] = useState('');
+  const [discordBotToken, setDiscordBotToken] = useState('');
+  const [discordPublicKey, setDiscordPublicKey] = useState('');
+  const [discordConnecting, setDiscordConnecting] = useState(false);
+  const [discordDisconnecting, setDiscordDisconnecting] = useState(false);
+  const [discordLoading, setDiscordLoading] = useState(true);
+  const [discordConnected, setDiscordConnected] = useState(false);
+  const [discordAiEnabled, setDiscordAiEnabled] = useState(false);
+  const [discordAiSaving, setDiscordAiSaving] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -102,8 +151,55 @@ export default function DeployPage({ params }: DeployPageProps) {
     }
     fetch(`/api/chatbots/${id}/integrations/slack`)
       .then(r => r.json())
-      .then(d => setSlackStatus(d.data))
+      .then(d => {
+        setSlackStatus(d.data);
+        if (d.data?.connected) {
+          setSlackMentionOnly(d.data.mention_only ?? false);
+          setSlackChannelIds((d.data.channel_ids ?? []).join(', '));
+        }
+      })
       .finally(() => setSlackLoading(false));
+    // Check Telegram/WhatsApp/Teams/Discord connection status from chatbot config
+    fetch(`/api/chatbots/${id}`)
+      .then(r => r.json())
+      .then(d => {
+        const bot = d.data?.chatbot;
+        // Telegram
+        const tc = bot?.telegram_config;
+        if (tc?.bot_token && tc?.enabled) {
+          setTelegramConnected(true);
+          setTelegramAiEnabled(tc.ai_responses_enabled ?? false);
+          fetch(`/api/telegram/setup?chatbot_id=${id}`)
+            .then(r => r.json())
+            .then(info => { if (info.data?.url) setTelegramConnected(true); })
+            .catch(() => {});
+        }
+        // WhatsApp
+        const wc = bot?.whatsapp_config;
+        if (wc?.phone_number_id && wc?.enabled) {
+          setWhatsappConnected(true);
+          setWhatsappAiEnabled(wc.ai_responses_enabled ?? false);
+        }
+        // Teams
+        const tmc = bot?.teams_config;
+        if (tmc?.app_id && tmc?.enabled) {
+          setTeamsConnected(true);
+          setTeamsBotName(tmc.bot_name ?? null);
+          setTeamsAiEnabled(tmc.ai_responses_enabled ?? false);
+        }
+        // Discord
+        const dc = bot?.discord_config;
+        if (dc?.application_id && dc?.enabled) {
+          setDiscordConnected(true);
+          setDiscordAiEnabled(dc.ai_responses_enabled ?? false);
+        }
+      })
+      .finally(() => {
+        setTelegramLoading(false);
+        setWhatsappLoading(false);
+        setTeamsLoading(false);
+        setDiscordLoading(false);
+      });
   }, [id]);
 
   const handleSlackConnect = async () => {
@@ -133,6 +229,365 @@ export default function DeployPage({ params }: DeployPageProps) {
       toast.error('Failed to disconnect Slack');
     } finally {
       setSlackDisconnecting(false);
+    }
+  };
+
+  const handleSlackConfigSave = async () => {
+    setSlackConfigSaving(true);
+    try {
+      const channelIdsArray = slackChannelIds
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+      const res = await fetch(`/api/chatbots/${id}/integrations/slack`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mention_only: slackMentionOnly, channel_ids: channelIdsArray }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error?.message || 'Failed to save');
+      }
+      toast.success('Slack settings saved');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save Slack settings');
+    } finally {
+      setSlackConfigSaving(false);
+    }
+  };
+
+  const handleTelegramConnect = async () => {
+    if (!telegramBotToken.trim()) {
+      toast.error('Please enter your Telegram bot token');
+      return;
+    }
+    setTelegramConnecting(true);
+    try {
+      // Step 1: Validate the token by calling Telegram's getMe
+      const getMeRes = await fetch(`https://api.telegram.org/bot${telegramBotToken.trim()}/getMe`);
+      const getMeData = await getMeRes.json();
+      if (!getMeData.ok) {
+        toast.error('Invalid bot token. Please check and try again.');
+        return;
+      }
+      const botUsername = getMeData.result?.username || null;
+
+      // Step 2: Save the bot token to telegram_config via chatbot PATCH API
+      const patchRes = await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          telegram_config: {
+            ...chatbot?.telegram_config,
+            enabled: true,
+            bot_token: telegramBotToken.trim(),
+            bot_username: botUsername || undefined,
+          },
+        }),
+      });
+      if (!patchRes.ok) {
+        const errData = await patchRes.json();
+        throw new Error(errData.error?.message || 'Failed to save bot token');
+      }
+
+      // Step 3: Set up the webhook
+      const setupRes = await fetch(`/api/telegram/setup?chatbot_id=${id}`, { method: 'POST' });
+      const setupData = await setupRes.json();
+      if (!setupRes.ok) {
+        throw new Error(setupData.error || 'Failed to set up Telegram webhook');
+      }
+
+      setTelegramConnected(true);
+      setTelegramBotUsername(botUsername);
+      setTelegramBotToken('');
+      toast.success('Telegram bot connected successfully');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to connect Telegram bot');
+    } finally {
+      setTelegramConnecting(false);
+    }
+  };
+
+  const handleTelegramDisconnect = async () => {
+    setTelegramDisconnecting(true);
+    try {
+      // Step 1: Remove the webhook
+      await fetch(`/api/telegram/setup?chatbot_id=${id}`, { method: 'DELETE' });
+
+      // Step 2: Clear the bot token from telegram_config
+      await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          telegram_config: {
+            enabled: false,
+            bot_token: '',
+            ai_responses_enabled: false,
+          },
+        }),
+      });
+
+      setTelegramConnected(false);
+      setTelegramBotUsername(null);
+      setTelegramAiEnabled(false);
+      toast.success('Telegram bot disconnected');
+    } catch {
+      toast.error('Failed to disconnect Telegram bot');
+    } finally {
+      setTelegramDisconnecting(false);
+    }
+  };
+
+  const handleTelegramAiToggle = async () => {
+    const newValue = !telegramAiEnabled;
+    setTelegramAiEnabled(newValue);
+    setTelegramAiSaving(true);
+    try {
+      const res = await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          telegram_config: {
+            ...chatbot?.telegram_config,
+            ai_responses_enabled: newValue,
+          },
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error?.message || 'Failed to save');
+      }
+      toast.success(`AI responses ${newValue ? 'enabled' : 'disabled'}`);
+    } catch (err) {
+      setTelegramAiEnabled(!newValue); // revert
+      toast.error(err instanceof Error ? err.message : 'Failed to update AI responses setting');
+    } finally {
+      setTelegramAiSaving(false);
+    }
+  };
+
+  // ===== WhatsApp handlers =====
+  const handleWhatsappConnect = async () => {
+    if (!whatsappPhoneNumberId.trim() || !whatsappAccessToken.trim()) {
+      toast.error('Please enter your Phone Number ID and Access Token');
+      return;
+    }
+    setWhatsappConnecting(true);
+    try {
+      const patchRes = await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          whatsapp_config: {
+            enabled: true,
+            phone_number_id: whatsappPhoneNumberId.trim(),
+            access_token: whatsappAccessToken.trim(),
+            ai_responses_enabled: true,
+          },
+        }),
+      });
+      if (!patchRes.ok) throw new Error((await patchRes.json()).error?.message || 'Failed to save config');
+      const setupRes = await fetch(`/api/whatsapp/setup?chatbot_id=${id}`, { method: 'POST' });
+      if (!setupRes.ok) throw new Error((await setupRes.json()).error || 'Failed to set up WhatsApp webhook');
+      setWhatsappConnected(true);
+      setWhatsappAiEnabled(true);
+      setWhatsappPhoneNumberId('');
+      setWhatsappAccessToken('');
+      toast.success('WhatsApp connected successfully');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to connect WhatsApp');
+    } finally {
+      setWhatsappConnecting(false);
+    }
+  };
+
+  const handleWhatsappDisconnect = async () => {
+    setWhatsappDisconnecting(true);
+    try {
+      await fetch(`/api/whatsapp/setup?chatbot_id=${id}`, { method: 'DELETE' });
+      await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ whatsapp_config: { enabled: false } }),
+      });
+      setWhatsappConnected(false);
+      setWhatsappAiEnabled(false);
+      toast.success('WhatsApp disconnected');
+    } catch {
+      toast.error('Failed to disconnect WhatsApp');
+    } finally {
+      setWhatsappDisconnecting(false);
+    }
+  };
+
+  const handleWhatsappAiToggle = async () => {
+    const newValue = !whatsappAiEnabled;
+    setWhatsappAiEnabled(newValue);
+    setWhatsappAiSaving(true);
+    try {
+      const res = await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ whatsapp_config: { ...chatbot?.whatsapp_config, ai_responses_enabled: newValue } }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error?.message || 'Failed to save');
+      toast.success(`AI responses ${newValue ? 'enabled' : 'disabled'}`);
+    } catch (err) {
+      setWhatsappAiEnabled(!newValue);
+      toast.error(err instanceof Error ? err.message : 'Failed to update setting');
+    } finally {
+      setWhatsappAiSaving(false);
+    }
+  };
+
+  // ===== Teams handlers =====
+  const handleTeamsConnect = async () => {
+    if (!teamsAppId.trim() || !teamsAppSecret.trim()) {
+      toast.error('Please enter your App ID and App Secret');
+      return;
+    }
+    setTeamsConnecting(true);
+    try {
+      const patchRes = await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          teams_config: {
+            enabled: true,
+            app_id: teamsAppId.trim(),
+            app_secret: teamsAppSecret.trim(),
+            ai_responses_enabled: true,
+          },
+        }),
+      });
+      if (!patchRes.ok) throw new Error((await patchRes.json()).error?.message || 'Failed to save config');
+      const setupRes = await fetch(`/api/teams/setup?chatbot_id=${id}`, { method: 'POST' });
+      if (!setupRes.ok) throw new Error((await setupRes.json()).error || 'Failed to set up Teams webhook');
+      setTeamsConnected(true);
+      setTeamsAiEnabled(true);
+      setTeamsAppId('');
+      setTeamsAppSecret('');
+      toast.success('Microsoft Teams connected successfully');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to connect Teams');
+    } finally {
+      setTeamsConnecting(false);
+    }
+  };
+
+  const handleTeamsDisconnect = async () => {
+    setTeamsDisconnecting(true);
+    try {
+      await fetch(`/api/teams/setup?chatbot_id=${id}`, { method: 'DELETE' });
+      await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teams_config: { enabled: false } }),
+      });
+      setTeamsConnected(false);
+      setTeamsBotName(null);
+      setTeamsAiEnabled(false);
+      toast.success('Microsoft Teams disconnected');
+    } catch {
+      toast.error('Failed to disconnect Teams');
+    } finally {
+      setTeamsDisconnecting(false);
+    }
+  };
+
+  const handleTeamsAiToggle = async () => {
+    const newValue = !teamsAiEnabled;
+    setTeamsAiEnabled(newValue);
+    setTeamsAiSaving(true);
+    try {
+      const res = await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teams_config: { ...chatbot?.teams_config, ai_responses_enabled: newValue } }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error?.message || 'Failed to save');
+      toast.success(`AI responses ${newValue ? 'enabled' : 'disabled'}`);
+    } catch (err) {
+      setTeamsAiEnabled(!newValue);
+      toast.error(err instanceof Error ? err.message : 'Failed to update setting');
+    } finally {
+      setTeamsAiSaving(false);
+    }
+  };
+
+  // ===== Discord handlers =====
+  const handleDiscordConnect = async () => {
+    if (!discordAppId.trim() || !discordBotToken.trim() || !discordPublicKey.trim()) {
+      toast.error('Please enter your Application ID, Bot Token, and Public Key');
+      return;
+    }
+    setDiscordConnecting(true);
+    try {
+      const patchRes = await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          discord_config: {
+            enabled: true,
+            application_id: discordAppId.trim(),
+            bot_token: discordBotToken.trim(),
+            public_key: discordPublicKey.trim(),
+            ai_responses_enabled: true,
+          },
+        }),
+      });
+      if (!patchRes.ok) throw new Error((await patchRes.json()).error?.message || 'Failed to save config');
+      const setupRes = await fetch(`/api/discord/setup?chatbot_id=${id}`, { method: 'POST' });
+      if (!setupRes.ok) throw new Error((await setupRes.json()).error || 'Failed to set up Discord webhook');
+      setDiscordConnected(true);
+      setDiscordAiEnabled(true);
+      setDiscordAppId('');
+      setDiscordBotToken('');
+      setDiscordPublicKey('');
+      toast.success('Discord connected successfully');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to connect Discord');
+    } finally {
+      setDiscordConnecting(false);
+    }
+  };
+
+  const handleDiscordDisconnect = async () => {
+    setDiscordDisconnecting(true);
+    try {
+      await fetch(`/api/discord/setup?chatbot_id=${id}`, { method: 'DELETE' });
+      await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ discord_config: { enabled: false } }),
+      });
+      setDiscordConnected(false);
+      setDiscordAiEnabled(false);
+      toast.success('Discord disconnected');
+    } catch {
+      toast.error('Failed to disconnect Discord');
+    } finally {
+      setDiscordDisconnecting(false);
+    }
+  };
+
+  const handleDiscordAiToggle = async () => {
+    const newValue = !discordAiEnabled;
+    setDiscordAiEnabled(newValue);
+    setDiscordAiSaving(true);
+    try {
+      const res = await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ discord_config: { ...chatbot?.discord_config, ai_responses_enabled: newValue } }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error?.message || 'Failed to save');
+      toast.success(`AI responses ${newValue ? 'enabled' : 'disabled'}`);
+    } catch (err) {
+      setDiscordAiEnabled(!newValue);
+      toast.error(err instanceof Error ? err.message : 'Failed to update setting');
+    } finally {
+      setDiscordAiSaving(false);
     }
   };
 
@@ -366,6 +821,22 @@ const data = await res.json();`;
           <TabsTrigger value="slack" className="gap-1.5">
             <MessageSquare className="w-3.5 h-3.5" />
             Slack
+          </TabsTrigger>
+          <TabsTrigger value="telegram" className="gap-1.5">
+            <Send className="w-3.5 h-3.5" />
+            Telegram
+          </TabsTrigger>
+          <TabsTrigger value="whatsapp" className="gap-1.5">
+            <Phone className="w-3.5 h-3.5" />
+            WhatsApp
+          </TabsTrigger>
+          <TabsTrigger value="teams" className="gap-1.5">
+            <Users className="w-3.5 h-3.5" />
+            Teams
+          </TabsTrigger>
+          <TabsTrigger value="discord" className="gap-1.5">
+            <Gamepad2 className="w-3.5 h-3.5" />
+            Discord
           </TabsTrigger>
         </TabsList>
 
@@ -807,6 +1278,65 @@ const data = await res.json();`;
                         Mention the bot in any channel or send it a DM to get answers from your knowledge base. The bot responds in-thread.
                       </p>
                     </div>
+
+                    {/* Slack Configuration */}
+                    <div className="border border-secondary-200 dark:border-secondary-700 rounded-lg">
+                      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-secondary-200 dark:border-secondary-700">
+                        <Settings className="w-4 h-4 text-secondary-500" />
+                        <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Bot Settings</p>
+                      </div>
+                      <div className="p-4 space-y-5">
+                        {/* Mention only toggle */}
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Mention only mode</p>
+                            <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">
+                              When enabled, the bot only responds when @mentioned. It won&apos;t respond to direct messages.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={slackMentionOnly}
+                            onClick={() => setSlackMentionOnly(!slackMentionOnly)}
+                            className={cn(
+                              'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0',
+                              slackMentionOnly ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
+                            )}
+                          >
+                            <span className={cn('inline-block h-4 w-4 transform rounded-full bg-white transition-transform', slackMentionOnly ? 'translate-x-6' : 'translate-x-1')} />
+                          </button>
+                        </div>
+
+                        {/* Channel IDs input */}
+                        <div>
+                          <label htmlFor="slack-channel-ids" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">
+                            Restrict to channels
+                          </label>
+                          <input
+                            id="slack-channel-ids"
+                            type="text"
+                            value={slackChannelIds}
+                            onChange={(e) => setSlackChannelIds(e.target.value)}
+                            placeholder="C01ABC123, C04XYZ789"
+                            className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          />
+                          <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                            Comma-separated channel IDs to restrict the bot to. Leave empty to allow all channels.
+                          </p>
+                        </div>
+
+                        {/* Save button */}
+                        <Button
+                          size="sm"
+                          onClick={handleSlackConfigSave}
+                          disabled={slackConfigSaving}
+                        >
+                          {slackConfigSaving ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : null}
+                          Save settings
+                        </Button>
+                      </div>
+                    </div>
                   </>
                 ) : (
                   <>
@@ -839,6 +1369,687 @@ const data = await res.json();`;
                     <Button onClick={handleSlackConnect} disabled={slackConnecting} className="gap-2">
                       {slackConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4" />}
                       {slackConnecting ? 'Redirecting to Slack...' : 'Connect to Slack'}
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* ========== TELEGRAM TAB ========== */}
+        <TabsContent value="telegram">
+          <div className="space-y-6 mt-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                    <Send className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <CardTitle>Telegram</CardTitle>
+                    <CardDescription>Deploy this chatbot as a Telegram bot that responds to messages with AI-powered answers from your knowledge base</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {telegramLoading ? (
+                  <Skeleton className="h-20 w-full" />
+                ) : telegramConnected ? (
+                  <>
+                    {/* Connected banner */}
+                    <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        <div>
+                          <p className="text-sm font-medium text-green-900 dark:text-green-100">Connected to Telegram</p>
+                          {telegramBotUsername && (
+                            <p className="text-xs text-green-700 dark:text-green-300">Bot: @{telegramBotUsername}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleTelegramDisconnect}
+                        disabled={telegramDisconnecting}
+                        className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      >
+                        {telegramDisconnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Disconnect'}
+                      </Button>
+                    </div>
+
+                    {/* Bot Settings */}
+                    <div className="border border-secondary-200 dark:border-secondary-700 rounded-lg">
+                      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-secondary-200 dark:border-secondary-700">
+                        <Settings className="w-4 h-4 text-secondary-500" />
+                        <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Bot Settings</p>
+                      </div>
+                      <div className="p-4 space-y-5">
+                        {/* AI Responses toggle */}
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">AI Responses</p>
+                            <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">
+                              When enabled, the bot responds to messages with AI-powered answers from your knowledge base.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={telegramAiEnabled}
+                            onClick={handleTelegramAiToggle}
+                            disabled={telegramAiSaving}
+                            className={cn(
+                              'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0',
+                              telegramAiEnabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600',
+                              telegramAiSaving && 'opacity-50'
+                            )}
+                          >
+                            <span className={cn('inline-block h-4 w-4 transform rounded-full bg-white transition-transform', telegramAiEnabled ? 'translate-x-6' : 'translate-x-1')} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Behavior info */}
+                    <div className="flex items-start gap-3 p-4 bg-secondary-50 dark:bg-secondary-800/50 border border-secondary-200 dark:border-secondary-700 rounded-lg">
+                      <Info className="w-5 h-5 text-secondary-500 flex-shrink-0 mt-0.5" />
+                      <div className="space-y-1.5">
+                        <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                          <span className="font-medium text-secondary-900 dark:text-secondary-100">In private chats:</span> responds to all messages
+                        </p>
+                        <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                          <span className="font-medium text-secondary-900 dark:text-secondary-100">In group chats:</span> responds when @mentioned
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Link to handoff settings */}
+                    <div className="flex items-start gap-3 p-4 bg-secondary-50 dark:bg-secondary-800/50 border border-secondary-200 dark:border-secondary-700 rounded-lg">
+                      <Info className="w-5 h-5 text-secondary-500 flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                        Need live handoff to a human agent via Telegram?{' '}
+                        <Link
+                          href={`/dashboard/chatbots/${id}/settings`}
+                          className="text-primary-600 dark:text-primary-400 underline hover:no-underline font-medium"
+                        >
+                          Configure handoff settings
+                        </Link>
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Setup guide */}
+                    <div className="space-y-4">
+                      <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                        Connect a Telegram bot to deploy this chatbot. Follow these steps:
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div className="p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-bold">1</span>
+                            <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Create a bot</p>
+                          </div>
+                          <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                            Open Telegram and message{' '}
+                            <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline hover:no-underline font-medium">
+                              @BotFather
+                            </a>
+                            . Send <code className="bg-secondary-100 dark:bg-secondary-800 px-1 py-0.5 rounded text-[11px]">/newbot</code> and follow the prompts.
+                          </p>
+                        </div>
+                        <div className="p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-bold">2</span>
+                            <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Copy the token</p>
+                          </div>
+                          <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                            BotFather will give you an API token. Copy it and paste it below.
+                          </p>
+                        </div>
+                        <div className="p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-bold">3</span>
+                            <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Connect</p>
+                          </div>
+                          <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                            Click &quot;Connect to Telegram&quot; to register the webhook and start receiving messages.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bot token input */}
+                    <div>
+                      <label htmlFor="telegram-bot-token" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">
+                        Bot Token
+                      </label>
+                      <input
+                        id="telegram-bot-token"
+                        type="password"
+                        value={telegramBotToken}
+                        onChange={(e) => setTelegramBotToken(e.target.value)}
+                        placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+                        className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                        The HTTP API token you received from @BotFather. This is stored securely and encrypted at rest.
+                      </p>
+                    </div>
+
+                    {/* Connect button */}
+                    <Button onClick={handleTelegramConnect} disabled={telegramConnecting || !telegramBotToken.trim()} className="gap-2">
+                      {telegramConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                      {telegramConnecting ? 'Connecting...' : 'Connect to Telegram'}
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* ========== WHATSAPP TAB ========== */}
+        <TabsContent value="whatsapp">
+          <div className="space-y-6 mt-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-lg">
+                    <Phone className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <CardTitle>WhatsApp</CardTitle>
+                    <CardDescription>Deploy this chatbot on WhatsApp to respond to incoming messages with AI-powered answers from your knowledge base</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {whatsappLoading ? (
+                  <Skeleton className="h-20 w-full" />
+                ) : whatsappConnected ? (
+                  <>
+                    {/* Connected banner */}
+                    <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        <div>
+                          <p className="text-sm font-medium text-green-900 dark:text-green-100">Connected to WhatsApp</p>
+                          {chatbot?.whatsapp_config?.phone_number_id && (
+                            <p className="text-xs text-green-700 dark:text-green-300">Phone Number ID: {chatbot.whatsapp_config.phone_number_id}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleWhatsappDisconnect}
+                        disabled={whatsappDisconnecting}
+                        className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      >
+                        {whatsappDisconnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Disconnect'}
+                      </Button>
+                    </div>
+
+                    {/* Bot Settings */}
+                    <div className="border border-secondary-200 dark:border-secondary-700 rounded-lg">
+                      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-secondary-200 dark:border-secondary-700">
+                        <Settings className="w-4 h-4 text-secondary-500" />
+                        <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Bot Settings</p>
+                      </div>
+                      <div className="p-4 space-y-5">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">AI Responses</p>
+                            <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">
+                              The bot responds to all incoming WhatsApp messages with AI-powered answers from your knowledge base.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={whatsappAiEnabled}
+                            onClick={handleWhatsappAiToggle}
+                            disabled={whatsappAiSaving}
+                            className={cn(
+                              'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0',
+                              whatsappAiEnabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600',
+                              whatsappAiSaving && 'opacity-50'
+                            )}
+                          >
+                            <span className={cn('inline-block h-4 w-4 transform rounded-full bg-white transition-transform', whatsappAiEnabled ? 'translate-x-6' : 'translate-x-1')} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Webhook URL */}
+                    <div>
+                      <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Webhook URL</p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 p-3 bg-secondary-100 dark:bg-secondary-800 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                          <code className="text-sm font-mono text-secondary-800 dark:text-secondary-200 break-all">{baseUrl}/api/whatsapp/webhook?chatbot_id={id}</code>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => copyToClipboard(`${baseUrl}/api/whatsapp/webhook?chatbot_id=${id}`, 'whatsapp-webhook')}
+                        >
+                          {copiedCode === 'whatsapp-webhook' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                        Paste this URL in your Meta app&apos;s webhook configuration settings.
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Setup guide */}
+                    <div className="space-y-4">
+                      <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                        Connect your WhatsApp Business account to deploy this chatbot. Follow these steps:
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {[
+                          { n: '1', title: 'Create a Meta Business app', desc: 'Set up a Meta Business account and create a WhatsApp Business app in the Meta Developer Dashboard.' },
+                          { n: '2', title: 'Get your credentials', desc: 'Copy your Phone Number ID and generate a permanent access token from the Meta Developer Dashboard.' },
+                          { n: '3', title: 'Enter credentials below', desc: 'Paste your Phone Number ID and access token in the fields below and click Connect.' },
+                          { n: '4', title: 'Configure webhook', desc: 'After connecting, copy the webhook URL displayed here and add it to your Meta app\'s webhook settings.' },
+                        ].map((step) => (
+                          <div key={step.n} className="p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="flex items-center justify-center w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 text-xs font-bold">{step.n}</span>
+                              <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">{step.title}</p>
+                            </div>
+                            <p className="text-xs text-secondary-500 dark:text-secondary-400">{step.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Input fields */}
+                    <div className="space-y-3">
+                      <div>
+                        <label htmlFor="whatsapp-phone-id" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Phone Number ID</label>
+                        <input
+                          id="whatsapp-phone-id"
+                          type="text"
+                          value={whatsappPhoneNumberId}
+                          onChange={(e) => setWhatsappPhoneNumberId(e.target.value)}
+                          placeholder="123456789012345"
+                          className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="whatsapp-token" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Access Token</label>
+                        <input
+                          id="whatsapp-token"
+                          type="password"
+                          value={whatsappAccessToken}
+                          onChange={(e) => setWhatsappAccessToken(e.target.value)}
+                          placeholder="Your permanent access token"
+                          className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                          Your permanent access token from the Meta Developer Dashboard. Stored securely and encrypted at rest.
+                        </p>
+                      </div>
+                    </div>
+
+                    <Button onClick={handleWhatsappConnect} disabled={whatsappConnecting || !whatsappPhoneNumberId.trim() || !whatsappAccessToken.trim()} className="gap-2">
+                      {whatsappConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Phone className="w-4 h-4" />}
+                      {whatsappConnecting ? 'Connecting...' : 'Connect to WhatsApp'}
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* ========== MICROSOFT TEAMS TAB ========== */}
+        <TabsContent value="teams">
+          <div className="space-y-6 mt-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
+                    <Users className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <div>
+                    <CardTitle>Microsoft Teams</CardTitle>
+                    <CardDescription>Deploy this chatbot to Microsoft Teams so your team can chat with it in 1:1 conversations or @mention it in channels</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {teamsLoading ? (
+                  <Skeleton className="h-20 w-full" />
+                ) : teamsConnected ? (
+                  <>
+                    {/* Connected banner */}
+                    <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        <div>
+                          <p className="text-sm font-medium text-green-900 dark:text-green-100">Connected to Microsoft Teams</p>
+                          {teamsBotName && (
+                            <p className="text-xs text-green-700 dark:text-green-300">Bot: {teamsBotName}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleTeamsDisconnect}
+                        disabled={teamsDisconnecting}
+                        className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      >
+                        {teamsDisconnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Disconnect'}
+                      </Button>
+                    </div>
+
+                    {/* Bot Settings */}
+                    <div className="border border-secondary-200 dark:border-secondary-700 rounded-lg">
+                      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-secondary-200 dark:border-secondary-700">
+                        <Settings className="w-4 h-4 text-secondary-500" />
+                        <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Bot Settings</p>
+                      </div>
+                      <div className="p-4 space-y-5">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">AI Responses</p>
+                            <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">
+                              When enabled, the bot responds to messages with AI-powered answers from your knowledge base.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={teamsAiEnabled}
+                            onClick={handleTeamsAiToggle}
+                            disabled={teamsAiSaving}
+                            className={cn(
+                              'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0',
+                              teamsAiEnabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600',
+                              teamsAiSaving && 'opacity-50'
+                            )}
+                          >
+                            <span className={cn('inline-block h-4 w-4 transform rounded-full bg-white transition-transform', teamsAiEnabled ? 'translate-x-6' : 'translate-x-1')} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Behavior info */}
+                    <div className="flex items-start gap-3 p-4 bg-secondary-50 dark:bg-secondary-800/50 border border-secondary-200 dark:border-secondary-700 rounded-lg">
+                      <Info className="w-5 h-5 text-secondary-500 flex-shrink-0 mt-0.5" />
+                      <div className="space-y-1.5">
+                        <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                          <span className="font-medium text-secondary-900 dark:text-secondary-100">In 1:1 chats:</span> responds to all messages
+                        </p>
+                        <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                          <span className="font-medium text-secondary-900 dark:text-secondary-100">In channels:</span> responds when @mentioned
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Webhook URL */}
+                    <div>
+                      <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Messaging Endpoint</p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 p-3 bg-secondary-100 dark:bg-secondary-800 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                          <code className="text-sm font-mono text-secondary-800 dark:text-secondary-200 break-all">{baseUrl}/api/teams/webhook?chatbot_id={id}</code>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => copyToClipboard(`${baseUrl}/api/teams/webhook?chatbot_id=${id}`, 'teams-webhook')}
+                        >
+                          {copiedCode === 'teams-webhook' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                        Set this as the messaging endpoint in the Azure Bot Framework portal.
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Setup guide */}
+                    <div className="space-y-4">
+                      <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                        Connect a Microsoft Teams bot to deploy this chatbot. Follow these steps:
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {[
+                          { n: '1', title: 'Register a bot', desc: 'Create a bot registration in the Azure Bot Framework portal.' },
+                          { n: '2', title: 'Get your credentials', desc: 'Copy your App ID and App Secret from the Azure portal.' },
+                          { n: '3', title: 'Enter credentials below', desc: 'Paste your credentials and click Connect.' },
+                          { n: '4', title: 'Set messaging endpoint', desc: 'After connecting, copy the webhook URL and set it as the messaging endpoint in Azure.' },
+                        ].map((step) => (
+                          <div key={step.n} className="p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="flex items-center justify-center w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs font-bold">{step.n}</span>
+                              <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">{step.title}</p>
+                            </div>
+                            <p className="text-xs text-secondary-500 dark:text-secondary-400">{step.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Input fields */}
+                    <div className="space-y-3">
+                      <div>
+                        <label htmlFor="teams-app-id" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">App ID</label>
+                        <input
+                          id="teams-app-id"
+                          type="text"
+                          value={teamsAppId}
+                          onChange={(e) => setTeamsAppId(e.target.value)}
+                          placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                          className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="teams-app-secret" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">App Secret</label>
+                        <input
+                          id="teams-app-secret"
+                          type="password"
+                          value={teamsAppSecret}
+                          onChange={(e) => setTeamsAppSecret(e.target.value)}
+                          placeholder="Your app secret"
+                          className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                          Your app secret from the Azure Bot Framework portal. Stored securely and encrypted at rest.
+                        </p>
+                      </div>
+                    </div>
+
+                    <Button onClick={handleTeamsConnect} disabled={teamsConnecting || !teamsAppId.trim() || !teamsAppSecret.trim()} className="gap-2">
+                      {teamsConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
+                      {teamsConnecting ? 'Connecting...' : 'Connect to Teams'}
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* ========== DISCORD TAB ========== */}
+        <TabsContent value="discord">
+          <div className="space-y-6 mt-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-violet-100 dark:bg-violet-900/50 rounded-lg">
+                    <Gamepad2 className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div>
+                    <CardTitle>Discord</CardTitle>
+                    <CardDescription>Deploy this chatbot to Discord so users can interact with it using slash commands</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {discordLoading ? (
+                  <Skeleton className="h-20 w-full" />
+                ) : discordConnected ? (
+                  <>
+                    {/* Connected banner */}
+                    <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        <div>
+                          <p className="text-sm font-medium text-green-900 dark:text-green-100">Connected to Discord</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDiscordDisconnect}
+                        disabled={discordDisconnecting}
+                        className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      >
+                        {discordDisconnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Disconnect'}
+                      </Button>
+                    </div>
+
+                    {/* Bot Settings */}
+                    <div className="border border-secondary-200 dark:border-secondary-700 rounded-lg">
+                      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-secondary-200 dark:border-secondary-700">
+                        <Settings className="w-4 h-4 text-secondary-500" />
+                        <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Bot Settings</p>
+                      </div>
+                      <div className="p-4 space-y-5">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">AI Responses</p>
+                            <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">
+                              When enabled, the bot responds to slash commands with AI-powered answers from your knowledge base.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={discordAiEnabled}
+                            onClick={handleDiscordAiToggle}
+                            disabled={discordAiSaving}
+                            className={cn(
+                              'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0',
+                              discordAiEnabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600',
+                              discordAiSaving && 'opacity-50'
+                            )}
+                          >
+                            <span className={cn('inline-block h-4 w-4 transform rounded-full bg-white transition-transform', discordAiEnabled ? 'translate-x-6' : 'translate-x-1')} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Behavior info */}
+                    <div className="flex items-start gap-3 p-4 bg-secondary-50 dark:bg-secondary-800/50 border border-secondary-200 dark:border-secondary-700 rounded-lg">
+                      <Info className="w-5 h-5 text-secondary-500 flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                        Users interact with the bot using the <code className="bg-secondary-100 dark:bg-secondary-800 px-1 py-0.5 rounded text-[11px] font-mono">/ask</code> command. Example: <code className="bg-secondary-100 dark:bg-secondary-800 px-1 py-0.5 rounded text-[11px] font-mono">/ask What are your business hours?</code>
+                      </p>
+                    </div>
+
+                    {/* Webhook URL */}
+                    <div>
+                      <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Interactions Endpoint URL</p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 p-3 bg-secondary-100 dark:bg-secondary-800 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                          <code className="text-sm font-mono text-secondary-800 dark:text-secondary-200 break-all">{baseUrl}/api/discord/webhook?chatbot_id={id}</code>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => copyToClipboard(`${baseUrl}/api/discord/webhook?chatbot_id=${id}`, 'discord-webhook')}
+                        >
+                          {copiedCode === 'discord-webhook' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                        Set this as the Interactions Endpoint URL in your Discord application settings.
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Setup guide */}
+                    <div className="space-y-4">
+                      <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                        Connect a Discord bot to deploy this chatbot. Follow these steps:
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {[
+                          { n: '1', title: 'Create a Discord app', desc: <>Go to <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer" className="text-violet-600 dark:text-violet-400 underline hover:no-underline font-medium">discord.com/developers</a> and create a new application.</> },
+                          { n: '2', title: 'Create a bot user', desc: 'Navigate to the Bot section, create a bot user, and copy the bot token.' },
+                          { n: '3', title: 'Copy credentials', desc: 'Copy the Application ID and Public Key from the General Information page.' },
+                          { n: '4', title: 'Enter credentials', desc: 'Paste your credentials below and click Connect.' },
+                          { n: '5', title: 'Set endpoint URL', desc: 'Copy the webhook URL and set it as the Interactions Endpoint URL in your app settings.' },
+                        ].map((step) => (
+                          <div key={step.n} className="p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="flex items-center justify-center w-5 h-5 rounded-full bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 text-xs font-bold">{step.n}</span>
+                              <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">{step.title}</p>
+                            </div>
+                            <p className="text-xs text-secondary-500 dark:text-secondary-400">{step.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Input fields */}
+                    <div className="space-y-3">
+                      <div>
+                        <label htmlFor="discord-app-id" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Application ID</label>
+                        <input
+                          id="discord-app-id"
+                          type="text"
+                          value={discordAppId}
+                          onChange={(e) => setDiscordAppId(e.target.value)}
+                          placeholder="123456789012345678"
+                          className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="discord-bot-token" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Bot Token</label>
+                        <input
+                          id="discord-bot-token"
+                          type="password"
+                          value={discordBotToken}
+                          onChange={(e) => setDiscordBotToken(e.target.value)}
+                          placeholder="Your bot token"
+                          className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="discord-public-key" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Public Key</label>
+                        <input
+                          id="discord-public-key"
+                          type="text"
+                          value={discordPublicKey}
+                          onChange={(e) => setDiscordPublicKey(e.target.value)}
+                          placeholder="Your application public key"
+                          className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                          Credentials are stored securely and encrypted at rest.
+                        </p>
+                      </div>
+                    </div>
+
+                    <Button onClick={handleDiscordConnect} disabled={discordConnecting || !discordAppId.trim() || !discordBotToken.trim() || !discordPublicKey.trim()} className="gap-2">
+                      {discordConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gamepad2 className="w-4 h-4" />}
+                      {discordConnecting ? 'Connecting...' : 'Connect to Discord'}
                     </Button>
                   </>
                 )}
