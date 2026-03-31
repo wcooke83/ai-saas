@@ -71,7 +71,7 @@ const jsonLd = {
           name: 'How much does a support ticket cost?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'The average cost of a human-handled support ticket ranges from $5 to $35, depending on complexity and your team\u2019s fully loaded cost (salary, benefits, tools, management overhead). Simple questions like "what are your hours?" or "how do I reset my password?" sit at the low end, but they still require a human to read, understand, and respond. Complex technical issues or multi-touch conversations can cost $50 or more per resolution. An AI chatbot handles the low-end tickets for pennies each, freeing your team for the high-value interactions.',
+            text: 'According to DemandSage, human-agent interactions cost $6\u2013$15 each compared to $0.50\u2013$0.70 for AI chatbot interactions. The exact cost depends on complexity and your team\u2019s fully loaded cost (salary, benefits, tools, management overhead). Simple questions like "what are your hours?" or "how do I reset my password?" sit at the low end, but they still require a human to read, understand, and respond. Complex technical issues or multi-touch conversations cost significantly more per resolution. An AI chatbot handles the low-end tickets for pennies each, freeing your team for the high-value interactions.',
           },
         },
         {
@@ -164,10 +164,10 @@ export default function CostOfCustomerSupportWithoutAiPage() {
             {/* Featured snippet */}
             <div className="bg-primary-50 dark:bg-primary-900/20 border-l-4 border-primary-500 rounded-r-xl px-6 py-5 mb-10">
               <p className="text-secondary-800 dark:text-secondary-200 text-lg leading-relaxed">
-                Manual customer support costs $5&ndash;$35 per ticket when you factor in salaries,
+                Manual customer support can cost $5&ndash;$35 per ticket when you factor in salaries,
                 tools, training, and management overhead. But the real expense is invisible: lost
-                leads from slow response times, staff burnout from repetitive questions, and
-                customer churn from inconsistent answers. An AI chatbot handles 40&ndash;70% of
+                leads from slow response times (<a href="https://www.superoffice.com/blog/response-times/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">12+ hours on average</a>), staff burnout from repetitive questions, and
+                customer churn from inconsistent answers. An AI chatbot handles a large portion of
                 tickets for pennies each &mdash; and your team gets to focus on work that matters.
               </p>
             </div>
@@ -179,10 +179,9 @@ export default function CostOfCustomerSupportWithoutAiPage() {
                   The Visible Costs: Salaries, Tools, and Training
                 </h2>
                 <p>
-                  The costs you can see on a spreadsheet are already significant. A single
-                  full-time support agent costs $35,000&ndash;$55,000 per year in salary alone.
+                  The costs you can see on a spreadsheet are already significant. According to the <a href="https://www.bls.gov/ooh/office-and-administrative-support/customer-service-representatives.htm" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">U.S. Bureau of Labor Statistics</a>, the median customer service representative earns about $43,000 per year in salary.
                   Add benefits, payroll taxes, and management time, and you&apos;re looking at
-                  $45,000&ndash;$75,000 fully loaded. According to <a href="https://livechatai.com/blog/customer-support-cost-benchmarks" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">LiveChatAI</a>, self-service channels cost just $1.84 per contact compared to $13.50 for assisted channels — a 7x difference. Then layer on the tools: a helpdesk
+                  $55,000&ndash;$75,000 fully loaded. According to <a href="https://livechatai.com/blog/customer-support-cost-benchmarks" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">LiveChatAI</a>, self-service channels cost just $1.84 per contact compared to $13.50 for assisted channels — a 7x difference. Then layer on the tools: a helpdesk
                   platform ($50&ndash;$150/month per agent), a live chat tool, a knowledge base,
                   and whatever integrations keep everything connected.
                 </p>
@@ -211,12 +210,11 @@ export default function CostOfCustomerSupportWithoutAiPage() {
                 </h2>
                 <p>
                   The costs you don&apos;t see are often larger than the ones you do. Start with
-                  response time. The average business takes 12 hours to respond to a customer
+                  response time. According to <a href="https://www.superoffice.com/blog/response-times/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">SuperOffice</a>, the average business takes 12 hours and 10 minutes to respond to a customer
                   inquiry. During those 12 hours, the customer may have already found a
                   competitor, lost interest, or decided the problem isn&apos;t worth solving.
                   Every hour of delay reduces the probability of conversion or retention. According to <a href="https://www.freshworks.com/How-AI-is-unlocking-ROI-in-customer-service/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Forrester research via Freshworks</a>, customers are 2.4x more likely to remain loyal when problems resolve quickly. For
-                  sales inquiries, a 5-minute response time converts 21x better than a 30-minute
-                  response time.
+                  sales inquiries, the <a href="https://www.insidesales.com/response-time-matters/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">MIT/InsideSales.com Lead Response Management Study</a> found that a 5-minute response time qualifies leads 21x better than waiting 30 minutes.
                 </p>
                 <p className="mt-4">
                   Lost leads are the most expensive hidden cost. When a potential customer visits
@@ -230,8 +228,8 @@ export default function CostOfCustomerSupportWithoutAiPage() {
                 <p className="mt-4">
                   Staff burnout is the third hidden cost. Support agents who spend their day
                   answering the same five questions develop frustration, disengagement, and
-                  eventually leave. Turnover in customer support averages 30&ndash;45% per year.
-                  Each departure costs $3,000&ndash;$10,000 in recruiting, hiring, and training a
+                  eventually leave. According to <a href="https://www.nextiva.com/blog/call-center-turnover-rates.html" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Nextiva</a>, turnover in customer support averages 30&ndash;45% per year.
+                  Each departure costs thousands in recruiting, hiring, and training a
                   replacement. The cycle repeats because the underlying problem &mdash; repetitive,
                   unrewarding work &mdash; never changes. Read more about reducing repetitive
                   ticket load in our guide to{' '}
@@ -253,8 +251,8 @@ export default function CostOfCustomerSupportWithoutAiPage() {
                   To understand your real support costs, calculate your fully loaded cost per
                   ticket. Take your total monthly support spend &mdash; salaries, benefits,
                   tools, training, management time &mdash; and divide by the number of tickets
-                  resolved per month. Most businesses are surprised to find that even
-                  &quot;simple&quot; tickets cost $8&ndash;$15 each when all costs are included.
+                  resolved per month. According to <a href="https://www.demandsage.com/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">DemandSage</a>, human-agent interactions cost $6&ndash;$15 each compared to $0.50&ndash;$0.70 for AI chatbot interactions. Most businesses are surprised to find that even
+                  &quot;simple&quot; tickets carry significant per-ticket costs when all overhead is included.
                 </p>
                 <p className="mt-4">
                   Here is a simple framework: if you have two full-time support agents at
@@ -287,7 +285,7 @@ export default function CostOfCustomerSupportWithoutAiPage() {
                   password?&quot;), product information (&quot;does your tool integrate with
                   Slack?&quot;), policy questions (&quot;what&apos;s your refund policy?&quot;),
                   and how-to guidance (&quot;how do I set up a webhook?&quot;) are all perfect
-                  candidates for automation. These are the tickets that make up 40&ndash;70% of
+                  candidates for automation. <a href="https://www.ibm.com/think/topics/ai-customer-service-chatbots" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">IBM reports</a> chatbots can handle up to 80% of routine inquiries, and these routine questions typically make up the majority of
                   your total volume.
                 </p>
                 <p className="mt-4">
@@ -390,7 +388,7 @@ export default function CostOfCustomerSupportWithoutAiPage() {
                   {[
                     {
                       q: 'How much does a support ticket cost?',
-                      a: "The average cost of a human-handled support ticket ranges from $5 to $35, depending on complexity and your team\u2019s fully loaded cost (salary, benefits, tools, management overhead). Simple questions like \u201Cwhat are your hours?\u201D or \u201Chow do I reset my password?\u201D sit at the low end, but they still require a human to read, understand, and respond. Complex technical issues or multi-touch conversations can cost $50 or more per resolution. An AI chatbot handles the low-end tickets for pennies each, freeing your team for the high-value interactions.",
+                      a: "According to DemandSage, human-agent interactions cost $6\u2013$15 each compared to $0.50\u2013$0.70 for AI chatbot interactions. The exact cost depends on complexity and your team\u2019s fully loaded cost (salary, benefits, tools, management overhead). Simple questions like \u201Cwhat are your hours?\u201D or \u201Chow do I reset my password?\u201D sit at the low end, but they still require a human to read, understand, and respond. Complex technical issues or multi-touch conversations cost significantly more per resolution. An AI chatbot handles the low-end tickets for pennies each, freeing your team for the high-value interactions.",
                     },
                     {
                       q: 'What percentage of tickets can AI handle?',
@@ -424,14 +422,18 @@ export default function CostOfCustomerSupportWithoutAiPage() {
             </div>
           </article>
 
+          <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-8">
+            Statistics cited from publicly available reports by the U.S. Bureau of Labor Statistics, IBM, SuperOffice, Freshworks/Forrester, MIT/InsideSales.com, Nextiva, DemandSage, LiveChatAI, and Juniper Research. Links to original sources are provided inline. Last verified April 2026.
+          </p>
+
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Turn this strategy into results — today</h2>
+            <h2 className="text-2xl font-bold mb-3">Stop paying for answers a chatbot can handle</h2>
             <p className="text-white/80 mb-2">
-              Every hour without automation is time and money your team won&apos;t get back. VocUI gets you live in under 60 minutes.
+              Train a chatbot on your docs and start deflecting repetitive questions in under an hour.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan. No contracts. Cancel anytime.
+              Free plan. No developers needed. Measure the impact from day one.
             </p>
             <Button
               size="xl"
@@ -440,11 +442,11 @@ export default function CostOfCustomerSupportWithoutAiPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Automate your support
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
-            <p className="text-xs text-white/50 mt-4">Start free — no credit card required</p>
+            <p className="text-xs text-white/50 mt-4">Start free -- see ROI within your first week</p>
           </div>
         </div>
       </main>

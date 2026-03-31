@@ -90,22 +90,6 @@ const jsonLd = {
             text: 'This is one of the strongest use cases. After a major weather event, your phone lines are overwhelmed with policyholders asking the same questions: "How do I file a claim?" "What documentation do I need?" "Will my homeowner\'s policy cover this?" "How long will the claims process take?" A chatbot answers all of these instantly, at any hour, without adding to your staff\'s workload during an already stressful period. Update your knowledge base before storm seasons with current claims procedures and emergency contact information.',
           },
         },
-        {
-          '@type': 'Question',
-          name: 'Can the chatbot generate insurance quotes?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'No. The chatbot does not connect to rating engines or carrier systems and cannot produce binding or indicative quotes. What it does is explain your quoting process, describe what information a prospect needs to provide, and link directly to your quote request form or appointment booking page. This is often more effective than a static "get a quote" button because the visitor arrives at your form already educated about your products and coverage options.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'How do I prevent the chatbot from accessing policyholder data?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'The chatbot has no access to policyholder data by design. It does not connect to your agency management system (Applied Epic, Hawksoft, EZLynx), carrier portals, or client databases. It only knows what you train it on — which should be limited to public-facing content: product descriptions, coverage guides, process documentation, and educational materials. Never upload client lists, policy schedules, claims files, or any document containing personally identifiable information.',
-          },
-        },
       ],
     },
   ],
@@ -152,7 +136,7 @@ export default function ChatbotForInsurancePage() {
                 </span>
                 <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">
-                  10 min read
+                  14 min read
                 </span>
               </div>
               <AuthorByline className="mb-4" />
@@ -238,7 +222,131 @@ export default function ChatbotForInsurancePage() {
                 </p>
               </section>
 
-              {/* Section 3 — state regulation specifics */}
+              {/* Section 3 — claims process automation — unique to insurance post */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  Claims Process Automation: What the Chatbot Can (and Cannot) Do
+                </h2>
+                <p>
+                  The claims process is where insurance chatbots deliver the most time savings.
+                  After a car accident, a burst pipe, or a storm, policyholders are stressed
+                  and need clear guidance. A chatbot walks them through the steps calmly and
+                  consistently, every time.
+                </p>
+
+                {/* Claims workflow — unique to insurance post */}
+                <div className="mt-6 mb-6 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-sm font-bold text-primary-700 dark:text-primary-300">1</span>
+                    <div>
+                      <p className="font-medium text-secondary-900 dark:text-secondary-100">Policyholder reports an incident</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">&quot;I had a fender bender. What do I do now?&quot;</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-sm font-bold text-primary-700 dark:text-primary-300">2</span>
+                    <div>
+                      <p className="font-medium text-secondary-900 dark:text-secondary-100">Chatbot provides immediate steps</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">Exchange information with the other driver, take photos, file a police report if needed, do not admit fault.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-sm font-bold text-primary-700 dark:text-primary-300">3</span>
+                    <div>
+                      <p className="font-medium text-secondary-900 dark:text-secondary-100">Chatbot explains the claims filing process</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">Call your claims department at [number], have your policy number ready, provide photos and the police report number.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-sm font-bold text-primary-700 dark:text-primary-300">4</span>
+                    <div>
+                      <p className="font-medium text-secondary-900 dark:text-secondary-100">Chatbot answers process questions</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">&quot;How long does it take?&quot; &quot;Will my rates go up?&quot; &quot;What&apos;s my deductible?&quot; — answers from your training content.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary-300 dark:bg-secondary-600 flex items-center justify-center text-sm font-bold text-secondary-700 dark:text-secondary-300">5</span>
+                    <div>
+                      <p className="font-medium text-secondary-900 dark:text-secondary-100">Handoff to claims adjuster (human-led)</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">For claim status updates, coverage determinations, and settlement discussions — the chatbot directs to your claims team.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <p>
+                  The chatbot handles steps 1-4: the informational guidance that every claimant
+                  needs. Step 5 requires a licensed adjuster. This division means your claims
+                  department is not spending the first five minutes of every call explaining
+                  what documents to gather — the policyholder arrives prepared.
+                </p>
+              </section>
+
+              {/* Section 4 — policy comparison example — unique to insurance post */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  Example: A Policy Comparison Conversation
+                </h2>
+                <p>
+                  Prospects often struggle to understand the differences between coverage
+                  types. Here is how a chatbot handles a common comparison question:
+                </p>
+
+                {/* Example conversation — unique to insurance post */}
+                <div className="mt-6 mb-6 space-y-3">
+                  <div className="flex justify-end">
+                    <div className="bg-primary-100 dark:bg-primary-900/40 rounded-2xl rounded-tr-sm px-4 py-3 max-w-[80%]">
+                      <p className="text-sm text-secondary-800 dark:text-secondary-200">
+                        What&apos;s the difference between an HO-3 and an HO-5 homeowner&apos;s policy?
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-start">
+                    <div className="bg-secondary-100 dark:bg-secondary-800 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
+                      <p className="text-sm text-secondary-800 dark:text-secondary-200">
+                        Great question. An HO-3 is the most common homeowner&apos;s policy. It covers
+                        your home&apos;s structure against all perils except those specifically
+                        excluded (like floods and earthquakes), but your personal belongings are
+                        only covered against named perils — a specific list of events like fire,
+                        theft, and windstorm.
+                      </p>
+                      <p className="text-sm text-secondary-800 dark:text-secondary-200 mt-2">
+                        An HO-5 covers both your structure and your belongings against all perils
+                        except exclusions. It is broader coverage, which means fewer claim denials
+                        for personal property. HO-5 policies cost more but provide more comprehensive
+                        protection. Would you like to discuss which option fits your situation with
+                        one of our agents?
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <div className="bg-primary-100 dark:bg-primary-900/40 rounded-2xl rounded-tr-sm px-4 py-3 max-w-[80%]">
+                      <p className="text-sm text-secondary-800 dark:text-secondary-200">
+                        Yes, can I get a quote?
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-start">
+                    <div className="bg-secondary-100 dark:bg-secondary-800 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
+                      <p className="text-sm text-secondary-800 dark:text-secondary-200">
+                        I cannot generate quotes directly, but I can get you started. You can
+                        request a personalized quote here: [quote form link]. One of our agents
+                        will follow up within one business day with options for both HO-3 and
+                        HO-5 coverage so you can compare. You will need your property address
+                        and current policy information if you have it.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <p>
+                  That conversation educated the prospect, demonstrated your agency&apos;s
+                  expertise, and drove a quote request — all without an agent picking up the
+                  phone. The prospect who fills out your quote form already understands the
+                  product, which makes the follow-up call shorter and more likely to close.
+                </p>
+              </section>
+
+              {/* Section 5 — state regulation specifics */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   State Insurance Regulations and Chatbot Compliance
@@ -383,14 +491,6 @@ export default function ChatbotForInsurancePage() {
                       q: 'Can the chatbot help during a claims surge after a storm?',
                       a: "This is one of the strongest use cases. After a major weather event, your phone lines are overwhelmed with policyholders asking the same questions: \u201CHow do I file a claim?\u201D \u201CWhat documentation do I need?\u201D \u201CWill my homeowner\u2019s policy cover this?\u201D \u201CHow long will the claims process take?\u201D A chatbot answers all of these instantly, at any hour, without adding to your staff\u2019s workload during an already stressful period. Update your knowledge base before storm seasons with current claims procedures and emergency contact information.",
                     },
-                    {
-                      q: 'Can the chatbot generate insurance quotes?',
-                      a: "No. The chatbot does not connect to rating engines or carrier systems and cannot produce binding or indicative quotes. What it does is explain your quoting process, describe what information a prospect needs to provide, and link directly to your quote request form or appointment booking page. This is often more effective than a static \u201Cget a quote\u201D button because the visitor arrives at your form already educated about your products and coverage options.",
-                    },
-                    {
-                      q: 'How do I prevent the chatbot from accessing policyholder data?',
-                      a: "The chatbot has no access to policyholder data by design. It does not connect to your agency management system (Applied Epic, Hawksoft, EZLynx), carrier portals, or client databases. It only knows what you train it on \u2014 which should be limited to public-facing content: product descriptions, coverage guides, process documentation, and educational materials. Never upload client lists, policy schedules, claims files, or any document containing personally identifiable information.",
-                    },
                   ].map(({ q, a }) => (
                     <div
                       key={q}
@@ -409,12 +509,12 @@ export default function ChatbotForInsurancePage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">See how insurance agencies use VocUI</h2>
+            <h2 className="text-2xl font-bold mb-3">Build a chatbot trained on your business</h2>
             <p className="text-white/80 mb-2">
-              Upload your policy docs and FAQs, train a chatbot, and let it handle coverage questions while you focus on clients.
+              Upload your FAQs, policies, and product info -- your chatbot answers from your knowledge, not generic scripts.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan included. Most agencies are live in under an hour.
+              Free plan. Live in under an hour.
             </p>
             <Button
               size="xl"
@@ -423,7 +523,7 @@ export default function ChatbotForInsurancePage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Start with your content
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>

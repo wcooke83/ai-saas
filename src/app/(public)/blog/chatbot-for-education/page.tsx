@@ -565,12 +565,12 @@ export default function ChatbotForEducationPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Answer the enrollment questions that keep your staff up at night</h2>
+            <h2 className="text-2xl font-bold mb-3">Build a chatbot trained on your business</h2>
             <p className="text-white/80 mb-2">
-              Train a chatbot on your catalog and policies. Let it handle the 10,000 questions your admissions office answers every semester.
+              Upload your FAQs, policies, and product info -- your chatbot answers from your knowledge, not generic scripts.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan included. Most institutions are live before the next enrollment cycle.
+              Free plan. Live in under an hour.
             </p>
             <Button
               size="xl"
@@ -579,7 +579,7 @@ export default function ChatbotForEducationPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Start with your content
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>

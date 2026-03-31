@@ -152,7 +152,7 @@ export default function ChatbotForSaasOnboardingPage() {
                 </span>
                 <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">
-                  9 min read
+                  14 min read
                 </span>
               </div>
               <AuthorByline className="mb-4" />
@@ -359,10 +359,68 @@ export default function ChatbotForSaasOnboardingPage() {
                 </p>
               </section>
 
-              {/* Section 6: Unique — Metrics deep dive */}
+              {/* Section 6 — Time-to-Value deep dive — unique to SaaS post */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
-                  The Three Metrics That Prove Chatbot ROI
+                  Time-to-Value Metrics: Measuring Real Onboarding Impact
+                </h2>
+
+                <p>
+                  Time-to-first-value (TTFV) is the single most important metric for SaaS
+                  onboarding. It measures the duration between a user signing up and experiencing
+                  the core benefit of your product — their first successful integration, first
+                  report generated, first workflow automated. According to <a href="https://userpilot.com/blog/time-to-value-benchmark-report-2024/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Userpilot</a>,
+                  cutting time-to-value by 20% lifted ARR growth by 18% for mid-market SaaS
+                  companies.
+                </p>
+
+                {/* TTFV measurement framework — unique to SaaS post */}
+                <div className="bg-secondary-50 dark:bg-secondary-800/40 rounded-xl p-6 mt-6 mb-6">
+                  <p className="text-sm font-semibold text-secondary-900 dark:text-secondary-100 mb-4">
+                    How to measure chatbot impact on time-to-value
+                  </p>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between border-b border-secondary-200 dark:border-secondary-700 pb-2">
+                      <span className="text-secondary-600 dark:text-secondary-400">Metric</span>
+                      <span className="font-medium text-secondary-900 dark:text-secondary-100">How to measure</span>
+                    </div>
+                    <div className="flex justify-between border-b border-secondary-200 dark:border-secondary-700 pb-2">
+                      <span className="text-secondary-600 dark:text-secondary-400">TTFV (time-to-first-value)</span>
+                      <span className="font-medium text-secondary-900 dark:text-secondary-100">Time from signup to first value-delivering action</span>
+                    </div>
+                    <div className="flex justify-between border-b border-secondary-200 dark:border-secondary-700 pb-2">
+                      <span className="text-secondary-600 dark:text-secondary-400">Activation rate</span>
+                      <span className="font-medium text-secondary-900 dark:text-secondary-100">% of signups completing key setup milestones</span>
+                    </div>
+                    <div className="flex justify-between border-b border-secondary-200 dark:border-secondary-700 pb-2">
+                      <span className="text-secondary-600 dark:text-secondary-400">Onboarding ticket volume</span>
+                      <span className="font-medium text-secondary-900 dark:text-secondary-100">Count of support tickets tagged as onboarding</span>
+                    </div>
+                    <div className="flex justify-between border-b border-secondary-200 dark:border-secondary-700 pb-2">
+                      <span className="text-secondary-600 dark:text-secondary-400">Chatbot deflection rate</span>
+                      <span className="font-medium text-secondary-900 dark:text-secondary-100">% of chatbot conversations that did not escalate to support</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-secondary-600 dark:text-secondary-400">Setup completion funnel</span>
+                      <span className="font-medium text-secondary-900 dark:text-secondary-100">Drop-off rate at each onboarding step, before vs. after chatbot</span>
+                    </div>
+                  </div>
+                </div>
+
+                <p>
+                  Run the comparison for at least 30 days before drawing conclusions. The
+                  immediate signal is a drop in onboarding support tickets — typically 30-50%
+                  within the first month. TTFV improvements take longer to measure because you
+                  need a statistically significant sample of new signups. If users previously
+                  took 3 days to complete setup and now finish in 4 hours, that is a clear ROI
+                  signal for your executive team.
+                </p>
+              </section>
+
+              {/* Section 7 — The Three Metrics That Prove Chatbot ROI */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  Proving ROI to Your Leadership Team
                 </h2>
 
                 {/* Stat callout — unique to SaaS post */}
@@ -373,37 +431,28 @@ export default function ChatbotForSaasOnboardingPage() {
                       <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-1">Typical drop in onboarding support tickets within 30 days</p>
                     </div>
                     <div>
-                      <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">TTFV</p>
-                      <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-1">Time-to-first-value: hours instead of days with chatbot assist</p>
+                      <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">3x faster</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-1">Typical TTFV improvement with chatbot-assisted onboarding</p>
                     </div>
                     <div>
-                      <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">Activation %</p>
-                      <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-1">% of signups completing key setup milestones</p>
+                      <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">+18% ARR</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-1">Revenue growth linked to 20% TTFV reduction (Userpilot)</p>
                     </div>
                   </div>
                 </div>
 
                 <p>
-                  <strong>Activation rate</strong> measures the percentage of new users who complete
-                  your key setup milestones — first integration connected, first workflow created,
-                  first data imported. This is the north star metric for any onboarding chatbot.
-                  Compare your activation rate before and after deployment, controlling for other
-                  changes you may have made to the onboarding flow.
+                  Translate these metrics into language your leadership understands. Support
+                  ticket reduction means lower cost-to-serve per new user. TTFV improvement
+                  means faster conversion from trial to paid. Activation rate increases mean
+                  fewer users churning before they ever use the product. Each metric connects
+                  to revenue — and the chatbot&apos;s cost is a fraction of a single support
+                  hire.
                 </p>
                 <p className="mt-4">
-                  <strong>Time-to-first-value (TTFV)</strong> tracks how long it takes new users
-                  to reach their first meaningful outcome. According to <a href="https://userpilot.com/blog/time-to-value-benchmark-report-2024/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Userpilot</a>, cutting time-to-value by 20% lifted ARR growth by 18% for mid-market SaaS companies. If users previously took 3 days to
-                  complete setup and now finish in 4 hours with chatbot assistance, you have a
-                  clear signal. Pull this data from your product analytics by measuring the time
-                  between signup and the first value-delivering action.
-                </p>
-                <p className="mt-4">
-                  <strong>Onboarding support tickets</strong> are the simplest to track. Count the
-                  tickets tagged as onboarding-related before and after the chatbot goes live.
                   Review the chatbot&apos;s conversation logs weekly to identify questions it
                   can&apos;t answer well — these are gaps in your knowledge base that, once
-                  filled, improve all three metrics. For a deeper look at measuring chatbot
-                  performance, see our{' '}
+                  filled, improve all three metrics. For plan options, see our{' '}
                   <Link
                     href="/pricing"
                     className="text-primary-500 hover:text-primary-600 underline"
@@ -411,6 +460,63 @@ export default function ChatbotForSaasOnboardingPage() {
                     VocUI pricing
                   </Link>
                   .
+                </p>
+              </section>
+
+              {/* Section 8 — Example: an onboarding chatbot conversation — unique to SaaS post */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  Example: An Onboarding Chatbot Conversation
+                </h2>
+                <p>
+                  Here is how a chatbot trained on your product docs handles a new user stuck
+                  during setup:
+                </p>
+
+                <div className="mt-6 mb-6 space-y-3">
+                  <div className="flex justify-end">
+                    <div className="bg-primary-100 dark:bg-primary-900/40 rounded-2xl rounded-tr-sm px-4 py-3 max-w-[80%]">
+                      <p className="text-sm text-secondary-800 dark:text-secondary-200">
+                        I&apos;m trying to connect my Stripe account but I keep getting an error about permissions.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-start">
+                    <div className="bg-secondary-100 dark:bg-secondary-800 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
+                      <p className="text-sm text-secondary-800 dark:text-secondary-200">
+                        That permissions error usually means your Stripe account needs admin-level
+                        access to complete the integration. Here is how to check: go to your Stripe
+                        dashboard, click Settings, then Team, and confirm your role shows
+                        &quot;Administrator.&quot; If you are on a team account and do not have admin
+                        access, you will need to ask your account owner to either promote your role
+                        or complete the integration step themselves. Would you like the link to our
+                        full Stripe integration guide?
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <div className="bg-primary-100 dark:bg-primary-900/40 rounded-2xl rounded-tr-sm px-4 py-3 max-w-[80%]">
+                      <p className="text-sm text-secondary-800 dark:text-secondary-200">
+                        That worked! What should I set up next?
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-start">
+                    <div className="bg-secondary-100 dark:bg-secondary-800 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
+                      <p className="text-sm text-secondary-800 dark:text-secondary-200">
+                        Now that Stripe is connected, the next step is creating your first
+                        workflow. Most users start with a welcome email trigger — it fires
+                        automatically when a new customer is added. I can walk you through it,
+                        or you can follow the quickstart guide here: [link].
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <p>
+                  That interaction took under a minute. Without the chatbot, it would have
+                  been a support ticket with a 4-hour response time — and a good chance the
+                  user never comes back to complete setup.
                 </p>
               </section>
 
@@ -459,12 +565,12 @@ export default function ChatbotForSaasOnboardingPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">See how businesses like yours use VocUI</h2>
+            <h2 className="text-2xl font-bold mb-3">Build a chatbot trained on your business</h2>
             <p className="text-white/80 mb-2">
-              Upload your docs, train a chatbot on your content, and deploy it where your customers already are.
+              Upload your FAQs, policies, and product info -- your chatbot answers from your knowledge, not generic scripts.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan included. Most teams are live in under an hour.
+              Free plan. Live in under an hour.
             </p>
             <Button
               size="xl"
@@ -473,7 +579,7 @@ export default function ChatbotForSaasOnboardingPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Start with your content
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>

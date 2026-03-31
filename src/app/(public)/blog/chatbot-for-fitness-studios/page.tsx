@@ -90,22 +90,6 @@ const jsonLd = {
             text: 'Many gyms prefer to discuss pricing in person or over the phone. Configure the chatbot to handle pricing questions by sharing general information about membership tiers and what each includes, then directing the visitor to schedule a tour or call your front desk for specific pricing. For example: "We offer three membership levels: Basic (gym floor access), Plus (gym + classes), and Premium (unlimited everything including personal training credits). For current rates and any promotions, visit us for a free tour or call (555) 123-4567." This keeps the conversation helpful without revealing prices online.',
           },
         },
-        {
-          '@type': 'Question',
-          name: 'How often should I update the class schedule in the chatbot?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Update the schedule whenever it changes. If your schedule lives on your website and you link that URL as a knowledge source, re-scrape the URL each time the schedule updates — it takes two minutes. For studios that change schedules weekly or monthly, set a recurring reminder to refresh the knowledge base. An inaccurate schedule is worse than no schedule — a member who shows up for a class that was moved or cancelled will blame the chatbot and lose trust in it.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'Can it help during the New Year signup rush?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'January is the busiest month for gym signups, and the chatbot handles the surge without additional staffing. Update your knowledge base in late December with current promotions, new member offers, January class additions, and any waitlist policies. The chatbot answers the flood of "How much is a membership?" and "Do you offer a free trial?" questions instantly, freeing your front desk staff to focus on in-person tours, orientations, and creating a great first impression for new members walking through the door.',
-          },
-        },
       ],
     },
   ],
@@ -152,7 +136,7 @@ export default function ChatbotForFitnessStudiosPage() {
                 </span>
                 <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">
-                  8 min read
+                  12 min read
                 </span>
               </div>
               <AuthorByline className="mb-4" />
@@ -254,7 +238,7 @@ export default function ChatbotForFitnessStudiosPage() {
                 </p>
               </section>
 
-              {/* Section 3 — unique: member retention angle */}
+              {/* Section 3 — unique: member retention angle with metrics */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Beyond Signups: Using Chatbots for Member Retention
@@ -266,20 +250,83 @@ export default function ChatbotForFitnessStudiosPage() {
                   policy inquiries, and facility information — the same questions that would
                   otherwise require a phone call or front desk visit.
                 </p>
-                <p className="mt-4">
+
+                {/* Retention metrics — unique to fitness post */}
+                <div className="bg-secondary-50 dark:bg-secondary-800/40 rounded-xl p-6 mt-6 mb-6">
+                  <p className="text-sm font-semibold text-secondary-900 dark:text-secondary-100 mb-4">
+                    How chatbot availability connects to retention metrics
+                  </p>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between border-b border-secondary-200 dark:border-secondary-700 pb-2">
+                      <span className="text-secondary-600 dark:text-secondary-400">Micro-friction that drives cancellations</span>
+                      <span className="font-medium text-secondary-900 dark:text-secondary-100">Chatbot solution</span>
+                    </div>
+                    <div className="flex justify-between border-b border-secondary-200 dark:border-secondary-700 pb-2">
+                      <span className="text-secondary-600 dark:text-secondary-400">Can&apos;t confirm class time after hours</span>
+                      <span className="font-medium text-secondary-900 dark:text-secondary-100">Instant schedule answers at any hour</span>
+                    </div>
+                    <div className="flex justify-between border-b border-secondary-200 dark:border-secondary-700 pb-2">
+                      <span className="text-secondary-600 dark:text-secondary-400">Freeze policy unclear during vacation planning</span>
+                      <span className="font-medium text-secondary-900 dark:text-secondary-100">Policy details without a phone call</span>
+                    </div>
+                    <div className="flex justify-between border-b border-secondary-200 dark:border-secondary-700 pb-2">
+                      <span className="text-secondary-600 dark:text-secondary-400">New class added but member doesn&apos;t know</span>
+                      <span className="font-medium text-secondary-900 dark:text-secondary-100">Updated schedule in real time</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-secondary-600 dark:text-secondary-400">Guest pass policy unknown</span>
+                      <span className="font-medium text-secondary-900 dark:text-secondary-100">Instant answer + referral opportunity</span>
+                    </div>
+                  </div>
+                </div>
+
+                <p>
                   A member checking the schedule at 10 PM decides whether to come tomorrow
                   morning. If they can&apos;t easily confirm the 6 AM class is still on, they
-                  might skip it. A member wondering about the freeze policy during a vacation
-                  shouldn&apos;t have to wait for business hours to find out. Each of these
-                  small friction points, individually minor, compounds into the feeling that
-                  your gym is harder to deal with than it should be — and that feeling drives
-                  cancellations.
+                  might skip it. Each of these small friction points, individually minor,
+                  compounds into the feeling that your gym is harder to deal with than it
+                  should be — and that feeling drives cancellations.
                 </p>
                 <p className="mt-4">
-                  The chatbot eliminates these micro-frictions. Every question answered instantly
-                  is one less reason for a member to feel friction with your business. Track
-                  which questions existing members ask most to identify retention-relevant
-                  content gaps on your website.
+                  Track which questions existing members ask most to identify retention-relevant
+                  content gaps. If 15 members per week ask about the freeze policy and it is not
+                  clearly on your website, that is a signal — both for the chatbot&apos;s
+                  knowledge base and for your website content.
+                </p>
+              </section>
+
+              {/* Section 4 — New Year surge strategy — unique to fitness post */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  The January Playbook: Handling the New Year Signup Surge
+                </h2>
+                <p>
+                  January is the Super Bowl of gym sales. According to <a href="https://smarthealthclubs.com/blog/100-gym-membership-retention-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Smart Health Clubs</a>,
+                  12% of all new gym memberships start in January. Your website traffic spikes,
+                  your front desk is overwhelmed with walk-ins and tours, and the phone rings
+                  non-stop. A chatbot absorbs the digital side of this surge so your staff can
+                  focus on in-person experiences.
+                </p>
+
+                {/* January checklist — unique to fitness post */}
+                <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-xl px-6 py-5 mt-6 mb-6">
+                  <p className="text-sm font-semibold text-primary-800 dark:text-primary-200 mb-3">
+                    Pre-January chatbot checklist
+                  </p>
+                  <ol className="space-y-2 text-sm text-secondary-600 dark:text-secondary-400 list-decimal list-inside">
+                    <li>Update knowledge base with January promotions and new member offers (late December).</li>
+                    <li>Add any new class additions or schedule changes for the new year.</li>
+                    <li>Include waitlist policies if popular classes fill up.</li>
+                    <li>Refresh trial class information and booking links.</li>
+                    <li>Test the chatbot with the top 10 questions you expect (&quot;How much?&quot; &quot;Free trial?&quot; &quot;What classes?&quot;).</li>
+                  </ol>
+                </div>
+
+                <p>
+                  The payoff: your front desk staff focuses on in-person tours, orientations,
+                  and creating a great first impression for new members walking through the
+                  door. The chatbot handles the digital version of the same experience for
+                  the visitors who are not ready to walk in yet.
                 </p>
               </section>
 
@@ -368,14 +415,6 @@ export default function ChatbotForFitnessStudiosPage() {
                       q: 'What if our pricing is not published online?',
                       a: "Many gyms prefer to discuss pricing in person or over the phone. Configure the chatbot to handle pricing questions by sharing general information about membership tiers and what each includes, then directing the visitor to schedule a tour or call your front desk for specific pricing. For example: \u201CWe offer three membership levels: Basic (gym floor access), Plus (gym + classes), and Premium (unlimited everything including personal training credits). For current rates and any promotions, visit us for a free tour or call (555) 123-4567.\u201D This keeps the conversation helpful without revealing prices online.",
                     },
-                    {
-                      q: 'How often should I update the class schedule in the chatbot?',
-                      a: "Update the schedule whenever it changes. If your schedule lives on your website and you link that URL as a knowledge source, re-scrape the URL each time the schedule updates \u2014 it takes two minutes. For studios that change schedules weekly or monthly, set a recurring reminder to refresh the knowledge base. An inaccurate schedule is worse than no schedule \u2014 a member who shows up for a class that was moved or cancelled will blame the chatbot and lose trust in it.",
-                    },
-                    {
-                      q: 'Can it help during the New Year signup rush?',
-                      a: "January is the busiest month for gym signups, and the chatbot handles the surge without additional staffing. Update your knowledge base in late December with current promotions, new member offers, January class additions, and any waitlist policies. The chatbot answers the flood of \u201CHow much is a membership?\u201D and \u201CDo you offer a free trial?\u201D questions instantly, freeing your front desk staff to focus on in-person tours, orientations, and creating a great first impression for new members walking through the door.",
-                    },
                   ].map(({ q, a }) => (
                     <div
                       key={q}
@@ -394,12 +433,12 @@ export default function ChatbotForFitnessStudiosPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">See how gyms and studios use VocUI</h2>
+            <h2 className="text-2xl font-bold mb-3">Build a chatbot trained on your business</h2>
             <p className="text-white/80 mb-2">
-              Upload your class schedules and membership info, train a chatbot, and start converting website visitors into members.
+              Upload your FAQs, policies, and product info -- your chatbot answers from your knowledge, not generic scripts.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan included. Most studios are live in under an hour.
+              Free plan. Live in under an hour.
             </p>
             <Button
               size="xl"
@@ -408,7 +447,7 @@ export default function ChatbotForFitnessStudiosPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Start with your content
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>

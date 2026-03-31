@@ -217,8 +217,7 @@ export default function HowToMeasureChatbotRoiPage() {
                   <li>
                     <strong>Deflection rate.</strong> The percentage of conversations that resolve
                     without a human agent. This is your primary cost-saving metric. Calculate it
-                    by dividing chatbot-only resolutions by total conversations. A well-trained
-                    bot should hit 30-50%.
+                    by dividing chatbot-only resolutions by total conversations. According to <a href="https://www.ibm.com/think/topics/ai-customer-service-chatbots" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">IBM</a>, well-trained chatbots can handle up to 80% of routine inquiries, with most businesses seeing 30-50% deflection rates initially.
                   </li>
                   <li>
                     <strong>Resolution rate.</strong> The percentage of chatbot conversations where
@@ -265,9 +264,8 @@ export default function HowToMeasureChatbotRoiPage() {
                 </div>
                 <p>
                   To find your cost per ticket, divide your monthly support team costs (salaries,
-                  tools, overhead) by the number of tickets handled. Industry benchmarks put this
-                  at $5-$25 per ticket for most small to mid-size businesses. Enterprise support
-                  can run $30-$50+ per ticket.
+                  tools, overhead) by the number of tickets handled. According to <a href="https://www.demandsage.com/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">DemandSage</a>, human-agent interactions typically cost $6&ndash;$15 each. Enterprise support
+                  with more complex workflows can run significantly higher.
                 </p>
                 <p className="mt-4">
                   For example: if your chatbot deflects 200 tickets per month and your cost per
@@ -419,14 +417,18 @@ export default function HowToMeasureChatbotRoiPage() {
             </div>
           </article>
 
+          <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-8">
+            Statistics cited from publicly available reports by IBM, DemandSage, Freshworks, BizBot, and Master of Code. Links to original sources are provided inline. Last verified April 2026.
+          </p>
+
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Your turn — build it in under 5 minutes</h2>
+            <h2 className="text-2xl font-bold mb-3">You read the guide -- now build it</h2>
             <p className="text-white/80 mb-2">
-              Follow the steps you just read, but with your own content. Upload your docs, customize the look, and go live.
+              Upload your content and follow along with a working chatbot in front of you.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan included. No code, no developers, no waiting.
+              Most people finish setup in under 5 minutes.
             </p>
             <Button
               size="xl"
@@ -435,11 +437,11 @@ export default function HowToMeasureChatbotRoiPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Create your chatbot
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
-            <p className="text-xs text-white/50 mt-4">Join 1,000+ businesses already using VocUI</p>
+            <p className="text-xs text-white/50 mt-4">Free plan included -- no credit card needed</p>
           </div>
         </div>
       </main>

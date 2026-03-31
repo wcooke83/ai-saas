@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
+import { permanentRedirect } from 'next/navigation';
 
 export default function RedirectPage() {
-  redirect('/blog/how-to-write-chatbot-system-prompt');
+  permanentRedirect('/blog/how-to-write-chatbot-system-prompt');
 }

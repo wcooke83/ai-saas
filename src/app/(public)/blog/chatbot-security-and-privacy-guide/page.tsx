@@ -452,12 +452,12 @@ export default function ChatbotSecurityAndPrivacyGuidePage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Put these practices to work — right now</h2>
+            <h2 className="text-2xl font-bold mb-3">Put this into practice -- today</h2>
             <p className="text-white/80 mb-2">
-              You have the playbook. VocUI gives you the platform to execute it. Launch a chatbot that follows every best practice on this page.
+              You have the strategy. VocUI gives you the platform to execute it without writing code.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan included. Most teams go live in under an hour.
+              Your first chatbot is free. Most teams are live in under an hour.
             </p>
             <Button
               size="xl"
@@ -466,11 +466,11 @@ export default function ChatbotSecurityAndPrivacyGuidePage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Launch your first chatbot
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
-            <p className="text-xs text-white/50 mt-4">Start building — your first chatbot is free</p>
+            <p className="text-xs text-white/50 mt-4">Start building -- your first chatbot is free</p>
           </div>
         </div>
       </main>

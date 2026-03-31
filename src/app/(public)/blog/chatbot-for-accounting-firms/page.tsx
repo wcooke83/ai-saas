@@ -106,6 +106,22 @@ const jsonLd = {
             text: 'Yes. Tax season is the peak use case, but accounting firms receive routine questions year-round: "Do you offer bookkeeping?" "How does your advisory service work?" "What are the quarterly estimate deadlines?" "How do I become a client?" Prospects evaluating your firm visit your website at all hours. A chatbot that answers these questions at 9 PM on a Tuesday keeps your firm competitive with larger firms that have dedicated intake teams. Year-round, the chatbot serves as a 24/7 information desk that handles the questions your team has answered a thousand times.',
           },
         },
+        {
+          '@type': 'Question',
+          name: 'How do I help clients with portal login and document uploads?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Train the chatbot on your client portal documentation: login instructions, step-by-step upload guides, password reset procedures, and troubleshooting steps. When a client asks "How do I send you my W-2?" the chatbot provides instructions and a direct link to your portal login page. This eliminates the most common support request during document collection season.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Can I run separate chatbots for personal and business tax clients?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes. If your firm serves both individual and business clients with different service lines, document requirements, and deadlines, separate chatbots can provide more targeted answers. An individual tax client asking about deductions gets personal tax content. A business client asking about payroll gets business service content. Deploy each on the relevant section of your website.',
+          },
+        },
       ],
     },
   ],
@@ -152,7 +168,7 @@ export default function ChatbotForAccountingFirmsPage() {
                 </span>
                 <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">
-                  9 min read
+                  13 min read
                 </span>
               </div>
               <AuthorByline className="mb-4" />
@@ -265,7 +281,73 @@ export default function ChatbotForAccountingFirmsPage() {
                 </p>
               </section>
 
-              {/* Section 4 — AICPA and IRS compliance */}
+              {/* Section 4 — tax season workflow — unique to accounting post */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  The Tax Season Workflow: Chatbot at Every Stage
+                </h2>
+                <p>
+                  Tax season is not a single event — it is a four-month process with distinct
+                  phases. The chatbot plays a different role at each one:
+                </p>
+
+                {/* Tax season phases — unique to accounting post */}
+                <div className="mt-6 mb-6 space-y-4">
+                  <div className="border-l-4 border-primary-300 dark:border-primary-700 pl-4 py-2">
+                    <p className="font-semibold text-secondary-900 dark:text-secondary-100">January: Document collection</p>
+                    <p className="text-sm text-secondary-500 dark:text-secondary-400">Clients ask: &quot;What documents do I need?&quot; &quot;When will I get my W-2?&quot; &quot;What is the deadline for sending you my info?&quot; Chatbot provides document checklists and your firm&apos;s intake deadlines.</p>
+                  </div>
+                  <div className="border-l-4 border-primary-400 dark:border-primary-600 pl-4 py-2">
+                    <p className="font-semibold text-secondary-900 dark:text-secondary-100">February-March: Processing and questions</p>
+                    <p className="text-sm text-secondary-500 dark:text-secondary-400">Clients ask: &quot;When will my return be ready?&quot; &quot;Can I still contribute to my IRA for last year?&quot; &quot;How do I access your client portal?&quot; Chatbot handles process FAQs while your CPAs work on returns.</p>
+                  </div>
+                  <div className="border-l-4 border-primary-500 pl-4 py-2">
+                    <p className="font-semibold text-secondary-900 dark:text-secondary-100">April 1-15: Final rush</p>
+                    <p className="text-sm text-secondary-500 dark:text-secondary-400">Clients ask: &quot;Can I get an extension?&quot; &quot;What happens if I miss the deadline?&quot; &quot;Do I owe estimated taxes?&quot; Chatbot handles the surge of last-minute questions while your team pushes returns out the door.</p>
+                  </div>
+                  <div className="border-l-4 border-secondary-300 dark:border-secondary-600 pl-4 py-2">
+                    <p className="font-semibold text-secondary-900 dark:text-secondary-100">Post-April: Extensions and quarterly estimates</p>
+                    <p className="text-sm text-secondary-500 dark:text-secondary-400">Clients on extension ask: &quot;What is the October deadline?&quot; &quot;When is my next estimated payment due?&quot; Chatbot keeps answering while your team takes a breather.</p>
+                  </div>
+                </div>
+
+                <p>
+                  The chatbot does not replace your CPAs at any stage. It handles the
+                  informational questions at each stage so your CPAs can focus on the
+                  substantive work: preparing returns, reviewing financials, and providing
+                  actual tax advice in client meetings.
+                </p>
+              </section>
+
+              {/* Section 5 — client portal integration — unique to accounting post */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  Client Portal Integration: Reducing the &quot;How Do I Log In?&quot; Calls
+                </h2>
+                <p>
+                  If your firm uses a client portal — SafeSend Returns, TaxDome, Liscio, Canopy,
+                  or a custom solution — you know the most common support request: &quot;How do I
+                  log in to the portal?&quot; followed closely by &quot;How do I upload my
+                  documents?&quot; and &quot;I forgot my password.&quot;
+                </p>
+                <p className="mt-4">
+                  Train the chatbot on your portal documentation: login instructions,
+                  step-by-step upload guides, password reset procedures, and common
+                  troubleshooting steps. When a client asks &quot;How do I send you my
+                  W-2?&quot; the chatbot provides clear instructions and a direct link to
+                  your portal login page. This eliminates dozens of identical support calls
+                  during document collection season.
+                </p>
+                <p className="mt-4">
+                  The chatbot also explains what the portal is for clients who have never
+                  used it: &quot;Our secure client portal is where you upload documents,
+                  review your return, and electronically sign. It takes about two minutes to
+                  set up your account.&quot; New clients who understand the portal before
+                  their first engagement require less onboarding hand-holding.
+                </p>
+              </section>
+
+              {/* Section 6 — AICPA and IRS compliance */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Staying Within AICPA Standards and IRS Guidelines
@@ -388,6 +470,14 @@ export default function ChatbotForAccountingFirmsPage() {
                       q: 'Is it worth it outside of tax season?',
                       a: "Yes. Tax season is the peak use case, but accounting firms receive routine questions year-round: \u201CDo you offer bookkeeping?\u201D \u201CHow does your advisory service work?\u201D \u201CWhat are the quarterly estimate deadlines?\u201D \u201CHow do I become a client?\u201D Prospects evaluating your firm visit your website at all hours. A chatbot that answers these questions at 9 PM on a Tuesday keeps your firm competitive with larger firms that have dedicated intake teams. Year-round, the chatbot serves as a 24/7 information desk that handles the questions your team has answered a thousand times.",
                     },
+                    {
+                      q: 'How do I help clients with portal login and document uploads?',
+                      a: "Train the chatbot on your client portal documentation: login instructions, step-by-step upload guides, password reset procedures, and troubleshooting steps. When a client asks \u201CHow do I send you my W-2?\u201D the chatbot provides instructions and a direct link to your portal login page. This eliminates the most common support request during document collection season: \u201CHow do I log in?\u201D",
+                    },
+                    {
+                      q: 'Can I run separate chatbots for personal and business tax clients?',
+                      a: "Yes. If your firm serves both individual and business clients with different service lines, document requirements, and deadlines, separate chatbots can provide more targeted answers. An individual tax client asking about deductions gets personal tax content. A business client asking about payroll gets business service content. Deploy each on the relevant section of your website. A single chatbot can also serve both audiences if your knowledge base is well-organized with clear content separation.",
+                    },
                   ].map(({ q, a }) => (
                     <div
                       key={q}
@@ -406,12 +496,12 @@ export default function ChatbotForAccountingFirmsPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">See how accounting firms use VocUI</h2>
+            <h2 className="text-2xl font-bold mb-3">Build a chatbot trained on your business</h2>
             <p className="text-white/80 mb-2">
-              Upload your service descriptions and tax FAQs, train a chatbot, and start reclaiming billable hours from repetitive questions.
+              Upload your FAQs, policies, and product info -- your chatbot answers from your knowledge, not generic scripts.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan included. Most firms are live in under an hour.
+              Free plan. Live in under an hour.
             </p>
             <Button
               size="xl"
@@ -420,7 +510,7 @@ export default function ChatbotForAccountingFirmsPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Start with your content
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>

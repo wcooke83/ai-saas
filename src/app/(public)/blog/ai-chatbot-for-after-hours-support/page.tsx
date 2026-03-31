@@ -422,12 +422,12 @@ export default function AiChatbotForAfterHoursSupportPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Turn this strategy into results — today</h2>
+            <h2 className="text-2xl font-bold mb-3">Stop paying for answers a chatbot can handle</h2>
             <p className="text-white/80 mb-2">
-              Every hour without automation is time and money your team won&apos;t get back. VocUI gets you live in under 60 minutes.
+              Train a chatbot on your docs and start deflecting repetitive questions in under an hour.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan. No contracts. Cancel anytime.
+              Free plan. No developers needed. Measure the impact from day one.
             </p>
             <Button
               size="xl"
@@ -436,11 +436,11 @@ export default function AiChatbotForAfterHoursSupportPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Automate your support
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
-            <p className="text-xs text-white/50 mt-4">Start free — no credit card required</p>
+            <p className="text-xs text-white/50 mt-4">Start free -- see ROI within your first week</p>
           </div>
         </div>
       </main>

@@ -393,12 +393,12 @@ export default function WhatIsVectorSearchPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Now see it in action — with your own content</h2>
+            <h2 className="text-2xl font-bold mb-3">See the concepts in action</h2>
             <p className="text-white/80 mb-2">
-              You understand how it works. Try it yourself: upload a document, ask a question, and watch your chatbot answer from your knowledge.
+              Upload a document, ask your chatbot a question, and watch it pull the right answer from your content.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free to start. Takes about 2 minutes to see your first answer.
+              No technical setup. The free plan is enough to try it.
             </p>
             <Button
               size="xl"
@@ -407,11 +407,11 @@ export default function WhatIsVectorSearchPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Try it with your own docs
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
-            <p className="text-xs text-white/50 mt-4">No setup fee, no commitments</p>
+            <p className="text-xs text-white/50 mt-4">No setup fee, no commitment</p>
           </div>
         </div>
       </main>

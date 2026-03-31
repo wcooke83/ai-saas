@@ -445,12 +445,12 @@ export default function ChatbotForRestaurantsPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Stop losing tables to unanswered questions</h2>
+            <h2 className="text-2xl font-bold mb-3">Build a chatbot trained on your business</h2>
             <p className="text-white/80 mb-2">
-              Upload your menu and policies, train a chatbot in minutes, and let it handle the questions that cost you reservations.
+              Upload your FAQs, policies, and product info -- your chatbot answers from your knowledge, not generic scripts.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan included. Most restaurants are live before dinner service.
+              Free plan. Live in under an hour.
             </p>
             <Button
               size="xl"
@@ -459,7 +459,7 @@ export default function ChatbotForRestaurantsPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Start with your content
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>

@@ -79,7 +79,7 @@ const jsonLd = {
           name: 'Do customers actually like chatbots?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Customer satisfaction with chatbots depends heavily on the quality of the implementation and the type of query. For simple, informational questions — checking hours, understanding policies, getting product details — customers strongly prefer the instant response of a chatbot over waiting in a queue. Studies show 62% of consumers prefer chatbots for simple queries. Satisfaction drops when chatbots are used for complex issues that genuinely need human judgment. The key is matching the tool to the task: use chatbots for information retrieval and route complex issues to humans.',
+            text: 'Customer satisfaction with chatbots depends heavily on the quality of the implementation and the type of query. For simple, informational questions — checking hours, understanding policies, getting product details — customers strongly prefer the instant response of a chatbot over waiting in a queue. A Tidio survey found 62% of consumers prefer chatbots for simple queries. Satisfaction drops when chatbots are used for complex issues that genuinely need human judgment. The key is matching the tool to the task: use chatbots for information retrieval and route complex issues to humans.',
           },
         },
         {
@@ -87,7 +87,7 @@ const jsonLd = {
           name: 'What is the average cost saving from AI chatbots?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Businesses deploying AI chatbots for customer service report average cost reductions of 30% on their support operations. The savings come from reduced staffing requirements (the chatbot handles 60–80% of routine queries), lower average handle time for human agents (who only deal with complex issues), and decreased training costs (the chatbot delivers consistent answers without ongoing training). For a company spending $200,000 annually on customer support, a 30% reduction translates to $60,000 in savings — typically far more than the cost of the chatbot tool itself.',
+            text: 'According to IBM, businesses deploying AI chatbots for customer service report average cost reductions of 30% on their support operations. The savings come from reduced staffing requirements (IBM reports chatbots handle up to 80% of routine queries), lower average handle time for human agents (who only deal with complex issues), and decreased training costs (the chatbot delivers consistent answers without ongoing training). For a company spending $200,000 annually on customer support, a 30% reduction translates to $60,000 in savings — typically far more than the cost of the chatbot tool itself.',
           },
         },
         {
@@ -95,7 +95,7 @@ const jsonLd = {
           name: 'How does AI chatbot ROI compare to hiring additional agents?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'An AI chatbot typically costs $0–$99 per month and handles unlimited concurrent conversations 24/7. A single customer support agent costs $35,000–$55,000 per year in salary, plus benefits, training, management, and tooling. The chatbot handles the volume equivalent of 3–5 full-time agents for routine queries. This makes the ROI comparison straightforward for high-volume, repetitive support: the chatbot delivers the same (or better) coverage at roughly 1–3% of the cost. However, chatbots do not replace agents for complex issues — they complement them by reducing the total volume agents need to handle.',
+            text: 'An AI chatbot typically costs $0–$99 per month and handles unlimited concurrent conversations 24/7. According to the U.S. Bureau of Labor Statistics, the median customer service representative earns about $43,000 per year, plus benefits, training, management, and tooling. The chatbot handles the volume equivalent of several full-time agents for routine queries. This makes the ROI comparison straightforward for high-volume, repetitive support: the chatbot delivers the same (or better) coverage at a fraction of the cost. However, chatbots do not replace agents for complex issues — they complement them by reducing the total volume agents need to handle.',
           },
         },
         {
@@ -165,7 +165,7 @@ export default function AiCustomerServiceStatisticsPage() {
             <div className="bg-primary-50 dark:bg-primary-900/20 border-l-4 border-primary-500 rounded-r-xl px-6 py-5 mb-10">
               <p className="text-secondary-800 dark:text-secondary-200 text-lg leading-relaxed">
                 AI is reshaping customer service faster than most businesses realize. From
-                30% cost reductions to 24/7 availability and 3x faster response times, the
+                30% cost reductions (<a href="https://www.ibm.com/blogs/watson/2017/10/how-chatbots-reduce-customer-service-costs-by-30-percent/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">IBM</a>) to 24/7 availability and faster response times, the
                 data makes a clear case for adding an AI chatbot to your support stack. Here
                 are 15 statistics that quantify the impact.
               </p>
@@ -344,28 +344,28 @@ export default function AiCustomerServiceStatisticsPage() {
                 <ul className="space-y-4 mt-4">
                   <li>
                     <strong className="text-secondary-900 dark:text-secondary-100">
-                      11. Companies using AI chatbots see a 3x return on investment within
+                      11. Companies using AI chatbots see strong returns on investment within
                       the first year.
                     </strong>{' '}
-                    The combination of reduced support costs, increased agent productivity,
-                    and improved customer retention produces ROI that typically exceeds the
+                    <a href="https://www.freshworks.com/How-AI-is-unlocking-ROI-in-customer-service/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Freshworks reports</a> an average $3.50 return for every $1 invested in AI, with top performers seeing up to $8. The combination of reduced support costs, increased agent productivity,
+                    and improved customer retention typically exceeds the
                     chatbot investment within 3–6 months. The return continues to compound
                     as the knowledge base improves and more conversations are automated.
                   </li>
                   <li>
                     <strong className="text-secondary-900 dark:text-secondary-100">
-                      12. AI-powered support increases first-contact resolution rates by 25%.
+                      12. AI-powered support meaningfully improves first-contact resolution rates.
                     </strong>{' '}
-                    Chatbots trained on comprehensive knowledge bases resolve queries on the
+                    According to <a href="https://www.fullview.io/blog/ai-customer-service-stats" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Fullview</a>, companies using AI chatbots report up to 30% improvement in first-contact resolution. Chatbots trained on comprehensive knowledge bases resolve queries on the
                     first interaction more often than human agents who may need to research,
                     consult colleagues, or escalate. Higher first-contact resolution means
                     fewer follow-up tickets and lower total support volume.
                   </li>
                   <li>
                     <strong className="text-secondary-900 dark:text-secondary-100">
-                      13. Businesses with 24/7 AI support see 15% higher customer retention.
+                      13. 24/7 AI support drives measurably higher customer retention.
                     </strong>{' '}
-                    Customers who can get help at any hour are less likely to churn. The
+                    <a href="https://www.freshworks.com/How-AI-is-unlocking-ROI-in-customer-service/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Forrester research via Freshworks</a> found that customers are 2.4x more likely to remain loyal when problems resolve quickly. Customers who can get help at any hour are less likely to churn. The
                     after-hours support gap — evenings, weekends, holidays — is a common
                     source of frustration that drives customers to competitors. AI chatbots
                     eliminate this gap entirely.
@@ -380,11 +380,11 @@ export default function AiCustomerServiceStatisticsPage() {
                   </li>
                   <li>
                     <strong className="text-secondary-900 dark:text-secondary-100">
-                      15. Small businesses using AI chatbots report a 50% reduction in
+                      15. Small businesses using AI chatbots report significant reductions in
                       support workload.
                     </strong>{' '}
-                    The impact is proportionally larger for small businesses because they
-                    have fewer staff to absorb support volume. A chatbot that handles half
+                    Given that <a href="https://www.ibm.com/think/topics/ai-customer-service-chatbots" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">IBM reports</a> chatbots can handle up to 80% of routine inquiries, the impact is proportionally larger for small businesses because they
+                    have fewer staff to absorb support volume. A chatbot that handles the majority of
                     your support queries frees up significant capacity for a 5-person team —
                     capacity that can go toward product development, sales, or operations.
                   </li>
@@ -439,15 +439,15 @@ export default function AiCustomerServiceStatisticsPage() {
                     },
                     {
                       q: 'Do customers actually like chatbots?',
-                      a: "Customer satisfaction with chatbots depends heavily on the quality of the implementation and the type of query. For simple, informational questions \u2014 checking hours, understanding policies, getting product details \u2014 customers strongly prefer the instant response of a chatbot over waiting in a queue. Studies show 62% of consumers prefer chatbots for simple queries. Satisfaction drops when chatbots are used for complex issues that genuinely need human judgment. The key is matching the tool to the task.",
+                      a: "Customer satisfaction with chatbots depends heavily on the quality of the implementation and the type of query. For simple, informational questions \u2014 checking hours, understanding policies, getting product details \u2014 customers strongly prefer the instant response of a chatbot over waiting in a queue. A Tidio survey found 62% of consumers prefer chatbots for simple queries. Satisfaction drops when chatbots are used for complex issues that genuinely need human judgment. The key is matching the tool to the task.",
                     },
                     {
                       q: 'What is the average cost saving from AI chatbots?',
-                      a: "Businesses deploying AI chatbots for customer service report average cost reductions of 30% on their support operations. The savings come from reduced staffing requirements (the chatbot handles 60\u201380% of routine queries), lower average handle time for human agents (who only deal with complex issues), and decreased training costs (the chatbot delivers consistent answers without ongoing training). For a company spending $200,000 annually on customer support, a 30% reduction translates to $60,000 in savings.",
+                      a: "According to IBM, businesses deploying AI chatbots for customer service report average cost reductions of 30% on their support operations. The savings come from reduced staffing requirements (IBM reports chatbots handle up to 80% of routine queries), lower average handle time for human agents (who only deal with complex issues), and decreased training costs (the chatbot delivers consistent answers without ongoing training). For a company spending $200,000 annually on customer support, a 30% reduction translates to $60,000 in savings.",
                     },
                     {
                       q: 'How does AI chatbot ROI compare to hiring additional agents?',
-                      a: "An AI chatbot typically costs $0\u2013$99 per month and handles unlimited concurrent conversations 24/7. A single customer support agent costs $35,000\u2013$55,000 per year in salary, plus benefits, training, management, and tooling. The chatbot handles the volume equivalent of 3\u20135 full-time agents for routine queries. This makes the ROI comparison straightforward for high-volume, repetitive support: the chatbot delivers the same (or better) coverage at roughly 1\u20133% of the cost.",
+                      a: "An AI chatbot typically costs $0\u2013$99 per month and handles unlimited concurrent conversations 24/7. According to the U.S. Bureau of Labor Statistics, the median customer service representative earns about $43,000 per year, plus benefits, training, management, and tooling. The chatbot handles the volume equivalent of several full-time agents for routine queries. This makes the ROI comparison straightforward for high-volume, repetitive support: the chatbot delivers the same (or better) coverage at a fraction of the cost.",
                     },
                     {
                       q: 'Where can I find more data on AI in customer service?',
@@ -469,14 +469,18 @@ export default function AiCustomerServiceStatisticsPage() {
             </div>
           </article>
 
+          <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-8">
+            Statistics cited from publicly available industry reports by IBM, Gartner, Tidio, HubSpot, Freshworks, DemandSage, Grand View Research, Master of Code, Invesp, Fullview, and Dimension Data. Links to original sources are provided inline. Last verified April 2026.
+          </p>
+
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Turn this strategy into results — today</h2>
+            <h2 className="text-2xl font-bold mb-3">Stop paying for answers a chatbot can handle</h2>
             <p className="text-white/80 mb-2">
-              Every hour without automation is time and money your team won&apos;t get back. VocUI gets you live in under 60 minutes.
+              Train a chatbot on your docs and start deflecting repetitive questions in under an hour.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan. No contracts. Cancel anytime.
+              Free plan. No developers needed. Measure the impact from day one.
             </p>
             <Button
               size="xl"
@@ -485,11 +489,11 @@ export default function AiCustomerServiceStatisticsPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Automate your support
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
-            <p className="text-xs text-white/50 mt-4">Start free — no credit card required</p>
+            <p className="text-xs text-white/50 mt-4">Start free -- see ROI within your first week</p>
           </div>
         </div>
       </main>

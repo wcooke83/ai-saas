@@ -98,6 +98,30 @@ const jsonLd = {
             text: 'No. It handles the informational questions that precede a booking conversation — destination research, package comparisons, logistics questions, and travel document requirements. These are the questions that fill your inbox and voicemail. The chatbot answers them instantly so that when a prospect is ready to book, they are already informed and your agents can focus on customizing itineraries, negotiating rates, and closing the sale. It is a lead-warming tool, not a replacement for human expertise in complex trip planning.',
           },
         },
+        {
+          '@type': 'Question',
+          name: 'Can the chatbot answer in other languages?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes. The AI behind VocUI chatbots supports dozens of languages natively. When a visitor writes in Spanish, French, German, Japanese, or another supported language, the chatbot responds in that language automatically. Your training content can stay in English — the chatbot translates its responses. This is particularly valuable for agencies serving international travelers or operating in multilingual markets.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How do I handle travel advisories and safety alerts?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Add current travel advisories to your knowledge base for the destinations you serve. When conditions change — a natural disaster, political instability, health advisory — update the chatbot\'s content immediately. Include links to official sources (State Department, CDC, embassy websites) so travelers can verify information. The chatbot can answer "Is it safe to travel to [country]?" with your agency\'s most current assessment and official references.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Can I use the chatbot for group travel and corporate bookings?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes. Train the chatbot on your group travel policies, corporate travel programs, and large-party logistics. Group travel prospects ask specific questions: minimum group size, group discounts, dedicated coordinator availability, and custom itinerary options. The chatbot answers these and directs qualified group inquiries to your corporate or group travel desk for personalized planning.',
+          },
+        },
       ],
     },
   ],
@@ -144,7 +168,7 @@ export default function ChatbotForTravelAgenciesPage() {
                 </span>
                 <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">
-                  8 min read
+                  13 min read
                 </span>
               </div>
               <AuthorByline className="mb-4" />
@@ -241,7 +265,88 @@ export default function ChatbotForTravelAgenciesPage() {
                 </p>
               </section>
 
-              {/* Section 3 — GDS and booking systems */}
+              {/* Section 3 — multi-language support — unique to travel post */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  Serving International Travelers in Their Language
+                </h2>
+                <p>
+                  Travel agencies serve a global audience. A prospect in Germany researching
+                  your Italy package should be able to ask questions in German. A family in
+                  Brazil planning a Disney World trip may prefer Portuguese. The AI behind
+                  VocUI chatbots supports dozens of languages natively — it responds in
+                  whatever language the visitor uses, without any additional configuration.
+                </p>
+                <p className="mt-4">
+                  This is a significant competitive advantage for agencies that serve
+                  international travelers or operate in multilingual markets. Your training
+                  content can be in English, and the chatbot will translate its responses
+                  automatically when a visitor writes in another language. The translation
+                  quality is strong for major languages (Spanish, French, German, Portuguese,
+                  Japanese, Mandarin, and others) — the chatbot draws from your content and
+                  presents it in the visitor&apos;s language.
+                </p>
+                <p className="mt-4">
+                  For agencies that specialize in inbound tourism — bringing international
+                  visitors to your region — this removes a major barrier. A Japanese tourist
+                  researching your Napa Valley wine tour can interact with the chatbot in
+                  Japanese, get answers about the itinerary, and request a booking — all
+                  without your team needing to hire multilingual staff.
+                </p>
+              </section>
+
+              {/* Section 4 — booking flow integration — unique to travel post */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  Where the Chatbot Fits in Your Booking Flow
+                </h2>
+                <p>
+                  Travel bookings are rarely impulsive. The typical path from interest to
+                  booking involves multiple research sessions, comparison shopping, and
+                  questions that need answers before the traveler commits. Here is where the
+                  chatbot adds value at each stage:
+                </p>
+
+                {/* Booking flow — unique to travel post */}
+                <div className="mt-6 mb-6 relative">
+                  <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-primary-200 dark:bg-primary-800" />
+                  <div className="space-y-6 pl-12">
+                    <div className="relative">
+                      <div className="absolute -left-8 top-1 w-4 h-4 rounded-full bg-primary-500 border-2 border-white dark:border-secondary-900" />
+                      <p className="font-semibold text-secondary-900 dark:text-secondary-100">Dreaming</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">&quot;What destinations do you specialize in?&quot; &quot;When is the best time to visit Thailand?&quot; Chatbot shares destination expertise.</p>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute -left-8 top-1 w-4 h-4 rounded-full bg-primary-500 border-2 border-white dark:border-secondary-900" />
+                      <p className="font-semibold text-secondary-900 dark:text-secondary-100">Planning</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">&quot;What&apos;s included in the Mediterranean cruise package?&quot; &quot;Do I need travel insurance?&quot; Chatbot provides package details and logistics.</p>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute -left-8 top-1 w-4 h-4 rounded-full bg-primary-500 border-2 border-white dark:border-secondary-900" />
+                      <p className="font-semibold text-secondary-900 dark:text-secondary-100">Comparing</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">&quot;What&apos;s the difference between your Tuscany and Amalfi Coast packages?&quot; Chatbot highlights distinctions from your content.</p>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute -left-8 top-1 w-4 h-4 rounded-full bg-primary-500 border-2 border-white dark:border-secondary-900" />
+                      <p className="font-semibold text-secondary-900 dark:text-secondary-100">Ready to book</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">Chatbot provides your consultation booking link or trip request form. Prospect arrives informed and ready to finalize details with an agent.</p>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute -left-8 top-1 w-4 h-4 rounded-full bg-secondary-300 dark:bg-secondary-600 border-2 border-white dark:border-secondary-900" />
+                      <p className="font-semibold text-secondary-900 dark:text-secondary-100">Post-booking (human-led)</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">Agent builds itinerary, negotiates rates, handles changes. Chatbot can still answer logistics: &quot;Do I need a visa?&quot; &quot;What&apos;s the cancellation policy?&quot;</p>
+                    </div>
+                  </div>
+                </div>
+
+                <p>
+                  The chatbot handles the first four stages entirely and supports post-booking
+                  logistics. Your agents focus on the itinerary building and booking that
+                  requires GDS access and human expertise.
+                </p>
+              </section>
+
+              {/* Section 5 — GDS and booking systems */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   How the Chatbot Works Alongside Your Booking Systems
@@ -349,6 +454,18 @@ export default function ChatbotForTravelAgenciesPage() {
                       q: 'Does the chatbot replace a travel agent?',
                       a: "No. It handles the informational questions that precede a booking conversation \u2014 destination research, package comparisons, logistics questions, and travel document requirements. These are the questions that fill your inbox and voicemail. The chatbot answers them instantly so that when a prospect is ready to book, they are already informed and your agents can focus on customizing itineraries, negotiating rates, and closing the sale. It is a lead-warming tool, not a replacement for human expertise in complex trip planning.",
                     },
+                    {
+                      q: 'Can the chatbot answer in other languages?',
+                      a: "Yes. The AI behind VocUI chatbots supports dozens of languages natively. When a visitor writes in Spanish, French, German, Japanese, or another supported language, the chatbot responds in that language automatically. Your training content can stay in English \u2014 the chatbot translates its responses. This is particularly valuable for agencies serving international travelers or operating in multilingual markets.",
+                    },
+                    {
+                      q: 'How do I handle travel advisories and safety alerts?',
+                      a: "Add current travel advisories to your knowledge base for the destinations you serve. When conditions change \u2014 a natural disaster, political instability, health advisory \u2014 update the chatbot\u2019s content immediately. Include links to official sources (State Department, CDC, embassy websites) so travelers can verify information. The chatbot can answer \u201CIs it safe to travel to [country]?\u201D with your agency\u2019s most current assessment and official references.",
+                    },
+                    {
+                      q: 'Can I use the chatbot for group travel and corporate bookings?',
+                      a: "Yes. Train the chatbot on your group travel policies, corporate travel programs, and large-party logistics. Group travel prospects ask specific questions: minimum group size, group discounts, dedicated coordinator availability, and custom itinerary options. The chatbot answers these and directs qualified group inquiries to your corporate or group travel desk for personalized planning.",
+                    },
                   ].map(({ q, a }) => (
                     <div
                       key={q}
@@ -367,12 +484,12 @@ export default function ChatbotForTravelAgenciesPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">See how travel agencies use VocUI</h2>
+            <h2 className="text-2xl font-bold mb-3">Build a chatbot trained on your business</h2>
             <p className="text-white/80 mb-2">
-              Upload your destination guides and package info, train a chatbot, and let it answer traveler questions while you plan trips.
+              Upload your FAQs, policies, and product info -- your chatbot answers from your knowledge, not generic scripts.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan included. Most agencies are live in under an hour.
+              Free plan. Live in under an hour.
             </p>
             <Button
               size="xl"
@@ -381,7 +498,7 @@ export default function ChatbotForTravelAgenciesPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Start with your content
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>

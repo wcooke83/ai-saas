@@ -98,6 +98,30 @@ const jsonLd = {
             text: 'Never train the chatbot on content containing donor names, giving history, contact lists, or internal financial records. The knowledge base should contain only public-facing content: your mission statement, program descriptions, impact reports, volunteer information, and event details. The chatbot has no connection to your donor database, CRM, or accounting system. If a visitor shares personal or financial information in a chat message, your system prompt should instruct the chatbot to redirect them to a secure communication channel.',
           },
         },
+        {
+          '@type': 'Question',
+          name: 'Can the chatbot help recruit and onboard volunteers?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes. Train it on your volunteer handbook, role descriptions, time commitments, and onboarding process. When someone asks "How can I volunteer?" the chatbot explains what is available, what is expected, and links to your signup form. Volunteers arrive at orientation already informed about the commitment, which reduces no-shows and speeds up onboarding.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How does it work during Giving Tuesday or annual campaigns?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Update your knowledge base before the campaign with current giving levels, matching gift information, and campaign goals. The chatbot handles the surge of questions that comes with high-traffic fundraising events — "Is there a matching gift?" "How much has been raised so far?" — without your team working overtime. Launch the updated content the same day your campaign goes live.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Can we have separate chatbots for different programs?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes. If your nonprofit runs distinct programs — a food bank, an afterschool program, and a shelter, for example — you can create separate chatbots for each, trained on program-specific content. Deploy each chatbot on its respective program page. This keeps answers focused and prevents a visitor asking about the food bank from getting shelter program information.',
+          },
+        },
       ],
     },
   ],
@@ -144,7 +168,7 @@ export default function ChatbotForNonprofitsPage() {
                 </span>
                 <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">
-                  7 min read
+                  12 min read
                 </span>
               </div>
               <AuthorByline className="mb-4" />
@@ -226,7 +250,77 @@ export default function ChatbotForNonprofitsPage() {
                 </p>
               </section>
 
-              {/* Section 3 — donor CRM integration */}
+              {/* Section 3 — donor engagement lifecycle — unique to nonprofit post */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  The Donor Engagement Lifecycle: Where Chatbots Intervene
+                </h2>
+                <p>
+                  Donor engagement is not a single event — it is a lifecycle with distinct
+                  stages. A chatbot plays a different role at each one:
+                </p>
+
+                {/* Lifecycle stages — unique to nonprofit post */}
+                <div className="mt-6 mb-6 space-y-4">
+                  <div className="border border-secondary-200 dark:border-secondary-700 rounded-xl p-4">
+                    <p className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">First-time visitors</p>
+                    <p className="text-sm text-secondary-500 dark:text-secondary-400">Chatbot answers: &quot;What does your organization do?&quot; &quot;Where do donations go?&quot; &quot;How can I help?&quot; The goal is education and trust-building.</p>
+                  </div>
+                  <div className="border border-secondary-200 dark:border-secondary-700 rounded-xl p-4">
+                    <p className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">Prospective donors</p>
+                    <p className="text-sm text-secondary-500 dark:text-secondary-400">Chatbot answers: &quot;Is my donation tax-deductible?&quot; &quot;What giving levels are available?&quot; &quot;Can I donate monthly?&quot; The goal is removing hesitation at the donation page.</p>
+                  </div>
+                  <div className="border border-secondary-200 dark:border-secondary-700 rounded-xl p-4">
+                    <p className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">Returning donors</p>
+                    <p className="text-sm text-secondary-500 dark:text-secondary-400">Chatbot answers: &quot;How were last year&apos;s funds used?&quot; &quot;What&apos;s new this year?&quot; &quot;How do I update my recurring gift?&quot; The goal is stewardship and retention.</p>
+                  </div>
+                  <div className="border border-secondary-200 dark:border-secondary-700 rounded-xl p-4">
+                    <p className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">Major gift prospects</p>
+                    <p className="text-sm text-secondary-500 dark:text-secondary-400">Chatbot answers initial research questions, then directs to your development director for a personal conversation. The goal is warm handoff, not conversion.</p>
+                  </div>
+                </div>
+
+                <p>
+                  Training the chatbot with lifecycle-appropriate content means each visitor
+                  gets the right information for where they are in their relationship with your
+                  organization. A first-time visitor needs your mission statement. A returning
+                  donor needs your latest impact report. The chatbot serves both from the same
+                  knowledge base.
+                </p>
+              </section>
+
+              {/* Section 4 — volunteer coordination — unique to nonprofit post */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  Volunteer Coordination: From Inquiry to Onboarded
+                </h2>
+                <p>
+                  Volunteers have their own set of questions that differ from donors:
+                  &quot;What volunteer opportunities are available?&quot; &quot;How much time
+                  do I need to commit?&quot; &quot;Do I need a background check?&quot;
+                  &quot;Is training provided?&quot; These questions arrive sporadically
+                  throughout the week, and each one represents someone willing to give their
+                  time to your cause.
+                </p>
+                <p className="mt-4">
+                  Train the chatbot on your volunteer handbook, role descriptions, scheduling
+                  requirements, and onboarding process. When someone asks about volunteering
+                  at 11 PM on a weeknight, the chatbot provides a complete picture of what is
+                  available and what is expected — then links to your volunteer signup form.
+                  The volunteer arrives at your next orientation already informed about the
+                  commitment, dress code, and schedule. No phone tag required.
+                </p>
+                <p className="mt-4">
+                  For organizations with seasonal volunteer needs — holiday events, annual
+                  fundraisers, disaster response — update the chatbot before each campaign.
+                  The surge of volunteer inquiries that follows a social media call-to-action
+                  can be handled entirely by the chatbot, freeing your volunteer coordinator
+                  to focus on scheduling and training rather than answering the same intake
+                  questions dozens of times.
+                </p>
+              </section>
+
+              {/* Section 5 — donor CRM integration */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Connecting to Salesforce Nonprofit, Bloomerang, and DonorPerfect
@@ -254,7 +348,42 @@ export default function ChatbotForNonprofitsPage() {
                 </p>
               </section>
 
-              {/* Section 4 — training and deployment combined (shorter post) */}
+              {/* Section 7 — budget-conscious setup — unique to nonprofit post */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  Budget-Conscious Setup: Getting Maximum Impact From a Free Plan
+                </h2>
+                <p>
+                  Nonprofits operate under budget constraints that most businesses do not face.
+                  The good news: a chatbot does not require a significant investment. VocUI&apos;s
+                  free plan includes chatbot creation, knowledge base training, and website
+                  embedding — everything a small to mid-sized nonprofit needs to get started.
+                </p>
+
+                {/* Budget tips — unique to nonprofit post */}
+                <div className="bg-secondary-50 dark:bg-secondary-800/40 rounded-xl p-6 mt-6 mb-6">
+                  <p className="text-sm font-semibold text-secondary-900 dark:text-secondary-100 mb-3">
+                    Maximize impact on a nonprofit budget
+                  </p>
+                  <ul className="space-y-2 text-sm text-secondary-600 dark:text-secondary-400">
+                    <li><strong>Start with one chatbot.</strong> Deploy on your donation page first — the highest-impact placement for most nonprofits.</li>
+                    <li><strong>Use existing content.</strong> Your website, annual report, and volunteer handbook are all you need. No content creation required.</li>
+                    <li><strong>Time the launch.</strong> Go live before your next fundraising campaign to capture the traffic surge.</li>
+                    <li><strong>Measure before upgrading.</strong> Track donation page abandonment and chatbot conversations for 30 days before deciding whether to upgrade.</li>
+                    <li><strong>Internal champion.</strong> Assign one team member to refresh the knowledge base quarterly — it takes 15 minutes.</li>
+                  </ul>
+                </div>
+
+                <p>
+                  Many nonprofits stay on the free tier permanently. Only upgrade when your
+                  engagement volume exceeds the included limits or you need multiple chatbots
+                  for different programs. The ROI calculation is simple: if the chatbot
+                  prevents even one donation page abandonment per month, it has likely paid
+                  for itself.
+                </p>
+              </section>
+
+              {/* Section 8 — training and deployment combined */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   What to Train It On and Where to Deploy It
@@ -314,6 +443,18 @@ export default function ChatbotForNonprofitsPage() {
                       q: 'How do we avoid sharing sensitive donor information through the chatbot?',
                       a: "Never train the chatbot on content containing donor names, giving history, contact lists, or internal financial records. The knowledge base should contain only public-facing content: your mission statement, program descriptions, impact reports, volunteer information, and event details. The chatbot has no connection to your donor database, CRM, or accounting system. If a visitor shares personal or financial information in a chat message, your system prompt should instruct the chatbot to redirect them to a secure communication channel.",
                     },
+                    {
+                      q: 'Can the chatbot help recruit and onboard volunteers?',
+                      a: "Yes. Train it on your volunteer handbook, role descriptions, time commitments, and onboarding process. When someone asks \u201CHow can I volunteer?\u201D the chatbot explains what is available, what is expected, and links to your signup form. Volunteers arrive at orientation already informed about the commitment, which reduces no-shows and speeds up onboarding.",
+                    },
+                    {
+                      q: 'How does it work during Giving Tuesday or annual campaigns?',
+                      a: "Update your knowledge base before the campaign with current giving levels, matching gift information, and campaign goals. The chatbot handles the surge of questions that comes with high-traffic fundraising events \u2014 \u201CIs there a matching gift?\u201D \u201CHow much has been raised so far?\u201D \u2014 without your team working overtime. Launch the updated content the same day your campaign goes live.",
+                    },
+                    {
+                      q: 'Can we have separate chatbots for different programs?',
+                      a: "Yes. If your nonprofit runs distinct programs \u2014 a food bank, an afterschool program, and a shelter, for example \u2014 you can create separate chatbots for each, trained on program-specific content. Deploy each chatbot on its respective program page. This keeps answers focused and prevents a visitor asking about the food bank from getting shelter program information.",
+                    },
                   ].map(({ q, a }) => (
                     <div
                       key={q}
@@ -332,12 +473,12 @@ export default function ChatbotForNonprofitsPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">See how nonprofits use VocUI</h2>
+            <h2 className="text-2xl font-bold mb-3">Build a chatbot trained on your business</h2>
             <p className="text-white/80 mb-2">
-              Upload your program info and FAQs, train a chatbot, and let it engage donors and volunteers around the clock.
+              Upload your FAQs, policies, and product info -- your chatbot answers from your knowledge, not generic scripts.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan included. Most organizations are live in under an hour.
+              Free plan. Live in under an hour.
             </p>
             <Button
               size="xl"
@@ -346,7 +487,7 @@ export default function ChatbotForNonprofitsPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Start with your content
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>

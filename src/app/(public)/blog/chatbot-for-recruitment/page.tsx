@@ -90,22 +90,6 @@ const jsonLd = {
             text: 'When you have 50+ open positions, the number of candidate questions scales linearly — but your recruiting team does not. A chatbot handles the informational load by answering the same questions about each role instantly: qualifications, location, salary range, benefits, and interview process. Candidates self-screen against the requirements, which means fewer unqualified applications for your team to review. The chatbot works 24/7, which is critical when you are recruiting across time zones or running job ads that generate traffic outside business hours.',
           },
         },
-        {
-          '@type': 'Question',
-          name: 'Can candidates ask about compensation?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Yes, if you include compensation information in your training content. With pay transparency laws expanding across states and countries, many companies now publish salary ranges in job postings. Add that content to the chatbot and it can answer salary questions directly. If your company prefers not to disclose compensation upfront, configure the chatbot to acknowledge the question and explain when in the process compensation is discussed — transparency about the process builds trust even when the number is not yet shared.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'What happens when positions are filled?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Update your knowledge base when positions open or close. Remove the job description for filled roles and add new ones as they open. If a candidate asks about a role that has been filled, the chatbot can suggest similar open positions or invite them to sign up for job alerts — keeping them engaged for future openings. Maintain a "general" knowledge source about your company culture, benefits, and interview process that remains relevant regardless of which specific roles are open.',
-          },
-        },
       ],
     },
   ],
@@ -152,7 +136,7 @@ export default function ChatbotForRecruitmentPage() {
                 </span>
                 <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">
-                  8 min read
+                  12 min read
                 </span>
               </div>
               <AuthorByline className="mb-4" />
@@ -253,7 +237,93 @@ export default function ChatbotForRecruitmentPage() {
                 </p>
               </section>
 
-              {/* Section 3 — ATS integration */}
+              {/* Section 3 — candidate experience timeline — unique to recruitment post */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  The Candidate Experience Timeline: Where Chatbots Add Value
+                </h2>
+                <p>
+                  The hiring funnel has distinct stages, and the chatbot&apos;s role changes
+                  at each one. Understanding these touchpoints helps you train the chatbot
+                  with the right content for each stage.
+                </p>
+
+                {/* Timeline — unique to recruitment post */}
+                <div className="mt-6 mb-6 relative">
+                  <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-primary-200 dark:bg-primary-800" />
+                  <div className="space-y-6 pl-12">
+                    <div className="relative">
+                      <div className="absolute -left-8 top-1 w-4 h-4 rounded-full bg-primary-500 border-2 border-white dark:border-secondary-900" />
+                      <p className="font-semibold text-secondary-900 dark:text-secondary-100">Awareness</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">Candidate discovers your careers page. Chatbot answers: &quot;What does your company do?&quot; &quot;What&apos;s the culture like?&quot;</p>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute -left-8 top-1 w-4 h-4 rounded-full bg-primary-500 border-2 border-white dark:border-secondary-900" />
+                      <p className="font-semibold text-secondary-900 dark:text-secondary-100">Interest</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">Candidate browses roles. Chatbot answers: &quot;What experience do I need?&quot; &quot;Is this remote?&quot; &quot;What&apos;s the salary range?&quot;</p>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute -left-8 top-1 w-4 h-4 rounded-full bg-primary-500 border-2 border-white dark:border-secondary-900" />
+                      <p className="font-semibold text-secondary-900 dark:text-secondary-100">Application</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">Candidate is ready to apply. Chatbot provides: direct application link, documents needed, confirmation of what happens next.</p>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute -left-8 top-1 w-4 h-4 rounded-full bg-primary-500 border-2 border-white dark:border-secondary-900" />
+                      <p className="font-semibold text-secondary-900 dark:text-secondary-100">Post-application</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">Candidate has applied. Chatbot answers: &quot;How long until I hear back?&quot; &quot;What does the interview process look like?&quot;</p>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute -left-8 top-1 w-4 h-4 rounded-full bg-secondary-300 dark:bg-secondary-600 border-2 border-white dark:border-secondary-900" />
+                      <p className="font-semibold text-secondary-900 dark:text-secondary-100">Interview (human-led)</p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">Recruiter takes over. Chatbot can still answer prep questions: &quot;What should I expect in the case study round?&quot;</p>
+                    </div>
+                  </div>
+                </div>
+
+                <p>
+                  The chatbot is most valuable in the first four stages, where it handles
+                  dozens of candidates simultaneously without any recruiter involvement.
+                  By the time a candidate reaches the interview stage, they are informed,
+                  self-qualified, and ready for a productive human conversation.
+                </p>
+              </section>
+
+              {/* Section 4 — bias prevention — unique to recruitment post */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  Bias Prevention: Why an Informational Chatbot Is Safer Than You Think
+                </h2>
+                <p>
+                  AI in hiring has (rightly) raised bias concerns. Resume-screening algorithms,
+                  video interview analysis, and automated candidate scoring can all introduce
+                  or amplify bias. A VocUI chatbot sidesteps these risks entirely because it
+                  does not evaluate, score, or rank candidates. It answers questions.
+                </p>
+
+                {/* Bias prevention steps — unique to recruitment post */}
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl px-6 py-5 mt-6 mb-6">
+                  <p className="text-sm font-semibold text-green-800 dark:text-green-200 mb-3">
+                    Concrete steps to keep your recruitment chatbot fair
+                  </p>
+                  <ol className="space-y-2 text-sm text-secondary-600 dark:text-secondary-400 list-decimal list-inside">
+                    <li>Train only on objective job requirements and company information — no subjective &quot;culture fit&quot; criteria.</li>
+                    <li>Review the chatbot&apos;s responses for consistent treatment across different phrasings of the same question.</li>
+                    <li>Do not configure the chatbot to collect demographic information or ask screening questions that correlate with protected characteristics.</li>
+                    <li>Ensure the chatbot gives every candidate the same factual information about roles, benefits, and process.</li>
+                    <li>Audit conversation logs quarterly to confirm the chatbot is not inadvertently discouraging certain groups from applying.</li>
+                  </ol>
+                </div>
+
+                <p>
+                  The fundamental advantage: every candidate gets the same accurate, complete
+                  information regardless of when they visit, how they phrase their question, or
+                  who they are. A human recruiter having their 47th conversation of the day may
+                  unintentionally give a shorter, less enthusiastic answer. The chatbot gives
+                  candidate #47 the same quality response as candidate #1.
+                </p>
+              </section>
+
+              {/* Section 5 — ATS integration */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Working With Greenhouse, Lever, and Workable
@@ -350,14 +420,6 @@ export default function ChatbotForRecruitmentPage() {
                       q: 'How does it help with high-volume recruiting?',
                       a: "When you have 50+ open positions, the number of candidate questions scales linearly \u2014 but your recruiting team does not. A chatbot handles the informational load by answering the same questions about each role instantly: qualifications, location, salary range, benefits, and interview process. Candidates self-screen against the requirements, which means fewer unqualified applications for your team to review. The chatbot works 24/7, which is critical when you are recruiting across time zones or running job ads that generate traffic outside business hours.",
                     },
-                    {
-                      q: 'Can candidates ask about compensation?',
-                      a: "Yes, if you include compensation information in your training content. With pay transparency laws expanding across states and countries, many companies now publish salary ranges in job postings. Add that content to the chatbot and it can answer salary questions directly. If your company prefers not to disclose compensation upfront, configure the chatbot to acknowledge the question and explain when in the process compensation is discussed \u2014 transparency about the process builds trust even when the number is not yet shared.",
-                    },
-                    {
-                      q: 'What happens when positions are filled?',
-                      a: "Update your knowledge base when positions open or close. Remove the job description for filled roles and add new ones as they open. If a candidate asks about a role that has been filled, the chatbot can suggest similar open positions or invite them to sign up for job alerts \u2014 keeping them engaged for future openings. Maintain a \u201Cgeneral\u201D knowledge source about your company culture, benefits, and interview process that remains relevant regardless of which specific roles are open.",
-                    },
                   ].map(({ q, a }) => (
                     <div
                       key={q}
@@ -376,12 +438,12 @@ export default function ChatbotForRecruitmentPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">See how recruiting teams use VocUI</h2>
+            <h2 className="text-2xl font-bold mb-3">Build a chatbot trained on your business</h2>
             <p className="text-white/80 mb-2">
-              Upload your job descriptions and FAQs, train a chatbot, and let it pre-screen candidates while you focus on hiring.
+              Upload your FAQs, policies, and product info -- your chatbot answers from your knowledge, not generic scripts.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan included. Most teams are live in under an hour.
+              Free plan. Live in under an hour.
             </p>
             <Button
               size="xl"
@@ -390,7 +452,7 @@ export default function ChatbotForRecruitmentPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Start with your content
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>

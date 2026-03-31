@@ -90,22 +90,6 @@ const jsonLd = {
             text: 'Yes. Configure the chatbot to share a direct link to your scheduling tool (Calendly, Acuity, or your firm\'s booking system) when a visitor expresses interest. The chatbot answers pre-meeting questions first — what to expect, what documents to prepare, how long the meeting takes — so prospects arrive informed and the meeting is more productive. This turns the chatbot into a lead qualification and booking assistant that operates outside business hours.',
           },
         },
-        {
-          '@type': 'Question',
-          name: 'How do I prevent the chatbot from accessing client financial data?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'The chatbot has no access to client data by design. It does not connect to your custodian, portfolio management platform, CRM, or any system containing client information. It only knows what you train it on — and your training content should be limited to public-facing materials: service descriptions, fee schedules, process overviews, and educational articles. Never upload client lists, portfolio reports, or account-specific documents to the knowledge base.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'Do SOX compliance requirements apply to the chatbot?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'SOX (Sarbanes-Oxley Act) applies to publicly traded companies and their financial reporting. If your firm is publicly traded or provides services to public companies, SOX may affect your internal controls. However, since a VocUI chatbot does not process financial transactions, access internal accounting systems, or handle material non-public information, it falls outside the scope of SOX controls. It is a marketing and informational tool operating on publicly available content. Confirm with your compliance officer if you have specific SOX obligations.',
-          },
-        },
       ],
     },
   ],
@@ -457,14 +441,6 @@ export default function ChatbotForFinancialServicesPage() {
                       q: 'Can prospects book consultations through the chatbot?',
                       a: "Yes. Configure the chatbot to share a direct link to your scheduling tool (Calendly, Acuity, or your firm\u2019s booking system) when a visitor expresses interest. The chatbot answers pre-meeting questions first \u2014 what to expect, what documents to prepare, how long the meeting takes \u2014 so prospects arrive informed and the meeting is more productive. This turns the chatbot into a lead qualification and booking assistant that operates outside business hours.",
                     },
-                    {
-                      q: 'How do I prevent the chatbot from accessing client financial data?',
-                      a: "The chatbot has no access to client data by design. It does not connect to your custodian, portfolio management platform, CRM, or any system containing client information. It only knows what you train it on \u2014 and your training content should be limited to public-facing materials: service descriptions, fee schedules, process overviews, and educational articles. Never upload client lists, portfolio reports, or account-specific documents to the knowledge base.",
-                    },
-                    {
-                      q: 'Do SOX compliance requirements apply to the chatbot?',
-                      a: "SOX (Sarbanes-Oxley Act) applies to publicly traded companies and their financial reporting. If your firm is publicly traded or provides services to public companies, SOX may affect your internal controls. However, since a VocUI chatbot does not process financial transactions, access internal accounting systems, or handle material non-public information, it falls outside the scope of SOX controls. It is a marketing and informational tool operating on publicly available content. Confirm with your compliance officer if you have specific SOX obligations.",
-                    },
                   ].map(({ q, a }) => (
                     <div
                       key={q}
@@ -483,12 +459,12 @@ export default function ChatbotForFinancialServicesPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">See how financial firms use VocUI</h2>
+            <h2 className="text-2xl font-bold mb-3">Build a chatbot trained on your business</h2>
             <p className="text-white/80 mb-2">
-              Upload your service docs, train a chatbot on your content, and let it handle client questions around the clock.
+              Upload your FAQs, policies, and product info -- your chatbot answers from your knowledge, not generic scripts.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan included. Most firms are live in under an hour.
+              Free plan. Live in under an hour.
             </p>
             <Button
               size="xl"
@@ -497,7 +473,7 @@ export default function ChatbotForFinancialServicesPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Start with your content
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>

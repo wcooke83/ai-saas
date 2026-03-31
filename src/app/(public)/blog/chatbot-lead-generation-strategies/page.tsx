@@ -77,7 +77,7 @@ const jsonLd = {
           name: 'Do chatbot leads convert?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Yes. Chatbot-generated leads often convert at higher rates than form-generated leads because the conversation pre-qualifies the visitor. By the time someone shares their email through a chatbot interaction, they have already engaged with your content, asked specific questions, and received relevant answers. This means they are further along in the buying process than someone who filled out a generic contact form. Businesses using conversational lead capture report 2–3x higher conversion rates compared to static forms.',
+            text: 'Yes. Chatbot-generated leads often convert at higher rates than form-generated leads because the conversation pre-qualifies the visitor. By the time someone shares their email through a chatbot interaction, they have already engaged with your content, asked specific questions, and received relevant answers. This means they are further along in the buying process than someone who filled out a generic contact form. According to Dashly, chatbots convert into sales 3x better than traditional website forms.',
           },
         },
         {
@@ -101,7 +101,7 @@ const jsonLd = {
           name: 'What is a good chatbot conversion rate?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'A well-optimized chatbot typically converts 5–15% of engaged visitors into leads, compared to 2–5% for static contact forms. "Engaged visitors" means people who interact with the chatbot beyond the initial greeting — they ask at least one substantive question. The conversion rate varies significantly by industry, traffic quality, and how well the chatbot is configured. E-commerce chatbots on product pages tend to convert higher because visitor intent is strong. Informational blogs convert lower but at higher volume.',
+            text: 'Chatbot conversion rates vary significantly by industry and implementation quality. According to Dashly, chatbots convert into sales 3x better than traditional forms, with well-optimized implementations performing even higher. "Engaged visitors" means people who interact with the chatbot beyond the initial greeting — they ask at least one substantive question. E-commerce chatbots on product pages tend to convert higher because visitor intent is strong. Informational blogs convert lower but at higher volume.',
           },
         },
         {
@@ -125,7 +125,7 @@ const jsonLd = {
           name: "What's the conversion rate for chatbot-qualified leads?",
           acceptedAnswer: {
             '@type': 'Answer',
-            text: "Chatbot-qualified leads typically convert to sales meetings at 15–25%, compared to 5–10% for form-generated leads. The higher rate reflects the quality of conversational qualification — by the time the chatbot passes a lead to sales, it has already confirmed the prospect's fit, interest, and timeline. The exact rate depends on your industry, product, and how well the qualifying questions match your ideal customer profile.",
+            text: "Chatbot-qualified leads tend to convert to sales meetings at higher rates than form-generated leads. The higher rate reflects the quality of conversational qualification — by the time the chatbot passes a lead to sales, it has already confirmed the prospect's fit, interest, and timeline. According to Agentive AIQ, leads contacted within 1 minute are 391% more likely to convert, and chatbots excel at this because they respond instantly. The exact rate depends on your industry, product, and how well the qualifying questions match your ideal customer profile.",
           },
         },
       ],
@@ -201,9 +201,8 @@ export default function ChatbotLeadGenerationStrategiesPage() {
                 </h2>
                 <p>
                   Contact forms have been the default lead capture mechanism since the early days
-                  of the web, and they are showing their age. The average contact form conversion
-                  rate is 2–5%. That means 95–98% of visitors who see your form leave without
-                  filling it out. According to <a href="https://formstory.io/learn/form-abandonment-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">FormStory</a>, 81% of people have abandoned at least one web form. The reason is simple: forms are one-directional. They ask for
+                  of the web, and they are showing their age. According to <a href="https://www.invespcro.com/cro/conversion-rate-by-industry/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Invesp</a>, the average website conversion rate hovers around 2&ndash;3%, meaning the vast majority of visitors leave without
+                  taking action. According to <a href="https://formstory.io/learn/form-abandonment-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">FormStory</a>, 81% of people have abandoned at least one web form. The reason is simple: forms are one-directional. They ask for
                   information without giving anything in return. The visitor has no idea what
                   happens after they submit, how quickly they will get a response, or whether
                   their question even warrants a form submission.
@@ -241,8 +240,8 @@ export default function ChatbotLeadGenerationStrategiesPage() {
                 <p>
                   Most chatbots sit quietly in the corner of the screen, waiting for the visitor
                   to initiate a conversation. This is a missed opportunity. A proactive greeting
-                  — a small message bubble that appears after a few seconds — increases
-                  engagement rates by 2–4x compared to a silent widget.
+                  — a small message bubble that appears after a few seconds — significantly
+                  increases engagement compared to a silent widget. According to <a href="https://www.smartsupp.com/blog/analysing-5-billion-website-visits-how-ecommerce-customers-use-chat/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Smartsupp&apos;s analysis of 5 billion visits</a>, websites with proactive chat handle 6x more customer conversations.
                 </p>
                 <p className="mt-4">
                   The key is making the greeting relevant to the page. On a pricing page:
@@ -497,9 +496,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
                 <p className="mt-4">
                   Compare chatbot-qualified leads against your other lead sources. If
                   chatbot-qualified leads convert to customers at a higher rate than form
-                  submissions, your qualification criteria are working well. Chatbot-qualified
-                  leads typically convert to sales meetings at 15–25%, compared to 5–10% for
-                  form-generated leads.
+                  submissions, your qualification criteria are working well. <a href="https://www.dashly.io/blog/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Dashly reports</a> chatbots convert into sales 3x better than forms, largely because conversational qualification produces higher-quality leads.
                 </p>
                 <p className="mt-4">
                   Review disqualified conversations too. Look at leads the chatbot did not route
@@ -554,7 +551,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
                   {[
                     {
                       q: 'Do chatbot leads convert?',
-                      a: "Yes. Chatbot-generated leads often convert at higher rates than form-generated leads because the conversation pre-qualifies the visitor. By the time someone shares their email through a chatbot interaction, they have already engaged with your content, asked specific questions, and received relevant answers. This means they are further along in the buying process than someone who filled out a generic contact form. Businesses using conversational lead capture report 2\u20133x higher conversion rates compared to static forms.",
+                      a: "Yes. Chatbot-generated leads often convert at higher rates than form-generated leads because the conversation pre-qualifies the visitor. By the time someone shares their email through a chatbot interaction, they have already engaged with your content, asked specific questions, and received relevant answers. This means they are further along in the buying process than someone who filled out a generic contact form. According to Dashly, chatbots convert into sales 3x better than traditional website forms.",
                     },
                     {
                       q: 'How do I capture email addresses with a chatbot?',
@@ -566,7 +563,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
                     },
                     {
                       q: 'What is a good chatbot conversion rate?',
-                      a: "A well-optimized chatbot typically converts 5\u201315% of engaged visitors into leads, compared to 2\u20135% for static contact forms. \u201CEngaged visitors\u201D means people who interact with the chatbot beyond the initial greeting \u2014 they ask at least one substantive question. The conversion rate varies significantly by industry, traffic quality, and how well the chatbot is configured. E-commerce chatbots on product pages tend to convert higher because visitor intent is strong. Informational blogs convert lower but at higher volume.",
+                      a: "Chatbot conversion rates vary significantly by industry and implementation quality. According to Dashly, chatbots convert into sales 3x better than traditional forms, with well-optimized implementations performing even higher. \u201CEngaged visitors\u201D means people who interact with the chatbot beyond the initial greeting \u2014 they ask at least one substantive question. E-commerce chatbots on product pages tend to convert higher because visitor intent is strong. Informational blogs convert lower but at higher volume.",
                     },
                     {
                       q: 'How do I integrate chatbot leads with my CRM?',
@@ -578,7 +575,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
                     },
                     {
                       q: "What's the conversion rate for chatbot-qualified leads?",
-                      a: "Chatbot-qualified leads typically convert to sales meetings at 15\u201325%, compared to 5\u201310% for form-generated leads. The higher rate reflects the quality of conversational qualification \u2014 by the time the chatbot passes a lead to sales, it has already confirmed the prospect\u2019s fit, interest, and timeline. The exact rate depends on your industry, product, and how well the qualifying questions match your ideal customer profile.",
+                      a: "Chatbot-qualified leads tend to convert to sales meetings at higher rates than form-generated leads. The higher rate reflects the quality of conversational qualification \u2014 by the time the chatbot passes a lead to sales, it has already confirmed the prospect\u2019s fit, interest, and timeline. According to Agentive AIQ, leads contacted within 1 minute are 391% more likely to convert, and chatbots excel at this because they respond instantly. The exact rate depends on your industry, product, and how well the qualifying questions match your ideal customer profile.",
                     },
                   ].map(({ q, a }) => (
                     <div
@@ -596,14 +593,18 @@ export default function ChatbotLeadGenerationStrategiesPage() {
             </div>
           </article>
 
+          <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-8">
+            Statistics cited from publicly available reports by Invesp, FormStory, Dashly, DemandSage, Smartsupp, and Agentive AIQ. Links to original sources are provided inline. Last verified April 2026.
+          </p>
+
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Turn this strategy into results — today</h2>
+            <h2 className="text-2xl font-bold mb-3">Put this into practice -- today</h2>
             <p className="text-white/80 mb-2">
-              Every hour without automation is time and money your team won&apos;t get back. VocUI gets you live in under 60 minutes.
+              You have the strategy. VocUI gives you the platform to execute it without writing code.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan. No contracts. Cancel anytime.
+              Your first chatbot is free. Most teams are live in under an hour.
             </p>
             <Button
               size="xl"
@@ -612,11 +613,11 @@ export default function ChatbotLeadGenerationStrategiesPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Launch your first chatbot
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
-            <p className="text-xs text-white/50 mt-4">Start free — no credit card required</p>
+            <p className="text-xs text-white/50 mt-4">Start building -- your first chatbot is free</p>
           </div>
         </div>
       </main>

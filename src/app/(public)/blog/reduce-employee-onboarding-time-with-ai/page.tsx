@@ -71,7 +71,7 @@ const jsonLd = {
           name: 'How much onboarding time does an AI knowledge bot save?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Organizations using AI knowledge bots for onboarding report 30–50% reductions in time-to-productivity for new hires. The savings come from two sources: new employees get instant answers to operational questions instead of waiting for a colleague to respond, and managers spend less time answering repetitive questions about tools, processes, and policies. For a company that typically takes 90 days to fully onboard a new employee, cutting that to 45–60 days saves significant productivity costs — especially when hiring in batches.',
+            text: 'According to SuperAGI, AI-powered onboarding reduces time-to-productivity by up to 40%. The savings come from two sources: new employees get instant answers to operational questions instead of waiting for a colleague to respond, and managers spend less time answering repetitive questions about tools, processes, and policies. For a company that typically takes 90 days to fully onboard a new employee, meaningfully cutting that timeline saves significant productivity costs — especially when hiring in batches.',
           },
         },
         {
@@ -167,7 +167,7 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
                 Every new hire asks the same questions: &quot;Where do I find the PTO
                 policy?&quot; &quot;How do I set up VPN?&quot; &quot;Who do I talk to about
                 expenses?&quot; An AI knowledge bot trained on your internal documentation
-                answers these instantly — cutting onboarding time by 30–50% and freeing
+                answers these instantly. According to <a href="https://superagi.com/case-studies-in-ai-onboarding-success-how-companies-achieved-82-new-hire-retention-rates-in-2025/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">SuperAGI</a>, AI-powered onboarding reduces time-to-productivity by up to 40% &mdash; freeing
                 managers from repetitive Q&amp;A.
               </p>
             </div>
@@ -179,8 +179,8 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
                   The Hidden Cost of Employee Onboarding
                 </h2>
                 <p>
-                  Onboarding a new employee costs an average of <a href="https://teamstage.io/onboarding-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">$4,129 per new hire</a> in direct expenses according to TeamStage, but
-                  the indirect costs are much higher. Managers spend 15–20 hours answering
+                  Onboarding a new employee costs an average of <a href="https://www.shrm.org/topics-tools/news/shrm-benchmarking-report-4129-average-cost-per-hire" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">$4,129 per new hire</a> according to SHRM&apos;s Human Capital Benchmarking Report, but
+                  the indirect costs are much higher. Managers often spend significant time answering
                   questions for each new hire during their first month. Senior team members get
                   pulled into ad-hoc training sessions. Productivity takes a hit across the
                   entire team — not just for the new person, but for everyone who stops their
@@ -197,7 +197,7 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
                 </p>
                 <p className="mt-4">
                   This pattern repeats with every hire. If you onboard 10 people a year,
-                  that&apos;s 150–200 hours of manager time spent answering the same questions.
+                  the cumulative hours of manager time spent answering repetitive questions add up quickly.
                   If you are growing faster, the cost compounds. An AI knowledge bot breaks
                   this cycle by giving every new hire instant access to the answers they need,
                   in a format they can use immediately.
@@ -398,7 +398,7 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
                   {[
                     {
                       q: 'How much onboarding time does an AI knowledge bot save?',
-                      a: "Organizations using AI knowledge bots for onboarding report 30\u201350% reductions in time-to-productivity for new hires. The savings come from two sources: new employees get instant answers to operational questions instead of waiting for a colleague to respond, and managers spend less time answering repetitive questions about tools, processes, and policies. For a company that typically takes 90 days to fully onboard a new employee, cutting that to 45\u201360 days saves significant productivity costs \u2014 especially when hiring in batches.",
+                      a: "According to SuperAGI, AI-powered onboarding reduces time-to-productivity by up to 40%. The savings come from two sources: new employees get instant answers to operational questions instead of waiting for a colleague to respond, and managers spend less time answering repetitive questions about tools, processes, and policies. For a company that typically takes 90 days to fully onboard a new employee, meaningfully cutting that timeline saves significant productivity costs \u2014 especially when hiring in batches.",
                     },
                     {
                       q: 'What documents should I upload to the knowledge bot?',
@@ -432,14 +432,18 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
             </div>
           </article>
 
+          <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-8">
+            Statistics cited from publicly available reports by SHRM, Enboarder, and SuperAGI. Links to original sources are provided inline. Last verified April 2026.
+          </p>
+
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Turn this strategy into results — today</h2>
+            <h2 className="text-2xl font-bold mb-3">Stop paying for answers a chatbot can handle</h2>
             <p className="text-white/80 mb-2">
-              Every hour without automation is time and money your team won&apos;t get back. VocUI gets you live in under 60 minutes.
+              Train a chatbot on your docs and start deflecting repetitive questions in under an hour.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan. No contracts. Cancel anytime.
+              Free plan. No developers needed. Measure the impact from day one.
             </p>
             <Button
               size="xl"
@@ -448,11 +452,11 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Automate your support
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
-            <p className="text-xs text-white/50 mt-4">Start free — no credit card required</p>
+            <p className="text-xs text-white/50 mt-4">Start free -- see ROI within your first week</p>
           </div>
         </div>
       </main>

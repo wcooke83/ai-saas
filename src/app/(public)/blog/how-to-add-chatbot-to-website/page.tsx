@@ -475,12 +475,12 @@ export default function HowToAddChatbotPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Your turn — build it in under 5 minutes</h2>
+            <h2 className="text-2xl font-bold mb-3">You read the guide -- now build it</h2>
             <p className="text-white/80 mb-2">
-              Follow the steps you just read, but with your own content. Upload your docs, customize the look, and go live.
+              Upload your content and follow along with a working chatbot in front of you.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Free plan included. No code, no developers, no waiting.
+              Most people finish setup in under 5 minutes.
             </p>
             <Button
               size="xl"
@@ -489,11 +489,11 @@ export default function HowToAddChatbotPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Create your chatbot
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
-            <p className="text-xs text-white/50 mt-4">Join 1,000+ businesses already using VocUI</p>
+            <p className="text-xs text-white/50 mt-4">Free plan included -- no credit card needed</p>
           </div>
         </div>
       </main>

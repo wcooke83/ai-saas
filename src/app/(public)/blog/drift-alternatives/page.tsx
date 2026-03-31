@@ -598,12 +598,12 @@ export default function DriftAlternativesPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Try VocUI free and compare for yourself</h2>
+            <h2 className="text-2xl font-bold mb-3">Test VocUI side by side -- for free</h2>
             <p className="text-white/80 mb-2">
-              The best way to evaluate a chatbot platform is to use it. Create a free chatbot, train it on your content, and see the difference.
+              Import your existing content and see how VocUI handles your real questions, not a canned demo.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              No sales calls. No credit card. Just results you can measure.
+              No sales calls. No contracts. Cancel anytime.
             </p>
             <Button
               size="xl"
@@ -612,11 +612,11 @@ export default function DriftAlternativesPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Get started free
+                Create a free chatbot
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
-            <p className="text-xs text-white/50 mt-4">Switch in minutes — import your content and go live today</p>
+            <p className="text-xs text-white/50 mt-4">Switch in minutes -- bring your content and go live today</p>
           </div>
         </div>
       </main>
