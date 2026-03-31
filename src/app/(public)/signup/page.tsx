@@ -1,13 +1,16 @@
 import { redirect } from 'next/navigation';
 
-export default async function SignupPage({
+/**
+ * Signup page — redirects to /login?mode=signup.
+ *
+ * The primary redirect happens in middleware (faster, avoids RSC round-trip).
+ * This server component acts as a fallback in case middleware is bypassed.
+ */
+export default function SignupPage({
   searchParams,
 }: {
   searchParams: Promise<{ plan?: string }>;
 }) {
-  // Redirect to login page with signup mode
-  const params = await searchParams;
-  const plan = params.plan;
-  const redirectUrl = plan ? `/login?mode=signup&plan=${plan}` : '/login?mode=signup';
-  redirect(redirectUrl);
+  // Middleware handles this redirect, but keep as fallback
+  redirect('/login?mode=signup');
 }

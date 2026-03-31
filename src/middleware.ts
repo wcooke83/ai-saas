@@ -114,6 +114,19 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Redirect /signup to /login?mode=signup (preserving query params like ?plan=)
+  // Handled here in middleware to avoid RSC round-trip and client-side navigation issues
+  if (pathname === '/signup') {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('mode', 'signup');
+    // Preserve plan param if present
+    const plan = request.nextUrl.searchParams.get('plan');
+    if (plan) {
+      loginUrl.searchParams.set('plan', plan);
+    }
+    return NextResponse.redirect(loginUrl);
+  }
+
   return response;
 }
 
