@@ -438,14 +438,33 @@ export function ChatbotSetupTimeline({ caption }: { caption?: string }) {
 // ─── 5. ComparisonScorecard ────────────────────────────────────────────────────
 
 /**
- * A visual feature comparison showing side-by-side score bars.
+ * Returns muted, professional HSL colors for a score on a red-to-green scale.
+ * Lower scores lean warm/red, mid scores lean amber, higher scores lean green.
+ * Returns { bright, dim } — bright for the filled portion, dim for the unfilled.
+ */
+function scoreColors(score: number): { bright: string; dim: string; text: string } {
+  // Map 0-10 score to a hue: 0 (red) at score 0, 45 (amber) at 5, 140 (green) at 10
+  const t = Math.max(0, Math.min(10, score)) / 10;
+  const hue = Math.round(t * 140);
+  // Keep saturation and lightness restrained for a professional look
+  return {
+    bright: `hsl(${hue}, 55%, 50%)`,
+    dim: `hsl(${hue}, 25%, 22%)`,
+    text: `hsl(${hue}, 50%, 60%)`,
+  };
+}
+
+/**
+ * A visual feature comparison showing side-by-side gradient score bars.
+ * Each bar uses a red-to-green color scale based on the score value.
+ * The filled portion is brighter; the unfilled portion is the same hue but dimmer.
  */
 export function ComparisonScorecard({ items, caption }: ComparisonScorecardProps) {
   return (
-    <figure className="my-8" role="img" aria-label={`Feature comparison scorecard: ${items.map((i) => i.feature).join(', ')}`}>
+    <figure className="my-8" role="img" aria-label={`Feature comparison scorecard: ${items.map((i) => `${i.feature} — ${i.label1} ${i.score1} out of 10, ${i.label2} ${i.score2} out of 10`).join('; ')}`}>
       <div className="rounded-xl border border-secondary-200 dark:border-secondary-700 overflow-hidden">
         {/* Header row */}
-        <div className="grid grid-cols-[1fr_1fr] sm:grid-cols-[1fr_1fr] bg-secondary-50 dark:bg-secondary-800/60 px-4 py-3 border-b border-secondary-200 dark:border-secondary-700">
+        <div className="grid grid-cols-[1fr_1fr] bg-secondary-50 dark:bg-secondary-800/60 px-4 py-3 border-b border-secondary-200 dark:border-secondary-700">
           <span className="text-sm font-semibold text-secondary-700 dark:text-secondary-300">
             {items[0]?.label1 ?? 'Option A'}
           </span>
@@ -457,52 +476,64 @@ export function ComparisonScorecard({ items, caption }: ComparisonScorecardProps
         {/* Rows */}
         <div className="divide-y divide-secondary-100 dark:divide-secondary-800">
           {items.map((item) => {
-            const score1Wins = item.score1 >= item.score2;
-            const score2Wins = item.score2 > item.score1;
-            const score1Color = score1Wins ? 'bg-primary-500 dark:bg-primary-400' : 'bg-secondary-400 dark:bg-secondary-500';
-            const score2Color = score2Wins ? 'bg-primary-500 dark:bg-primary-400' : 'bg-secondary-400 dark:bg-secondary-500';
-            const score1TextColor = score1Wins ? 'text-primary-600 dark:text-primary-400' : 'text-secondary-500 dark:text-secondary-400';
-            const score2TextColor = score2Wins ? 'text-primary-600 dark:text-primary-400' : 'text-secondary-500 dark:text-secondary-400';
+            const pct1 = (item.score1 / 10) * 100;
+            const pct2 = (item.score2 / 10) * 100;
+            const colors1 = scoreColors(item.score1);
+            const colors2 = scoreColors(item.score2);
 
             return (
-            <div key={item.feature} className="px-4 py-4">
-              {/* Feature label */}
-              <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 mb-2 uppercase tracking-wide">
-                {item.feature}
-              </p>
+              <div key={item.feature} className="px-4 py-4">
+                {/* Feature label */}
+                <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 mb-2.5 uppercase tracking-wide">
+                  {item.feature}
+                </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Score 1 */}
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="flex-1 h-2.5 rounded-full bg-secondary-200 dark:bg-secondary-700 overflow-hidden">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Score 1 bar */}
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="flex-1 h-3 rounded-full overflow-hidden"
+                      style={{ backgroundColor: colors1.dim }}
+                    >
                       <div
-                        className={`h-full rounded-full ${score1Color} transition-all`}
-                        style={{ width: `${(item.score1 / 10) * 100}%` }}
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${pct1}%`,
+                          backgroundColor: colors1.bright,
+                        }}
                       />
                     </div>
-                    <span className={`text-xs font-semibold ${score1TextColor} tabular-nums w-10 text-right`}>
+                    <span
+                      className="text-xs font-semibold tabular-nums w-10 text-right"
+                      style={{ color: colors1.text }}
+                    >
                       {item.score1}/10
                     </span>
                   </div>
-                </div>
 
-                {/* Score 2 */}
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="flex-1 h-2.5 rounded-full bg-secondary-200 dark:bg-secondary-700 overflow-hidden">
+                  {/* Score 2 bar */}
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="flex-1 h-3 rounded-full overflow-hidden"
+                      style={{ backgroundColor: colors2.dim }}
+                    >
                       <div
-                        className={`h-full rounded-full ${score2Color} transition-all`}
-                        style={{ width: `${(item.score2 / 10) * 100}%` }}
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${pct2}%`,
+                          backgroundColor: colors2.bright,
+                        }}
                       />
                     </div>
-                    <span className={`text-xs font-semibold ${score2TextColor} tabular-nums w-10 text-right`}>
+                    <span
+                      className="text-xs font-semibold tabular-nums w-10 text-right"
+                      style={{ color: colors2.text }}
+                    >
                       {item.score2}/10
                     </span>
                   </div>
                 </div>
               </div>
-            </div>
             );
           })}
         </div>

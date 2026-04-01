@@ -55,8 +55,8 @@
 | 48 | e2e-deploy-publish-flow | ✅ Passed (fixed) | 3 passed, 1 flaky→pass, 18 skipped | FLOW-001: "System Prompt" heading → "Chatbot Instructions" | 2026-04-01 |
 | 49 | e2e-deployment-page | ✅ Passed (fixed) | 20 passed, 2 fixed, 1 skipped | gotoDeploy: wait for API response; DEPLOY-020: strict mode for .or() locator; DEPLOY-022: isEnabledState check | 2026-04-01 |
 | 50 | e2e-escalation-management | ✅ Passed | 6 passed | — | 2026-04-01 |
-| 51 | e2e-fallback-articles | 🔄 Running | — | — | 2026-04-01 |
-| 52 | e2e-fallback-contact | ⏳ Queued | — | — | — |
+| 51 | e2e-fallback-articles | ✅ Passed (fixed) | 8 passed, 2 flaky→pass | Fixed API URL filter, nav selector, timeout adjustments | 2026-04-01 |
+| 52 | e2e-fallback-contact | 🔄 Running | — | — | 2026-04-01 |
 | 53 | e2e-fallback-purchase | ⏳ Queued | — | — | — |
 | 54 | e2e-fallback-settings | ⏳ Queued | — | — | — |
 | 55 | e2e-fallback-tickets | ⏳ Queued | — | — | — |

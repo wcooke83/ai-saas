@@ -30,7 +30,7 @@ const menuLinks = {
     { label: 'Solutions', href: '/solutions' },
     { label: 'Pricing', href: '/pricing' },
     { label: 'Features', href: '/#features' },
-    { label: 'Integrations', href: '/solutions' },
+    { label: 'Integrations', href: '/solutions#integrations' },
   ],
   resources: [
     { label: 'Documentation', href: '/wiki' },

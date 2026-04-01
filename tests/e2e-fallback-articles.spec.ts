@@ -26,16 +26,22 @@ test.describe('Fallback Help Articles', () => {
   test('ARTICLE-003: Articles dashboard page loads with heading', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/articles`);
     await page.waitForLoadState('domcontentloaded');
-    await expect(page.getByRole('heading', { name: 'Help Articles' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Help Articles' })).toBeVisible({ timeout: 30000 });
   });
 
   test('ARTICLE-004: Articles page shows admin content and source count', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/articles`);
     await page.waitForLoadState('domcontentloaded');
 
-    // Verify API call returns articles data
+    // Verify API call returns articles data (specifically the articles list endpoint, not sub-routes)
     const apiPromise = page.waitForResponse(
-      (res) => res.url().includes(`/api/chatbots/${CHATBOT_ID}/articles`) && res.request().method() === 'GET'
+      (res) => {
+        const url = new URL(res.url());
+        const isArticlesList = url.pathname === `/api/chatbots/${CHATBOT_ID}/articles` &&
+          res.request().method() === 'GET';
+        return isArticlesList;
+      },
+      { timeout: 30000 }
     );
     await page.reload();
     const apiResponse = await apiPromise;
@@ -56,8 +62,8 @@ test.describe('Fallback Help Articles', () => {
     await page.waitForLoadState('networkidle');
 
     // Navigate to Credit Exhaustion section
-    await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
-    await page.locator('nav button').filter({ hasText: 'Credit Exhaustion' }).click();
+    await page.getByRole('button', { name: 'Credit Exhaustion' }).waitFor({ state: 'visible', timeout: 30000 });
+    await page.getByRole('button', { name: 'Credit Exhaustion' }).click();
     await expect(page.getByRole('heading', { name: 'Limits & Fallback' })).toBeVisible({ timeout: 10000 });
 
     // Select Help Articles mode
