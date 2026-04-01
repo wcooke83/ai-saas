@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ComparisonInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -335,6 +336,19 @@ export default function WhatIsConversationalAiPage() {
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Conversational AI vs rule-based bots
                 </h2>
+                <ComparisonInfographic
+                  title="Rule-Based Bot vs Conversational AI"
+                  leftLabel="Rule-Based Bot"
+                  rightLabel="Conversational AI"
+                  items={[
+                    { left: "Follows scripted paths", right: "Understands free text" },
+                    { left: "No memory between turns", right: "Maintains conversation context" },
+                    { left: "Fails on unexpected input", right: "Handles novel questions" },
+                    { left: "Quick to set up", right: "More setup, better results" },
+                    { left: "Static responses", right: "Improves with more content" },
+                    { left: "Rigid quality", right: "Natural, adaptive responses" },
+                  ]}
+                />
                 <div className="overflow-x-auto mt-4 rounded-xl border border-secondary-200 dark:border-secondary-700">
                   <table className="w-full text-sm">
                     <caption className="sr-only">Comparison of rule-based bots versus conversational AI</caption>

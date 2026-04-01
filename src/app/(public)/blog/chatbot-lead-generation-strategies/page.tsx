@@ -9,6 +9,7 @@ import { AuthorByline } from '@/components/blog/author-byline';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { MidArticleCta } from '@/components/blog/mid-article-cta';
 import { LeadResponseTimeChart } from '@/components/blog/charts';
+import { NumberedListInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -210,6 +211,20 @@ export default function ChatbotLeadGenerationStrategiesPage() {
               { id: 'putting-it-all-together', label: 'Putting It All Together' },
               { id: 'faq', label: 'FAQ' },
             ]} />
+
+            <NumberedListInfographic
+              title="7 Chatbot Lead Generation Strategies"
+              subtitle="Turn website visitors into qualified leads"
+              items={[
+                { title: "Greet Visitors Proactively", description: "Trigger chat based on time on page, scroll depth, or exit intent" },
+                { title: "Answer Questions, Then Ask for Email", description: "Provide value first — capture contact info after demonstrating helpfulness" },
+                { title: "Offer Gated Resources", description: "Share guides, templates, or reports in exchange for contact details" },
+                { title: "Qualify Leads with Smart Questions", description: "Ask budget, timeline, and need questions to score and route leads" },
+                { title: "Book Meetings Directly", description: "Integrate calendar booking so hot leads convert immediately" },
+                { title: "Segment by Intent", description: "Tag visitors by behavior and route to the right sales flow" },
+                { title: "Follow Up on Abandoned Pages", description: "Re-engage visitors who left key pages without converting" },
+              ]}
+            />
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 */}

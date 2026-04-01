@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { StatInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -169,6 +170,16 @@ export default function AiChatbotForAfterHoursSupportPage() {
                 Deploy one tonight and never leave another customer waiting until morning.
               </p>
             </div>
+
+            <StatInfographic
+              title="The After-Hours Opportunity"
+              stats={[
+                { value: "39%", label: "Chatbot conversations outside office hours", highlight: true },
+                { value: "21\u00d7", label: "More likely to qualify leads within 5 min" },
+                { value: "$126K+", label: "Lost annually from missed calls", highlight: true },
+                { value: "41%", label: "Chatbot meetings booked outside 9-to-5" },
+              ]}
+            />
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 */}

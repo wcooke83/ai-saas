@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { DashboardPath } from '@/components/blog/dashboard-path';
+import { ChecklistInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -171,6 +172,19 @@ export default function HowToImproveChatbotAccuracyPage() {
                 touching any code.
               </p>
             </div>
+
+            <ChecklistInfographic
+              title="Chatbot Accuracy Improvement Checklist"
+              items={[
+                "Audit knowledge sources \u2014 complete, current, and consistent?",
+                "Structure content clearly \u2014 headings, focused pages, no walls of text",
+                "Refine system prompt \u2014 set boundaries, add examples",
+                "Tell the bot when to say \"I don't know\"",
+                "Test with real user questions regularly",
+                "Review conversation logs for missed answers",
+              ]}
+              completedCount={0}
+            />
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 */}

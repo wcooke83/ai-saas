@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ChecklistInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -292,6 +293,17 @@ export default function AiHallucinationPage() {
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Writing system prompts that prevent hallucination
                 </h2>
+                <ChecklistInfographic
+                  title="Anti-Hallucination System Prompt Rules"
+                  items={[
+                    "Instruct the model to answer only from provided context",
+                    "Tell it to say \"I don't know\" when info is missing",
+                    "Prohibit inventing product details, pricing, dates, or policies",
+                    "Prefer shorter, accurate answers over long ones that drift",
+                    "Include boundary examples in your prompt",
+                  ]}
+                  completedCount={0}
+                />
                 <p>
                   Your{' '}
                   <Link href="/blog/how-to-write-chatbot-system-prompt" className="text-primary-600 dark:text-primary-400 hover:underline">

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { ConversionFunnelChart } from '@/components/blog/charts';
+import { StatInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -171,6 +172,16 @@ export default function ChatbotConversionRateOptimizationPage() {
                 into active conversations.
               </p>
             </div>
+
+            <StatInfographic
+              title="Chatbot Conversion Impact"
+              stats={[
+                { value: "23%", label: "Average conversion increase with chatbots", highlight: true },
+                { value: "2\u20133%", label: "Average website conversion rate" },
+                { value: "6\u00d7", label: "More conversations with proactive chat", highlight: true },
+                { value: "35%", label: "Abandoned carts recovered by AI chat" },
+              ]}
+            />
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 */}

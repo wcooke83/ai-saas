@@ -8,6 +8,7 @@ import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { DashboardPath } from '@/components/blog/dashboard-path';
 import { StepFlow } from '@/components/blog/process-visuals';
+import { ChecklistInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -306,6 +307,20 @@ export default function HowToCreateFaqChatbotPage() {
                   questions 24/7.
                 </p>
               </section>
+
+              <ChecklistInfographic
+                title="FAQ Chatbot Pre-Launch Checklist"
+                items={[
+                  "Gather your top 10\u201320 customer questions",
+                  "Write clear, concise answers for each",
+                  "Organize Q&As by category or topic",
+                  "Remove contradictions between answers",
+                  "Add content to your knowledge base",
+                  "Test with real questions before launch",
+                  "Refine based on conversation logs",
+                ]}
+                completedCount={0}
+              />
 
               {/* Section 4 */}
               <section>

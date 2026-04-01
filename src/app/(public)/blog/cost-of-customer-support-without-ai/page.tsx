@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { CostComparisonBar } from '@/components/blog/charts';
+import { StatInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -172,6 +173,18 @@ export default function CostOfCustomerSupportWithoutAiPage() {
                 tickets for pennies each &mdash; and your team gets to focus on work that matters.
               </p>
             </div>
+
+            <StatInfographic
+              title="The True Cost of Customer Support"
+              stats={[
+                { value: "$6\u2013$15", label: "Cost per human support ticket", highlight: true },
+                { value: "$0.50\u2013$0.70", label: "Cost per AI-handled ticket" },
+                { value: "12h 10m", label: "Average response time" },
+                { value: "30\u201345%", label: "Annual support staff turnover" },
+                { value: "40\u201370%", label: "Tickets AI can handle", highlight: true },
+                { value: "$126K+", label: "Lost annually from missed calls" },
+              ]}
+            />
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 */}

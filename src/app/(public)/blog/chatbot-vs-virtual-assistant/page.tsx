@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ComparisonInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -206,6 +207,19 @@ export default function ChatbotVsVirtualAssistantPage() {
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Key differences at a glance
                 </h2>
+                <ComparisonInfographic
+                  title="Chatbot vs Virtual Assistant"
+                  leftLabel="Chatbot"
+                  rightLabel="Virtual Assistant"
+                  items={[
+                    { left: "Handles specific tasks", right: "Broad task management" },
+                    { left: "Text-based interface", right: "Voice + text interface" },
+                    { left: "Rule-based or AI-powered", right: "AI-powered with context" },
+                    { left: "Single-domain focus", right: "Cross-app integrations" },
+                    { left: "Lower setup cost", right: "Higher setup investment" },
+                    { left: "Best for customer support", right: "Best for personal productivity" },
+                  ]}
+                />
                 <div className="overflow-x-auto mt-4 rounded-xl border border-secondary-200 dark:border-secondary-700">
                   <table className="w-full text-sm">
                     <caption className="sr-only">Comparison of chatbots versus virtual assistants</caption>

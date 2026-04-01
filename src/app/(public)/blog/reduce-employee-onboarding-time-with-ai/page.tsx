@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { OnboardingTimeComparison } from '@/components/blog/charts';
+import { StatInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -203,6 +204,15 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
                   this cycle by giving every new hire instant access to the answers they need,
                   in a format they can use immediately.
                 </p>
+                <StatInfographic
+                  title="The Onboarding Reality Check"
+                  stats={[
+                    { value: "$4,129", label: "Average cost per new hire", highlight: true },
+                    { value: "40%", label: "Reduction in time-to-productivity with AI" },
+                    { value: "12%", label: "Employees say their company has great onboarding" },
+                    { value: "82%", label: "Higher retention with strong onboarding", highlight: true },
+                  ]}
+                />
                 <OnboardingTimeComparison />
               </section>
 

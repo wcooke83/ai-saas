@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ComparisonInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -263,7 +264,23 @@ export default function ChatbotPersonalityAndToneGuidePage() {
                   <strong>Minimal:</strong> Brief, efficient, and to-the-point. Answers questions
                   with minimal preamble. Best for technical audiences, developer tools, and
                   situations where visitors want information fast without small talk. Example
-                  greeting: &quot;Ask me anything about [product].&quot; Choose the archetype
+                  greeting: &quot;Ask me anything about [product].&quot;
+                </p>
+                <ComparisonInfographic
+                  title="Four Chatbot Personality Archetypes"
+                  leftLabel="Archetype"
+                  rightLabel="Best For"
+                  items={[
+                    { left: "Professional — \"How can I assist you?\"", right: "Law firms, finance, healthcare" },
+                    { left: "Friendly — \"Hi there! What can I help with?\"", right: "Retail, hospitality, education" },
+                    { left: "Witty — Use humor sparingly", right: "Tech startups, entertainment" },
+                    { left: "Minimal — \"Ask me anything about [product]\"", right: "Developer tools, SaaS platforms" },
+                  ]}
+                  leftColor="text-primary-400"
+                  rightColor="text-emerald-400"
+                />
+                <p className="mt-4">
+                  Choose the archetype
                   closest to your brand, then customize from there. See our{' '}
                   <Link
                     href="/blog/how-to-write-chatbot-system-prompt"

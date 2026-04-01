@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { ROICalculatorVisual } from '@/components/blog/charts';
+import { ChecklistInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -317,6 +318,18 @@ export default function HowToMeasureChatbotRoiPage() {
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Building a Monthly ROI Report
                 </h2>
+                <ChecklistInfographic
+                  title="Monthly Chatbot ROI Report Checklist"
+                  items={[
+                    "Track total chatbot conversations",
+                    "Count tickets deflected from human agents",
+                    "Calculate cost savings (deflected \u00d7 cost-per-ticket)",
+                    "Attribute leads or conversions to chatbot",
+                    "Monitor CSAT score for chatbot interactions",
+                    "Review top unanswered questions",
+                  ]}
+                  completedCount={0}
+                />
                 <p>
                   Create a simple monthly report that tracks your chatbot&apos;s performance over
                   time. Include these data points:
