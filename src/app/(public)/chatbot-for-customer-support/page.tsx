@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { ReactNode, ElementType } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -85,7 +86,7 @@ const trustSignals = [
   'Live agent handoff built in',
 ];
 
-const painPoints = [
+const painPoints: Array<{ icon: ElementType; title: string; body: ReactNode }> = [
   {
     icon: MessageSquare,
     title: 'Repetitive tickets drain your team',
@@ -94,7 +95,7 @@ const painPoints = [
   {
     icon: Clock,
     title: 'Customers wait hours for simple answers',
-    body: "A customer asks about your return policy at 11pm. They wait until morning. Half of them give up and go to a competitor.",
+    body: <span>A customer asks about your return policy at 11pm. They wait until morning. Half of them give up and go to a competitor. <a href="https://livechatai.com/blog/customer-support-response-time-statistics" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-primary-500 transition-colors">Nearly 60% of customers expect a response within 10 minutes.</a></span>,
   },
   {
     icon: TrendingDown,
@@ -407,6 +408,25 @@ export default function ChatbotForCustomerSupportPage() {
                 </Card>
               );
             })}
+          </div>
+        </section>
+
+        <section className="container mx-auto px-4 py-16">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-6">Related industries</h2>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { label: 'Chatbot for SaaS Companies', href: '/chatbot-for-saas', description: 'Product FAQ and trial lead capture for SaaS businesses.' },
+                { label: 'Chatbot for E-commerce', href: '/chatbot-for-ecommerce', description: 'Product Q&A and support deflection for online retailers.' },
+                { label: 'Chatbot for IT Support Teams', href: '/chatbot-for-it-support', description: 'Ticket deflection and troubleshooting FAQ for IT teams.' },
+                { label: 'Chatbot for HR Departments', href: '/chatbot-for-hr', description: 'Employee policy FAQ and onboarding support for HR teams.' },
+              ].map((item) => (
+                <Link key={item.href} href={item.href} className="group flex flex-col gap-1 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 p-4 hover:border-primary-200 dark:hover:border-primary-700 hover:shadow-sm transition-all">
+                  <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{item.label}</span>
+                  <span className="text-xs text-secondary-500 dark:text-secondary-400">{item.description}</span>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { ReactNode, ElementType } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -95,7 +96,7 @@ const trustSignals = [
   'GDPR-compliant data handling',
 ];
 
-const painPoints = [
+const painPoints: Array<{ icon: ElementType; title: string; body: ReactNode }> = [
   {
     icon: Users,
     title: 'The same 10 intake questions, 40 times a week',
@@ -104,7 +105,7 @@ const painPoints = [
   {
     icon: MoonStar,
     title: 'After-hours inquiries go cold by morning',
-    body: 'A potential client researches their options at 10pm and finds your website. With no one available, they move on to the next firm that responds first.',
+    body: <span>A potential client researches their options at 10pm and finds your website. <a href="https://livechatai.com/blog/customer-support-response-time-statistics" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-primary-500 transition-colors">Nearly 60% of people expect a reply within 10 minutes</a> — with no one available, they move on to the next firm that responds first.</span>,
   },
   {
     icon: Filter,
@@ -417,6 +418,25 @@ export default function ChatbotForLawyersPage() {
                 </Card>
               );
             })}
+          </div>
+        </section>
+
+        <section className="container mx-auto px-4 py-16">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-6">Related industries</h2>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { label: 'Chatbot for Immigration Lawyers', href: '/chatbot-for-immigration-lawyers', description: 'Visa category FAQ and consultation booking — no legal advice given.' },
+                { label: 'Chatbot for Accountants', href: '/chatbot-for-accountants', description: 'Tax FAQ and client intake automation.' },
+                { label: 'Chatbot for Financial Advisors', href: '/chatbot-for-financial-advisors', description: 'Service FAQ and consultation booking for financial advisers.' },
+                { label: 'Chatbot for Insurance Agents', href: '/chatbot-for-insurance-agents', description: 'Policy FAQ and quote lead capture for insurance professionals.' },
+              ].map((item) => (
+                <Link key={item.href} href={item.href} className="group flex flex-col gap-1 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 p-4 hover:border-primary-200 dark:hover:border-primary-700 hover:shadow-sm transition-all">
+                  <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{item.label}</span>
+                  <span className="text-xs text-secondary-500 dark:text-secondary-400">{item.description}</span>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { ReactNode, ElementType } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -85,7 +86,7 @@ const trustSignals = [
   'Routes hot leads to your team instantly',
 ];
 
-const painPoints = [
+const painPoints: Array<{ icon: ElementType; title: string; body: ReactNode }> = [
   {
     icon: UserX,
     title: 'Visitors browse and bounce',
@@ -94,7 +95,7 @@ const painPoints = [
   {
     icon: Clock,
     title: 'Slow follow-up kills deals',
-    body: 'Studies show responding to a lead within 5 minutes makes you 9x more likely to close. Most businesses respond in hours — or not at all.',
+    body: <span><a href="https://livechatai.com/blog/customer-support-response-time-statistics" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-primary-500 transition-colors">Responding to a lead within 5 minutes makes you 9x more likely to close.</a> Most businesses respond in hours — or not at all.</span>,
   },
   {
     icon: Filter,
@@ -435,6 +436,25 @@ export default function ChatbotForLeadCapturePage() {
                   </Card>
                 );
               })}
+            </div>
+          </div>
+        </section>
+
+        <section className="container mx-auto px-4 py-16">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-6">Related industries</h2>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { label: 'Chatbot for SaaS Companies', href: '/chatbot-for-saas', description: 'Product FAQ and trial lead capture for SaaS businesses.' },
+                { label: 'Chatbot for E-commerce', href: '/chatbot-for-ecommerce', description: 'Product Q&A and support deflection for online retailers.' },
+                { label: 'Chatbot for Real Estate', href: '/chatbot-for-real-estate', description: '24/7 lead capture and viewing bookings for estate agents.' },
+                { label: 'Chatbot for Marketing Agencies', href: '/chatbot-for-marketing-agencies', description: 'Service FAQ and proposal lead capture for marketing agencies.' },
+              ].map((item) => (
+                <Link key={item.href} href={item.href} className="group flex flex-col gap-1 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 p-4 hover:border-primary-200 dark:hover:border-primary-700 hover:shadow-sm transition-all">
+                  <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{item.label}</span>
+                  <span className="text-xs text-secondary-500 dark:text-secondary-400">{item.description}</span>
+                </Link>
+              ))}
             </div>
           </div>
         </section>

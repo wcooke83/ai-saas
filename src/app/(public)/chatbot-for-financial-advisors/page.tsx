@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import type { ReactNode, ElementType } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,54 +7,54 @@ import { H1 } from '@/components/ui/heading';
 import { Header } from '@/components/layout';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
+import type { ReactNode, ElementType } from 'react';
 import {
   ArrowRight,
   CheckCircle2,
-  ShoppingCart,
-  Inbox,
+  Phone,
+  MoonStar,
+  AlertCircle,
+  BookOpen,
+  CalendarCheck,
   Clock,
-  MessageSquare,
-  Package,
-  RotateCcw,
-  Megaphone,
-  Globe,
-  AlertTriangle,
-  Shirt,
-  Cpu,
-  Sparkles,
-  Box,
+  UserCheck,
+  TrendingUp,
+  PiggyBank,
+  BarChart2,
+  FileText,
+  Briefcase,
 } from 'lucide-react';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
 export function generateMetadata(): Metadata {
   return {
-    title: 'AI Chatbot for E-commerce | Automate Support & Boost Conversions | VocUI',
+    title: 'AI Chatbot for Financial Advisors | Service FAQ & Consultation Booking | VocUI',
     description:
-      'Handle order FAQs, returns, product questions, and shipping inquiries automatically. Reduce support volume and increase conversions with an AI chatbot trained on your store.',
+      'Let an AI chatbot handle service FAQs, consultation booking, and initial inquiries for your financial advisory practice — 24/7. Convert more prospects without more admin.',
     keywords: [
-      'AI chatbot for ecommerce',
-      'ecommerce support chatbot',
-      'product FAQ chatbot',
-      'automated customer support',
-      'reduce support tickets',
+      'AI chatbot for financial advisors',
+      'financial advisor chatbot',
+      'consultation booking chatbot',
+      'wealth management chatbot',
+      'financial services automation',
     ],
     openGraph: {
-      title: 'AI Chatbot for E-commerce | Automate Support & Boost Conversions | VocUI',
+      title: 'AI Chatbot for Financial Advisors | Service FAQ & Consultation Booking | VocUI',
       description:
-        'Handle order FAQs, returns, product questions, and shipping inquiries automatically. Reduce support volume and increase conversions with an AI chatbot trained on your store.',
-      url: 'https://vocui.com/chatbot-for-ecommerce',
+        'Let an AI chatbot handle service FAQs, consultation booking, and initial inquiries for your financial advisory practice — 24/7. Convert more prospects without more admin.',
+      url: 'https://vocui.com/chatbot-for-financial-advisors',
       siteName: 'VocUI',
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'AI Chatbot for E-commerce | Automate Support & Boost Conversions | VocUI',
+      title: 'AI Chatbot for Financial Advisors | Service FAQ & Consultation Booking | VocUI',
       description:
-        'Handle order FAQs, returns, product questions, and shipping inquiries automatically. Reduce support volume and increase conversions with an AI chatbot trained on your store.',
+        'Let an AI chatbot handle service FAQs, consultation booking, and initial inquiries for your financial advisory practice — 24/7. Convert more prospects without more admin.',
     },
     alternates: {
-      canonical: 'https://vocui.com/chatbot-for-ecommerce',
+      canonical: 'https://vocui.com/chatbot-for-financial-advisors',
     },
     robots: { index: true, follow: true },
   };
@@ -66,147 +65,144 @@ export function generateMetadata(): Metadata {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'VocUI — AI Chatbot for E-commerce',
-  applicationCategory: 'ShoppingApplication',
+  name: 'VocUI — AI Chatbot for Financial Advisors',
+  applicationCategory: 'BusinessApplication',
   operatingSystem: 'Web',
   description:
-    'AI chatbot platform for e-commerce. Handle pre-purchase questions, order FAQs, returns, and shipping inquiries automatically — converting more visitors and cutting support volume.',
-  url: 'https://vocui.com/chatbot-for-ecommerce',
+    'AI chatbot that handles service FAQ, consultation booking, and initial prospect inquiries for financial advisors — 24/7, trained on your firm content only.',
+  url: 'https://vocui.com/chatbot-for-financial-advisors',
   offers: {
     '@type': 'Offer',
     price: '0',
     priceCurrency: 'USD',
+    description: 'Free plan available',
   },
+  featureList: [
+    'Knowledge base trained on your firm content',
+    'Consultation booking integration',
+    'Service and process FAQ automation',
+    '24/7 after-hours availability',
+    'Advisor escalation with full conversation context',
+    'GDPR-compliant data handling',
+  ],
 };
 
 // ─── Data ──────────────────────────────────────────────────────────────────────
 
 const trustSignals = [
-  'Handles pre-purchase questions 24/7',
-  'Reduces support ticket volume',
-  'Keeps buyers moving toward checkout',
+  'Answers service questions 24/7',
+  'Trained only on your firm content',
+  'GDPR-compliant data handling',
 ];
 
-const painPoints: Array<{ icon: ElementType; title: string; heading: string; body: ReactNode }> = [
+const painPoints: Array<{ icon: ElementType; title: string; body: ReactNode }> = [
   {
-    icon: ShoppingCart,
-    title: 'A question before checkout is a sale waiting to happen',
-    heading: 'Pre-purchase hesitation',
-    body: "Sizing questions, shipping timelines, return policies, material specs — customers who can't get instant answers don't wait. They abandon and go to a competitor who answers faster.",
+    icon: Phone,
+    title: 'Initial inquiry calls eating into billable advisor time',
+    body: 'What services do you offer? How do your fees work? What\'s the minimum investment? Every advisor fields these questions from prospects who aren\'t yet clients — consuming time that should be spent on existing relationships.',
   },
   {
-    icon: Inbox,
-    title: 'Order status and returns FAQs fill your inbox every day',
-    heading: 'Support overload',
-    body: <span>&ldquo;Where is my order?&rdquo; &ldquo;How do I return this?&rdquo; &ldquo;Do you ship to X?&rdquo; <a href="https://www.zendesk.com/blog/ticket-deflection-currency-self-service/" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-primary-500 transition-colors">Self-service deflects 40–60% of incoming support queries</a> — your team answers these hundreds of times a week and it doesn&apos;t have to be manual.</span>,
+    icon: MoonStar,
+    title: 'Prospects fall off between first contact and booking a consultation',
+    body: <span>Someone visits your website after a referral, has questions, and can&apos;t get an answer until Monday. <a href="https://livechatai.com/blog/customer-support-response-time-statistics" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-primary-500 transition-colors">Nearly 60% of consumers expect a response within 10 minutes</a> — by then they&apos;ve moved on.</span>,
   },
   {
-    icon: Clock,
-    title: 'Most online shopping happens outside business hours',
-    heading: 'After-hours gaps',
-    body: "Your store is open 24/7. Your support team isn't. Customers who can't get answers at 10pm don't always come back in the morning.",
+    icon: AlertCircle,
+    title: 'After-hours leads are lost before the morning',
+    body: <span>High-net-worth individuals often research advisors in the evening — <a href="https://wealthtender.com/insights/how-americans-find-and-hire-financial-advisors/" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-primary-500 transition-colors">83% want to read reviews and check trust signals</a> before making contact. A contact form with a two-day response time is not a competitive advantage.</span>,
   },
 ];
 
 const steps = [
   {
     step: '01',
-    title: 'Train on your store content',
+    title: 'Train on your practice',
     description:
-      'Upload your product descriptions, sizing guides, shipping policies, return FAQs, and any support documentation. Your chatbot learns your catalogue, not generic e-commerce answers.',
+      'Upload your service descriptions, fee structures, process explanations, and prospect FAQs. Your chatbot learns how your practice works and answers from your approved content only.',
   },
   {
     step: '02',
-    title: 'Customize for your brand',
+    title: 'Configure booking and qualification flows',
     description:
-      "Set your chatbot's tone to match your brand voice. Configure product recommendation prompts, upsell triggers, and escalation rules for complex issues.",
+      'Set up consultation booking links and lead qualification questions. The chatbot gathers enough context that your first call with a prospect is already productive — not introductory.',
   },
   {
     step: '03',
-    title: 'Deploy on your storefront',
+    title: 'Deploy and convert more inquiries',
     description:
-      'Embed with one line of code — works with any website or e-commerce platform. Your chatbot is live on every product page and checkout flow.',
+      'Embed on your firm website. Prospects get instant answers; qualified leads get routed directly to your calendar — no missed opportunities, no weekend catch-up.',
   },
 ];
 
 const features = [
   {
-    icon: MessageSquare,
-    name: 'Pre-purchase Q&A',
+    icon: BookOpen,
+    name: 'Service FAQ automation',
     description:
-      'Answer sizing, materials, compatibility, and product questions instantly — keeping buyers on the path to purchase.',
+      'Answer how-we-work, fee structure, and minimum investment questions automatically from your approved content — so advisors start every prospect call in discovery, not explanation.',
   },
   {
-    icon: Package,
-    name: 'Order & shipping FAQs',
+    icon: CalendarCheck,
+    name: 'Consultation booking',
     description:
-      'Handle "where is my order?", delivery timelines, and tracking questions from your policies — without touching your inbox.',
+      'Connect to your calendar and let qualified prospects book a first meeting directly from chat — reducing the back-and-forth that kills conversion momentum.',
   },
   {
-    icon: RotateCcw,
-    name: 'Returns & refunds',
+    icon: TrendingUp,
+    name: 'Investment FAQ (non-advice)',
     description:
-      'Explain your return policy, initiate return requests, and route complex cases to your support team automatically.',
+      'Answer general investment process questions, portfolio construction philosophy, and service scope from your published content — without crossing into regulated advice territory.',
   },
   {
-    icon: Megaphone,
-    name: 'Proactive engagement',
+    icon: Clock,
+    name: 'After-hours availability',
     description:
-      'Trigger messages on high-exit pages: cart abandonment, checkout hesitation, or long time-on-product-page.',
+      'Your chatbot answers at 9pm as confidently as at 9am. Capture every prospect who researches financial advisors outside business hours.',
   },
   {
-    icon: Globe,
-    name: 'Multi-language support',
+    icon: UserCheck,
+    name: 'Advisor handoff',
     description:
-      'Your chatbot responds in the language your customer is writing in — serve international customers without extra setup.',
+      'When a conversation requires a personal touch, it escalates to the right advisor with full context — no prospect ever has to repeat themselves.',
   },
   {
-    icon: AlertTriangle,
-    name: 'Sentiment-aware escalation',
+    icon: FileText,
+    name: 'Onboarding intake',
     description:
-      'Detect frustrated customers automatically. Escalate high-risk conversations to a human agent before they become chargebacks or bad reviews.',
-  },
-];
-
-const testimonials = [
-  {
-    quote:
-      'Response time dropped from 4 hours to 11 seconds. That alone moved our CSAT score by 9 points.',
-    name: 'Marcus T.',
-    role: 'Head of Customer Experience, DTC Brand',
+      'Collect preliminary information from new clients through chat — goals, timelines, current assets — so your first meeting skips the admin and gets straight to planning.',
   },
 ];
 
 const verticals = [
   {
-    icon: Shirt,
-    title: 'Fashion & Apparel',
+    icon: PiggyBank,
+    title: 'Retirement Planning',
     description:
-      'Handle sizing guides, material questions, and return FAQs — reducing pre-purchase friction and post-purchase support.',
+      'Handle retirement timeline questions, pension FAQs, and initial consultation booking without consuming advisor time on first-touch inquiries.',
   },
   {
-    icon: Cpu,
-    title: 'Electronics & Tech',
+    icon: TrendingUp,
+    title: 'Wealth Management',
     description:
-      'Answer compatibility questions, spec comparisons, and warranty FAQs before a customer abandons for a competitor.',
+      'Answer service scope, investment philosophy, and minimum threshold questions automatically before a prospect ever speaks to an advisor.',
   },
   {
-    icon: Sparkles,
-    title: 'Health & Beauty',
+    icon: BarChart2,
+    title: 'Tax Advisory',
     description:
-      'Answer ingredient questions, usage guides, and subscription FAQs automatically — 24/7.',
+      'Field general tax planning questions and service scope FAQs so your tax advisors spend time on strategy, not phone screening.',
   },
   {
-    icon: Box,
-    title: 'Subscription Boxes & DTC Brands',
+    icon: Briefcase,
+    title: 'Independent RIA',
     description:
-      'Handle billing questions, subscription changes, and product FAQs without growing your support team.',
+      'Differentiate your firm with 24/7 responsiveness — explain your independence, fee-only structure, and fiduciary commitment to prospects at any hour.',
   },
 ];
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
-export default function ChatbotForEcommercePage() {
+export default function ChatbotForFinancialAdvisorsPage() {
   return (
     <PageBackground>
       <script
@@ -220,23 +216,22 @@ export default function ChatbotForEcommercePage() {
 
         {/* ── Hero ────────────────────────────────────────────────────────────── */}
         <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center container mx-auto px-4 py-16 text-center">
-          <Badge className="mb-6">AI Chatbot for E-commerce</Badge>
+          <Badge className="mb-6">AI Chatbot for Financial Advisors</Badge>
 
           <H1 className="max-w-4xl mb-6">
-            Your customers have questions before they buy.{' '}
-            <span className="text-primary-500">Answer them — before they leave.</span>
+            Prospects want answers before they book a consultation.{' '}
+            <span className="text-primary-500">Give them answers, not a contact form.</span>
           </H1>
 
           <p className="mx-auto max-w-2xl text-lg text-secondary-600 dark:text-secondary-400 mb-10">
-            VocUI trains on your product catalogue, policies, and FAQs to handle pre-purchase
-            questions, order inquiries, and returns automatically — converting more visitors
-            and cutting support volume.
+            VocUI trains on your services, fee structure, and process documentation — so your advisors
+            spend less time on initial inquiries and more time with clients who are ready to engage.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Button size="xl" asChild>
               <Link href="/signup">
-                Build Your E-commerce Chatbot Free
+                Build Your Advisor Chatbot Free
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
@@ -246,7 +241,7 @@ export default function ChatbotForEcommercePage() {
           </div>
 
           <p className="text-sm text-secondary-500 dark:text-secondary-400">
-            Free plan available &middot; No credit card required &middot; Works with any website
+            Answers service questions 24/7 &middot; Trained only on your firm content &middot; GDPR-compliant
           </p>
         </section>
 
@@ -267,13 +262,13 @@ export default function ChatbotForEcommercePage() {
         {/* ── Problem Section ─────────────────────────────────────────────────── */}
         <section className="container mx-auto px-4 py-24">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <Badge variant="outline" className="mb-4">The e-commerce support problem</Badge>
+            <Badge variant="outline" className="mb-4">The advisor time problem</Badge>
             <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
-              Unanswered questions are abandoned carts
+              Your advisors are answering questions a chatbot could handle
             </h2>
             <p className="text-secondary-600 dark:text-secondary-400">
-              Every question your store can&apos;t answer instantly is a sale that doesn&apos;t happen.
-              The good news: most of these questions are predictable.
+              Not because your team doesn&apos;t value every prospect. Because there&apos;s no
+              system to handle the first layer of questions before a real conversation is warranted.
             </p>
           </div>
 
@@ -282,16 +277,13 @@ export default function ChatbotForEcommercePage() {
               const Icon = p.icon;
               return (
                 <div
-                  key={p.heading}
+                  key={p.title}
                   className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-6 hover:border-primary-200 dark:hover:border-primary-700 transition-colors"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/20 mb-4">
                     <Icon className="h-5 w-5 text-red-500" aria-hidden="true" />
                   </div>
-                  <p className="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wide mb-2">
-                    {p.title}
-                  </p>
-                  <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-2">{p.heading}</h3>
+                  <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-2">{p.title}</h3>
                   <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{p.body}</p>
                 </div>
               );
@@ -305,12 +297,11 @@ export default function ChatbotForEcommercePage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                From your product catalogue to a live support chatbot in under an hour
+                Set up in under an hour. No developers needed.
               </h2>
             </div>
 
             <div className="grid gap-10 md:grid-cols-3 max-w-5xl mx-auto relative">
-              {/* Connector line — desktop only */}
               <div
                 className="hidden md:block absolute top-8 left-[calc(16.67%+1.5rem)] right-[calc(16.67%+1.5rem)] h-px bg-secondary-200 dark:bg-secondary-700"
                 aria-hidden="true"
@@ -334,7 +325,7 @@ export default function ChatbotForEcommercePage() {
             <div className="text-center mt-14">
               <Button size="xl" asChild>
                 <Link href="/signup">
-                  Build Your E-commerce Chatbot Free
+                  Start Building Free
                   <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                 </Link>
               </Button>
@@ -345,13 +336,13 @@ export default function ChatbotForEcommercePage() {
         {/* ── Features ────────────────────────────────────────────────────────── */}
         <section className="container mx-auto px-4 py-24">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <Badge variant="outline" className="mb-4">Built for e-commerce</Badge>
+            <Badge variant="outline" className="mb-4">Features</Badge>
             <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
-              Everything your store needs to support customers automatically
+              Everything a financial advisor chatbot actually needs
             </h2>
             <p className="text-secondary-600 dark:text-secondary-400">
-              Not just a FAQ widget. A full support layer that converts browsers and deflects
-              tickets — without hiring more agents.
+              Built for advisory practices — not a generic Q&A widget.
+              Every feature is aimed at protecting advisor time and converting more qualified prospects.
             </p>
           </div>
 
@@ -374,71 +365,58 @@ export default function ChatbotForEcommercePage() {
           </div>
         </section>
 
-        {/* ── Testimonials ────────────────────────────────────────────────────── */}
+        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="text-center max-w-2xl mx-auto mb-16">
-              <Badge variant="outline" className="mb-4">What customers say</Badge>
-              <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Stores that cut support volume and kept more customers
-              </h2>
-            </div>
-
-            <div className="max-w-2xl mx-auto">
-              {testimonials.map((t) => (
-                <div
-                  key={t.name}
-                  className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-10 hover:border-primary-200 dark:hover:border-primary-700 transition-colors text-center"
-                >
-                  <p className="text-xl text-secondary-700 dark:text-secondary-300 leading-relaxed mb-6 italic font-medium">
-                    &ldquo;{t.quote}&rdquo;
-                  </p>
-                  <div>
-                    <p className="font-semibold text-secondary-900 dark:text-secondary-100">{t.name}</p>
-                    <p className="text-sm text-secondary-500 dark:text-secondary-400">{t.role}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="max-w-3xl mx-auto text-center">
+              <Badge variant="outline" className="mb-8">From a financial advisory firm using VocUI</Badge>
+              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
+                &ldquo;I was spending forty minutes every Monday on intro calls with prospects who
+                weren&apos;t a fit. VocUI handles those first questions now — and the consultations
+                I do take are with people who already understand how we work.&rdquo;
+              </blockquote>
+              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
+                M.C. &mdash; Principal, Clearwater Financial Planning
+              </p>
             </div>
           </div>
         </section>
 
         {/* ── Who It's For ────────────────────────────────────────────────────── */}
         <section className="container mx-auto px-4 py-24">
-          <div className="container mx-auto px-4">
-            <div className="text-center max-w-2xl mx-auto mb-16">
-              <Badge variant="outline" className="mb-4">Who it&apos;s for</Badge>
-              <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
-                For every online store that wants fewer tickets and more conversions
-              </h2>
-              <p className="text-secondary-600 dark:text-secondary-400">
-                If your customers ask questions before they buy, VocUI answers them — automatically.
-              </p>
-            </div>
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <Badge variant="outline" className="mb-4">Who it&apos;s for</Badge>
+            <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
+              For advisory practices that want their advisors in client meetings, not screening calls
+            </h2>
+            <p className="text-secondary-600 dark:text-secondary-400">
+              If your advisors are fielding first-touch questions a chatbot could handle, VocUI pays
+              for itself the first time a qualified prospect books a consultation without a single phone call.
+            </p>
+          </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">
-              {verticals.map((v) => {
-                const Icon = v.icon;
-                return (
-                  <Card
-                    key={v.title}
-                    className="border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 hover:shadow-lg hover:border-primary-200 dark:hover:border-primary-700 transition-all duration-200 text-center"
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-50 dark:bg-primary-900/50 mx-auto mb-3">
-                        <Icon className="h-6 w-6 text-primary-500" aria-hidden="true" />
-                      </div>
-                      <CardTitle className="text-base leading-snug">{v.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xs text-secondary-500 dark:text-secondary-400 leading-relaxed">
-                        {v.description}
-                      </p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">
+            {verticals.map((v) => {
+              const Icon = v.icon;
+              return (
+                <Card
+                  key={v.title}
+                  className="border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 hover:shadow-lg hover:border-primary-200 dark:hover:border-primary-700 transition-all duration-200 text-center"
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-50 dark:bg-primary-900/50 mx-auto mb-3">
+                      <Icon className="h-6 w-6 text-primary-500" aria-hidden="true" />
+                    </div>
+                    <CardTitle className="text-base leading-snug">{v.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xs text-secondary-500 dark:text-secondary-400 leading-relaxed">
+                      {v.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </section>
 
@@ -447,10 +425,10 @@ export default function ChatbotForEcommercePage() {
             <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-6">Related industries</h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { label: 'Chatbot for Logistics Companies', href: '/chatbot-for-logistics', description: 'Shipment tracking FAQ and quote requests for logistics businesses.' },
-                { label: 'Chatbot for Wholesale Suppliers', href: '/chatbot-for-wholesale', description: 'Product FAQ and bulk order lead capture for wholesale businesses.' },
-                { label: 'Chatbot for Manufacturers', href: '/chatbot-for-manufacturers', description: 'Product spec FAQ and distributor lead capture for manufacturers.' },
-                { label: 'Chatbot for SaaS Companies', href: '/chatbot-for-saas', description: 'Product FAQ and trial lead capture for SaaS businesses.' },
+                { label: 'Chatbot for Accountants', href: '/chatbot-for-accountants', description: 'Tax FAQ and client intake automation.' },
+                { label: 'Chatbot for Accountancy Firms', href: '/chatbot-for-accountancy-firms', description: 'Services FAQ and new client intake for accounting practices.' },
+                { label: 'Chatbot for Insurance Agents', href: '/chatbot-for-insurance-agents', description: 'Policy FAQ and quote lead capture for insurance professionals.' },
+                { label: 'Chatbot for Mortgage Brokers', href: '/chatbot-for-mortgage-brokers', description: 'Rate FAQ and application lead capture for mortgage brokers.' },
               ].map((item) => (
                 <Link key={item.href} href={item.href} className="group flex flex-col gap-1 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 p-4 hover:border-primary-200 dark:hover:border-primary-700 hover:shadow-sm transition-all">
                   <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{item.label}</span>
@@ -466,13 +444,13 @@ export default function ChatbotForEcommercePage() {
           <div className="max-w-3xl mx-auto">
             <div className="rounded-3xl bg-gradient-to-br from-primary-600 to-primary-800 p-12 text-center text-white shadow-xl shadow-primary-500/20">
               <h2 className="text-3xl font-bold mb-4">
-                Every unanswered question is a sale you didn&apos;t make
+                Your advisors&apos; time is too valuable for first-touch screening calls
               </h2>
               <p className="text-lg text-white/80 mb-2 max-w-xl mx-auto">
-                Build a chatbot that converts browsers into buyers — and keeps customers coming back.
+                Give prospects instant answers and let your team focus on the clients who are ready to commit.
               </p>
               <p className="text-sm text-white/60 mb-10">
-                Free plan available &middot; No credit card required &middot; Works with any website
+                Free plan available &middot; No credit card required &middot; Live in under an hour
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
@@ -482,7 +460,7 @@ export default function ChatbotForEcommercePage() {
                   asChild
                 >
                   <Link href="/signup">
-                    Build Your E-commerce Chatbot Free
+                    Build Your Advisor Chatbot Free
                     <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                   </Link>
                 </Button>
@@ -491,7 +469,7 @@ export default function ChatbotForEcommercePage() {
                   variant="outline-light"
                   asChild
                 >
-                  <Link href="/pricing">View Pricing</Link>
+                  <Link href="/pricing">See Pricing</Link>
                 </Button>
               </div>
             </div>

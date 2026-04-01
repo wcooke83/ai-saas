@@ -11,51 +11,50 @@ import { PageBackground } from '@/components/ui/page-background';
 import {
   ArrowRight,
   CheckCircle2,
-  ShoppingCart,
-  Inbox,
+  Ticket,
+  MoonStar,
+  AlertCircle,
+  BookOpen,
+  Search,
   Clock,
-  MessageSquare,
-  Package,
-  RotateCcw,
-  Megaphone,
-  Globe,
-  AlertTriangle,
-  Shirt,
-  Cpu,
-  Sparkles,
-  Box,
+  UserCheck,
+  ShieldCheck,
+  ListChecks,
+  LifeBuoy,
+  Server,
+  Building2,
 } from 'lucide-react';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
 export function generateMetadata(): Metadata {
   return {
-    title: 'AI Chatbot for E-commerce | Automate Support & Boost Conversions | VocUI',
+    title: 'AI Chatbot for IT Support Teams | Ticket Deflection & Troubleshooting FAQ | VocUI',
     description:
-      'Handle order FAQs, returns, product questions, and shipping inquiries automatically. Reduce support volume and increase conversions with an AI chatbot trained on your store.',
+      'Deflect tier-1 IT tickets before they reach your engineers. VocUI trains on your knowledge base and resolves password resets, VPN issues, and printer FAQs 24/7.',
     keywords: [
-      'AI chatbot for ecommerce',
-      'ecommerce support chatbot',
-      'product FAQ chatbot',
-      'automated customer support',
-      'reduce support tickets',
+      'AI chatbot for IT support',
+      'IT helpdesk chatbot',
+      'ticket deflection chatbot',
+      'IT troubleshooting FAQ',
+      'help desk automation',
     ],
     openGraph: {
-      title: 'AI Chatbot for E-commerce | Automate Support & Boost Conversions | VocUI',
+      title: 'AI Chatbot for IT Support Teams | Ticket Deflection & Troubleshooting FAQ | VocUI',
       description:
-        'Handle order FAQs, returns, product questions, and shipping inquiries automatically. Reduce support volume and increase conversions with an AI chatbot trained on your store.',
-      url: 'https://vocui.com/chatbot-for-ecommerce',
+        'Deflect tier-1 IT tickets before they reach your engineers. VocUI trains on your knowledge base and resolves password resets, VPN issues, and printer FAQs 24/7.',
+      url: 'https://vocui.com/chatbot-for-it-support',
       siteName: 'VocUI',
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'AI Chatbot for E-commerce | Automate Support & Boost Conversions | VocUI',
+      title: 'AI Chatbot for IT Support Teams | Ticket Deflection & Troubleshooting FAQ | VocUI',
       description:
-        'Handle order FAQs, returns, product questions, and shipping inquiries automatically. Reduce support volume and increase conversions with an AI chatbot trained on your store.',
+        'Deflect tier-1 IT tickets before they reach your engineers. VocUI trains on your knowledge base and resolves password resets, VPN issues, and printer FAQs 24/7.',
     },
     alternates: {
-      canonical: 'https://vocui.com/chatbot-for-ecommerce',
+      canonical: 'https://vocui.com/chatbot-for-it-support',
     },
     robots: { index: true, follow: true },
   };
@@ -66,147 +65,144 @@ export function generateMetadata(): Metadata {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'VocUI — AI Chatbot for E-commerce',
-  applicationCategory: 'ShoppingApplication',
+  name: 'VocUI — AI Chatbot for IT Support Teams',
+  applicationCategory: 'BusinessApplication',
   operatingSystem: 'Web',
   description:
-    'AI chatbot platform for e-commerce. Handle pre-purchase questions, order FAQs, returns, and shipping inquiries automatically — converting more visitors and cutting support volume.',
-  url: 'https://vocui.com/chatbot-for-ecommerce',
+    'AI chatbot that deflects tier-1 IT support tickets, guides users through troubleshooting steps, and escalates complex issues to engineers — 24/7, trained on your internal knowledge base.',
+  url: 'https://vocui.com/chatbot-for-it-support',
   offers: {
     '@type': 'Offer',
     price: '0',
     priceCurrency: 'USD',
+    description: 'Free plan available',
   },
+  featureList: [
+    'Tier-1 ticket deflection',
+    'Step-by-step troubleshooting guides',
+    'Knowledge base search',
+    '24/7 self-service support',
+    'Escalation to tech team with full context',
+    'Common issue FAQ automation',
+  ],
 };
 
 // ─── Data ──────────────────────────────────────────────────────────────────────
 
 const trustSignals = [
-  'Handles pre-purchase questions 24/7',
-  'Reduces support ticket volume',
-  'Keeps buyers moving toward checkout',
+  'Deflects tier-1 tickets before they reach engineers',
+  'Trained only on your internal knowledge base',
+  'GDPR-compliant data handling',
 ];
 
-const painPoints: Array<{ icon: ElementType; title: string; heading: string; body: ReactNode }> = [
+const painPoints: Array<{ icon: ElementType; title: string; body: ReactNode }> = [
   {
-    icon: ShoppingCart,
-    title: 'A question before checkout is a sale waiting to happen',
-    heading: 'Pre-purchase hesitation',
-    body: "Sizing questions, shipping timelines, return policies, material specs — customers who can't get instant answers don't wait. They abandon and go to a competitor who answers faster.",
+    icon: Ticket,
+    title: 'Tier-1 tickets are eating your senior engineers\u2019 time',
+    body: <span>Password resets, software installation requests, and VPN troubleshooting do not need a senior engineer. <a href="https://www.zendesk.com/blog/ticket-deflection-currency-self-service/" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-primary-500 transition-colors">Well-designed self-service deflects 40–60% of incoming tickets</a> — without it, every trivial request lands in the same queue as your actual incidents.</span>,
   },
   {
-    icon: Inbox,
-    title: 'Order status and returns FAQs fill your inbox every day',
-    heading: 'Support overload',
-    body: <span>&ldquo;Where is my order?&rdquo; &ldquo;How do I return this?&rdquo; &ldquo;Do you ship to X?&rdquo; <a href="https://www.zendesk.com/blog/ticket-deflection-currency-self-service/" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-primary-500 transition-colors">Self-service deflects 40–60% of incoming support queries</a> — your team answers these hundreds of times a week and it doesn&apos;t have to be manual.</span>,
+    icon: AlertCircle,
+    title: 'The same five issues appear in your ticket queue every single week',
+    body: 'VPN won\'t connect. Printer offline. Outlook not syncing. Your team knows the fix by heart — and yet they type it out again and again. There is no reason a human should be doing this.',
   },
   {
-    icon: Clock,
-    title: 'Most online shopping happens outside business hours',
-    heading: 'After-hours gaps',
-    body: "Your store is open 24/7. Your support team isn't. Customers who can't get answers at 10pm don't always come back in the morning.",
+    icon: MoonStar,
+    title: 'After-hours outages have no self-service path',
+    body: <span>An employee working late hits a blocker. IT is offline. <a href="https://www.gartner.com/en/newsroom/press-releases/2025-03-05-gartner-predicts-agentic-ai-will-autonomously-resolve-80-percent-of-common-customer-service-issues-without-human-intervention-by-20290" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-primary-500 transition-colors">Gartner predicts AI will autonomously resolve 80% of common support issues by 2029</a> — without a self-service path, every documented fix still pulls someone out of sleep.</span>,
   },
 ];
 
 const steps = [
   {
     step: '01',
-    title: 'Train on your store content',
+    title: 'Train on your knowledge base',
     description:
-      'Upload your product descriptions, sizing guides, shipping policies, return FAQs, and any support documentation. Your chatbot learns your catalogue, not generic e-commerce answers.',
+      'Upload your internal IT runbooks, troubleshooting guides, FAQs, and support documentation. Your chatbot learns your systems and gives step-by-step answers from your own verified content.',
   },
   {
     step: '02',
-    title: 'Customize for your brand',
+    title: 'Define escalation thresholds',
     description:
-      "Set your chatbot's tone to match your brand voice. Configure product recommendation prompts, upsell triggers, and escalation rules for complex issues.",
+      'Set clear rules for when the chatbot resolves the issue itself and when it escalates to a human engineer — with the full conversation and attempted steps already attached to the ticket.',
   },
   {
     step: '03',
-    title: 'Deploy on your storefront',
+    title: 'Deploy to your help desk',
     description:
-      'Embed with one line of code — works with any website or e-commerce platform. Your chatbot is live on every product page and checkout flow.',
+      'Embed on your internal portal, intranet, or Slack workspace. Employees self-serve instantly. Engineers only see tickets that actually need them.',
   },
 ];
 
 const features = [
   {
-    icon: MessageSquare,
-    name: 'Pre-purchase Q&A',
+    icon: Ticket,
+    name: 'Tier-1 ticket deflection',
     description:
-      'Answer sizing, materials, compatibility, and product questions instantly — keeping buyers on the path to purchase.',
+      'Resolve password resets, software FAQs, access requests, and common connectivity issues before they ever reach your queue.',
   },
   {
-    icon: Package,
-    name: 'Order & shipping FAQs',
+    icon: ListChecks,
+    name: 'Step-by-step troubleshooting',
     description:
-      'Handle "where is my order?", delivery timelines, and tracking questions from your policies — without touching your inbox.',
+      'Walk users through guided fix sequences — not just "have you tried turning it off?" but the actual documented resolution path your engineers would follow.',
   },
   {
-    icon: RotateCcw,
-    name: 'Returns & refunds',
+    icon: Search,
+    name: 'Knowledge base search',
     description:
-      'Explain your return policy, initiate return requests, and route complex cases to your support team automatically.',
+      'Surface the right runbook, guide, or FAQ article from your internal documentation in seconds — no more hunting through Confluence.',
   },
   {
-    icon: Megaphone,
-    name: 'Proactive engagement',
+    icon: Clock,
+    name: '24/7 self-service support',
     description:
-      'Trigger messages on high-exit pages: cart abandonment, checkout hesitation, or long time-on-product-page.',
+      'Employees and end users get help at any hour. Reduce after-hours escalations and the overnight ticket backlog your team wakes up to.',
   },
   {
-    icon: Globe,
-    name: 'Multi-language support',
+    icon: UserCheck,
+    name: 'Smart escalation to engineers',
     description:
-      'Your chatbot responds in the language your customer is writing in — serve international customers without extra setup.',
+      'Complex or unresolved issues route to your tech team with the full troubleshooting history attached — no re-explaining from the user, no context lost.',
   },
   {
-    icon: AlertTriangle,
-    name: 'Sentiment-aware escalation',
+    icon: BookOpen,
+    name: 'Common issue FAQ',
     description:
-      'Detect frustrated customers automatically. Escalate high-risk conversations to a human agent before they become chargebacks or bad reviews.',
-  },
-];
-
-const testimonials = [
-  {
-    quote:
-      'Response time dropped from 4 hours to 11 seconds. That alone moved our CSAT score by 9 points.',
-    name: 'Marcus T.',
-    role: 'Head of Customer Experience, DTC Brand',
+      'Build a living FAQ from your most frequent support requests. Update it once and every employee gets the current answer immediately.',
   },
 ];
 
 const verticals = [
   {
-    icon: Shirt,
-    title: 'Fashion & Apparel',
+    icon: LifeBuoy,
+    title: 'Help Desk',
     description:
-      'Handle sizing guides, material questions, and return FAQs — reducing pre-purchase friction and post-purchase support.',
+      'Cut first-response time to zero for common issues and let your agents focus on tickets that need human problem-solving.',
   },
   {
-    icon: Cpu,
-    title: 'Electronics & Tech',
+    icon: Server,
+    title: 'Internal IT',
     description:
-      'Answer compatibility questions, spec comparisons, and warranty FAQs before a customer abandons for a competitor.',
+      'Give employees a self-service first stop before they ping the IT team directly, preserving engineer focus for real incidents.',
   },
   {
-    icon: Sparkles,
-    title: 'Health & Beauty',
+    icon: ShieldCheck,
+    title: 'MSP / Outsourced Support',
     description:
-      'Answer ingredient questions, usage guides, and subscription FAQs automatically — 24/7.',
+      'Scale tier-1 support across multiple client environments without proportionally scaling headcount.',
   },
   {
-    icon: Box,
-    title: 'Subscription Boxes & DTC Brands',
+    icon: Building2,
+    title: 'SaaS Support Teams',
     description:
-      'Handle billing questions, subscription changes, and product FAQs without growing your support team.',
+      'Deflect product how-to questions and common setup issues before they reach your support agents.',
   },
 ];
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
-export default function ChatbotForEcommercePage() {
+export default function ChatbotForITSupportPage() {
   return (
     <PageBackground>
       <script
@@ -220,23 +216,22 @@ export default function ChatbotForEcommercePage() {
 
         {/* ── Hero ────────────────────────────────────────────────────────────── */}
         <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center container mx-auto px-4 py-16 text-center">
-          <Badge className="mb-6">AI Chatbot for E-commerce</Badge>
+          <Badge className="mb-6">AI Chatbot for IT Support Teams</Badge>
 
           <H1 className="max-w-4xl mb-6">
-            Your customers have questions before they buy.{' '}
-            <span className="text-primary-500">Answer them — before they leave.</span>
+            Your engineers are solving the same IT issues every week.{' '}
+            <span className="text-primary-500">Let a chatbot handle them.</span>
           </H1>
 
           <p className="mx-auto max-w-2xl text-lg text-secondary-600 dark:text-secondary-400 mb-10">
-            VocUI trains on your product catalogue, policies, and FAQs to handle pre-purchase
-            questions, order inquiries, and returns automatically — converting more visitors
-            and cutting support volume.
+            VocUI trains on your internal IT knowledge base — runbooks, FAQs, troubleshooting
+            guides — so tier-1 tickets resolve themselves before they ever reach your team.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Button size="xl" asChild>
               <Link href="/signup">
-                Build Your E-commerce Chatbot Free
+                Build Your IT Support Chatbot Free
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
@@ -246,7 +241,7 @@ export default function ChatbotForEcommercePage() {
           </div>
 
           <p className="text-sm text-secondary-500 dark:text-secondary-400">
-            Free plan available &middot; No credit card required &middot; Works with any website
+            Deflects tier-1 tickets 24/7 &middot; Trained only on your internal knowledge base &middot; GDPR-compliant
           </p>
         </section>
 
@@ -267,13 +262,14 @@ export default function ChatbotForEcommercePage() {
         {/* ── Problem Section ─────────────────────────────────────────────────── */}
         <section className="container mx-auto px-4 py-24">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <Badge variant="outline" className="mb-4">The e-commerce support problem</Badge>
+            <Badge variant="outline" className="mb-4">The ticket volume problem</Badge>
             <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
-              Unanswered questions are abandoned carts
+              Skilled engineers should not be spending their day on password resets
             </h2>
             <p className="text-secondary-600 dark:text-secondary-400">
-              Every question your store can&apos;t answer instantly is a sale that doesn&apos;t happen.
-              The good news: most of these questions are predictable.
+              The problem is not that your team is slow. It is that there is no self-service layer
+              between the user and the engineer — so everything, from genuine incidents to trivial
+              FAQs, lands in the same queue.
             </p>
           </div>
 
@@ -282,16 +278,13 @@ export default function ChatbotForEcommercePage() {
               const Icon = p.icon;
               return (
                 <div
-                  key={p.heading}
+                  key={p.title}
                   className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-6 hover:border-primary-200 dark:hover:border-primary-700 transition-colors"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/20 mb-4">
                     <Icon className="h-5 w-5 text-red-500" aria-hidden="true" />
                   </div>
-                  <p className="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wide mb-2">
-                    {p.title}
-                  </p>
-                  <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-2">{p.heading}</h3>
+                  <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-2">{p.title}</h3>
                   <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{p.body}</p>
                 </div>
               );
@@ -305,12 +298,11 @@ export default function ChatbotForEcommercePage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                From your product catalogue to a live support chatbot in under an hour
+                Set up in under an hour. No developers needed.
               </h2>
             </div>
 
             <div className="grid gap-10 md:grid-cols-3 max-w-5xl mx-auto relative">
-              {/* Connector line — desktop only */}
               <div
                 className="hidden md:block absolute top-8 left-[calc(16.67%+1.5rem)] right-[calc(16.67%+1.5rem)] h-px bg-secondary-200 dark:bg-secondary-700"
                 aria-hidden="true"
@@ -334,7 +326,7 @@ export default function ChatbotForEcommercePage() {
             <div className="text-center mt-14">
               <Button size="xl" asChild>
                 <Link href="/signup">
-                  Build Your E-commerce Chatbot Free
+                  Start Building Free
                   <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                 </Link>
               </Button>
@@ -345,13 +337,13 @@ export default function ChatbotForEcommercePage() {
         {/* ── Features ────────────────────────────────────────────────────────── */}
         <section className="container mx-auto px-4 py-24">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <Badge variant="outline" className="mb-4">Built for e-commerce</Badge>
+            <Badge variant="outline" className="mb-4">Features</Badge>
             <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
-              Everything your store needs to support customers automatically
+              Everything an IT support chatbot actually needs
             </h2>
             <p className="text-secondary-600 dark:text-secondary-400">
-              Not just a FAQ widget. A full support layer that converts browsers and deflects
-              tickets — without hiring more agents.
+              Built for IT teams — not a generic widget with canned responses. Every feature is
+              designed to reduce ticket volume and protect engineer focus time.
             </p>
           </div>
 
@@ -374,71 +366,58 @@ export default function ChatbotForEcommercePage() {
           </div>
         </section>
 
-        {/* ── Testimonials ────────────────────────────────────────────────────── */}
+        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="text-center max-w-2xl mx-auto mb-16">
-              <Badge variant="outline" className="mb-4">What customers say</Badge>
-              <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Stores that cut support volume and kept more customers
-              </h2>
-            </div>
-
-            <div className="max-w-2xl mx-auto">
-              {testimonials.map((t) => (
-                <div
-                  key={t.name}
-                  className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-10 hover:border-primary-200 dark:hover:border-primary-700 transition-colors text-center"
-                >
-                  <p className="text-xl text-secondary-700 dark:text-secondary-300 leading-relaxed mb-6 italic font-medium">
-                    &ldquo;{t.quote}&rdquo;
-                  </p>
-                  <div>
-                    <p className="font-semibold text-secondary-900 dark:text-secondary-100">{t.name}</p>
-                    <p className="text-sm text-secondary-500 dark:text-secondary-400">{t.role}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="max-w-3xl mx-auto text-center">
+              <Badge variant="outline" className="mb-8">From an IT team using VocUI</Badge>
+              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
+                &ldquo;We were closing 40% of our weekly tickets before lunch on Monday — all the same
+                password and VPN questions from the weekend. VocUI handles those now. Our engineers
+                actually get to focus on real problems.&rdquo;
+              </blockquote>
+              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
+                R.T. &mdash; IT Manager, 200-Person Technology Company
+              </p>
             </div>
           </div>
         </section>
 
         {/* ── Who It's For ────────────────────────────────────────────────────── */}
         <section className="container mx-auto px-4 py-24">
-          <div className="container mx-auto px-4">
-            <div className="text-center max-w-2xl mx-auto mb-16">
-              <Badge variant="outline" className="mb-4">Who it&apos;s for</Badge>
-              <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
-                For every online store that wants fewer tickets and more conversions
-              </h2>
-              <p className="text-secondary-600 dark:text-secondary-400">
-                If your customers ask questions before they buy, VocUI answers them — automatically.
-              </p>
-            </div>
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <Badge variant="outline" className="mb-4">Who it&apos;s for</Badge>
+            <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
+              For IT teams that want to protect engineer time
+            </h2>
+            <p className="text-secondary-600 dark:text-secondary-400">
+              If your best engineers are answering questions a self-service chatbot could resolve,
+              VocUI recovers the focus time your team needs for actual engineering work.
+            </p>
+          </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">
-              {verticals.map((v) => {
-                const Icon = v.icon;
-                return (
-                  <Card
-                    key={v.title}
-                    className="border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 hover:shadow-lg hover:border-primary-200 dark:hover:border-primary-700 transition-all duration-200 text-center"
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-50 dark:bg-primary-900/50 mx-auto mb-3">
-                        <Icon className="h-6 w-6 text-primary-500" aria-hidden="true" />
-                      </div>
-                      <CardTitle className="text-base leading-snug">{v.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xs text-secondary-500 dark:text-secondary-400 leading-relaxed">
-                        {v.description}
-                      </p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">
+            {verticals.map((v) => {
+              const Icon = v.icon;
+              return (
+                <Card
+                  key={v.title}
+                  className="border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 hover:shadow-lg hover:border-primary-200 dark:hover:border-primary-700 transition-all duration-200 text-center"
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-50 dark:bg-primary-900/50 mx-auto mb-3">
+                      <Icon className="h-6 w-6 text-primary-500" aria-hidden="true" />
+                    </div>
+                    <CardTitle className="text-base leading-snug">{v.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xs text-secondary-500 dark:text-secondary-400 leading-relaxed">
+                      {v.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </section>
 
@@ -447,10 +426,10 @@ export default function ChatbotForEcommercePage() {
             <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-6">Related industries</h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { label: 'Chatbot for Logistics Companies', href: '/chatbot-for-logistics', description: 'Shipment tracking FAQ and quote requests for logistics businesses.' },
-                { label: 'Chatbot for Wholesale Suppliers', href: '/chatbot-for-wholesale', description: 'Product FAQ and bulk order lead capture for wholesale businesses.' },
-                { label: 'Chatbot for Manufacturers', href: '/chatbot-for-manufacturers', description: 'Product spec FAQ and distributor lead capture for manufacturers.' },
                 { label: 'Chatbot for SaaS Companies', href: '/chatbot-for-saas', description: 'Product FAQ and trial lead capture for SaaS businesses.' },
+                { label: 'Chatbot for HR Departments', href: '/chatbot-for-hr', description: 'Employee policy FAQ and onboarding support for HR teams.' },
+                { label: 'Chatbot for Recruiters', href: '/chatbot-for-recruiters', description: 'Job FAQ and candidate intake automation for recruitment firms.' },
+                { label: 'Chatbot for Marketing Agencies', href: '/chatbot-for-marketing-agencies', description: 'Service FAQ and proposal lead capture for marketing agencies.' },
               ].map((item) => (
                 <Link key={item.href} href={item.href} className="group flex flex-col gap-1 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 p-4 hover:border-primary-200 dark:hover:border-primary-700 hover:shadow-sm transition-all">
                   <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{item.label}</span>
@@ -466,13 +445,13 @@ export default function ChatbotForEcommercePage() {
           <div className="max-w-3xl mx-auto">
             <div className="rounded-3xl bg-gradient-to-br from-primary-600 to-primary-800 p-12 text-center text-white shadow-xl shadow-primary-500/20">
               <h2 className="text-3xl font-bold mb-4">
-                Every unanswered question is a sale you didn&apos;t make
+                Your engineers&apos; time is too valuable for tier-1 tickets
               </h2>
               <p className="text-lg text-white/80 mb-2 max-w-xl mx-auto">
-                Build a chatbot that converts browsers into buyers — and keeps customers coming back.
+                Give users a self-service first stop and let your IT team focus on the issues that genuinely need their expertise.
               </p>
               <p className="text-sm text-white/60 mb-10">
-                Free plan available &middot; No credit card required &middot; Works with any website
+                Free plan available &middot; No credit card required &middot; Live in under an hour
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
@@ -482,7 +461,7 @@ export default function ChatbotForEcommercePage() {
                   asChild
                 >
                   <Link href="/signup">
-                    Build Your E-commerce Chatbot Free
+                    Build Your IT Support Chatbot Free
                     <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                   </Link>
                 </Button>
@@ -491,7 +470,7 @@ export default function ChatbotForEcommercePage() {
                   variant="outline-light"
                   asChild
                 >
-                  <Link href="/pricing">View Pricing</Link>
+                  <Link href="/pricing">See Pricing</Link>
                 </Button>
               </div>
             </div>

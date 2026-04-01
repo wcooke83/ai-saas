@@ -11,51 +11,50 @@ import { PageBackground } from '@/components/ui/page-background';
 import {
   ArrowRight,
   CheckCircle2,
-  ShoppingCart,
-  Inbox,
+  Phone,
+  TrendingUp,
+  HelpCircle,
+  FileText,
+  BookOpen,
   Clock,
-  MessageSquare,
-  Package,
-  RotateCcw,
-  Megaphone,
-  Globe,
-  AlertTriangle,
-  Shirt,
-  Cpu,
-  Sparkles,
-  Box,
+  UserCheck,
+  CalendarCheck,
+  Leaf,
+  Building2,
+  Snowflake,
+  Flower2,
 } from 'lucide-react';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
 export function generateMetadata(): Metadata {
   return {
-    title: 'AI Chatbot for E-commerce | Automate Support & Boost Conversions | VocUI',
+    title: 'AI Chatbot for Landscapers | Quote Capture & Seasonal Services FAQ | VocUI',
     description:
-      'Handle order FAQs, returns, product questions, and shipping inquiries automatically. Reduce support volume and increase conversions with an AI chatbot trained on your store.',
+      'Let an AI chatbot capture quote requests, answer service FAQs, and guide seasonal planning for your landscaping business — 24/7. Stop losing leads during the seasonal rush.',
     keywords: [
-      'AI chatbot for ecommerce',
-      'ecommerce support chatbot',
-      'product FAQ chatbot',
-      'automated customer support',
-      'reduce support tickets',
+      'AI chatbot for landscapers',
+      'landscaping chatbot',
+      'landscaping quote capture chatbot',
+      'lawn care FAQ chatbot',
+      'landscaping lead automation',
     ],
     openGraph: {
-      title: 'AI Chatbot for E-commerce | Automate Support & Boost Conversions | VocUI',
+      title: 'AI Chatbot for Landscapers | Quote Capture & Seasonal Services FAQ | VocUI',
       description:
-        'Handle order FAQs, returns, product questions, and shipping inquiries automatically. Reduce support volume and increase conversions with an AI chatbot trained on your store.',
-      url: 'https://vocui.com/chatbot-for-ecommerce',
+        'Let an AI chatbot capture quote requests, answer service FAQs, and guide seasonal planning for your landscaping business — 24/7. Stop losing leads during the seasonal rush.',
+      url: 'https://vocui.com/chatbot-for-landscapers',
       siteName: 'VocUI',
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'AI Chatbot for E-commerce | Automate Support & Boost Conversions | VocUI',
+      title: 'AI Chatbot for Landscapers | Quote Capture & Seasonal Services FAQ | VocUI',
       description:
-        'Handle order FAQs, returns, product questions, and shipping inquiries automatically. Reduce support volume and increase conversions with an AI chatbot trained on your store.',
+        'Let an AI chatbot capture quote requests, answer service FAQs, and guide seasonal planning for your landscaping business — 24/7. Stop losing leads during the seasonal rush.',
     },
     alternates: {
-      canonical: 'https://vocui.com/chatbot-for-ecommerce',
+      canonical: 'https://vocui.com/chatbot-for-landscapers',
     },
     robots: { index: true, follow: true },
   };
@@ -66,147 +65,144 @@ export function generateMetadata(): Metadata {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'VocUI — AI Chatbot for E-commerce',
-  applicationCategory: 'ShoppingApplication',
+  name: 'VocUI — AI Chatbot for Landscapers',
+  applicationCategory: 'BusinessApplication',
   operatingSystem: 'Web',
   description:
-    'AI chatbot platform for e-commerce. Handle pre-purchase questions, order FAQs, returns, and shipping inquiries automatically — converting more visitors and cutting support volume.',
-  url: 'https://vocui.com/chatbot-for-ecommerce',
+    'AI chatbot that captures quote requests, answers service FAQs, and guides seasonal planning for landscaping businesses — 24/7, trained on your company content only.',
+  url: 'https://vocui.com/chatbot-for-landscapers',
   offers: {
     '@type': 'Offer',
     price: '0',
     priceCurrency: 'USD',
+    description: 'Free plan available',
   },
+  featureList: [
+    'Quote request capture and intake',
+    'Services FAQ automation',
+    'Seasonal planning guidance',
+    '24/7 after-hours availability',
+    'Team escalation with full context',
+    'Maintenance plan FAQ',
+  ],
 };
 
 // ─── Data ──────────────────────────────────────────────────────────────────────
 
 const trustSignals = [
-  'Handles pre-purchase questions 24/7',
-  'Reduces support ticket volume',
-  'Keeps buyers moving toward checkout',
+  'Captures quote requests 24/7',
+  'Trained only on your business content',
+  'GDPR-compliant data handling',
 ];
 
-const painPoints: Array<{ icon: ElementType; title: string; heading: string; body: ReactNode }> = [
+const painPoints: Array<{ icon: ElementType; title: string; body: ReactNode }> = [
   {
-    icon: ShoppingCart,
-    title: 'A question before checkout is a sale waiting to happen',
-    heading: 'Pre-purchase hesitation',
-    body: "Sizing questions, shipping timelines, return policies, material specs — customers who can't get instant answers don't wait. They abandon and go to a competitor who answers faster.",
+    icon: Phone,
+    title: 'Quote requests come in faster than you can follow up',
+    body: <span>During spring and early summer, quote requests pile up. You&apos;re on the road or on a job, so they go to voicemail or sit in your inbox. By the time you call back, the customer has already booked someone who responded faster. <a href="https://411locals.us/small-business-owners-dont-answer-62-of-phone-calls/" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-primary-500 transition-colors">Small businesses miss 62% of inbound calls.</a></span>,
   },
   {
-    icon: Inbox,
-    title: 'Order status and returns FAQs fill your inbox every day',
-    heading: 'Support overload',
-    body: <span>&ldquo;Where is my order?&rdquo; &ldquo;How do I return this?&rdquo; &ldquo;Do you ship to X?&rdquo; <a href="https://www.zendesk.com/blog/ticket-deflection-currency-self-service/" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-primary-500 transition-colors">Self-service deflects 40–60% of incoming support queries</a> — your team answers these hundreds of times a week and it doesn&apos;t have to be manual.</span>,
+    icon: HelpCircle,
+    title: "Customers unsure what services they need waste your quoting time",
+    body: "Do I need a full garden redesign or just regular maintenance? Can you do both lawn care and hedging? Customers who don't know what they want take time to qualify before you can even estimate the job — time you could spend on site.",
   },
   {
-    icon: Clock,
-    title: 'Most online shopping happens outside business hours',
-    heading: 'After-hours gaps',
-    body: "Your store is open 24/7. Your support team isn't. Customers who can't get answers at 10pm don't always come back in the morning.",
+    icon: TrendingUp,
+    title: 'Seasonal rush means missed leads at the worst possible time',
+    body: "Spring is when everyone wants a quote at once. Your busiest season is exactly when you have the least time to respond to new enquiries — so the leads you miss are the highest-value ones, from customers ready to spend now.",
   },
 ];
 
 const steps = [
   {
     step: '01',
-    title: 'Train on your store content',
+    title: 'Train on your services',
     description:
-      'Upload your product descriptions, sizing guides, shipping policies, return FAQs, and any support documentation. Your chatbot learns your catalogue, not generic e-commerce answers.',
+      'Upload your service list, seasonal guides, maintenance plan details, and FAQ answers. Your chatbot learns your business and gives accurate answers to every visitor.',
   },
   {
     step: '02',
-    title: 'Customize for your brand',
+    title: 'Configure quote and planning flows',
     description:
-      "Set your chatbot's tone to match your brand voice. Configure product recommendation prompts, upsell triggers, and escalation rules for complex issues.",
+      'Set up quote intake forms for different job types — lawn maintenance, garden design, commercial grounds. Define escalation rules so jobs that need a site visit route directly to your team.',
   },
   {
     step: '03',
-    title: 'Deploy on your storefront',
+    title: 'Deploy and capture the seasonal rush',
     description:
-      'Embed with one line of code — works with any website or e-commerce platform. Your chatbot is live on every product page and checkout flow.',
+      'Embed on your website or Google Business profile. Every spring visitor gets an instant response and a quote request form — even while you\'re on a job.',
   },
 ];
 
 const features = [
   {
-    icon: MessageSquare,
-    name: 'Pre-purchase Q&A',
+    icon: FileText,
+    name: 'Quote capture',
     description:
-      'Answer sizing, materials, compatibility, and product questions instantly — keeping buyers on the path to purchase.',
+      "Collect job type, property size, and scope details from every visitor who wants a quote — even during peak season when you can't be near the phone.",
   },
   {
-    icon: Package,
-    name: 'Order & shipping FAQs',
+    icon: BookOpen,
+    name: 'Services FAQ',
     description:
-      'Handle "where is my order?", delivery timelines, and tracking questions from your policies — without touching your inbox.',
+      "Answer questions about what services you offer, what's included in each package, and how your pricing works — before a customer needs to call.",
   },
   {
-    icon: RotateCcw,
-    name: 'Returns & refunds',
+    icon: Leaf,
+    name: 'Seasonal planning guidance',
     description:
-      'Explain your return policy, initiate return requests, and route complex cases to your support team automatically.',
+      "Guide customers through what work makes sense at each time of year — spring prep, summer maintenance, autumn tidy-ups — so they arrive as better-qualified leads.",
   },
   {
-    icon: Megaphone,
-    name: 'Proactive engagement',
+    icon: Clock,
+    name: '24/7 availability',
     description:
-      'Trigger messages on high-exit pages: cart abandonment, checkout hesitation, or long time-on-product-page.',
+      'Your chatbot answers at midnight as well as at midday, through spring rush and winter quiet alike. Capture every enquiry, even when you\'re on a job.',
   },
   {
-    icon: Globe,
-    name: 'Multi-language support',
+    icon: UserCheck,
+    name: 'Team escalation',
     description:
-      'Your chatbot responds in the language your customer is writing in — serve international customers without extra setup.',
+      'Jobs that need a site visit or a detailed quote escalate to your team with the full conversation context already captured — so you know what you\'re quoting before you arrive.',
   },
   {
-    icon: AlertTriangle,
-    name: 'Sentiment-aware escalation',
+    icon: CalendarCheck,
+    name: 'Maintenance plan FAQ',
     description:
-      'Detect frustrated customers automatically. Escalate high-risk conversations to a human agent before they become chargebacks or bad reviews.',
-  },
-];
-
-const testimonials = [
-  {
-    quote:
-      'Response time dropped from 4 hours to 11 seconds. That alone moved our CSAT score by 9 points.',
-    name: 'Marcus T.',
-    role: 'Head of Customer Experience, DTC Brand',
+      'Explain your regular maintenance contracts, what they cover, and how to sign up — converting one-off quote requests into long-term recurring customers.',
   },
 ];
 
 const verticals = [
   {
-    icon: Shirt,
-    title: 'Fashion & Apparel',
+    icon: Leaf,
+    title: 'Lawn Maintenance',
     description:
-      'Handle sizing guides, material questions, and return FAQs — reducing pre-purchase friction and post-purchase support.',
+      'Handle regular mowing, fertilisation, and lawn care quote requests without interrupting your crews on the road.',
   },
   {
-    icon: Cpu,
-    title: 'Electronics & Tech',
+    icon: Flower2,
+    title: 'Garden Design',
     description:
-      'Answer compatibility questions, spec comparisons, and warranty FAQs before a customer abandons for a competitor.',
+      'Qualify garden redesign and planting scheme enquiries and route serious prospects to your design consultation booking.',
   },
   {
-    icon: Sparkles,
-    title: 'Health & Beauty',
+    icon: Building2,
+    title: 'Commercial Grounds',
     description:
-      'Answer ingredient questions, usage guides, and subscription FAQs automatically — 24/7.',
+      'Capture commercial grounds maintenance and seasonal contract enquiries with full property details already collected.',
   },
   {
-    icon: Box,
-    title: 'Subscription Boxes & DTC Brands',
+    icon: Snowflake,
+    title: 'Snow Removal',
     description:
-      'Handle billing questions, subscription changes, and product FAQs without growing your support team.',
+      'Prepare winter contract enquiries in advance and let your chatbot capture snow clearance leads before the first snowfall.',
   },
 ];
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
-export default function ChatbotForEcommercePage() {
+export default function ChatbotForLandscapersPage() {
   return (
     <PageBackground>
       <script
@@ -220,23 +216,23 @@ export default function ChatbotForEcommercePage() {
 
         {/* ── Hero ────────────────────────────────────────────────────────────── */}
         <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center container mx-auto px-4 py-16 text-center">
-          <Badge className="mb-6">AI Chatbot for E-commerce</Badge>
+          <Badge className="mb-6">AI Chatbot for Landscapers</Badge>
 
           <H1 className="max-w-4xl mb-6">
-            Your customers have questions before they buy.{' '}
-            <span className="text-primary-500">Answer them — before they leave.</span>
+            The spring rush is coming.{' '}
+            <span className="text-primary-500">Your chatbot captures every quote request.</span>
           </H1>
 
           <p className="mx-auto max-w-2xl text-lg text-secondary-600 dark:text-secondary-400 mb-10">
-            VocUI trains on your product catalogue, policies, and FAQs to handle pre-purchase
-            questions, order inquiries, and returns automatically — converting more visitors
-            and cutting support volume.
+            VocUI trains on your services, pricing, and seasonal guides — so every website visitor
+            gets an instant response, quote requests are captured automatically, and your crews stay
+            focused on the jobs rather than the phones.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Button size="xl" asChild>
               <Link href="/signup">
-                Build Your E-commerce Chatbot Free
+                Build Your Landscaping Chatbot Free
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
@@ -246,7 +242,7 @@ export default function ChatbotForEcommercePage() {
           </div>
 
           <p className="text-sm text-secondary-500 dark:text-secondary-400">
-            Free plan available &middot; No credit card required &middot; Works with any website
+            Captures quote requests 24/7 &middot; Trained only on your business content &middot; GDPR-compliant
           </p>
         </section>
 
@@ -267,13 +263,14 @@ export default function ChatbotForEcommercePage() {
         {/* ── Problem Section ─────────────────────────────────────────────────── */}
         <section className="container mx-auto px-4 py-24">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <Badge variant="outline" className="mb-4">The e-commerce support problem</Badge>
+            <Badge variant="outline" className="mb-4">The seasonal lead problem</Badge>
             <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
-              Unanswered questions are abandoned carts
+              Landscaping businesses lose their best leads when they&apos;re busiest
             </h2>
             <p className="text-secondary-600 dark:text-secondary-400">
-              Every question your store can&apos;t answer instantly is a sale that doesn&apos;t happen.
-              The good news: most of these questions are predictable.
+              Not because the work isn&apos;t good enough. Because peak season is exactly when you
+              have the least time to respond — and customers who can&apos;t get an answer quickly
+              book someone else.
             </p>
           </div>
 
@@ -282,16 +279,13 @@ export default function ChatbotForEcommercePage() {
               const Icon = p.icon;
               return (
                 <div
-                  key={p.heading}
+                  key={p.title}
                   className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-6 hover:border-primary-200 dark:hover:border-primary-700 transition-colors"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/20 mb-4">
                     <Icon className="h-5 w-5 text-red-500" aria-hidden="true" />
                   </div>
-                  <p className="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wide mb-2">
-                    {p.title}
-                  </p>
-                  <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-2">{p.heading}</h3>
+                  <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-2">{p.title}</h3>
                   <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{p.body}</p>
                 </div>
               );
@@ -305,12 +299,11 @@ export default function ChatbotForEcommercePage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                From your product catalogue to a live support chatbot in under an hour
+                Set up in under an hour. No developers needed.
               </h2>
             </div>
 
             <div className="grid gap-10 md:grid-cols-3 max-w-5xl mx-auto relative">
-              {/* Connector line — desktop only */}
               <div
                 className="hidden md:block absolute top-8 left-[calc(16.67%+1.5rem)] right-[calc(16.67%+1.5rem)] h-px bg-secondary-200 dark:bg-secondary-700"
                 aria-hidden="true"
@@ -334,7 +327,7 @@ export default function ChatbotForEcommercePage() {
             <div className="text-center mt-14">
               <Button size="xl" asChild>
                 <Link href="/signup">
-                  Build Your E-commerce Chatbot Free
+                  Start Building Free
                   <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                 </Link>
               </Button>
@@ -345,13 +338,13 @@ export default function ChatbotForEcommercePage() {
         {/* ── Features ────────────────────────────────────────────────────────── */}
         <section className="container mx-auto px-4 py-24">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <Badge variant="outline" className="mb-4">Built for e-commerce</Badge>
+            <Badge variant="outline" className="mb-4">Features</Badge>
             <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
-              Everything your store needs to support customers automatically
+              Everything a landscaping business chatbot actually needs
             </h2>
             <p className="text-secondary-600 dark:text-secondary-400">
-              Not just a FAQ widget. A full support layer that converts browsers and deflects
-              tickets — without hiring more agents.
+              Built for landscaping and grounds businesses — not a generic widget bolted onto your site.
+              Every feature is aimed at capturing more quote requests and converting them into booked jobs.
             </p>
           </div>
 
@@ -374,71 +367,58 @@ export default function ChatbotForEcommercePage() {
           </div>
         </section>
 
-        {/* ── Testimonials ────────────────────────────────────────────────────── */}
+        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="text-center max-w-2xl mx-auto mb-16">
-              <Badge variant="outline" className="mb-4">What customers say</Badge>
-              <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Stores that cut support volume and kept more customers
-              </h2>
-            </div>
-
-            <div className="max-w-2xl mx-auto">
-              {testimonials.map((t) => (
-                <div
-                  key={t.name}
-                  className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-10 hover:border-primary-200 dark:hover:border-primary-700 transition-colors text-center"
-                >
-                  <p className="text-xl text-secondary-700 dark:text-secondary-300 leading-relaxed mb-6 italic font-medium">
-                    &ldquo;{t.quote}&rdquo;
-                  </p>
-                  <div>
-                    <p className="font-semibold text-secondary-900 dark:text-secondary-100">{t.name}</p>
-                    <p className="text-sm text-secondary-500 dark:text-secondary-400">{t.role}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="max-w-3xl mx-auto text-center">
+              <Badge variant="outline" className="mb-8">From a landscaping business using VocUI</Badge>
+              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
+                &ldquo;Spring used to mean a backlog of callbacks I couldn&apos;t get through. Now
+                VocUI captures every quote request while I&apos;m on site, and I come home to a
+                tidy list of leads with all the details already filled in.&rdquo;
+              </blockquote>
+              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
+                S.B. &mdash; Owner, Independent Landscaping Business
+              </p>
             </div>
           </div>
         </section>
 
         {/* ── Who It's For ────────────────────────────────────────────────────── */}
         <section className="container mx-auto px-4 py-24">
-          <div className="container mx-auto px-4">
-            <div className="text-center max-w-2xl mx-auto mb-16">
-              <Badge variant="outline" className="mb-4">Who it&apos;s for</Badge>
-              <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
-                For every online store that wants fewer tickets and more conversions
-              </h2>
-              <p className="text-secondary-600 dark:text-secondary-400">
-                If your customers ask questions before they buy, VocUI answers them — automatically.
-              </p>
-            </div>
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <Badge variant="outline" className="mb-4">Who it&apos;s for</Badge>
+            <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
+              For landscaping businesses that want their crews on jobs, not answering phones
+            </h2>
+            <p className="text-secondary-600 dark:text-secondary-400">
+              If you&apos;re missing quote requests during the seasonal rush because you can&apos;t
+              respond fast enough, VocUI pays for itself the moment you land your first captured lead.
+            </p>
+          </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">
-              {verticals.map((v) => {
-                const Icon = v.icon;
-                return (
-                  <Card
-                    key={v.title}
-                    className="border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 hover:shadow-lg hover:border-primary-200 dark:hover:border-primary-700 transition-all duration-200 text-center"
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-50 dark:bg-primary-900/50 mx-auto mb-3">
-                        <Icon className="h-6 w-6 text-primary-500" aria-hidden="true" />
-                      </div>
-                      <CardTitle className="text-base leading-snug">{v.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xs text-secondary-500 dark:text-secondary-400 leading-relaxed">
-                        {v.description}
-                      </p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">
+            {verticals.map((v) => {
+              const Icon = v.icon;
+              return (
+                <Card
+                  key={v.title}
+                  className="border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 hover:shadow-lg hover:border-primary-200 dark:hover:border-primary-700 transition-all duration-200 text-center"
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-50 dark:bg-primary-900/50 mx-auto mb-3">
+                      <Icon className="h-6 w-6 text-primary-500" aria-hidden="true" />
+                    </div>
+                    <CardTitle className="text-base leading-snug">{v.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xs text-secondary-500 dark:text-secondary-400 leading-relaxed">
+                      {v.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </section>
 
@@ -447,10 +427,10 @@ export default function ChatbotForEcommercePage() {
             <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-6">Related industries</h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { label: 'Chatbot for Logistics Companies', href: '/chatbot-for-logistics', description: 'Shipment tracking FAQ and quote requests for logistics businesses.' },
-                { label: 'Chatbot for Wholesale Suppliers', href: '/chatbot-for-wholesale', description: 'Product FAQ and bulk order lead capture for wholesale businesses.' },
-                { label: 'Chatbot for Manufacturers', href: '/chatbot-for-manufacturers', description: 'Product spec FAQ and distributor lead capture for manufacturers.' },
-                { label: 'Chatbot for SaaS Companies', href: '/chatbot-for-saas', description: 'Product FAQ and trial lead capture for SaaS businesses.' },
+                { label: 'Chatbot for Plumbers', href: '/chatbot-for-plumbers', description: 'Emergency booking and service FAQ for plumbing businesses.' },
+                { label: 'Chatbot for Electricians', href: '/chatbot-for-electricians', description: 'Quote requests and services FAQ for electrical contractors.' },
+                { label: 'Chatbot for HVAC Companies', href: '/chatbot-for-hvac', description: 'Maintenance booking and emergency support for HVAC businesses.' },
+                { label: 'Chatbot for Cleaning Services', href: '/chatbot-for-cleaning-services', description: 'Booking and pricing FAQ for cleaning and property services.' },
               ].map((item) => (
                 <Link key={item.href} href={item.href} className="group flex flex-col gap-1 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 p-4 hover:border-primary-200 dark:hover:border-primary-700 hover:shadow-sm transition-all">
                   <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{item.label}</span>
@@ -466,13 +446,13 @@ export default function ChatbotForEcommercePage() {
           <div className="max-w-3xl mx-auto">
             <div className="rounded-3xl bg-gradient-to-br from-primary-600 to-primary-800 p-12 text-center text-white shadow-xl shadow-primary-500/20">
               <h2 className="text-3xl font-bold mb-4">
-                Every unanswered question is a sale you didn&apos;t make
+                Don&apos;t let another seasonal rush pass with missed leads
               </h2>
               <p className="text-lg text-white/80 mb-2 max-w-xl mx-auto">
-                Build a chatbot that converts browsers into buyers — and keeps customers coming back.
+                Give every website visitor an instant response and let your chatbot fill your quote pipeline while your crews are on the road.
               </p>
               <p className="text-sm text-white/60 mb-10">
-                Free plan available &middot; No credit card required &middot; Works with any website
+                Free plan available &middot; No credit card required &middot; Live in under an hour
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
@@ -482,7 +462,7 @@ export default function ChatbotForEcommercePage() {
                   asChild
                 >
                   <Link href="/signup">
-                    Build Your E-commerce Chatbot Free
+                    Build Your Landscaping Chatbot Free
                     <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                   </Link>
                 </Button>
@@ -491,7 +471,7 @@ export default function ChatbotForEcommercePage() {
                   variant="outline-light"
                   asChild
                 >
-                  <Link href="/pricing">View Pricing</Link>
+                  <Link href="/pricing">See Pricing</Link>
                 </Button>
               </div>
             </div>

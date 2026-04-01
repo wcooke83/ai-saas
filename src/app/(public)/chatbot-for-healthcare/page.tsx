@@ -7,6 +7,7 @@ import { H1 } from '@/components/ui/heading';
 import { Header } from '@/components/layout';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
+import type { ReactNode, ElementType } from 'react';
 import {
   ArrowRight,
   CheckCircle2,
@@ -95,16 +96,16 @@ const trustSignals = [
   'GDPR-compliant data handling',
 ];
 
-const painPoints = [
+const painPoints: Array<{ icon: ElementType; title: string; body: ReactNode }> = [
   {
     icon: Phone,
     title: '30% of your calls are questions your website already answers',
-    body: 'Insurance accepted, parking, hours, services offered — your staff answers these dozens of times a day. It\'s not a staffing problem. It\'s an automation problem.',
+    body: <span>Insurance accepted, parking, hours, services offered — your staff answers these dozens of times a day. <a href="https://411locals.us/small-business-owners-dont-answer-62-of-phone-calls/" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-primary-500 transition-colors">Small businesses miss 62% of inbound calls on average</a> — it&apos;s not a staffing problem, it&apos;s an automation problem.</span>,
   },
   {
     icon: Clock,
     title: 'Patients research healthcare options outside business hours',
-    body: 'A patient looks for a new GP at 8pm. They find your clinic, can\'t get their question answered, and book elsewhere in the morning.',
+    body: <span>A patient looks for a new GP at 8pm. They find your clinic, can&apos;t get their question answered, and book elsewhere in the morning. <a href="https://livechatai.com/blog/customer-support-response-time-statistics" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-primary-500 transition-colors">Nearly 60% of people expect a reply within 10 minutes</a> — a response the next day is too late.</span>,
   },
   {
     icon: CalendarX,
@@ -417,6 +418,25 @@ export default function ChatbotForHealthcarePage() {
                 </Card>
               );
             })}
+          </div>
+        </section>
+
+        <section className="container mx-auto px-4 py-16">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-6">Related industries</h2>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { label: 'Chatbot for Dentists', href: '/chatbot-for-dentists', description: 'Appointment booking, insurance FAQ, and patient preparation guides.' },
+                { label: 'Chatbot for Chiropractors', href: '/chatbot-for-chiropractors', description: 'New patient intake, treatment FAQ, and appointment booking.' },
+                { label: 'Chatbot for Optometrists', href: '/chatbot-for-optometrists', description: 'Eye exam booking and product FAQ automation.' },
+                { label: 'Chatbot for Pharmacies', href: '/chatbot-for-pharmacies', description: 'Prescription FAQ and refill support for pharmacy customers.' },
+              ].map((item) => (
+                <Link key={item.href} href={item.href} className="group flex flex-col gap-1 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 p-4 hover:border-primary-200 dark:hover:border-primary-700 hover:shadow-sm transition-all">
+                  <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{item.label}</span>
+                  <span className="text-xs text-secondary-500 dark:text-secondary-400">{item.description}</span>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 

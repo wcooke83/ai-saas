@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { ReactNode, ElementType } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -85,7 +86,7 @@ const trustSignals = [
   'Books viewings without agent involvement',
 ];
 
-const painPoints = [
+const painPoints: Array<{ icon: ElementType; stat: string; title: string; body: ReactNode }> = [
   {
     icon: Zap,
     stat: '72% of buyers work with the first agent who responds',
@@ -96,7 +97,7 @@ const painPoints = [
     icon: Inbox,
     stat: 'Portals generate inquiries faster than agents can respond',
     title: 'Volume',
-    body: "Property portals send leads at all hours. Without automation, you're paying for leads your response time is losing.",
+    body: <span>Property portals send leads at all hours. <a href="https://livechatai.com/blog/customer-support-response-time-statistics" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-primary-500 transition-colors">Nearly 60% of people expect a response within 10 minutes</a> — without automation, you&apos;re paying for leads your response time is losing.</span>,
   },
   {
     icon: Filter,
@@ -441,6 +442,25 @@ export default function ChatbotForRealEstatePage() {
                   </Card>
                 );
               })}
+            </div>
+          </div>
+        </section>
+
+        <section className="container mx-auto px-4 py-16">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-6">Related industries</h2>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { label: 'Chatbot for Property Managers', href: '/chatbot-for-property-managers', description: 'Tenant FAQ and maintenance request intake for property managers.' },
+                { label: 'Chatbot for Mortgage Brokers', href: '/chatbot-for-mortgage-brokers', description: 'Rate FAQ and application lead capture for mortgage brokers.' },
+                { label: 'Chatbot for Mortgage Lenders', href: '/chatbot-for-mortgage-lenders', description: 'Loan FAQ and pre-qualification lead capture for lenders.' },
+                { label: 'Chatbot for Law Firms', href: '/chatbot-for-lawyers', description: 'Client intake, practice area FAQ, and consultation booking.' },
+              ].map((item) => (
+                <Link key={item.href} href={item.href} className="group flex flex-col gap-1 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 p-4 hover:border-primary-200 dark:hover:border-primary-700 hover:shadow-sm transition-all">
+                  <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{item.label}</span>
+                  <span className="text-xs text-secondary-500 dark:text-secondary-400">{item.description}</span>
+                </Link>
+              ))}
             </div>
           </div>
         </section>

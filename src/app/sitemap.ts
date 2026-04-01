@@ -2,7 +2,84 @@ import { MetadataRoute } from 'next'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://vocui.com'
 
+const industryPages = [
+  // Health & Wellness
+  '/chatbot-for-healthcare',
+  '/chatbot-for-dentists',
+  '/chatbot-for-chiropractors',
+  '/chatbot-for-optometrists',
+  '/chatbot-for-pharmacies',
+  '/chatbot-for-veterinarians',
+  '/chatbot-for-therapists',
+  '/chatbot-for-plastic-surgeons',
+  // Legal & Finance
+  '/chatbot-for-lawyers',
+  '/chatbot-for-immigration-lawyers',
+  '/chatbot-for-accountants',
+  '/chatbot-for-accountancy-firms',
+  '/chatbot-for-financial-advisors',
+  '/chatbot-for-insurance-agents',
+  '/chatbot-for-mortgage-brokers',
+  '/chatbot-for-mortgage-lenders',
+  // Hospitality & Food
+  '/chatbot-for-restaurants',
+  '/chatbot-for-hotels',
+  '/chatbot-for-travel-agencies',
+  // Fitness & Wellness
+  '/chatbot-for-gyms',
+  '/chatbot-for-fitness-studios',
+  '/chatbot-for-yoga-studios',
+  '/chatbot-for-personal-trainers',
+  '/chatbot-for-spas',
+  '/chatbot-for-salons',
+  '/chatbot-for-pet-grooming',
+  // Home Services & Trades
+  '/chatbot-for-plumbers',
+  '/chatbot-for-electricians',
+  '/chatbot-for-hvac',
+  '/chatbot-for-landscapers',
+  '/chatbot-for-cleaning-services',
+  // Automotive & Events
+  '/chatbot-for-car-dealerships',
+  '/chatbot-for-auto-repair',
+  '/chatbot-for-event-planners',
+  '/chatbot-for-wedding-venues',
+  '/chatbot-for-photography-studios',
+  // Business Services & Agencies
+  '/chatbot-for-recruiters',
+  '/chatbot-for-hr',
+  '/chatbot-for-it-support',
+  '/chatbot-for-saas',
+  '/chatbot-for-marketing-agencies',
+  '/chatbot-for-web-design-agencies',
+  // Education & Non-Profit
+  '/chatbot-for-tutoring-centers',
+  '/chatbot-for-universities',
+  '/chatbot-for-online-courses',
+  '/chatbot-for-nonprofits',
+  '/chatbot-for-churches',
+  '/chatbot-for-government',
+  // Property
+  '/chatbot-for-real-estate',
+  '/chatbot-for-property-managers',
+  // B2B, Logistics & Industry
+  '/chatbot-for-ecommerce',
+  '/chatbot-for-logistics',
+  '/chatbot-for-manufacturers',
+  '/chatbot-for-wholesale',
+  // Other solutions
+  '/chatbot-for-customer-support',
+  '/chatbot-for-lead-capture',
+]
+
 export default function sitemap(): MetadataRoute.Sitemap {
+  const industryEntries: MetadataRoute.Sitemap = industryPages.map((path) => ({
+    url: `${BASE_URL}${path}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.8,
+  }))
+
   return [
     {
       url: `${BASE_URL}/`,
@@ -12,6 +89,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${BASE_URL}/pricing`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
+      url: `${BASE_URL}/industries`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.9,
@@ -29,42 +112,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
-      url: `${BASE_URL}/chatbot-for-customer-support`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${BASE_URL}/chatbot-for-lawyers`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${BASE_URL}/chatbot-for-healthcare`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${BASE_URL}/chatbot-for-lead-capture`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${BASE_URL}/chatbot-for-real-estate`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${BASE_URL}/chatbot-for-ecommerce`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
       url: `${BASE_URL}/knowledge-base-chatbot`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -76,6 +123,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.8,
     },
+    ...industryEntries,
     {
       url: `${BASE_URL}/vs-intercom`,
       lastModified: new Date(),
@@ -99,36 +147,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.7,
-    },
-    {
-      url: `${BASE_URL}/help`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    },
-    {
-      url: `${BASE_URL}/security`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.6,
-    },
-    {
-      url: `${BASE_URL}/about`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.5,
-    },
-    {
-      url: `${BASE_URL}/contact`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.5,
-    },
-    {
-      url: `${BASE_URL}/changelog`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.5,
     },
     {
       url: `${BASE_URL}/blog`,
@@ -310,6 +328,36 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.6,
+    },
+    {
+      url: `${BASE_URL}/help`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
+      url: `${BASE_URL}/security`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.6,
+    },
+    {
+      url: `${BASE_URL}/about`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.5,
+    },
+    {
+      url: `${BASE_URL}/contact`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.5,
+    },
+    {
+      url: `${BASE_URL}/changelog`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.5,
     },
     {
       url: `${BASE_URL}/sitemap`,
