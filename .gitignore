@@ -43,6 +43,9 @@ screenshots/
 *.tsbuildinfo
 .mcp.json
 
+# Audit/planning docs (local reference only)
+docs/audits/
+
 # Test artifacts
 playwright-report/
 test-results/
