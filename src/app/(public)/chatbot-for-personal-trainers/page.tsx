@@ -139,6 +139,16 @@ export default function ChatbotForPersonalTrainersPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <Header />
       <main id="main-content">
+        <nav aria-label="Breadcrumb" className="container mx-auto px-4 pt-6 pb-2">
+          <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400">
+            <li><Link href="/" className="hover:text-primary-500 transition-colors">Home</Link></li>
+            <li aria-hidden="true">/</li>
+            <li><Link href="/industries" className="hover:text-primary-500 transition-colors">Industries</Link></li>
+            <li aria-hidden="true">/</li>
+            <li className="text-secondary-900 dark:text-secondary-100 font-medium">AI Chatbot for Personal Trainers</li>
+          </ol>
+        </nav>
+
         <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center container mx-auto px-4 py-16 text-center">
           <Badge className="mb-6">AI Chatbot for Personal Trainers</Badge>
           <H1 className="max-w-4xl mb-6">Your clients train hard. <span className="text-primary-500">You shouldn&apos;t have to work twice as hard on admin.</span></H1>

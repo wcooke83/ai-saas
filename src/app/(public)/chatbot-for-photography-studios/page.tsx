@@ -288,6 +288,16 @@ export default function ChatbotForPhotographyStudiosPage() {
       <Header />
 
       <main id="main-content">
+        <nav aria-label="Breadcrumb" className="container mx-auto px-4 pt-6 pb-2">
+          <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400">
+            <li><Link href="/" className="hover:text-primary-500 transition-colors">Home</Link></li>
+            <li aria-hidden="true">/</li>
+            <li><Link href="/industries" className="hover:text-primary-500 transition-colors">Industries</Link></li>
+            <li aria-hidden="true">/</li>
+            <li className="text-secondary-900 dark:text-secondary-100 font-medium">AI Chatbot for Photography Studios</li>
+          </ol>
+        </nav>
+
 
         {/* ── Hero ────────────────────────────────────────────────────────────── */}
         <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center container mx-auto px-4 py-16 text-center">
