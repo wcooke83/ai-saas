@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
-import { H1 } from '@/components/ui/heading';
+import { ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import { ToolsHero } from '@/components/ui/tools-hero';
 import { FaqSearch, SearchResults } from './faq-search';
 import { PopularQuestions } from './popular-questions';
 import { faqCategories, FaqQuestion } from './faq-data';
@@ -104,51 +104,19 @@ export function FaqContent() {
 
   return (
     <>
-      {/* Hero Section */}
-      <section className="pt-8 pb-8 md:pt-12 md:pb-12">
-        <div className="container mx-auto px-4">
-          {/* Breadcrumb */}
-          <nav className="mb-6" aria-label="Breadcrumb">
-            <ol className="flex items-center gap-2 text-sm">
-              <li>
-                <Link
-                  href="/"
-                  className="text-secondary-500 dark:text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-300"
-                >
-                  Home
-                </Link>
-              </li>
-              <li className="text-secondary-400" aria-hidden="true">
-                /
-              </li>
-              <li className="text-secondary-900 dark:text-secondary-100 font-medium">
-                FAQ
-              </li>
-            </ol>
-          </nav>
-
-          <div className="max-w-3xl mx-auto text-center mb-8">
-            <Badge variant="outline" className="mb-4">
-              <HelpCircle className="w-3.5 h-3.5 mr-1.5" />
-              Help Center
-            </Badge>
-            <H1 className="text-3xl md:text-4xl mb-4">
-              How can we help you?
-            </H1>
-            <p className="text-lg text-secondary-600 dark:text-secondary-400">
-              Find answers to common questions about VocUI
-            </p>
-          </div>
-
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto">
-            <FaqSearch
-              onSearchResults={handleSearchResults}
-              onClear={handleSearchClear}
-            />
-          </div>
+      <ToolsHero
+        badge="Help Center"
+        title="How can we help you?"
+        description="Find answers to common questions about VocUI"
+        breadcrumbs={[{ label: 'FAQ' }]}
+      >
+        <div className="mt-8 w-full max-w-2xl mx-auto">
+          <FaqSearch
+            onSearchResults={handleSearchResults}
+            onClear={handleSearchClear}
+          />
         </div>
-      </section>
+      </ToolsHero>
 
       {/* Main Content */}
       <section className="container mx-auto px-4 pb-16">

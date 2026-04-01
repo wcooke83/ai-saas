@@ -500,6 +500,7 @@ export default function SDKDocsClient() {
         title="API & SDK Documentation"
         description="Integrate AI-powered chatbots into your website or application using embeddable widgets, the REST API, or webhooks."
         breadcrumbs={[{ label: 'Documentation' }]}
+        cta={{ primary: { label: 'Get API Key', href: '/signup' } }}
       />
 
       <div className="container mx-auto px-4 pt-4 pb-2 max-w-6xl">

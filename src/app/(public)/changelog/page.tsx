@@ -4,6 +4,7 @@ import { Header } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
+import { ToolsHero } from '@/components/ui/tools-hero';
 import { ArrowRight } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -210,15 +211,12 @@ export default function ChangelogPage() {
       <Header cta={{ label: 'Get Started', href: '/signup' }} />
 
       <main id="main-content">
-        {/* Hero */}
-        <section className="container mx-auto px-4 pt-16 pb-12 max-w-3xl">
-          <h1 className="text-4xl font-bold tracking-tight text-[rgb(var(--text-heading))] mb-3">
-            What&apos;s new in VocUI
-          </h1>
-          <p className="text-lg text-secondary-600 dark:text-secondary-400">
-            Product updates, new features, and improvements. We ship regularly.
-          </p>
-        </section>
+        <ToolsHero
+          badge="Updates"
+          title="What's new in VocUI"
+          description="Product updates, new features, and improvements. We ship regularly."
+          breadcrumbs={[{ label: 'Changelog' }]}
+        />
 
         {/* Timeline */}
         <section className="container mx-auto px-4 pb-16 max-w-3xl">

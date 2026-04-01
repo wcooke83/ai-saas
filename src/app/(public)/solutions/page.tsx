@@ -125,6 +125,7 @@ export default function SolutionsPage() {
           title="One platform. Every conversation your business needs."
           description="Whether you're deflecting support tickets, capturing leads, booking appointments, or putting your knowledge base to work — VocUI handles it."
           breadcrumbs={[{ label: 'Solutions' }]}
+          cta={{ primary: { label: 'Build Your Chatbot Free', href: '/signup' }, secondary: { label: 'See Pricing', href: '/pricing' } }}
         />
 
         {/* Social proof bar — lightweight trust signal */}
