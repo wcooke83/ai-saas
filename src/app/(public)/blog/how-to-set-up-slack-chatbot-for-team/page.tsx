@@ -47,8 +47,8 @@ const jsonLd = {
         '@type': 'WebPage',
         '@id': 'https://vocui.com/blog/how-to-set-up-slack-chatbot-for-team',
       },
-      datePublished: '2026-04-01',
-      dateModified: '2026-04-01',
+      datePublished: '2026-03-05',
+      dateModified: '2026-03-05',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -151,7 +151,7 @@ export default function HowToSetUpSlackChatbotForTeamPage() {
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
                   Guide
                 </span>
-                <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
+                <time dateTime="2026-03-05" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 5, 2026</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">
                   7 min read
                 </span>

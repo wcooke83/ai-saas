@@ -46,8 +46,8 @@ const jsonLd = {
         '@type': 'WebPage',
         '@id': 'https://vocui.com/blog/chatbot-for-travel-agencies',
       },
-      datePublished: '2026-04-01',
-      dateModified: '2026-04-01',
+      datePublished: '2026-02-06',
+      dateModified: '2026-02-06',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -166,7 +166,7 @@ export default function ChatbotForTravelAgenciesPage() {
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
                   Use Case
                 </span>
-                <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
+                <time dateTime="2026-02-06" className="text-xs text-secondary-400 dark:text-secondary-500">Feb 6, 2026</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">
                   13 min read
                 </span>

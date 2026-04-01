@@ -48,8 +48,8 @@ const jsonLd = {
         '@type': 'WebPage',
         '@id': 'https://vocui.com/blog/chatbase-alternatives',
       },
-      datePublished: '2026-03-28',
-      dateModified: '2026-03-28',
+      datePublished: '2025-12-08',
+      dateModified: '2025-12-08',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -227,7 +227,7 @@ export default function ChatbaseAlternativesPage() {
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
                   Comparison
                 </span>
-                <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
+                <time dateTime="2025-12-08" className="text-xs text-secondary-400 dark:text-secondary-500">Dec 8, 2025</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">11 min read</span>
               </div>
               <AuthorByline className="mb-4" />

@@ -46,8 +46,8 @@ const jsonLd = {
         '@type': 'WebPage',
         '@id': 'https://vocui.com/blog/how-to-reduce-customer-support-tickets',
       },
-      datePublished: '2026-03-28',
-      dateModified: '2026-03-28',
+      datePublished: '2026-03-31',
+      dateModified: '2026-03-31',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -170,7 +170,7 @@ export default function ReduceSupportTicketsPage() {
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
                   Strategy
                 </span>
-                <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
+                <time dateTime="2026-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2026</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">12 min read</span>
               </div>
               <AuthorByline className="mb-4" />

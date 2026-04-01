@@ -46,8 +46,8 @@ const jsonLd = {
         '@type': 'WebPage',
         '@id': 'https://vocui.com/blog/chatbot-conversion-rate-optimization',
       },
-      datePublished: '2026-04-01',
-      dateModified: '2026-04-01',
+      datePublished: '2026-01-09',
+      dateModified: '2026-01-09',
       author: {
         '@type': 'Person',
         name: 'Will Cooke',
@@ -150,7 +150,7 @@ export default function ChatbotConversionRateOptimizationPage() {
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
                   Strategy
                 </span>
-                <time dateTime="2025-03-31" className="text-xs text-secondary-400 dark:text-secondary-500">Mar 31, 2025</time>
+                <time dateTime="2026-01-09" className="text-xs text-secondary-400 dark:text-secondary-500">Jan 9, 2026</time>
                 <span className="text-xs text-secondary-400 dark:text-secondary-500">
                   8 min read
                 </span>
