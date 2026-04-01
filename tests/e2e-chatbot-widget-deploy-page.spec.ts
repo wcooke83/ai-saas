@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Chatbot Widget on Deploy Page', () => {
-  const chatbotId = '10df2440-6aac-441a-855d-715c0ea8e506';
+  const chatbotId = 'e2e00000-0000-0000-0000-000000000001';
   const deployPageUrl = `/dashboard/chatbots/${chatbotId}/deploy`;
 
   test.beforeEach(async ({ page }) => {

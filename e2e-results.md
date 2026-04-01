@@ -41,7 +41,7 @@
 | 34 | e2e-credit-exhaustion-ux-fixes | ❌ Failed | 11 passed, 33 failed | Most widget interaction tests timeout (1m). Widget iframe not loading fallback views. | 2026-04-01 |
 | 35 | e2e-credit-meter-alerts | ✅ Passed | 11 passed | — | 2026-04-01 |
 | 36 | e2e-credit-purchase | ❌ Failed | 3 passed, 3 failed, 4 skipped | Custom amount purchase UI tests fail. | 2026-04-01 |
-| 37 | e2e-cross-feature-integration | 🔄 Running | 17 passed, 4+ failed so far | Credit exhaustion auto-purchase widget tests timing out. | 2026-04-01 |
+| 37 | e2e-cross-feature-integration | 🔄 Running | — | Re-running (was interrupted) | 2026-04-01 |
 | 38 | e2e-dashboard-analytics | ⏳ Queued | — | — | — |
 | 39 | e2e-dashboard-escalations | ⏳ Queued | — | — | — |
 | 40 | e2e-dashboard-leads | ⏳ Queued | — | — | — |
