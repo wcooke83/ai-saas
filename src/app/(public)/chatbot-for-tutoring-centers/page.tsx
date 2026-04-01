@@ -27,6 +27,54 @@ export function generateMetadata(): Metadata {
 }
 
 const jsonLd = { '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: 'VocUI — AI Chatbot for Tutoring Centers', applicationCategory: 'EducationApplication', operatingSystem: 'Web', description: 'AI chatbot handling subject FAQs, enrollment enquiries, and session booking for tutoring centers — 24/7.', url: 'https://vocui.com/chatbot-for-tutoring-centers', offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD', description: 'Free plan available' }, featureList: ['Subject and tutor FAQ', 'Enrollment booking', 'Pricing FAQ', '24/7 availability', 'Staff escalation', 'GDPR-compliant data handling'] };
+
+const faqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What can VocUI's AI chatbot do for Tutoring Centers?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Let an AI chatbot handle subject FAQs, enrollment enquiries, and session booking for your tutoring center \u2014 24/7. Keep tutors focused on teaching, not answering the phone."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How long does it take to set up VocUI for Tutoring Centers?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Most Tutoring Centers get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does VocUI work outside business hours?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is VocUI GDPR compliant?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How is VocUI different from a generic chatbot for Tutoring Centers?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Tutoring Centers business and escalates to your team when it cannot help, with full conversation context included."
+      }
+    }
+  ]
+};
+
 const trustSignals = ['Answers parent enquiries 24/7', 'Trained only on your center content', 'GDPR-compliant data handling'];
 const painPoints: Array<{ icon: ElementType; title: string; body: ReactNode }> = [
   { icon: Phone, title: 'Parents calling during sessions to ask which tutor covers which subject', body: 'Do you cover A-level Chemistry? Is there a tutor who specialises in GCSE Maths? When can my child start? These calls arrive when your tutors are mid-session and your admin team is stretched thin.' },
@@ -57,6 +105,7 @@ export default function ChatbotForTutoringCentersPage() {
   return (
     <PageBackground>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <Header />
       <main id="main-content">
         <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center container mx-auto px-4 py-16 text-center">

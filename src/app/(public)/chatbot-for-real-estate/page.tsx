@@ -78,6 +78,54 @@ const jsonLd = {
   },
 };
 
+const faqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What can VocUI's AI chatbot do for Real Estate?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Capture and qualify buyer and seller leads 24/7 with an AI chatbot. Answer property questions, book viewings, and route hot leads to your agents automatically."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How long does it take to set up VocUI for Real Estate?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Most Real Estate get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does VocUI work outside business hours?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is VocUI GDPR compliant?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How is VocUI different from a generic chatbot for Real Estate?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Real Estate business and escalates to your team when it cannot help, with full conversation context included."
+      }
+    }
+  ]
+};
+
+
 // ─── Data ──────────────────────────────────────────────────────────────────────
 
 const trustSignals = [
@@ -218,6 +266,7 @@ export default function ChatbotForRealEstatePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
       <Header />
 

@@ -27,6 +27,54 @@ export function generateMetadata(): Metadata {
 }
 
 const jsonLd = { '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: 'VocUI — AI Chatbot for Fitness Studios', applicationCategory: 'HealthApplication', operatingSystem: 'Web', description: 'AI chatbot handling class bookings, membership FAQs, and new member enquiries for fitness studios — 24/7.', url: 'https://vocui.com/chatbot-for-fitness-studios', offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD', description: 'Free plan available' }, featureList: ['Class booking', 'Membership FAQ', 'Pricing FAQ', '24/7 availability', 'Staff escalation', 'GDPR-compliant data handling'] };
+
+const faqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What can VocUI's AI chatbot do for Fitness Studios?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Let an AI chatbot handle class bookings, membership FAQs, and new member enquiries for your fitness studio \u2014 24/7. Keep your instructors focused on training, not admin."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How long does it take to set up VocUI for Fitness Studios?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Most Fitness Studios get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does VocUI work outside business hours?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is VocUI GDPR compliant?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How is VocUI different from a generic chatbot for Fitness Studios?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Fitness Studios business and escalates to your team when it cannot help, with full conversation context included."
+      }
+    }
+  ]
+};
+
 const trustSignals = ['Books classes and trials 24/7', 'Trained only on your studio content', 'GDPR-compliant data handling'];
 const painPoints: Array<{ icon: ElementType; title: string; body: ReactNode }> = [
   { icon: Phone, title: 'Front desk overwhelmed with class schedule and pricing questions', body: 'What classes do you offer? When is the next HIIT class? How much is a monthly membership? These questions arrive all day — and every time the phone rings, someone is pulled away from the member already in the studio.' },
@@ -57,6 +105,7 @@ export default function ChatbotForFitnessStudiosPage() {
   return (
     <PageBackground>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <Header />
       <main id="main-content">
         <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center container mx-auto px-4 py-16 text-center">

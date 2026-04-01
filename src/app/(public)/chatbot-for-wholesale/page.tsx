@@ -27,6 +27,54 @@ export function generateMetadata(): Metadata {
 }
 
 const jsonLd = { '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: 'VocUI — AI Chatbot for Wholesale Suppliers', applicationCategory: 'BusinessApplication', operatingSystem: 'Web', description: 'AI chatbot handling product FAQs, bulk order lead capture, and MOQ enquiries for wholesale suppliers — 24/7.', url: 'https://vocui.com/chatbot-for-wholesale', offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD', description: 'Free plan available' }, featureList: ['Product FAQ', 'Bulk order lead capture', 'MOQ FAQ', '24/7 availability', 'Account manager escalation', 'GDPR-compliant data handling'] };
+
+const faqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What can VocUI's AI chatbot do for Wholesale Suppliers?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Let an AI chatbot handle product FAQs, bulk order lead capture, and MOQ enquiries for your wholesale business \u2014 24/7. Focus on your best buyers, not routine catalogue questions."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How long does it take to set up VocUI for Wholesale Suppliers?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Most Wholesale Suppliers get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does VocUI work outside business hours?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is VocUI GDPR compliant?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How is VocUI different from a generic chatbot for Wholesale Suppliers?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Wholesale Suppliers business and escalates to your team when it cannot help, with full conversation context included."
+      }
+    }
+  ]
+};
+
 const trustSignals = ['Answers buyer queries 24/7', 'Trained only on your catalogue content', 'GDPR-compliant data handling'];
 const painPoints: Array<{ icon: ElementType; title: string; body: ReactNode }> = [
   { icon: Phone, title: 'Account managers fielding the same MOQ and pricing questions from every new prospect', body: 'What\'s the minimum order? Do you offer volume discounts? Can I mix SKUs? These questions arrive before any real business conversation — and they eat up your team\'s time every single week.' },
@@ -57,6 +105,7 @@ export default function ChatbotForWholesalePage() {
   return (
     <PageBackground>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <Header />
       <main id="main-content">
         <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center container mx-auto px-4 py-16 text-center">

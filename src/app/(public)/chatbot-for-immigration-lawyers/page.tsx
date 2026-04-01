@@ -27,6 +27,54 @@ export function generateMetadata(): Metadata {
 }
 
 const jsonLd = { '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: 'VocUI — AI Chatbot for Immigration Lawyers', applicationCategory: 'LegalApplication', operatingSystem: 'Web', description: 'AI chatbot handling visa FAQs, consultation booking, and document checklists for immigration law firms — 24/7. No legal advice given.', url: 'https://vocui.com/chatbot-for-immigration-lawyers', offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD', description: 'Free plan available' }, featureList: ['Visa category FAQ (non-advice)', 'Consultation booking', 'Document checklist delivery', '24/7 availability', 'Attorney escalation', 'GDPR-compliant data handling'] };
+
+const faqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What can VocUI's AI chatbot do for Immigration Lawyers?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Let an AI chatbot handle visa category FAQs, consultation booking, and document checklists for your immigration law firm \u2014 24/7. Let your attorneys focus on cases, not intake."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How long does it take to set up VocUI for Immigration Lawyers?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Most Immigration Lawyers get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does VocUI work outside business hours?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is VocUI GDPR compliant?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How is VocUI different from a generic chatbot for Immigration Lawyers?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Immigration Lawyers business and escalates to your team when it cannot help, with full conversation context included."
+      }
+    }
+  ]
+};
+
 const trustSignals = [
   'Answers visa process questions 24/7',
   'Never gives legal advice — routes complex matters to your attorneys',
@@ -61,6 +109,7 @@ export default function ChatbotForImmigrationLawyersPage() {
   return (
     <PageBackground>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <Header />
       <main id="main-content">
         <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center container mx-auto px-4 py-16 text-center">
