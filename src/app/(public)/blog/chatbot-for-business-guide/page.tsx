@@ -317,7 +317,20 @@ export default function ChatbotForBusinessGuidePage() {
           </div>
         </section>
 
-        {/* CTA */}
+        
+          {/* Related Industry Pages */}
+          <div className="mt-10 mb-2 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-800/50 p-6">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-3">Related industry guides</p>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/industries" className="font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
+                  VocUI by Industry — All 56 Verticals →
+                </Link>
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-0.5">See how VocUI works for your specific industry — from healthcare and legal to fitness and e-commerce.</p>
+              </li>
+            </ul>
+          </div>
+          {/* CTA */}
         <section className="rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 p-8 text-center">
           <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mb-3">
             See it work for your business

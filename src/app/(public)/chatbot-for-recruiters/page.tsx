@@ -485,6 +485,14 @@ export default function ChatbotForRecruitersPage() {
             </div>
           </div>
         </section>
+      
+          {/* Related Blog Post */}
+          <div className="mt-6 mb-2 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-800/50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">Related reading</p>
+            <Link href="/blog/chatbot-for-recruitment" className="font-semibold text-secondary-900 dark:text-secondary-100 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+              How Recruiters Use AI Chatbots to Screen Candidates Faster →
+            </Link>
+          </div>
       </main>
       <Footer />
     </PageBackground>

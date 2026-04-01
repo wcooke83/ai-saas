@@ -525,6 +525,25 @@ export default function ChatbotForAccountingFirmsPage() {
             </div>
           </article>
 
+          
+          {/* Related Industry Pages */}
+          <div className="mt-10 mb-2 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-800/50 p-6">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-3">Related industry guides</p>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/chatbot-for-accountants" className="font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
+                  AI Chatbot for Accountants →
+                </Link>
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-0.5">Tax FAQ, client intake, and after-hours enquiry capture for accounting practices.</p>
+              </li>
+              <li>
+                <Link href="/chatbot-for-accountancy-firms" className="font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
+                  AI Chatbot for Accountancy Firms →
+                </Link>
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-0.5">New client onboarding and 24/7 enquiry handling for accountancy firms.</p>
+              </li>
+            </ul>
+          </div>
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
             <h2 className="text-2xl font-bold mb-3">Build a chatbot trained on your business</h2>

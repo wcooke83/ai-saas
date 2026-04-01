@@ -441,6 +441,31 @@ export default function AiChatbotForAfterHoursSupportPage() {
             </div>
           </article>
 
+          
+          {/* Related Industry Pages */}
+          <div className="mt-10 mb-2 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-800/50 p-6">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-3">Related industry guides</p>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/chatbot-for-dentists" className="font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
+                  AI Chatbot for Dentists →
+                </Link>
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-0.5">After-hours patient FAQ and appointment booking for dental practices.</p>
+              </li>
+              <li>
+                <Link href="/chatbot-for-restaurants" className="font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
+                  AI Chatbot for Restaurants →
+                </Link>
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-0.5">After-hours reservations and menu FAQ for restaurants.</p>
+              </li>
+              <li>
+                <Link href="/chatbot-for-lawyers" className="font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
+                  AI Chatbot for Law Firms →
+                </Link>
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-0.5">24/7 client intake and legal FAQ automation for law firms.</p>
+              </li>
+            </ul>
+          </div>
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
             <h2 className="text-2xl font-bold mb-3">Stop paying for answers a chatbot can handle</h2>
