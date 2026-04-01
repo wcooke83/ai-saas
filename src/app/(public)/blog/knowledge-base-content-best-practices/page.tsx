@@ -180,8 +180,9 @@ export default function KnowledgeBaseContentBestPracticesPage() {
                 <p>
                   When a visitor asks your chatbot a question, the system searches your knowledge
                   base for the most relevant chunks of text, then uses that content to generate an
-                  answer. This process &mdash; called retrieval-augmented generation &mdash;
-                  depends entirely on finding the right content. If your knowledge base is
+                  answer. This process &mdash; called{' '}
+                  <a href="https://docs.langchain.com/oss/python/langchain/rag" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">retrieval-augmented generation</a>{' '}
+                  &mdash; depends entirely on finding the right content. If your knowledge base is
                   disorganized, the chatbot retrieves irrelevant or partially relevant content and
                   the answer quality suffers.
                 </p>

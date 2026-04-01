@@ -340,9 +340,7 @@ export default function ChatbotForEducationPage() {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">4.</span>
-                      <span>Confirm no SIS, LMS backend, or financial aid system connections exist. Review the{' '}
-                      <a href="https://studentprivacy.ed.gov/audience/education-technology-vendors" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">EdTech vendor FERPA guidelines</a>{' '}
-                      for additional requirements.</span>
+                      <span>Confirm no SIS, LMS backend, or financial aid system connections exist.</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">5.</span>

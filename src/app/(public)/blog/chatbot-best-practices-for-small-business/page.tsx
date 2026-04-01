@@ -431,7 +431,10 @@ export default function ChatbotBestPracticesForSmallBusinessPage() {
                   filters out the routine questions that don&apos;t need human attention, so your
                   team can focus on the interactions that genuinely require a human touch. This
                   hybrid approach delivers the best customer experience while still reducing
-                  your support workload by 50&ndash;70%.
+                  your support workload by 50&ndash;70%. Research from{' '}
+                  <a href="https://blog.hubspot.com/service/customer-service-stats" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">HubSpot</a>{' '}
+                  shows that 75% of customers spend more on brands with good customer
+                  experience — getting the human-AI handoff right directly affects revenue.
                 </p>
               </section>
 
