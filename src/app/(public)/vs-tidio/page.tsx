@@ -7,6 +7,7 @@ import { Header } from '@/components/layout';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
 import { ArrowRight, Check, X, BookOpen, CalendarCheck, Radio } from 'lucide-react';
+import { StyledBulletList } from '@/components/blog/styled-lists';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -211,20 +212,13 @@ export default function VsTidioPage() {
                   </div>
                   <h3 className="text-lg font-bold text-secondary-900 dark:text-secondary-100">Choose VocUI if...</h3>
                 </div>
-                <ul className="space-y-3">
-                  {[
-                    'You want a chatbot trained on your own docs and URLs',
-                    'You need appointment booking built into the chat',
-                    'You want AI answers grounded in your content (not generic responses)',
-                    'You need Telegram deployment alongside website and Slack',
-                    'You want performance telemetry and sentiment scoring',
-                  ].map((item) => (
-                    <li key={item} className="flex items-start gap-3">
-                      <Check className="h-4 w-4 text-primary-500 mt-0.5 flex-shrink-0" aria-hidden="true" />
-                      <span className="text-sm text-secondary-700 dark:text-secondary-300">{item}</span>
-                    </li>
-                  ))}
-                </ul>
+                <StyledBulletList items={[
+                  'You want a chatbot trained on your own docs and URLs',
+                  'You need appointment booking built into the chat',
+                  'You want AI answers grounded in your content (not generic responses)',
+                  'You need Telegram deployment alongside website and Slack',
+                  'You want performance telemetry and sentiment scoring',
+                ]} />
               </div>
 
               {/* Choose Tidio */}
@@ -235,19 +229,12 @@ export default function VsTidioPage() {
                   </div>
                   <h3 className="text-lg font-bold text-secondary-900 dark:text-secondary-100">Choose Tidio if...</h3>
                 </div>
-                <ul className="space-y-3">
-                  {[
-                    'You primarily want live chat with basic chatbot automation',
-                    'You need Shopify-native integration with product card previews',
-                    'You want a large library of pre-built chatbot templates',
-                    'Your main use case is cart abandonment recovery for e-commerce',
-                  ].map((item) => (
-                    <li key={item} className="flex items-start gap-3">
-                      <Check className="h-4 w-4 text-secondary-400 mt-0.5 flex-shrink-0" aria-hidden="true" />
-                      <span className="text-sm text-secondary-700 dark:text-secondary-300">{item}</span>
-                    </li>
-                  ))}
-                </ul>
+                <StyledBulletList items={[
+                  'You primarily want live chat with basic chatbot automation',
+                  'You need Shopify-native integration with product card previews',
+                  'You want a large library of pre-built chatbot templates',
+                  'Your main use case is cart abandonment recovery for e-commerce',
+                ]} />
               </div>
             </div>
           </div>

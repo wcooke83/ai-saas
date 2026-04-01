@@ -108,6 +108,8 @@ const jsonLd = {
       description:
         'Step-by-step guides for embedding AI chatbots on WordPress, Shopify, Squarespace, Wix, and any other platform.',
       url: 'https://vocui.com/blog/embed-chatbot-guide',
+      dateCreated: '2026-03-08',
+      dateModified: '2026-04-02',
       mainEntity: {
         '@type': 'ItemList',
         numberOfItems: allPosts.length,

@@ -30,6 +30,15 @@ const SETTINGS_URL = `/dashboard/chatbots/${BOT_ID}/settings`;
  * API helper with real UI interactions.
  */
 async function setFallbackModeViaUI(page: Page, mode: 'tickets' | 'contact_form' | 'purchase_credits' | 'help_articles') {
+  // 'purchase_credits' requires a selectedPackageId before the settings UI will allow saving.
+  // Since test setup doesn't pre-configure packages, use a direct API call for this mode.
+  if (mode === 'purchase_credits') {
+    await page.request.patch(`/api/chatbots/${BOT_ID}`, {
+      data: { credit_exhaustion_mode: 'purchase_credits' },
+    });
+    return;
+  }
+
   await page.goto(SETTINGS_URL);
   await page.waitForLoadState('networkidle');
   const navBtn = page.locator('nav button').filter({ hasText: 'Credit Exhaustion' });
@@ -40,11 +49,11 @@ async function setFallbackModeViaUI(page: Page, mode: 'tickets' | 'contact_form'
   // Select the desired mode radio button
   await page.locator(`input[value="${mode}"]`).click({ force: true });
 
-  // Click Save Changes — there may be multiple save buttons (sticky bottom + top bar)
-  await page.locator('button', { hasText: 'Save Changes' }).last().click();
+  // Click Save Changes — use first() to avoid the lg:hidden mobile-only sticky button
+  await page.locator('button', { hasText: 'Save Changes' }).first().click();
 
   // Wait for save to complete — button text changes to "Saving..." then back
-  await expect(page.locator('button', { hasText: 'Save Changes' }).last()).toBeEnabled({ timeout: 10000 });
+  await expect(page.locator('button', { hasText: 'Save Changes' }).first()).toBeEnabled({ timeout: 10000 });
 }
 
 /**
@@ -178,6 +187,7 @@ test.describe('1. Immediate Fallback on Mount', () => {
       const data = await response.json();
       if (data.data) {
         data.data.creditExhausted = true;
+        data.data.creditExhaustionMode = 'purchase_credits';
       }
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) });
     });
@@ -435,6 +445,7 @@ test.describe('4. Purchase Error Display', () => {
       const data = await response.json();
       if (data.data) {
         data.data.creditExhausted = true;
+        data.data.creditExhaustionMode = 'purchase_credits';
         data.data.creditExhaustionConfig = {
           ...data.data.creditExhaustionConfig,
           purchase_credits: {
@@ -747,6 +758,7 @@ test.describe('7. Low Credit Warning Banner', () => {
         data.data.creditLow = true;
         data.data.creditRemaining = 2;
         data.data.creditExhausted = false;
+        data.data.creditExhaustionMode = 'purchase_credits';
         data.data.creditPackages = [
           { id: 'pkg-low-3', name: '50 Credits', creditAmount: 50, priceCents: 499, stripePriceId: 'price_low_test' },
         ];
@@ -780,6 +792,7 @@ test.describe('7. Low Credit Warning Banner', () => {
         data.data.creditLow = true;
         data.data.creditRemaining = 2;
         data.data.creditExhausted = false;
+        data.data.creditExhaustionMode = 'purchase_credits';
         data.data.creditPackages = [
           { id: 'pkg-low-4a', name: 'Small Pack', creditAmount: 25, priceCents: 299, stripePriceId: 'price_sm' },
           { id: 'pkg-low-4b', name: 'Big Pack', creditAmount: 100, priceCents: 999, stripePriceId: 'price_lg' },
@@ -869,6 +882,7 @@ test.describe('8. Full Credit Exhaustion -> Purchase -> Continue Flow', () => {
       if (data.data) {
         data.data.creditExhausted = true;
         data.data.creditRemaining = 0;
+        data.data.creditExhaustionMode = 'purchase_credits';
         data.data.creditExhaustionConfig = {
           ...data.data.creditExhaustionConfig,
           purchase_credits: {
@@ -904,6 +918,7 @@ test.describe('8. Full Credit Exhaustion -> Purchase -> Continue Flow', () => {
       if (data.data) {
         data.data.creditExhausted = true;
         data.data.creditRemaining = 0;
+        data.data.creditExhaustionMode = 'purchase_credits';
         data.data.creditExhaustionConfig = {
           ...data.data.creditExhaustionConfig,
           purchase_credits: {
@@ -950,6 +965,7 @@ test.describe('8. Full Credit Exhaustion -> Purchase -> Continue Flow', () => {
       if (data.data) {
         data.data.creditExhausted = true;
         data.data.creditRemaining = 0;
+        data.data.creditExhaustionMode = 'purchase_credits';
         data.data.creditExhaustionConfig = {
           ...data.data.creditExhaustionConfig,
           purchase_credits: {

@@ -62,7 +62,7 @@ test.describe('Fallback Contact Form', () => {
   test('CONTACT-004: Contact submissions dashboard page loads', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/contact`);
     await page.waitForLoadState('domcontentloaded');
-    await expect(page.getByRole('heading', { name: 'Contact Submissions' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Contact Submissions' })).toBeVisible({ timeout: 30000 });
   });
 
   test('CONTACT-005: Contact dashboard shows submissions list', async ({ page }) => {

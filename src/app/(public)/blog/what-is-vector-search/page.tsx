@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { VectorSearchComparisonDiagram } from '@/components/blog/diagrams';
+import { StyledNumberedList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -48,12 +50,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/what-is-vector-search',
       },
       datePublished: '2025-12-05',
-      dateModified: '2025-12-05',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -62,6 +60,12 @@ const jsonLd = {
           '@type': 'ImageObject',
           url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/what-is-vector-search/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {
@@ -106,6 +110,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'No. Platforms like VocUI handle vector search automatically. When you add knowledge sources — URLs, PDFs, or documents — VocUI processes them into chunks, generates embeddings, and stores them in a vector database. When a user asks a question, vector search runs behind the scenes to find the most relevant content. You never need to configure or manage the search infrastructure.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'What Is Vector Search? How AI Chatbots Find Answers',
+          item: 'https://vocui.com/blog/what-is-vector-search',
         },
       ],
     },
@@ -272,13 +289,13 @@ export default function WhatIsVectorSearchPage() {
                   , vector search is the retrieval step — the &quot;R&quot; in RAG. Here&apos;s the process that
                   happens every time a user sends a message:
                 </p>
-                <ol className="list-decimal pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>The user&apos;s question is converted into an embedding vector.</li>
-                  <li>That vector is compared against all knowledge base chunk vectors.</li>
-                  <li>The most similar chunks (typically the top 3-5) are retrieved.</li>
-                  <li>Those chunks are passed to the large language model as context.</li>
-                  <li>The LLM generates a natural language answer based on the retrieved content.</li>
-                </ol>
+                <StyledNumberedList items={[
+                  'The user\u2019s question is converted into an embedding vector.',
+                  'That vector is compared against all knowledge base chunk vectors.',
+                  'The most similar chunks (typically the top 3-5) are retrieved.',
+                  'Those chunks are passed to the large language model as context.',
+                  'The LLM generates a natural language answer based on the retrieved content.',
+                ]} />
                 <p className="mt-4">
                   This approach is why a{' '}
                   <Link href="/blog/what-is-a-knowledge-base-chatbot" className="text-primary-600 dark:text-primary-400 hover:underline">

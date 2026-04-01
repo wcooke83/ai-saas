@@ -6,7 +6,9 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { ChatPreview, IndustryStatBar } from '@/components/blog/industry-visuals';
+import { StyledBulletList } from '@/components/blog/styled-lists';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -48,12 +50,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/chatbot-for-nonprofits',
       },
       datePublished: '2025-12-17',
-      dateModified: '2025-12-17',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -122,6 +120,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Yes. If your nonprofit runs distinct programs — a food bank, an afterschool program, and a shelter, for example — you can create separate chatbots for each, trained on program-specific content. Deploy each chatbot on its respective program page. This keeps answers focused and prevents a visitor asking about the food bank from getting shelter program information.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'AI Chatbots for Nonprofits: Engage Donors and Volunteers',
+          item: 'https://vocui.com/blog/chatbot-for-nonprofits',
         },
       ],
     },
@@ -246,13 +257,13 @@ export default function ChatbotForNonprofitsPage() {
                   <p className="text-sm font-semibold text-secondary-900 dark:text-secondary-100 mb-3">
                     Questions that stall donation page conversions:
                   </p>
-                  <ul className="list-disc pl-5 space-y-1 text-sm text-secondary-600 dark:text-secondary-400">
-                    <li>&quot;Is my donation tax-deductible?&quot;</li>
-                    <li>&quot;What percentage goes to programs vs. overhead?&quot;</li>
-                    <li>&quot;Can I set up a recurring monthly gift?&quot;</li>
-                    <li>&quot;What do different giving levels include?&quot;</li>
-                    <li>&quot;Will I receive a receipt for my records?&quot;</li>
-                  </ul>
+                  <StyledBulletList items={[
+                    '\u201CIs my donation tax-deductible?\u201D',
+                    '\u201CWhat percentage goes to programs vs. overhead?\u201D',
+                    '\u201CCan I set up a recurring monthly gift?\u201D',
+                    '\u201CWhat do different giving levels include?\u201D',
+                    '\u201CWill I receive a receipt for my records?\u201D',
+                  ]} />
                 </div>
 
                 <p>
@@ -380,13 +391,13 @@ export default function ChatbotForNonprofitsPage() {
                   <p className="text-sm font-semibold text-secondary-900 dark:text-secondary-100 mb-3">
                     Maximize impact on a nonprofit budget
                   </p>
-                  <ul className="space-y-2 text-sm text-secondary-600 dark:text-secondary-400">
-                    <li><strong>Start with one chatbot.</strong> Deploy on your donation page first — the highest-impact placement for most nonprofits.</li>
-                    <li><strong>Use existing content.</strong> Your website, annual report, and volunteer handbook are all you need. No content creation required.</li>
-                    <li><strong>Time the launch.</strong> Go live before your next fundraising campaign to capture the traffic surge.</li>
-                    <li><strong>Measure before upgrading.</strong> Track donation page abandonment and chatbot conversations for 30 days before deciding whether to upgrade.</li>
-                    <li><strong>Internal champion.</strong> Assign one team member to refresh the knowledge base quarterly — it takes 15 minutes.</li>
-                  </ul>
+                  <StyledBulletList items={[
+                    { title: 'Start with one chatbot.', description: 'Deploy on your donation page first — the highest-impact placement for most nonprofits.' },
+                    { title: 'Use existing content.', description: 'Your website, annual report, and volunteer handbook are all you need. No content creation required.' },
+                    { title: 'Time the launch.', description: 'Go live before your next fundraising campaign to capture the traffic surge.' },
+                    { title: 'Measure before upgrading.', description: 'Track donation page abandonment and chatbot conversations for 30 days before deciding whether to upgrade.' },
+                    { title: 'Internal champion.', description: 'Assign one team member to refresh the knowledge base quarterly — it takes 15 minutes.' },
+                  ]} />
                 </div>
 
                 <p>

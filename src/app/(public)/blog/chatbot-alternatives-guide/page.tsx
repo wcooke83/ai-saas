@@ -116,6 +116,8 @@ const jsonLd = {
       description:
         'Honest comparisons of the top AI chatbot platforms including Chatbase, Tidio, Intercom, Drift, Zendesk, and Freshchat.',
       url: 'https://vocui.com/blog/chatbot-alternatives-guide',
+      dateCreated: '2026-03-08',
+      dateModified: '2026-04-02',
       mainEntity: {
         '@type': 'ItemList',
         numberOfItems: allPosts.length,

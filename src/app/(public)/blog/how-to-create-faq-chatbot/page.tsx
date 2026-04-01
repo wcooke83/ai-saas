@@ -9,6 +9,8 @@ import { AuthorByline } from '@/components/blog/author-byline';
 import { DashboardPath } from '@/components/blog/dashboard-path';
 import { StepFlow } from '@/components/blog/process-visuals';
 import { ChecklistInfographic } from '@/components/blog/infographics';
+import { StyledNumberedList, StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -50,12 +52,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/how-to-create-faq-chatbot',
       },
       datePublished: '2026-03-09',
-      dateModified: '2026-03-09',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -114,6 +112,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Yes. You can customize the chatbot\'s colors, position, welcome message, avatar, and more from the VocUI dashboard. Match it to your brand so it feels like a natural part of your website.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'How to Create an FAQ Chatbot in Minutes',
+          item: 'https://vocui.com/blog/how-to-create-faq-chatbot',
         },
       ],
     },
@@ -218,21 +229,11 @@ export default function HowToCreateFaqChatbotPage() {
                   any coding skills, API integrations, or machine learning expertise. Here&apos;s
                   what you&apos;ll need:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4">
-                  <li>
-                    <strong>Your FAQ content</strong> — This can be an existing FAQ page, a
-                    spreadsheet of questions and answers, a PDF document, or even a help center
-                    URL. If you can read it, VocUI can train on it.
-                  </li>
-                  <li>
-                    <strong>A VocUI account</strong> — The free plan includes everything you need
-                    to build and deploy your first FAQ chatbot.
-                  </li>
-                  <li>
-                    <strong>Five minutes</strong> — Seriously. The setup process from sign-up to
-                    live chatbot typically takes less time than writing a single support email.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Your FAQ content', description: 'This can be an existing FAQ page, a spreadsheet of questions and answers, a PDF document, or even a help center URL. If you can read it, VocUI can train on it.' },
+                  { title: 'A VocUI account', description: 'The free plan includes everything you need to build and deploy your first FAQ chatbot.' },
+                  { title: 'Five minutes', description: 'Seriously. The setup process from sign-up to live chatbot typically takes less time than writing a single support email.' },
+                ]} />
               </section>
 
               {/* Section 3 */}
@@ -256,52 +257,13 @@ export default function HowToCreateFaqChatbotPage() {
                   caption="Five steps from signup to live FAQ chatbot"
                 />
 
-                <ol className="list-decimal pl-5 space-y-4 mt-4">
-                  <li>
-                    <strong>Create a new chatbot.</strong> Log in to your VocUI dashboard and click
-                    &quot;Create Chatbot.&quot; Give it a name that reflects its purpose — something
-                    like &quot;Support FAQ Bot&quot; or &quot;Help Center Assistant.&quot;
-                  </li>
-                  <li>
-                    <strong>Add your FAQ content as a knowledge source.</strong> You have several
-                    options: paste a URL to your existing FAQ page and VocUI will scrape the
-                    content automatically, upload a PDF or DOCX file containing your Q&amp;As, or
-                    enter question-and-answer pairs directly. Most users start by pointing the bot
-                    at their existing FAQ or help center URL.
-                    <DashboardPath steps={['Chatbots', 'Create New', 'Knowledge Sources', 'Add']} tip="Choose URL, PDF, or manual Q&A to add your content." />
-                  </li>
-                  <li>
-                    <strong>Customize the system prompt.</strong> The default prompt works well for
-                    most FAQ use cases, but you can tailor it. Tell the bot to only answer from the
-                    provided content, set a friendly tone, and instruct it to say &quot;I don&apos;t
-                    know&quot; when a question falls outside the FAQ. Check out our guide
-                    on{' '}
-                    <Link
-                      href="/blog/how-to-write-chatbot-system-prompt"
-                      className="text-primary-600 dark:text-primary-400 hover:underline"
-                    >
-                      writing effective system prompts
-                    </Link>{' '}
-                    for detailed tips.
-                  </li>
-                  <li>
-                    <strong>Style the widget.</strong> Choose colors, set the chat bubble position,
-                    write a welcome message, and pick an avatar. Make it match your brand so it
-                    feels like a native part of your website.
-                  </li>
-                  <li>
-                    <strong>Deploy.</strong> Copy the one-line embed code from the Deploy tab and
-                    paste it into your website. See our guide
-                    on{' '}
-                    <Link
-                      href="/blog/how-to-add-chatbot-to-website"
-                      className="text-primary-600 dark:text-primary-400 hover:underline"
-                    >
-                      adding a chatbot to your website
-                    </Link>{' '}
-                    for platform-specific instructions.
-                  </li>
-                </ol>
+                <StyledNumberedList items={[
+                  { title: 'Create a new chatbot.', description: 'Log in to your VocUI dashboard and click \u201CCreate Chatbot.\u201D Give it a name that reflects its purpose \u2014 something like \u201CSupport FAQ Bot\u201D or \u201CHelp Center Assistant.\u201D' },
+                  { title: 'Add your FAQ content as a knowledge source.', description: <>You have several options: paste a URL to your existing FAQ page and VocUI will scrape the content automatically, upload a PDF or DOCX file containing your Q&amp;As, or enter question-and-answer pairs directly. Most users start by pointing the bot at their existing FAQ or help center URL.<DashboardPath steps={['Chatbots', 'Create New', 'Knowledge Sources', 'Add']} tip="Choose URL, PDF, or manual Q&A to add your content." /></> },
+                  { title: 'Customize the system prompt.', description: <>The default prompt works well for most FAQ use cases, but you can tailor it. Tell the bot to only answer from the provided content, set a friendly tone, and instruct it to say &quot;I don&apos;t know&quot; when a question falls outside the FAQ. Check out our guide on{' '}<Link href="/blog/how-to-write-chatbot-system-prompt" className="text-primary-600 dark:text-primary-400 hover:underline">writing effective system prompts</Link>{' '}for detailed tips.</> },
+                  { title: 'Style the widget.', description: 'Choose colors, set the chat bubble position, write a welcome message, and pick an avatar. Make it match your brand so it feels like a native part of your website.' },
+                  { title: 'Deploy.', description: <>Copy the one-line embed code from the Deploy tab and paste it into your website. See our guide on{' '}<Link href="/blog/how-to-add-chatbot-to-website" className="text-primary-600 dark:text-primary-400 hover:underline">adding a chatbot to your website</Link>{' '}for platform-specific instructions.</> },
+                ]} />
                 <p className="mt-4">
                   That&apos;s it. Your FAQ chatbot is now live and ready to answer visitor
                   questions 24/7.
@@ -332,33 +294,13 @@ export default function HowToCreateFaqChatbotPage() {
                   you feed it. Here are some best practices for writing FAQ content that produces
                   accurate, helpful chatbot responses:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4">
-                  <li>
-                    <strong>Write answers in complete sentences.</strong> Instead of bullet-point
-                    fragments, write full, conversational answers. The chatbot will echo this tone
-                    in its responses.
-                  </li>
-                  <li>
-                    <strong>Cover one topic per question.</strong> Don&apos;t bundle multiple
-                    topics into a single FAQ entry. &quot;What&apos;s your return policy?&quot; and
-                    &quot;How long do refunds take?&quot; should be separate items.
-                  </li>
-                  <li>
-                    <strong>Include variations of common questions.</strong> People ask the same
-                    thing in different ways. If you know customers ask &quot;Do you offer free
-                    shipping?&quot; and &quot;How much does delivery cost?&quot;, include both
-                    variations in your content.
-                  </li>
-                  <li>
-                    <strong>Keep answers concise but complete.</strong> Aim for 2-4 sentences per
-                    answer. Enough to be helpful, short enough to read quickly in a chat window.
-                  </li>
-                  <li>
-                    <strong>Update regularly.</strong> Set a monthly reminder to review your FAQ
-                    content. Add new questions based on what customers are actually asking (VocUI&apos;s
-                    analytics dashboard shows you exactly this).
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Write answers in complete sentences.', description: 'Instead of bullet-point fragments, write full, conversational answers. The chatbot will echo this tone in its responses.' },
+                  { title: 'Cover one topic per question.', description: 'Don\u2019t bundle multiple topics into a single FAQ entry. \u201CWhat\u2019s your return policy?\u201D and \u201CHow long do refunds take?\u201D should be separate items.' },
+                  { title: 'Include variations of common questions.', description: 'People ask the same thing in different ways. If you know customers ask \u201CDo you offer free shipping?\u201D and \u201CHow much does delivery cost?\u201D, include both variations in your content.' },
+                  { title: 'Keep answers concise but complete.', description: 'Aim for 2-4 sentences per answer. Enough to be helpful, short enough to read quickly in a chat window.' },
+                  { title: 'Update regularly.', description: 'Set a monthly reminder to review your FAQ content. Add new questions based on what customers are actually asking (VocUI\u2019s analytics dashboard shows you exactly this).' },
+                ]} />
               </section>
 
               {/* Section 5 */}

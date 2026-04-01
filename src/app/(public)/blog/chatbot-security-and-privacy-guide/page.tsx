@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { ChecklistInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
@@ -48,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/chatbot-security-and-privacy-guide',
       },
       datePublished: '2026-03-23',
-      dateModified: '2026-03-23',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -62,6 +59,12 @@ const jsonLd = {
           '@type': 'ImageObject',
           url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/chatbot-security-and-privacy-guide/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {
@@ -106,6 +109,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'HIPAA compliance adds significant requirements. If your chatbot may handle protected health information (PHI), your chatbot provider must sign a Business Associate Agreement (BAA) and meet HIPAA\u2019s technical safeguards: encryption, access controls, audit logging, and data integrity measures. Most general-purpose chatbot platforms are not HIPAA-compliant out of the box. If you\u2019re in healthcare, ask specifically about HIPAA compliance before deploying a chatbot that might handle patient information.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'Chatbot Security and Privacy: What Business Owners Need to Know',
+          item: 'https://vocui.com/blog/chatbot-security-and-privacy-guide',
         },
       ],
     },

@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { ChecklistInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
@@ -49,11 +50,7 @@ const jsonLd = {
       },
       datePublished: '2026-04-01',
       dateModified: '2026-04-01',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -106,6 +103,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Review chat transcripts regularly — especially in the first few weeks after deployment. Look for responses that include specific claims (dates, prices, policies) and verify them against your knowledge base. Pay attention to user feedback and complaints about incorrect information. You can also test systematically by asking questions you know the answer to, or asking questions that are deliberately outside your chatbot\'s knowledge to see if it appropriately declines to answer.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'AI Hallucination: What It Is and How to Prevent It',
+          item: 'https://vocui.com/blog/ai-hallucination-what-it-is-how-to-prevent-it',
         },
       ],
     },

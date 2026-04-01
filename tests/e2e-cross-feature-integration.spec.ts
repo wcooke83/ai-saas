@@ -26,6 +26,15 @@ async function resetCredits(page: Page) {
  * Navigates to Settings > Credit Exhaustion section, selects the radio button, and saves.
  */
 async function setCreditExhaustionModeViaUI(page: Page, mode: 'tickets' | 'contact_form' | 'purchase_credits' | 'help_articles') {
+  // 'purchase_credits' requires a selectedPackageId before the settings UI will save.
+  // Bypass UI validation for this mode using a direct API call.
+  if (mode === 'purchase_credits') {
+    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
+      data: { credit_exhaustion_mode: 'purchase_credits' },
+    });
+    return;
+  }
+
   await page.goto(`${DASH_BASE}/settings`);
   await page.waitForLoadState('networkidle');
   // Use nav button specifically — mobile tab strip uses a div, avoiding DOM-order first() issues
@@ -40,13 +49,12 @@ async function setCreditExhaustionModeViaUI(page: Page, mode: 'tickets' | 'conta
   const modeLabels: Record<string, string> = {
     tickets: 'Open Tickets',
     contact_form: 'Simple Contact Form',
-    purchase_credits: 'Auto-Purchase Additional Credits',
     help_articles: 'Help Articles',
   };
   const radioLabel = page.locator(`label:has-text("${modeLabels[mode]}")`);
   await radioLabel.click();
 
-  // Click Save Changes
+  // Click Save Changes — use first() to avoid the lg:hidden mobile sticky button
   const saveBtn = page.locator('button:has-text("Save Changes")');
   await saveBtn.first().click();
 

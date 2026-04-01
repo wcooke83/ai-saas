@@ -8,6 +8,8 @@ import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { DashboardPath } from '@/components/blog/dashboard-path';
 import { StepFlow } from '@/components/blog/process-visuals';
+import { StyledNumberedList, StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -49,12 +51,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/how-to-set-up-slack-chatbot-for-team',
       },
       datePublished: '2026-03-05',
-      dateModified: '2026-03-05',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -63,6 +61,12 @@ const jsonLd = {
           '@type': 'ImageObject',
           url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/how-to-set-up-slack-chatbot-for-team/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {
@@ -107,6 +111,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Yes. A single VocUI chatbot can be added to multiple Slack channels. Each channel gets the same knowledge base. If you need different knowledge bases for different teams (e.g., separate HR and Engineering bots), create separate chatbots in VocUI and install each one in the relevant channels.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'How to Set Up a Slack Chatbot for Your Team',
+          item: 'https://vocui.com/blog/how-to-set-up-slack-chatbot-for-team',
         },
       ],
     },
@@ -210,29 +227,11 @@ export default function HowToSetUpSlackChatbotForTeamPage() {
                 <p>
                   Before starting, make sure you have the following ready:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4">
-                  <li>
-                    <strong>A VocUI account.</strong> Sign up at{' '}
-                    <Link
-                      href="/login?mode=signup"
-                      className="text-primary-600 dark:text-primary-400 hover:underline"
-                    >
-                      vocui.com
-                    </Link>{' '}
-                    if you haven&apos;t already. The free plan includes Slack integration.
-                  </li>
-                  <li>
-                    <strong>Slack workspace admin access.</strong> You need permission to install
-                    apps in your Slack workspace. If you&apos;re not a workspace admin, ask your
-                    IT team to approve the VocUI Slack app.
-                  </li>
-                  <li>
-                    <strong>Internal documentation ready to upload.</strong> Gather the docs you
-                    want the bot to know — employee handbook, IT runbooks, onboarding checklists,
-                    HR policies, process docs. These can be URLs (Notion, Confluence, Google
-                    Docs published to web) or PDF/DOCX files.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'A VocUI account.', description: <><Link href="/login?mode=signup" className="text-primary-600 dark:text-primary-400 hover:underline">Sign up at vocui.com</Link>{' '}if you haven&apos;t already. The free plan includes Slack integration.</> },
+                  { title: 'Slack workspace admin access.', description: 'You need permission to install apps in your Slack workspace. If you\u2019re not a workspace admin, ask your IT team to approve the VocUI Slack app.' },
+                  { title: 'Internal documentation ready to upload.', description: 'Gather the docs you want the bot to know \u2014 employee handbook, IT runbooks, onboarding checklists, HR policies, process docs. These can be URLs (Notion, Confluence, Google Docs published to web) or PDF/DOCX files.' },
+                ]} />
               </section>
 
               {/* Section 3 */}
@@ -257,46 +256,14 @@ export default function HowToSetUpSlackChatbotForTeamPage() {
                   caption="Six steps to a working Slack chatbot"
                 />
 
-                <ol className="list-decimal pl-5 space-y-4 mt-4">
-                  <li>
-                    <strong>Create a chatbot in VocUI.</strong> Log in to your dashboard and
-                    click &quot;Create Chatbot.&quot; Give it a name your team will recognize —
-                    &quot;Team Assistant&quot; or &quot;HR Bot&quot; works well.
-                  </li>
-                  <li>
-                    <strong>Add your knowledge sources.</strong> Upload your internal docs. You
-                    can add URLs (the bot will scrape the content), upload PDFs and DOCX files,
-                    or paste text directly. Start with the content that covers your most
-                    frequently asked questions.
-                  </li>
-                  <li>
-                    <strong>Configure the system prompt.</strong> Tell the bot its role:
-                    &quot;You are an internal knowledge assistant for [Company Name]. Answer
-                    questions using only the provided documentation. If you don&apos;t know the
-                    answer, direct the person to the appropriate team or contact.&quot;
-                  </li>
-                  <li>
-                    <strong>Connect to Slack.</strong> In your chatbot&apos;s settings, go to the{' '}
-                    <strong>Integrations</strong> tab and click <strong>Connect to Slack</strong>.
-                    You&apos;ll be redirected to Slack to authorize the VocUI app. Review the
-                    permissions and click <strong>Allow</strong>.
-                    <DashboardPath steps={['Chatbots', 'Your chatbot', 'Deploy', 'Slack']} tip="Click Connect to authorize your Slack workspace." />
-                  </li>
-                  <li>
-                    <strong>Invite the bot to channels.</strong> In Slack, go to the channels
-                    where you want the bot available. Type{' '}
-                    <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">
-                      /invite @VocUI
-                    </code>{' '}
-                    (or whatever you named your bot) to add it.
-                  </li>
-                  <li>
-                    <strong>Test it.</strong> Mention the bot with a question:
-                    &quot;@VocUI How do I submit an expense report?&quot; If it answers
-                    correctly, you&apos;re live. If not, review your knowledge sources and system
-                    prompt.
-                  </li>
-                </ol>
+                <StyledNumberedList items={[
+                  { title: 'Create a chatbot in VocUI.', description: 'Log in to your dashboard and click \u201CCreate Chatbot.\u201D Give it a name your team will recognize \u2014 \u201CTeam Assistant\u201D or \u201CHR Bot\u201D works well.' },
+                  { title: 'Add your knowledge sources.', description: 'Upload your internal docs. You can add URLs (the bot will scrape the content), upload PDFs and DOCX files, or paste text directly. Start with the content that covers your most frequently asked questions.' },
+                  { title: 'Configure the system prompt.', description: 'Tell the bot its role: \u201CYou are an internal knowledge assistant for [Company Name]. Answer questions using only the provided documentation. If you don\u2019t know the answer, direct the person to the appropriate team or contact.\u201D' },
+                  { title: 'Connect to Slack.', description: <>In your chatbot&apos;s settings, go to the <strong>Integrations</strong> tab and click <strong>Connect to Slack</strong>. You&apos;ll be redirected to Slack to authorize the VocUI app. Review the permissions and click <strong>Allow</strong>.<DashboardPath steps={['Chatbots', 'Your chatbot', 'Deploy', 'Slack']} tip="Click Connect to authorize your Slack workspace." /></> },
+                  { title: 'Invite the bot to channels.', description: <>In Slack, go to the channels where you want the bot available. Type <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">/invite @VocUI</code> (or whatever you named your bot) to add it.</> },
+                  { title: 'Test it.', description: 'Mention the bot with a question: \u201C@VocUI How do I submit an expense report?\u201D If it answers correctly, you\u2019re live. If not, review your knowledge sources and system prompt.' },
+                ]} />
                 <p className="mt-4">
                   For more details on the Slack integration, see our{' '}
                   <Link
@@ -312,47 +279,24 @@ export default function HowToSetUpSlackChatbotForTeamPage() {
               {/* Section 4 */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
-                  Training on Internal Content
+                  Choosing Content for a Slack Bot
                 </h2>
                 <p>
-                  The bot&apos;s usefulness depends entirely on what you train it on. Here&apos;s
-                  what to prioritize for an internal team chatbot:
-                </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4">
-                  <li>
-                    <strong>HR policies.</strong> PTO policies, benefits information, expense
-                    report procedures, remote work guidelines, and leave request processes. These
-                    are among the most-asked questions in any organization.
-                  </li>
-                  <li>
-                    <strong>IT and security procedures.</strong> How to reset passwords, request
-                    software access, report security incidents, set up VPN, and connect to
-                    printers. IT teams field these questions constantly.
-                  </li>
-                  <li>
-                    <strong>Onboarding documentation.</strong> First-week checklists, tool setup
-                    guides, team structure docs, and &quot;who do I ask about X&quot; directories.
-                    New hires are the heaviest question-askers, and a bot lets them self-serve
-                    without feeling like a burden.
-                  </li>
-                  <li>
-                    <strong>Team SOPs.</strong> Standard operating procedures for recurring tasks
-                    — deployment processes, client onboarding steps, content approval workflows,
-                    and incident response procedures.
-                  </li>
-                </ul>
-                <p className="mt-4">
-                  Start with 10-15 of your most important documents and expand from there. You
-                  can always add more knowledge sources later as you identify gaps. For a deeper
-                  dive, see our guide on{' '}
+                  For detailed guidance on what knowledge sources to include, see our{' '}
                   <Link
                     href="/blog/how-to-build-internal-knowledge-bot"
                     className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
-                    building an internal knowledge bot
+                    internal knowledge bot guide
                   </Link>
-                  .
+                  . When deploying via Slack specifically, keep these considerations in mind:
                 </p>
+                <StyledBulletList items={[
+                  { title: 'Keep answers chat-sized.', description: 'Slack responses appear in conversation threads. Knowledge chunks that produce concise, 2-3 paragraph answers work best. If a source document is very long, the bot may produce wall-of-text replies that are hard to read in a chat context \u2014 consider breaking those docs into shorter, topic-specific sections before uploading.' },
+                  { title: 'Match content to your channels.', description: 'If you\u2019re adding the bot to #ask-hr, prioritize HR docs. If it\u2019s going into #engineering-help, load up your runbooks and architecture docs. You can create multiple bots in VocUI with different knowledge bases and deploy each to the relevant channel.' },
+                  { title: 'Include quick-reference material.', description: 'Slack users expect fast answers. Content that works well: policy summaries, step-by-step procedures, contact directories, and FAQ-style docs. Content that works less well: 50-page strategy documents or dense legal agreements.' },
+                  { title: 'Account for Slack search overlap.', description: 'Your team already uses Slack\u2019s built-in search. The bot adds the most value for content that lives outside Slack \u2014 PDFs, Notion pages, Google Docs, and intranet sites that Slack search cannot reach.' },
+                ]} />
               </section>
 
               {/* Section 5 */}
@@ -364,36 +308,13 @@ export default function HowToSetUpSlackChatbotForTeamPage() {
                   Getting the bot set up is half the battle. Getting your team to actually use it
                   is the other half. Here&apos;s how to drive adoption:
                 </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4">
-                  <li>
-                    <strong>Announce it with examples.</strong> Don&apos;t just say &quot;we
-                    added a bot.&quot; Post a message in your main Slack channel showing 3-5
-                    example questions and the bot&apos;s actual answers. Seeing it work is more
-                    convincing than being told it works.
-                  </li>
-                  <li>
-                    <strong>Start with one team.</strong> Roll out to a single team first — HR
-                    support or IT help desk are great starting points. Get feedback, refine the
-                    knowledge base, then expand to other teams.
-                  </li>
-                  <li>
-                    <strong>Redirect questions to the bot.</strong> When someone asks a question
-                    the bot can answer, reply with: &quot;Great question! Try asking @VocUI —
-                    it has the latest policy on that.&quot; This trains the habit without being
-                    dismissive.
-                  </li>
-                  <li>
-                    <strong>Keep the knowledge base current.</strong> Nothing kills adoption
-                    faster than outdated answers. When policies change, update the bot&apos;s
-                    knowledge sources immediately. Assign an owner — someone responsible for
-                    keeping the content fresh.
-                  </li>
-                  <li>
-                    <strong>Review conversations monthly.</strong> Check the chat logs in VocUI
-                    to see what questions are being asked, which ones the bot handles well, and
-                    where it falls short. Use this data to continuously improve.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Announce it with examples.', description: 'Don\u2019t just say \u201Cwe added a bot.\u201D Post a message in your main Slack channel showing 3-5 example questions and the bot\u2019s actual answers. Seeing it work is more convincing than being told it works.' },
+                  { title: 'Start with one team.', description: 'Roll out to a single team first \u2014 HR support or IT help desk are great starting points. Get feedback, refine the knowledge base, then expand to other teams.' },
+                  { title: 'Redirect questions to the bot.', description: 'When someone asks a question the bot can answer, reply with: \u201CGreat question! Try asking @VocUI \u2014 it has the latest policy on that.\u201D This trains the habit without being dismissive.' },
+                  { title: 'Keep the knowledge base current.', description: 'Nothing kills adoption faster than outdated answers. When policies change, update the bot\u2019s knowledge sources immediately. Assign an owner \u2014 someone responsible for keeping the content fresh.' },
+                  { title: 'Review conversations monthly.', description: 'Check the chat logs in VocUI to see what questions are being asked, which ones the bot handles well, and where it falls short. Use this data to continuously improve.' },
+                ]} />
                 <p className="mt-4">
                   View{' '}
                   <Link

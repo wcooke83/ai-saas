@@ -1,27 +1,31 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { Header } from '@/components/layout';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
-import { ArrowRight } from 'lucide-react';
+import { HeroWaveform } from '@/components/ui/hero-waveform';
+import { BlogIndex } from '@/components/blog/blog-index';
+import type { BlogPost } from '@/components/blog/blog-index';
+import { BlogHero } from './blog-hero';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
-  title: 'Blog | VocUI',
+  title: 'AI Chatbot Guides & Strategies | VocUI Blog',
   description:
-    'Tips, guides, and strategies for small businesses using AI chatbots.',
+    'Practical guides to building AI chatbots for your business. Learn to embed chat widgets, train on your own data, automate support, and capture leads.',
   openGraph: {
-    title: 'Blog | VocUI',
-    description: 'Tips, guides, and strategies for small businesses using AI chatbots.',
+    title: 'AI Chatbot Guides & Strategies | VocUI Blog',
+    description:
+      'Practical guides to building AI chatbots for your business. Learn to embed chat widgets, train on your own data, automate support, and capture leads.',
     url: 'https://vocui.com/blog',
     siteName: 'VocUI',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Blog | VocUI',
-    description: 'Tips, guides, and strategies for small businesses using AI chatbots.',
+    title: 'AI Chatbot Guides & Strategies | VocUI Blog',
+    description:
+      'Practical guides to building AI chatbots for your business. Learn to embed chat widgets, train on your own data, automate support, and capture leads.',
   },
   alternates: { canonical: 'https://vocui.com/blog' },
   robots: { index: true, follow: true },
@@ -29,7 +33,7 @@ export const metadata: Metadata = {
 
 // ─── Posts ─────────────────────────────────────────────────────────────────────
 
-const posts = [
+const posts: BlogPost[] = [
   // ─── Topic Guides (Hub Pages) ────────────────────────────────────────────────
   {
     slug: 'knowledge-base-chatbot-guide',
@@ -66,6 +70,7 @@ const posts = [
     description: 'Learn how to add a chatbot to your website in minutes — no coding required. Train it on your content, embed one script tag, and go live today.',
     readTime: '7 min read',
     tag: 'Guide',
+    datePublished: '2026-02-09',
   },
   {
     slug: 'how-to-train-chatbot-on-your-own-data',
@@ -73,6 +78,7 @@ const posts = [
     description: 'Train an AI chatbot on your own PDFs, URLs, and documents — no ML experience needed. Step-by-step guide to building a knowledge base chatbot with VocUI.',
     readTime: '9 min read',
     tag: 'Guide',
+    datePublished: '2026-02-11',
   },
   {
     slug: 'chatbase-alternatives',
@@ -80,6 +86,7 @@ const posts = [
     description: 'Looking for a Chatbase alternative? Compare the top AI chatbot builders on pricing, knowledge base support, Slack integration, and embed options.',
     readTime: '11 min read',
     tag: 'Comparison',
+    datePublished: '2025-12-08',
   },
   {
     slug: 'how-to-reduce-customer-support-tickets',
@@ -87,6 +94,7 @@ const posts = [
     description: 'Cut support ticket volume by up to 40% with an AI chatbot that answers questions instantly from your knowledge base — no agent intervention needed.',
     readTime: '9 min read',
     tag: 'Strategy',
+    datePublished: '2026-03-31',
   },
   {
     slug: 'what-is-a-knowledge-base-chatbot',
@@ -94,6 +102,7 @@ const posts = [
     description: 'A knowledge base chatbot is an AI trained on your own documents, URLs, or PDFs to answer questions instantly. Learn how it works and when to use one.',
     readTime: '7 min read',
     tag: 'Explainer',
+    datePublished: '2026-01-26',
   },
   // ─── Batch 1: How-To Guides ──────────────────────────────────────────────────
   {
@@ -102,6 +111,7 @@ const posts = [
     description: 'Learn how to create an FAQ chatbot that answers common customer questions instantly. No coding required — just upload your FAQs and go live.',
     readTime: '6 min read',
     tag: 'Guide',
+    datePublished: '2026-03-09',
   },
   {
     slug: 'how-to-build-internal-knowledge-bot',
@@ -109,6 +119,7 @@ const posts = [
     description: 'Build an internal knowledge bot that lets your team find answers to HR, policy, and process questions instantly — deployed in Slack or on your intranet.',
     readTime: '8 min read',
     tag: 'Guide',
+    datePublished: '2026-03-13',
   },
   {
     slug: 'how-to-embed-chatbot-in-wordpress',
@@ -116,6 +127,7 @@ const posts = [
     description: 'Add an AI chatbot to your WordPress site in under 5 minutes. Copy one script tag, paste it into your theme, and start answering visitor questions automatically.',
     readTime: '6 min read',
     tag: 'Guide',
+    datePublished: '2026-01-06',
   },
   {
     slug: 'how-to-embed-chatbot-in-shopify',
@@ -123,6 +135,7 @@ const posts = [
     description: 'Add an AI chatbot to your Shopify store to answer product questions, shipping inquiries, and return policies — no app install required.',
     readTime: '6 min read',
     tag: 'Guide',
+    datePublished: '2026-02-20',
   },
   {
     slug: 'how-to-write-chatbot-system-prompt',
@@ -130,6 +143,7 @@ const posts = [
     description: "Your chatbot's system prompt controls its personality, accuracy, and boundaries. Learn how to write one that keeps responses helpful, on-brand, and hallucination-free.",
     readTime: '8 min read',
     tag: 'Guide',
+    datePublished: '2026-02-27',
   },
   // ─── Batch 2: How-To Guides + Setup ──────────────────────────────────────────
   {
@@ -138,6 +152,7 @@ const posts = [
     description: 'Add an AI chatbot to your Squarespace website using a simple code injection. No plugins needed — just paste one script and go live.',
     readTime: '6 min read',
     tag: 'Guide',
+    datePublished: '2026-02-23',
   },
   {
     slug: 'how-to-embed-chatbot-in-wix',
@@ -145,6 +160,7 @@ const posts = [
     description: "Embed an AI chatbot on your Wix website in minutes. Use Wix's custom code feature to add a single script tag and start answering questions automatically.",
     readTime: '6 min read',
     tag: 'Guide',
+    datePublished: '2026-02-25',
   },
   {
     slug: 'how-to-measure-chatbot-roi',
@@ -152,6 +168,7 @@ const posts = [
     description: 'Learn how to calculate the return on investment of your AI chatbot — from support ticket deflection to lead conversion and time saved.',
     readTime: '9 min read',
     tag: 'Guide',
+    datePublished: '2026-01-20',
   },
   {
     slug: 'how-to-improve-chatbot-accuracy',
@@ -159,6 +176,7 @@ const posts = [
     description: 'Getting vague or wrong answers from your chatbot? Here are practical steps to improve accuracy — from better knowledge sources to smarter system prompts.',
     readTime: '8 min read',
     tag: 'Guide',
+    datePublished: '2026-03-03',
   },
   {
     slug: 'how-to-set-up-slack-chatbot-for-team',
@@ -166,6 +184,7 @@ const posts = [
     description: 'Deploy an AI chatbot in Slack that answers team questions from your internal docs, HR policies, and SOPs. Set up takes under 30 minutes.',
     readTime: '7 min read',
     tag: 'Guide',
+    datePublished: '2026-03-05',
   },
   // ─── Batch 3: Industry Use Cases ─────────────────────────────────────────────
   {
@@ -174,6 +193,7 @@ const posts = [
     description: 'SaaS companies use AI chatbots to guide new users through onboarding, answer setup questions, and reduce time-to-value.',
     readTime: '8 min read',
     tag: 'Use Case',
+    datePublished: '2026-02-03',
   },
   {
     slug: 'chatbot-for-restaurants',
@@ -181,6 +201,7 @@ const posts = [
     description: 'AI chatbots help restaurants answer questions about menus, hours, reservations, and dietary options — without tying up staff on the phone.',
     readTime: '7 min read',
     tag: 'Use Case',
+    datePublished: '2025-12-19',
   },
   {
     slug: 'chatbot-for-education',
@@ -188,6 +209,7 @@ const posts = [
     description: 'Universities and online course platforms use AI chatbots to answer student questions about enrollment, deadlines, and course content around the clock.',
     readTime: '8 min read',
     tag: 'Use Case',
+    datePublished: '2026-03-27',
   },
   {
     slug: 'chatbot-for-financial-services',
@@ -195,6 +217,7 @@ const posts = [
     description: 'Financial advisors and service firms use AI chatbots to answer client questions about services, fees, and processes — while staying compliant.',
     readTime: '8 min read',
     tag: 'Use Case',
+    datePublished: '2026-03-11',
   },
   {
     slug: 'chatbot-for-recruitment',
@@ -202,6 +225,7 @@ const posts = [
     description: 'Recruitment teams use AI chatbots to answer candidate questions, pre-screen applicants, and reduce time-to-hire — without adding headcount.',
     readTime: '7 min read',
     tag: 'Use Case',
+    datePublished: '2025-12-24',
   },
   // ─── Batch 4: Industry Use Cases ─────────────────────────────────────────────
   {
@@ -210,6 +234,7 @@ const posts = [
     description: 'Nonprofits use AI chatbots to answer donor questions, recruit volunteers, and share program info — without stretching limited staff resources.',
     readTime: '7 min read',
     tag: 'Use Case',
+    datePublished: '2025-12-17',
   },
   {
     slug: 'chatbot-for-insurance',
@@ -217,6 +242,7 @@ const posts = [
     description: 'Insurance agencies use AI chatbots to answer policy questions, explain coverage options, and qualify leads — reducing call volume and improving response time.',
     readTime: '8 min read',
     tag: 'Use Case',
+    datePublished: '2026-03-17',
   },
   {
     slug: 'chatbot-for-travel-agencies',
@@ -224,6 +250,7 @@ const posts = [
     description: 'Travel agencies use AI chatbots to answer destination questions, explain packages, and capture leads around the clock — even outside business hours.',
     readTime: '7 min read',
     tag: 'Use Case',
+    datePublished: '2026-02-06',
   },
   {
     slug: 'chatbot-for-fitness-studios',
@@ -231,6 +258,7 @@ const posts = [
     description: 'Gyms and fitness studios use AI chatbots to answer membership questions, share class schedules, and convert website visitors into members.',
     readTime: '6 min read',
     tag: 'Use Case',
+    datePublished: '2025-12-22',
   },
   {
     slug: 'chatbot-for-accounting-firms',
@@ -238,6 +266,7 @@ const posts = [
     description: 'Accounting firms use AI chatbots to answer client questions about services, deadlines, and document requirements — freeing up billable hours.',
     readTime: '7 min read',
     tag: 'Use Case',
+    datePublished: '2026-03-19',
   },
   // ─── Batch 5: Strategy & Business Value ──────────────────────────────────────
   {
@@ -246,6 +275,7 @@ const posts = [
     description: 'Comparing AI chatbots and live chat: cost, availability, scalability, and customer satisfaction. Learn which is right for your business — or when to use both.',
     readTime: '9 min read',
     tag: 'Strategy',
+    datePublished: '2026-01-02',
   },
   {
     slug: 'chatbot-lead-generation-strategies',
@@ -253,6 +283,7 @@ const posts = [
     description: 'Seven proven strategies for using AI chatbots to capture leads, qualify prospects, and fill your sales pipeline — without cold calls or forms.',
     readTime: '10 min read',
     tag: 'Strategy',
+    datePublished: '2026-01-14',
   },
   {
     slug: 'reduce-employee-onboarding-time-with-ai',
@@ -260,6 +291,7 @@ const posts = [
     description: 'New hires ask the same questions every time. An AI knowledge bot trained on your internal docs cuts onboarding time and frees up managers.',
     readTime: '8 min read',
     tag: 'Strategy',
+    datePublished: '2026-01-12',
   },
   {
     slug: 'ai-customer-service-statistics',
@@ -267,6 +299,7 @@ const posts = [
     description: 'Key statistics on AI in customer service: adoption rates, cost savings, customer preferences, and ROI. Data-driven reasons to add an AI chatbot.',
     readTime: '8 min read',
     tag: 'Strategy',
+    datePublished: '2026-02-13',
   },
   {
     slug: 'small-business-ai-automation-guide',
@@ -274,6 +307,7 @@ const posts = [
     description: 'A practical guide to AI automation for small businesses — what to automate first, which tools to use, and how to start without technical skills or a big budget.',
     readTime: '10 min read',
     tag: 'Strategy',
+    datePublished: '2026-02-17',
   },
   // ─── Batch 6: Strategy & Business Value ──────────────────────────────────────
   {
@@ -282,6 +316,7 @@ const posts = [
     description: 'AI chatbots improve website conversion rates by engaging visitors, answering objections in real time, and guiding prospects toward action.',
     readTime: '8 min read',
     tag: 'Strategy',
+    datePublished: '2026-01-09',
   },
   {
     slug: 'cost-of-customer-support-without-ai',
@@ -289,6 +324,7 @@ const posts = [
     description: 'Manual customer support costs more than you think. Calculate the hidden expenses of answering the same questions without AI — and what automation saves.',
     readTime: '7 min read',
     tag: 'Strategy',
+    datePublished: '2026-01-16',
   },
   {
     slug: 'ai-chatbot-for-after-hours-support',
@@ -296,6 +332,7 @@ const posts = [
     description: 'Most customer questions happen outside business hours. An AI chatbot answers them instantly — so you never lose a lead or leave a customer waiting.',
     readTime: '7 min read',
     tag: 'Strategy',
+    datePublished: '2025-12-29',
   },
   // ─── Batch 7: Explainers ─────────────────────────────────────────────────────
   {
@@ -304,6 +341,7 @@ const posts = [
     description: 'RAG (Retrieval-Augmented Generation) is the technique behind knowledge base chatbots. Learn how it works, why it matters, and how it reduces hallucinations.',
     readTime: '9 min read',
     tag: 'Explainer',
+    datePublished: '2026-01-28',
   },
   {
     slug: 'what-are-embeddings-explained-simply',
@@ -311,6 +349,7 @@ const posts = [
     description: 'Embeddings turn text into numbers that capture meaning. Learn how AI chatbots use embeddings to find relevant answers — explained without jargon.',
     readTime: '7 min read',
     tag: 'Explainer',
+    datePublished: '2025-12-01',
   },
   {
     slug: 'what-is-a-chatbot-widget',
@@ -318,6 +357,7 @@ const posts = [
     description: 'A chatbot widget is a small chat interface embedded on your website. Learn how it works, what it looks like, and how to add one to your site.',
     readTime: '6 min read',
     tag: 'Explainer',
+    datePublished: '2025-11-17',
   },
   {
     slug: 'what-is-conversational-ai',
@@ -325,6 +365,7 @@ const posts = [
     description: 'Conversational AI lets machines understand and respond to human language naturally. Learn what it is, how it works, and how businesses use it today.',
     readTime: '8 min read',
     tag: 'Explainer',
+    datePublished: '2026-01-30',
   },
   // ─── Batch 8: Explainers + Technical ─────────────────────────────────────────
   {
@@ -333,6 +374,7 @@ const posts = [
     description: 'Vector search finds content by meaning, not keywords. Learn how AI chatbots use vector search to find the most relevant answers from your knowledge base.',
     readTime: '8 min read',
     tag: 'Explainer',
+    datePublished: '2025-12-05',
   },
   {
     slug: 'ai-hallucination-what-it-is-how-to-prevent-it',
@@ -340,6 +382,7 @@ const posts = [
     description: 'AI hallucination is when a chatbot generates confident but incorrect answers. Learn why it happens and how to prevent it in your business chatbot.',
     readTime: '8 min read',
     tag: 'Explainer',
+    datePublished: '2026-04-01',
   },
   {
     slug: 'chatbot-vs-virtual-assistant',
@@ -347,6 +390,7 @@ const posts = [
     description: 'Chatbots and virtual assistants are often confused. Learn the key differences — from scope and intelligence to cost and use cases — and which one your business needs.',
     readTime: '7 min read',
     tag: 'Explainer',
+    datePublished: '2026-01-22',
   },
   {
     slug: 'how-ai-chatbots-understand-questions',
@@ -354,6 +398,7 @@ const posts = [
     description: 'AI chatbots don\'t just match keywords — they understand meaning. Learn how NLP, embeddings, and LLMs work together to interpret questions.',
     readTime: '7 min read',
     tag: 'Explainer',
+    datePublished: '2025-11-10',
   },
   {
     slug: 'what-is-prompt-engineering',
@@ -361,6 +406,7 @@ const posts = [
     description: 'Prompt engineering is the art of writing instructions that get better results from AI. Learn the basics and how to apply them to your business chatbot.',
     readTime: '8 min read',
     tag: 'Explainer',
+    datePublished: '2025-11-19',
   },
   // ─── Batch 9: Comparisons & Alternatives ─────────────────────────────────────
   {
@@ -369,6 +415,7 @@ const posts = [
     description: 'Looking for a Tidio alternative? Compare five AI-powered chat platforms on pricing, knowledge base support, and ease of use for small businesses.',
     readTime: '10 min read',
     tag: 'Comparison',
+    datePublished: '2025-11-21',
   },
   {
     slug: 'intercom-alternatives',
@@ -376,6 +423,7 @@ const posts = [
     description: 'Intercom is powerful but expensive. Here are five affordable alternatives with AI chatbot features, knowledge base support, and simple setup.',
     readTime: '10 min read',
     tag: 'Comparison',
+    datePublished: '2025-11-24',
   },
   {
     slug: 'drift-alternatives',
@@ -383,6 +431,7 @@ const posts = [
     description: "Drift changed the conversational marketing game, but it's not the only option. Compare five alternatives for lead capture, chat, and AI-powered conversations.",
     readTime: '10 min read',
     tag: 'Comparison',
+    datePublished: '2025-11-28',
   },
   {
     slug: 'zendesk-chat-alternatives',
@@ -390,6 +439,7 @@ const posts = [
     description: 'Zendesk Chat is reliable but complex and costly. Here are five simpler alternatives with AI chatbot features and better pricing for small businesses.',
     readTime: '10 min read',
     tag: 'Comparison',
+    datePublished: '2025-12-03',
   },
   {
     slug: 'freshchat-alternatives',
@@ -397,6 +447,7 @@ const posts = [
     description: 'Freshchat works best within the Freshworks ecosystem. If you need a standalone AI chat solution, here are five alternatives to consider.',
     readTime: '10 min read',
     tag: 'Comparison',
+    datePublished: '2025-12-31',
   },
   // ─── Batch 10: Best Practices ────────────────────────────────────────────────
   {
@@ -405,6 +456,7 @@ const posts = [
     description: 'Nine practical chatbot best practices for small businesses — from knowledge base setup to system prompts, testing, and ongoing optimization.',
     readTime: '9 min read',
     tag: 'Best Practice',
+    datePublished: '2026-03-30',
   },
   {
     slug: 'knowledge-base-content-best-practices',
@@ -412,6 +464,7 @@ const posts = [
     description: 'The quality of your chatbot answers depends on how you organize your knowledge base. Learn how to structure content for accurate, relevant responses.',
     readTime: '8 min read',
     tag: 'Best Practice',
+    datePublished: '2026-03-25',
   },
   {
     slug: 'chatbot-personality-and-tone-guide',
@@ -419,6 +472,7 @@ const posts = [
     description: 'Your chatbot\'s personality affects how customers perceive your brand. Learn how to define the right tone — professional, friendly, or somewhere in between.',
     readTime: '7 min read',
     tag: 'Best Practice',
+    datePublished: '2025-12-11',
   },
   {
     slug: 'chatbot-security-and-privacy-guide',
@@ -426,6 +480,7 @@ const posts = [
     description: 'Understand the security and privacy considerations for business chatbots — data storage, encryption, compliance, and what to ask your chatbot provider.',
     readTime: '8 min read',
     tag: 'Best Practice',
+    datePublished: '2026-03-23',
   },
   {
     slug: 'chatbot-analytics-what-to-track',
@@ -433,6 +488,7 @@ const posts = [
     description: 'Track the right chatbot metrics to improve performance. Learn which analytics matter — from conversation volume and deflection rate to satisfaction and conversion.',
     readTime: '8 min read',
     tag: 'Best Practice',
+    datePublished: '2025-12-15',
   },
 ];
 
@@ -440,16 +496,56 @@ const posts = [
 
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'ItemList',
-  name: 'VocUI Blog',
-  description: 'Tips, guides, and strategies for small businesses using AI chatbots.',
-  url: 'https://vocui.com/blog',
-  itemListElement: posts.map((post, index) => ({
-    '@type': 'ListItem',
-    position: index + 1,
-    url: `https://vocui.com/blog/${post.slug}`,
-    name: post.title,
-  })),
+  '@graph': [
+    {
+      '@type': 'CollectionPage',
+      '@id': 'https://vocui.com/blog',
+      name: 'AI Chatbot Guides & Strategies | VocUI Blog',
+      description:
+        'Practical guides to building AI chatbots for your business. Learn to embed chat widgets, train on your own data, automate support, and capture leads.',
+      url: 'https://vocui.com/blog',
+      isPartOf: {
+        '@type': 'WebSite',
+        name: 'VocUI',
+        url: 'https://vocui.com',
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'VocUI',
+        url: 'https://vocui.com',
+      },
+      mainEntity: {
+        '@type': 'ItemList',
+        name: 'VocUI Blog',
+        description:
+          'Practical guides to building AI chatbots for your business.',
+        numberOfItems: posts.length,
+        itemListElement: posts.map((post, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          url: `https://vocui.com/blog/${post.slug}`,
+          name: post.title,
+        })),
+      },
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: 'https://vocui.com',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Blog',
+          item: 'https://vocui.com/blog',
+        },
+      ],
+    },
+  ],
 };
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
@@ -457,6 +553,8 @@ const jsonLd = {
 export default function BlogIndexPage() {
   return (
     <PageBackground>
+      <HeroWaveform className="fixed inset-0 z-[1] pointer-events-none" />
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -464,58 +562,14 @@ export default function BlogIndexPage() {
 
       <Header />
 
-      <main id="main-content" className="container mx-auto px-4 py-10 md:py-16 max-w-4xl">
-        {/* Breadcrumbs */}
-        <nav aria-label="Breadcrumb" className="mb-8">
-          <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400">
-            <li>
-              <Link href="/" className="hover:text-primary-500 transition-colors">
-                Home
-              </Link>
-            </li>
-            <li aria-hidden="true">/</li>
-            <li className="text-secondary-900 dark:text-secondary-100 font-medium">Blog</li>
-          </ol>
-        </nav>
-
-        {/* Header */}
-        <div className="mb-14">
-          <h1 className="text-4xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
-            VocUI Blog
-          </h1>
-          <p className="text-lg text-secondary-600 dark:text-secondary-400">
-            Practical guides for small business owners building AI chatbots — no technical background required.
-          </p>
-        </div>
-
-        {/* Post list */}
-        <div className="divide-y divide-secondary-200 dark:divide-secondary-700">
-          {posts.map((post) => (
-            <article key={post.slug} className="py-8 group">
-              <Link href={`/blog/${post.slug}`} className="block">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
-                    {post.tag}
-                  </span>
-                  <span className="text-xs text-secondary-400 dark:text-secondary-500">{post.readTime}</span>
-                </div>
-                <h2 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                  {post.title}
-                </h2>
-                <p className="text-secondary-600 dark:text-secondary-400 leading-relaxed mb-3">
-                  {post.description}
-                </p>
-                <span className="inline-flex items-center text-sm font-medium text-primary-600 dark:text-primary-400 gap-1 group-hover:gap-2 transition-all">
-                  Read article
-                  <ArrowRight className="w-4 h-4" aria-hidden="true" />
-                </span>
-              </Link>
-            </article>
-          ))}
-        </div>
+      <main id="main-content" className="relative z-[2]">
+        <BlogHero />
+        <BlogIndex posts={posts} />
       </main>
 
-      <Footer />
+      <div className="relative z-[2]">
+        <Footer />
+      </div>
     </PageBackground>
   );
 }

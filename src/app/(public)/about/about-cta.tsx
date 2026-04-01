@@ -1,12 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { motion, useReducedMotion } from 'framer-motion';
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 28 },
+  hidden: { opacity: 0, y: 24 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: 'easeOut' } },
 };
 
@@ -19,68 +18,85 @@ export function AboutCta() {
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <section className="w-full py-24 lg:py-32 overflow-hidden" style={{
-      background: 'linear-gradient(135deg, rgb(2,132,199) 0%, rgb(3,105,161) 40%, rgb(8,47,73) 100%)',
-    }}>
-      {/* Decorative rings */}
+    <section className="w-full bg-primary-950 py-24 lg:py-32 overflow-hidden">
+      {/* Decorative ambient glow */}
       <div
         className="absolute inset-0 pointer-events-none"
         aria-hidden="true"
         style={{
           backgroundImage:
-            'radial-gradient(circle at 80% 50%, rgba(14,165,233,0.15) 0%, transparent 60%), radial-gradient(circle at 10% 80%, rgba(14,165,233,0.08) 0%, transparent 50%)',
+            'radial-gradient(ellipse at 70% 60%, rgba(14,165,233,0.07) 0%, transparent 55%)',
         }}
       />
 
-      <motion.div
-        className="relative container mx-auto px-4 sm:px-6 lg:px-8 text-center"
-        initial={prefersReducedMotion ? false : 'hidden'}
-        whileInView="visible"
-        viewport={{ once: true, margin: '-80px' }}
-        variants={stagger}
-      >
-        <motion.p
-          variants={fadeUp}
-          className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-300 mb-6"
-        >
-          Get started
-        </motion.p>
-
-        <motion.h2
-          variants={fadeUp}
-          className="text-4xl lg:text-5xl font-bold text-white leading-tight mb-6 max-w-2xl mx-auto"
-        >
-          See what VocUI can do for your business
-        </motion.h2>
-
-        <motion.p
-          variants={fadeUp}
-          className="text-lg text-white/70 mb-10 max-w-xl mx-auto"
-        >
-          Build a chatbot trained on your own content and deploy it today. Free plan, no credit card
-          required.
-        </motion.p>
-
-        <motion.div
-          variants={fadeUp}
-          className="flex flex-col sm:flex-row gap-4 justify-center"
-        >
-          <Button
-            size="xl"
-            variant="secondary"
-            className="bg-white text-primary-700 hover:bg-primary-50 font-semibold shadow-lg shadow-primary-950/30"
-            asChild
+      <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Asymmetric grid: content left, decorative right */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+          {/* Left: CTA content */}
+          <motion.div
+            className="lg:col-span-7"
+            initial={prefersReducedMotion ? false : 'hidden'}
+            whileInView="visible"
+            viewport={{ once: true, margin: '-80px' }}
+            variants={stagger}
           >
-            <Link href="/signup">
-              Get Started Free
-              <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-            </Link>
-          </Button>
-          <Button size="xl" variant="outline-light" asChild>
-            <Link href="/contact">Contact Us</Link>
-          </Button>
-        </motion.div>
-      </motion.div>
+            <motion.p
+              variants={fadeUp}
+              className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-400 mb-6"
+            >
+              Get started
+            </motion.p>
+
+            <motion.h2
+              variants={fadeUp}
+              className="text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-8"
+            >
+              See what VocUI can do for your business.
+            </motion.h2>
+
+            <motion.p
+              variants={fadeUp}
+              className="text-lg text-primary-200/60 leading-relaxed mb-10 max-w-lg"
+            >
+              Build a chatbot trained on your own content and deploy it today. Free plan, no credit
+              card required.
+            </motion.p>
+
+            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-start gap-4">
+              <Link
+                href="/signup"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary-500 hover:bg-primary-600 text-white font-medium text-lg rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-950"
+              >
+                Start for Free
+                <ArrowRight className="h-5 w-5" aria-hidden="true" />
+              </Link>
+              <Link
+                href="/contact"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-transparent hover:bg-white/10 text-white font-medium text-lg rounded-sm border border-white/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-950"
+              >
+                Contact Us
+              </Link>
+            </motion.div>
+
+            <motion.p
+              variants={fadeUp}
+              className="mt-6 text-sm text-primary-200/40"
+            >
+              No credit card required. Free plan available.
+            </motion.p>
+          </motion.div>
+
+          {/* Right: large decorative monogram */}
+          <div className="lg:col-span-5 hidden lg:flex items-center justify-center" aria-hidden="true">
+            <span
+              className="text-[18rem] font-black leading-none tracking-tighter select-none"
+              style={{ color: 'rgba(14, 165, 233, 0.05)' }}
+            >
+              V
+            </span>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }

@@ -9,6 +9,8 @@ import { AuthorByline } from '@/components/blog/author-byline';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { MidArticleCta } from '@/components/blog/mid-article-cta';
 import { KnowledgeSourceCards, ChatbotSetupTimeline } from '@/components/blog/process-visuals';
+import { StyledNumberedList, StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -50,12 +52,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/how-to-train-chatbot-on-your-own-data',
       },
       datePublished: '2026-02-11',
-      dateModified: '2026-02-11',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -132,6 +130,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'By default, VocUI chatbots say they don\'t have that information rather than making something up. You can configure them to escalate to a human agent in that case.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'How to Train a Chatbot on Your Own Data',
+          item: 'https://vocui.com/blog/how-to-train-chatbot-on-your-own-data',
         },
       ],
     },
@@ -222,23 +233,12 @@ export default function HowToTrainChatbotPage() {
                   The technical term for this is Retrieval-Augmented Generation (RAG). Here&apos;s how
                   it works in plain English:
                 </p>
-                <ol className="list-decimal pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    Your documents get broken into small chunks (a few hundred words each).
-                  </li>
-                  <li>
-                    Each chunk gets converted into a mathematical representation called an
-                    embedding — a list of numbers that captures the meaning of the text.
-                  </li>
-                  <li>
-                    When a user asks a question, the system finds the chunks most semantically
-                    similar to the question.
-                  </li>
-                  <li>
-                    Those chunks get passed to an AI language model (like Claude or GPT-4), which
-                    uses them to generate a precise answer.
-                  </li>
-                </ol>
+                <StyledNumberedList items={[
+                  'Your documents get broken into small chunks (a few hundred words each).',
+                  'Each chunk gets converted into a mathematical representation called an embedding \u2014 a list of numbers that captures the meaning of the text.',
+                  'When a user asks a question, the system finds the chunks most semantically similar to the question.',
+                  'Those chunks get passed to an AI language model (like Claude or GPT-4), which uses them to generate a precise answer.',
+                ]} />
                 <p className="mt-4">
                   The result is a chatbot that answers from your specific content — not from
                   generic internet knowledge. This is what makes it useful for your business: it
@@ -259,31 +259,13 @@ export default function HowToTrainChatbotPage() {
                   VocUI accepts several content types. You don&apos;t need to convert everything into
                   one format — you can mix and match.
                 </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">URLs</strong> — paste any web page and VocUI scrapes the text. This
-                    works for your help center, pricing page, product pages, blog posts, and more.
-                    You can add multiple URLs — one at a time or as a list.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">PDFs</strong> — upload product manuals, onboarding guides, service
-                    brochures, or any reference document. VocUI extracts the text automatically,
-                    including from multi-page files.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">DOCX files</strong> — Microsoft Word documents work just as well as
-                    PDFs. If your internal knowledge is in Word files, upload them directly.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Q&amp;A pairs</strong> — type questions and answers manually. This is
-                    the most targeted format because you control exactly what gets asked and what
-                    the answer should be. Use this for your most common support questions.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Plain text</strong> — paste raw text directly if you have content
-                    that doesn&apos;t fit neatly into a file or URL.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'URLs', description: 'Paste any web page and VocUI scrapes the text. This works for your help center, pricing page, product pages, blog posts, and more. You can add multiple URLs \u2014 one at a time or as a list.' },
+                  { title: 'PDFs', description: 'Upload product manuals, onboarding guides, service brochures, or any reference document. VocUI extracts the text automatically, including from multi-page files.' },
+                  { title: 'DOCX files', description: 'Microsoft Word documents work just as well as PDFs. If your internal knowledge is in Word files, upload them directly.' },
+                  { title: 'Q&A pairs', description: 'Type questions and answers manually. This is the most targeted format because you control exactly what gets asked and what the answer should be. Use this for your most common support questions.' },
+                  { title: 'Plain text', description: 'Paste raw text directly if you have content that doesn\u2019t fit neatly into a file or URL.' },
+                ]} />
                 <KnowledgeSourceCards caption="The three main ways to add content to your chatbot" />
 
                 <p className="mt-4">
@@ -330,11 +312,11 @@ export default function HowToTrainChatbotPage() {
                 <p className="mt-4">
                   During processing, VocUI is doing several things:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>Splitting the content into overlapping chunks to preserve context</li>
-                  <li>Sending each chunk through an embedding model to create a vector representation</li>
-                  <li>Storing those vectors in a database built for fast semantic search</li>
-                </ul>
+                <StyledBulletList items={[
+                  'Splitting the content into overlapping chunks to preserve context',
+                  'Sending each chunk through an embedding model to create a vector representation',
+                  'Storing those vectors in a database built for fast semantic search',
+                ]} />
                 <p className="mt-4">
                   You don&apos;t need to do anything during this step. Just wait for the status to turn
                   green, then move on to testing.
@@ -352,19 +334,11 @@ export default function HowToTrainChatbotPage() {
                 <p className="mt-4">
                   Pay attention to three things:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Accuracy</strong> — is the answer factually correct based on your
-                    content?
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Completeness</strong> — does it give the full answer, or just part of
-                    it?
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Tone</strong> — does it sound like something your business would say?
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Accuracy', description: 'Is the answer factually correct based on your content?' },
+                  { title: 'Completeness', description: 'Does it give the full answer, or just part of it?' },
+                  { title: 'Tone', description: 'Does it sound like something your business would say?' },
+                ]} />
                 <p className="mt-4">
                   If the answers are accurate but the tone is off, that&apos;s a system prompt issue
                   (covered in Step 4). If the answers are wrong or missing key information, you
@@ -391,23 +365,11 @@ export default function HowToTrainChatbotPage() {
                 <p className="mt-4">
                   A good system prompt for a small business chatbot covers three things:
                 </p>
-                <ol className="list-decimal pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Identity</strong> — what the chatbot is and who it represents.
-                    Example: &quot;You are a helpful assistant for Greenfield Landscaping. Answer
-                    questions about our services, pricing, and scheduling.&quot;
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Scope</strong> — what topics are in bounds and out of bounds. Example:
-                    &quot;Only answer questions related to our landscaping services. Do not provide
-                    advice on unrelated topics.&quot;
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Escalation</strong> — what to do when the chatbot can&apos;t help.
-                    Example: &quot;If you can&apos;t answer a question, let the customer know and suggest
-                    they call us at 555-0100 or send an email to info@greenfieldlandscaping.com.&quot;
-                  </li>
-                </ol>
+                <StyledNumberedList items={[
+                  { title: 'Identity', description: 'What the chatbot is and who it represents. Example: \u201cYou are a helpful assistant for Greenfield Landscaping. Answer questions about our services, pricing, and scheduling.\u201d' },
+                  { title: 'Scope', description: 'What topics are in bounds and out of bounds. Example: \u201cOnly answer questions related to our landscaping services. Do not provide advice on unrelated topics.\u201d' },
+                  { title: 'Escalation', description: 'What to do when the chatbot can\u2019t help. Example: \u201cIf you can\u2019t answer a question, let the customer know and suggest they call us at 555-0100 or send an email to info@greenfieldlandscaping.com.\u201d' },
+                ]} />
                 <p className="mt-4">
                   Keep the system prompt short and direct. A paragraph or two is usually enough.
                   Longer prompts tend to get ignored by the model in subtle ways.
@@ -444,24 +406,11 @@ export default function HowToTrainChatbotPage() {
                 <p>
                   Wrong answers from a knowledge base chatbot almost always have one of three causes:
                 </p>
-                <ol className="list-decimal pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">The information isn&apos;t in the knowledge base.</strong> Add it.
-                    Either upload the document that has it, or create a Q&amp;A pair that covers the
-                    specific question.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">The information is there but it&apos;s ambiguous.</strong> If your
-                    knowledge base says &quot;our services start at $99&quot; in one place and &quot;custom pricing
-                    available&quot; in another, the chatbot might give inconsistent answers. Make the
-                    content consistent.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">The system prompt is too permissive.</strong> If you haven&apos;t told
-                    the chatbot to stick to your content, it might fill in gaps with general knowledge
-                    — which could be wrong for your specific business. Tighten the system prompt.
-                  </li>
-                </ol>
+                <StyledNumberedList items={[
+                  { title: 'The information isn\u2019t in the knowledge base.', description: 'Add it. Either upload the document that has it, or create a Q&A pair that covers the specific question.' },
+                  { title: 'The information is there but it\u2019s ambiguous.', description: 'If your knowledge base says \u201cour services start at $99\u201d in one place and \u201ccustom pricing available\u201d in another, the chatbot might give inconsistent answers. Make the content consistent.' },
+                  { title: 'The system prompt is too permissive.', description: 'If you haven\u2019t told the chatbot to stick to your content, it might fill in gaps with general knowledge \u2014 which could be wrong for your specific business. Tighten the system prompt.' },
+                ]} />
                 <p className="mt-4">
                   The conversation logs in your dashboard are the best diagnostic tool. Look at the
                   exact messages where the chatbot went wrong, trace it back to what was in the

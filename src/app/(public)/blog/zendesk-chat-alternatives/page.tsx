@@ -6,6 +6,8 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle2, XCircle, MinusCircle } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -47,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/zendesk-chat-alternatives',
       },
       datePublished: '2025-12-03',
-      dateModified: '2025-12-03',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -111,6 +109,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: "LiveChat and Freshchat both have strong reporting dashboards for chat metrics, response times, and satisfaction scores. VocUI provides conversation analytics focused on AI performance (questions asked, resolution rate). None match Zendesk Explore\u2019s depth for enterprise-grade analytics.",
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: '5 Zendesk Chat Alternatives Worth Considering',
+          item: 'https://vocui.com/blog/zendesk-chat-alternatives',
         },
       ],
     },
@@ -265,34 +276,12 @@ export default function ZendeskChatAlternativesPage() {
                 <p className="mt-4">
                   Here&apos;s where the friction shows up:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">You pay for the suite.</strong> Zendesk
-                    now pushes the Suite plan ($55/agent/month), bundling ticketing, talk, and chat.
-                    If you only need chat, most of that spend is wasted.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Configuration takes days.</strong> Setting
-                    up triggers, automations, views, and groups requires patience and Zendesk-specific
-                    knowledge. Small teams often leave features unconfigured because the learning curve
-                    isn&apos;t worth it.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">AI requires higher tiers.</strong> Zendesk
-                    has AI features, but they live behind Suite Professional ($115/agent/month) or
-                    require add-ons. Getting AI chatbot answers from your knowledge base is expensive.
-                    See our{' '}
-                    <Link href="/blog/chatbase-alternatives" className="text-primary-600 dark:text-primary-400 hover:underline">
-                      Chatbase alternatives
-                    </Link>{' '}
-                    for dedicated AI chatbot tools.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Ticket-centric workflow.</strong> Zendesk
-                    treats every conversation as a ticket. If you want lighter, more conversational
-                    interactions — more like messaging than a help desk — the paradigm feels heavy.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'You pay for the suite.', description: 'Zendesk now pushes the Suite plan ($55/agent/month), bundling ticketing, talk, and chat. If you only need chat, most of that spend is wasted.' },
+                  { title: 'Configuration takes days.', description: 'Setting up triggers, automations, views, and groups requires patience and Zendesk-specific knowledge. Small teams often leave features unconfigured because the learning curve isn\u2019t worth it.' },
+                  { title: 'AI requires higher tiers.', description: <>Zendesk has AI features, but they live behind Suite Professional ($115/agent/month) or require add-ons. Getting AI chatbot answers from your knowledge base is expensive. See our <Link href="/blog/chatbase-alternatives" className="text-primary-600 dark:text-primary-400 hover:underline">Chatbase alternatives</Link> for dedicated AI chatbot tools.</> },
+                  { title: 'Ticket-centric workflow.', description: 'Zendesk treats every conversation as a ticket. If you want lighter, more conversational interactions \u2014 more like messaging than a help desk \u2014 the paradigm feels heavy.' },
+                ]} />
                 <p className="mt-4">
                   If you need ticket management, multichannel routing, and enterprise-grade reporting,
                   Zendesk is still the right tool — or Freshchat if you want a similar approach with
@@ -538,29 +527,13 @@ export default function ZendeskChatAlternativesPage() {
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Which is right for you?
                 </h2>
-                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you want AI to answer customer questions automatically:</strong>{' '}
-                    VocUI trains on your content and handles conversations without requiring live
-                    agents for every chat.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you&apos;re already on Freshworks:</strong>{' '}
-                    Freshchat integrates natively and has a cleaner interface than Zendesk.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you want the simplest possible setup:</strong>{' '}
-                    Tidio gets you live chat with automation in minutes.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you need dedicated live chat with no extras:</strong>{' '}
-                    LiveChat is focused, polished, and agent-friendly.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you want the best free plan:</strong>{' '}
-                    Crisp gives you two agent seats with unlimited history at no cost.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'If you want AI to answer customer questions automatically:', description: 'VocUI trains on your content and handles conversations without requiring live agents for every chat.' },
+                  { title: 'If you\u2019re already on Freshworks:', description: 'Freshchat integrates natively and has a cleaner interface than Zendesk.' },
+                  { title: 'If you want the simplest possible setup:', description: 'Tidio gets you live chat with automation in minutes.' },
+                  { title: 'If you need dedicated live chat with no extras:', description: 'LiveChat is focused, polished, and agent-friendly.' },
+                  { title: 'If you want the best free plan:', description: 'Crisp gives you two agent seats with unlimited history at no cost.' },
+                ]} />
               </section>
 
               <section id="faq">

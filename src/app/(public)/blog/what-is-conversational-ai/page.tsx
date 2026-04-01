@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { ComparisonInfographic } from '@/components/blog/infographics';
+import { StyledNumberedList, StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -48,12 +50,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/what-is-conversational-ai',
       },
       datePublished: '2026-01-30',
-      dateModified: '2026-01-30',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -112,6 +110,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'It depends on the approach. Building a custom conversational AI system from scratch requires significant engineering investment. But platforms like VocUI make it accessible — you can build and deploy a conversational AI chatbot on a free plan with no technical knowledge required. Paid plans scale with usage and features.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'What Is Conversational AI? A Beginner\u0027s Guide',
+          item: 'https://vocui.com/blog/what-is-conversational-ai',
         },
       ],
     },
@@ -249,37 +260,12 @@ export default function WhatIsConversationalAiPage() {
                   technologies working together. Understanding the layers helps you evaluate
                   different solutions and understand what each part contributes.
                 </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Natural Language Processing (NLP):</strong> The
-                    foundation layer that lets machines parse and interpret human language — a field
-                    covered in depth by{' '}
-                    <a href="https://huggingface.co/learn/nlp-course/chapter1/2" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Hugging Face&apos;s NLP course</a>.
-                    NLP handles tasks like identifying what the user is asking about (intent detection),
-                    extracting key details (entity recognition), and understanding sentiment.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Large Language Models (LLMs):</strong> Models
-                    like Claude and GPT-4 that generate human-quality text. These are the
-                    &quot;brains&quot; that compose the actual responses. They&apos;ve been trained on vast
-                    amounts of text and can generate nuanced, contextually appropriate answers.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Retrieval-Augmented Generation (RAG):</strong> The
-                    technique that connects the LLM to your specific content. RAG searches your
-                    knowledge base for relevant passages and feeds them to the model, so it
-                    answers from your data rather than its general training. Learn more in our{' '}
-                    <Link href="/blog/what-is-rag-retrieval-augmented-generation" className="text-primary-600 dark:text-primary-400 hover:underline">
-                      RAG explainer
-                    </Link>.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Conversation management:</strong> The
-                    layer that tracks conversation history, manages context across messages,
-                    and handles session state. This is what lets the bot understand &quot;What about
-                    weekends?&quot; as a follow-up to a question about business hours.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Natural Language Processing (NLP):', description: <>The foundation layer that lets machines parse and interpret human language — a field covered in depth by{' '}<a href="https://huggingface.co/learn/nlp-course/chapter1/2" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Hugging Face&apos;s NLP course</a>. NLP handles tasks like identifying what the user is asking about (intent detection), extracting key details (entity recognition), and understanding sentiment.</> },
+                  { title: 'Large Language Models (LLMs):', description: 'Models like Claude and GPT-4 that generate human-quality text. These are the \u201Cbrains\u201D that compose the actual responses. They\u2019ve been trained on vast amounts of text and can generate nuanced, contextually appropriate answers.' },
+                  { title: 'Retrieval-Augmented Generation (RAG):', description: <>The technique that connects the LLM to your specific content. RAG searches your knowledge base for relevant passages and feeds them to the model, so it answers from your data rather than its general training. Learn more in our{' '}<Link href="/blog/what-is-rag-retrieval-augmented-generation" className="text-primary-600 dark:text-primary-400 hover:underline">RAG explainer</Link>.</> },
+                  { title: 'Conversation management:', description: 'The layer that tracks conversation history, manages context across messages, and handles session state. This is what lets the bot understand \u201CWhat about weekends?\u201D as a follow-up to a question about business hours.' },
+                ]} />
                 <p className="mt-4">
                   When you use a platform like VocUI, all of these layers are pre-integrated. You
                   don&apos;t need to choose or configure individual components — you add your content,
@@ -299,37 +285,13 @@ export default function WhatIsConversationalAiPage() {
                   valued the chatbot market at $7.76 billion in 2024, with projections reaching
                   $27.29 billion by 2030. Here are the most common applications:
                 </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Customer support:</strong> Handle
-                    routine questions about pricing, policies, shipping, returns, and product
-                    features — 24/7, without staffing night shifts. Studies consistently show
-                    that 60-80% of customer questions are repetitive and well-suited to AI.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Lead qualification:</strong> Engage
-                    website visitors with relevant information, answer their questions, and
-                    capture contact details. A conversational approach converts better than
-                    static forms because it feels like a dialogue rather than a data-entry task.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Internal knowledge management:</strong> Deploy
-                    a chatbot in Slack or Teams that answers employee questions about HR policies,
-                    IT procedures, product specs, or company processes. This reduces the burden
-                    on internal teams and helps new hires get up to speed faster.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">E-commerce:</strong> Help shoppers
-                    find the right product, answer questions about compatibility or specifications,
-                    and guide them through the purchase process without needing a live agent.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Professional services:</strong> Law
-                    firms, healthcare providers, financial advisors, and consultancies use
-                    conversational AI to handle initial client inquiries, explain services, and
-                    schedule consultations.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Customer support:', description: 'Handle routine questions about pricing, policies, shipping, returns, and product features \u2014 24/7, without staffing night shifts. Studies consistently show that 60-80% of customer questions are repetitive and well-suited to AI.' },
+                  { title: 'Lead qualification:', description: 'Engage website visitors with relevant information, answer their questions, and capture contact details. A conversational approach converts better than static forms because it feels like a dialogue rather than a data-entry task.' },
+                  { title: 'Internal knowledge management:', description: 'Deploy a chatbot in Slack or Teams that answers employee questions about HR policies, IT procedures, product specs, or company processes. This reduces the burden on internal teams and helps new hires get up to speed faster.' },
+                  { title: 'E-commerce:', description: 'Help shoppers find the right product, answer questions about compatibility or specifications, and guide them through the purchase process without needing a live agent.' },
+                  { title: 'Professional services:', description: 'Law firms, healthcare providers, financial advisors, and consultancies use conversational AI to handle initial client inquiries, explain services, and schedule consultations.' },
+                ]} />
               </section>
 
               <section>
@@ -397,13 +359,13 @@ export default function WhatIsConversationalAiPage() {
                   You don&apos;t need an engineering team or an AI budget to deploy conversational AI
                   today. Platforms like VocUI abstract away the complexity. The practical steps are:
                 </p>
-                <ol className="list-decimal pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>Create a chatbot and choose a name.</li>
-                  <li>Add your knowledge sources — URLs, PDFs, or typed content.</li>
-                  <li>Customize the system prompt to control tone and boundaries.</li>
-                  <li>Test with the built-in chat interface.</li>
-                  <li>Deploy via website widget, Slack, or direct link.</li>
-                </ol>
+                <StyledNumberedList items={[
+                  'Create a chatbot and choose a name.',
+                  'Add your knowledge sources \u2014 URLs, PDFs, or typed content.',
+                  'Customize the system prompt to control tone and boundaries.',
+                  'Test with the built-in chat interface.',
+                  'Deploy via website widget, Slack, or direct link.',
+                ]} />
                 <p className="mt-4">
                   The entire process takes under an hour for most businesses. The free plan
                   includes everything you need to build and test your first chatbot. Read our

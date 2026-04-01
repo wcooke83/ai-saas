@@ -6,7 +6,9 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { ChatPreview, IndustryStatBar } from '@/components/blog/industry-visuals';
+import { StyledBulletList } from '@/components/blog/styled-lists';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -48,12 +50,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/chatbot-for-financial-services',
       },
       datePublished: '2026-03-11',
-      dateModified: '2026-03-11',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -90,6 +88,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Yes. Configure the chatbot to share a direct link to your scheduling tool (Calendly, Acuity, or your firm\'s booking system) when a visitor expresses interest. The chatbot answers pre-meeting questions first — what to expect, what documents to prepare, how long the meeting takes — so prospects arrive informed and the meeting is more productive. This turns the chatbot into a lead qualification and booking assistant that operates outside business hours.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'AI Chatbots for Financial Services and Advisors',
+          item: 'https://vocui.com/blog/chatbot-for-financial-services',
         },
       ],
     },
@@ -262,35 +273,12 @@ export default function ChatbotForFinancialServicesPage() {
                   provides additional context on how firms are deploying AI responsibly.
                   Here is how a VocUI chatbot fits within the major regulatory frameworks:
                 </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong>SEC (Investment Advisers Act of 1940).</strong> For registered
-                    investment advisors (RIAs), marketing communications must be fair, balanced,
-                    and not misleading. A chatbot trained on compliance-reviewed content that
-                    includes appropriate disclaimers satisfies this requirement because it only
-                    repeats information your firm has already approved for public use.
-                  </li>
-                  <li>
-                    <strong><a href="https://www.finra.org/rules-guidance/notices/24-09" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">FINRA Rules 2210/2220</a>.</strong> For broker-dealers, communications
-                    with the public are categorized as retail communications, correspondence, or
-                    institutional communications. A chatbot on a public website falls under retail
-                    communications, which must be supervised and may require principal pre-approval.
-                    Have your compliance principal review the chatbot&apos;s training content and
-                    system prompt before deployment.
-                  </li>
-                  <li>
-                    <strong>SOX (Sarbanes-Oxley).</strong> Applies to publicly traded companies
-                    and their financial reporting. Since the chatbot does not process transactions,
-                    access accounting systems, or handle material non-public information, it
-                    typically falls outside SOX control scope. Confirm with your compliance officer.
-                  </li>
-                  <li>
-                    <strong>State securities regulators.</strong> Individual states may have
-                    additional communication requirements. California, New York, and Texas have
-                    particularly detailed advertising rules for financial professionals. Include
-                    your state-specific disclaimers in the system prompt.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'SEC (Investment Advisers Act of 1940).', description: 'For registered investment advisors (RIAs), marketing communications must be fair, balanced, and not misleading. A chatbot trained on compliance-reviewed content that includes appropriate disclaimers satisfies this requirement because it only repeats information your firm has already approved for public use.' },
+                  { title: <><a href="https://www.finra.org/rules-guidance/notices/24-09" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">FINRA Rules 2210/2220</a>.</>, description: 'For broker-dealers, communications with the public are categorized as retail communications, correspondence, or institutional communications. A chatbot on a public website falls under retail communications, which must be supervised and may require principal pre-approval. Have your compliance principal review the chatbot\u2019s training content and system prompt before deployment.' },
+                  { title: 'SOX (Sarbanes-Oxley).', description: 'Applies to publicly traded companies and their financial reporting. Since the chatbot does not process transactions, access accounting systems, or handle material non-public information, it typically falls outside SOX control scope. Confirm with your compliance officer.' },
+                  { title: 'State securities regulators.', description: 'Individual states may have additional communication requirements. California, New York, and Texas have particularly detailed advertising rules for financial professionals. Include your state-specific disclaimers in the system prompt.' },
+                ]} />
                 <p className="mt-4">
                   The common thread: train the chatbot only on compliance-approved content, include
                   clear disclaimers in every interaction, and have your compliance team review the

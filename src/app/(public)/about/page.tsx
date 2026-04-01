@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import { Header } from '@/components/layout';
-import { SplashHero } from '@/components/ui/splash-hero';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
 import { HeroWaveform } from '@/components/ui/hero-waveform';
+import { AboutHero } from './about-hero';
 import { AboutIntro } from './about-intro';
 import { AboutBeliefs } from './about-beliefs';
+import { AboutStat } from './about-stat';
 import { AboutCta } from './about-cta';
 
 export const metadata: Metadata = {
@@ -56,27 +57,19 @@ export default function AboutPage() {
       />
 
       <main id="main-content" className="relative z-[2]">
-        {/* ─── Hero (untouched) ──────────────────────────────────────────────── */}
-        <SplashHero
-          headline={
-            <>
-              Great support used to mean a big team.{' '}
-              <span className="text-primary-500">It doesn&apos;t anymore.</span>
-            </>
-          }
-          supportingText="Upload your docs, paste a URL, and have a working chatbot live on your site today. No developers, no waiting weeks for IT."
-          primaryCta={{ label: 'Start for Free', href: '/signup' }}
-          secondaryCta={{ label: 'See How It Works', href: '#content' }}
-          breadcrumbs={[{ label: 'About' }]}
-        />
+        {/* ─── Hero: full viewport, left-aligned, display type ────────────────── */}
+        <AboutHero />
 
-        {/* ─── Intro: asymmetric editorial copy ─────────────────────────────── */}
+        {/* ─── Intro: dark panel, editorial pull quote + asymmetric split ──────── */}
         <AboutIntro />
 
-        {/* ─── Beliefs: full-bleed dark panel with numbered statements ──────── */}
+        {/* ─── Beliefs: dark manifesto, horizontal strip rows ───────────────────── */}
         <AboutBeliefs />
 
-        {/* ─── CTA: edge-to-edge gradient ───────────────────────────────────── */}
+        {/* ─── Stat interlude: near-white, three display numbers ───────────────── */}
+        <AboutStat />
+
+        {/* ─── CTA: dark, left-aligned, asymmetric with decorative monogram ─────── */}
         <div className="relative">
           <AboutCta />
         </div>

@@ -6,7 +6,9 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { ChatPreview, WorkflowDiagram } from '@/components/blog/industry-visuals';
+import { StyledNumberedList, StyledBulletList } from '@/components/blog/styled-lists';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -48,12 +50,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/chatbot-for-recruitment',
       },
       datePublished: '2025-12-24',
-      dateModified: '2025-12-24',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -90,6 +88,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'When you have 50+ open positions, the number of candidate questions scales linearly — but your recruiting team does not. A chatbot handles the informational load by answering the same questions about each role instantly: qualifications, location, salary range, benefits, and interview process. Candidates self-screen against the requirements, which means fewer unqualified applications for your team to review. The chatbot works 24/7, which is critical when you are recruiting across time zones or running job ads that generate traffic outside business hours.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'How Recruiters Use AI Chatbots to Screen Candidates Faster',
+          item: 'https://vocui.com/blog/chatbot-for-recruitment',
         },
       ],
     },
@@ -318,13 +329,13 @@ export default function ChatbotForRecruitmentPage() {
                   <p className="text-sm font-semibold text-green-800 dark:text-green-200 mb-3">
                     Concrete steps to keep your recruitment chatbot fair
                   </p>
-                  <ol className="space-y-2 text-sm text-secondary-600 dark:text-secondary-400 list-decimal pl-5">
-                    <li>Train only on objective job requirements and company information — no subjective &quot;culture fit&quot; criteria.</li>
-                    <li>Review the chatbot&apos;s responses for consistent treatment across different phrasings of the same question.</li>
-                    <li>Do not configure the chatbot to collect demographic information or ask screening questions that correlate with protected characteristics.</li>
-                    <li>Ensure the chatbot gives every candidate the same factual information about roles, benefits, and process.</li>
-                    <li>Audit conversation logs quarterly to confirm the chatbot is not inadvertently discouraging certain groups from applying.</li>
-                  </ol>
+                  <StyledNumberedList items={[
+                    'Train only on objective job requirements and company information \u2014 no subjective \u201cculture fit\u201d criteria.',
+                    'Review the chatbot\u2019s responses for consistent treatment across different phrasings of the same question.',
+                    'Do not configure the chatbot to collect demographic information or ask screening questions that correlate with protected characteristics.',
+                    'Ensure the chatbot gives every candidate the same factual information about roles, benefits, and process.',
+                    'Audit conversation logs quarterly to confirm the chatbot is not inadvertently discouraging certain groups from applying.',
+                  ]} />
                 </div>
 
                 <p>
@@ -374,24 +385,12 @@ export default function ChatbotForRecruitmentPage() {
                   Your recruiting chatbot&apos;s knowledge base should cover everything a
                   candidate would ask before, during, and after applying:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong>Job descriptions.</strong> Full text of all open positions including
-                    responsibilities, qualifications, location, and compensation ranges.
-                  </li>
-                  <li>
-                    <strong>Company overview.</strong> Mission, values, team size, funding stage,
-                    and what makes your company a compelling place to work.
-                  </li>
-                  <li>
-                    <strong>Benefits and perks.</strong> Health insurance, PTO, remote work
-                    policies, equity, professional development, and unique perks.
-                  </li>
-                  <li>
-                    <strong>Interview process.</strong> Number of rounds, what each round covers,
-                    typical timeline, and how to prepare.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Job descriptions.', description: 'Full text of all open positions including responsibilities, qualifications, location, and compensation ranges.' },
+                  { title: 'Company overview.', description: 'Mission, values, team size, funding stage, and what makes your company a compelling place to work.' },
+                  { title: 'Benefits and perks.', description: 'Health insurance, PTO, remote work policies, equity, professional development, and unique perks.' },
+                  { title: 'Interview process.', description: 'Number of rounds, what each round covers, typical timeline, and how to prepare.' },
+                ]} />
                 <p className="mt-4">
                   Pull this content from your careers page, job postings, and employee handbook.
                   Point VocUI at those URLs and it scrapes the content automatically. Update the

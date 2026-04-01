@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { EmbedCodeVisual } from '@/components/blog/process-visuals';
+import { StyledNumberedList, StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -48,12 +50,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/how-to-embed-chatbot-in-shopify',
       },
       datePublished: '2026-02-20',
-      dateModified: '2026-02-20',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -112,6 +110,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'The chatbot embed code is the same across all Shopify Markets. The VocUI widget responds in the language of the visitor query regardless of which market subdomain they are on. To ensure accurate answers in each language, add your translated product pages and policy pages as separate knowledge sources in VocUI.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'How to Embed a Chatbot in Shopify',
+          item: 'https://vocui.com/blog/how-to-embed-chatbot-in-shopify',
         },
       ],
     },
@@ -179,66 +190,7 @@ export default function HowToEmbedChatbotInShopifyPage() {
             </div>
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
-              {/* Section 1 */}
-              <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
-                  Why Shopify Stores Need a Chatbot
-                </h2>
-                <p>
-                  According to <a href="https://www.searchenginejournal.com/cms-market-share/454039/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Search Engine Journal</a>, Shopify holds 4.8% of the CMS market share, making it one of the most popular ecommerce platforms in the world. Shopify stores face a unique support challenge: shoppers have questions at
-                  all hours, and unanswered questions directly translate to abandoned carts. A
-                  visitor wondering &quot;Does this come in blue?&quot; or &quot;How long does
-                  shipping take to the UK?&quot; will leave your store if they can&apos;t get an
-                  answer quickly.
-                </p>
-                <p className="mt-4">
-                  Traditional live chat requires someone to be online to respond. Email support
-                  means hours or days of delay. An AI chatbot trained on your store content
-                  answers these questions instantly, keeping shoppers engaged and moving toward
-                  checkout.
-                </p>
-                <p className="mt-4">
-                  The numbers back this up. Ecommerce stores with chatbots consistently report
-                  15-30% fewer support tickets, faster average response times, and measurable
-                  improvements in conversion rates — especially on product and checkout pages
-                  where purchase decisions happen.
-                </p>
-              </section>
-
-              {/* Section 2 */}
-              <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
-                  What You Need Before Starting
-                </h2>
-                <p>
-                  The setup process is straightforward, but make sure you have these ready:
-                </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4">
-                  <li>
-                    <strong>A VocUI account with a chatbot created.</strong> If you haven&apos;t
-                    set one up yet, start with our{' '}
-                    <Link
-                      href="/blog/how-to-add-chatbot-to-website"
-                      className="text-primary-600 dark:text-primary-400 hover:underline"
-                    >
-                      general chatbot setup guide
-                    </Link>
-                    .
-                  </li>
-                  <li>
-                    <strong>Shopify admin access.</strong> You need to be able to edit your
-                    theme code. This works on all Shopify plans — Basic, Shopify, Advanced, and
-                    Plus.
-                  </li>
-                  <li>
-                    <strong>Your store content ready as a knowledge source.</strong> The best
-                    approach is to add your store&apos;s URL so VocUI can scrape your product
-                    pages, FAQ page, shipping policy, and return policy automatically.
-                  </li>
-                </ul>
-              </section>
-
-              {/* Section 3 */}
+              {/* Section 1: Embed Steps (lead with the action) */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Step-by-Step: Adding the Embed Code to Shopify
@@ -249,42 +201,13 @@ export default function HowToEmbedChatbotInShopifyPage() {
                 </p>
 
                 <EmbedCodeVisual caption="Copy from VocUI Dashboard, paste into theme.liquid" />
-                <ol className="list-decimal pl-5 space-y-4 mt-4">
-                  <li>
-                    <strong>Copy your embed code.</strong> Log in to your VocUI dashboard, open
-                    your chatbot, and go to the Deploy tab. Copy the JavaScript embed snippet.
-                  </li>
-                  <li>
-                    <strong>Open your Shopify theme editor.</strong> In your Shopify admin, go
-                    to <strong>Online Store &gt; Themes</strong>. Click the three-dot menu on your
-                    active theme and select <strong>Edit code</strong>. For advanced customization,
-                    Shopify&apos;s{' '}
-                    <a href="https://shopify.dev/docs/apps/build/online-store/theme-app-extensions/configuration" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Theme App Extensions documentation</a>{' '}
-                    covers the full theme architecture.
-                  </li>
-                  <li>
-                    <strong>Find the theme.liquid file.</strong> In the Layout folder on the
-                    left sidebar, click on{' '}
-                    <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">
-                      theme.liquid
-                    </code>
-                    . This is the master template that wraps every page in your store. For more on how Shopify handles scripts, see the{' '}
-                    <a href="https://shopify.dev/docs/storefronts/themes/best-practices/javascript-and-stylesheet-tags" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Shopify JavaScript and Stylesheet Tags documentation</a>.
-                  </li>
-                  <li>
-                    <strong>Paste the embed code.</strong> Scroll to the bottom of the file and
-                    paste the VocUI script tag just before the
-                    closing{' '}
-                    <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">
-                      &lt;/body&gt;
-                    </code>{' '}
-                    tag. This ensures the chatbot loads on every page of your store.
-                  </li>
-                  <li>
-                    <strong>Save.</strong> Click Save in the top right corner. Visit your store
-                    and you should see the chat widget in the bottom corner.
-                  </li>
-                </ol>
+                <StyledNumberedList items={[
+                  { title: 'Copy your embed code.', description: 'Log in to your VocUI dashboard, open your chatbot, and go to the Deploy tab. Copy the JavaScript embed snippet.' },
+                  { title: 'Open your Shopify theme editor.', description: <>In your Shopify admin, go to <strong>Online Store &gt; Themes</strong>. Click the three-dot menu on your active theme and select <strong>Edit code</strong>. For advanced customization, Shopify&apos;s <a href="https://shopify.dev/docs/apps/build/online-store/theme-app-extensions/configuration" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Theme App Extensions documentation</a> covers the full theme architecture.</> },
+                  { title: 'Find the theme.liquid file.', description: <>In the Layout folder on the left sidebar, click on <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">theme.liquid</code>. This is the master template that wraps every page in your store. For more on how Shopify handles scripts, see the <a href="https://shopify.dev/docs/storefronts/themes/best-practices/javascript-and-stylesheet-tags" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Shopify JavaScript and Stylesheet Tags documentation</a>.</> },
+                  { title: 'Paste the embed code.', description: <>Scroll to the bottom of the file and paste the VocUI script tag just before the closing <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">&lt;/body&gt;</code> tag. This ensures the chatbot loads on every page of your store.</> },
+                  { title: 'Save.', description: 'Click Save in the top right corner. Visit your store and you should see the chat widget in the bottom corner.' },
+                ]} />
                 <p className="mt-4">
                   That&apos;s it. No app to install, no monthly app subscription, and no risk of
                   plugin conflicts. The script tag approach is the cleanest way to add third-party
@@ -292,7 +215,54 @@ export default function HowToEmbedChatbotInShopifyPage() {
                 </p>
               </section>
 
-              {/* Section 4 */}
+              {/* Section 2: Why — ecommerce-specific */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  Why Shopify Stores Need a Chatbot
+                </h2>
+                <p>
+                  Cart abandonment is the single biggest revenue leak in ecommerce. A shopper
+                  hesitating on a product page — wondering about sizing, return windows, or
+                  shipping speed — will close the tab if they cannot get an answer in seconds.
+                  An AI chatbot trained on your product catalog and store policies answers those
+                  questions at the exact moment of hesitation, keeping the shopper moving toward
+                  checkout instead of bouncing.
+                </p>
+                <p className="mt-4">
+                  Shopify includes Shopify Inbox for live chat, but it requires a human on the
+                  other end. Outside business hours — evenings, weekends, holidays — messages go
+                  unanswered. An AI chatbot fills that gap completely. It handles &quot;What
+                  material is this made of?&quot; and &quot;Can I exchange for a different
+                  size?&quot; at 2 AM the same way it does at 2 PM, with no staffing cost.
+                </p>
+                <p className="mt-4">
+                  Product pages also have limited real estate. You cannot fit every detail about
+                  shipping zones, care instructions, and compatibility into the description
+                  without creating a wall of text that nobody reads. A chatbot lets shoppers ask
+                  the specific question they have and get a direct answer — no scrolling, no
+                  searching, no navigating to a separate FAQ page.
+                </p>
+              </section>
+
+              {/* Section 3: Prerequisites — Shopify-specific */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  What You Need Before Starting
+                </h2>
+                <StyledBulletList items={[
+                  { title: 'Shopify admin access with theme editing permission.', description: <>You need the <strong>Owner</strong> role or a <strong>Staff</strong> account with &quot;Themes&quot; permission enabled. Check under <strong>Settings &gt; Users and permissions</strong> in your Shopify admin.</> },
+                  { title: 'Know where theme.liquid lives.', description: <>Go to <strong>Online Store &gt; Themes &gt; Actions &gt; Edit code</strong>. In the Layout folder, you&apos;ll see <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">theme.liquid</code> — this is where your embed code goes.</> },
+                  { title: 'A VocUI chatbot trained on your store content.', description: <>Create a chatbot in VocUI and add your store URL as a knowledge source so it can learn your products, shipping policy, and return policy. Our <Link href="/blog/how-to-add-chatbot-to-website" className="text-primary-600 dark:text-primary-400 hover:underline">chatbot setup guide</Link> walks through the full process.</> },
+                ]} />
+                <p className="mt-4">
+                  This works on every Shopify plan — Basic, Shopify, Advanced, and Plus. The one
+                  exception: embedding on checkout pages requires Shopify Plus, which gives access
+                  to <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">checkout.liquid</code>. On
+                  standard plans, the chatbot covers every other storefront page.
+                </p>
+              </section>
+
+              {/* Section 4: Training */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Training the Chatbot on Your Store Content
@@ -301,27 +271,12 @@ export default function HowToEmbedChatbotInShopifyPage() {
                   A chatbot is only as good as the content it&apos;s trained on. For a Shopify
                   store, you&apos;ll want to cover the topics shoppers ask about most:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4">
-                  <li>
-                    <strong>Product details.</strong> Add your store&apos;s URL as a knowledge
-                    source and VocUI will crawl your product pages. The bot can then answer
-                    questions about sizing, materials, features, and availability.
-                  </li>
-                  <li>
-                    <strong>Shipping information.</strong> Upload or link to your shipping policy
-                    page. Shoppers constantly ask about delivery times, shipping costs, and
-                    international availability.
-                  </li>
-                  <li>
-                    <strong>Return and refund policies.</strong> These are among the most-asked
-                    questions in ecommerce. Make sure your bot can explain the process clearly.
-                  </li>
-                  <li>
-                    <strong>Store FAQ.</strong> If you have an existing FAQ page, add it as a
-                    knowledge source. The bot will pull answers directly from your existing
-                    content.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Product details.', description: 'Add your store\u2019s URL as a knowledge source and VocUI will crawl your product pages. The bot can then answer questions about sizing, materials, features, and availability.' },
+                  { title: 'Shipping information.', description: 'Upload or link to your shipping policy page. Shoppers constantly ask about delivery times, shipping costs, and international availability.' },
+                  { title: 'Return and refund policies.', description: 'These are among the most-asked questions in ecommerce. Make sure your bot can explain the process clearly.' },
+                  { title: 'Store FAQ.', description: 'If you have an existing FAQ page, add it as a knowledge source. The bot will pull answers directly from your existing content.' },
+                ]} />
                 <p className="mt-4">
                   For more advanced training strategies, check out our guide on{' '}
                   <Link
@@ -334,29 +289,36 @@ export default function HowToEmbedChatbotInShopifyPage() {
                 </p>
               </section>
 
-              {/* Section 5 */}
+              {/* Section 5: Widget Customization — Shopify-specific */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
-                  Widget Customization
+                  Matching the Widget to Your Shopify Theme
                 </h2>
                 <p>
-                  Customize colors, position, welcome message, and avatar from the VocUI
-                  dashboard. For the full list of widget options, see our{' '}
+                  Your chat widget should look like it belongs in your store, not like a
+                  third-party add-on. Start by grabbing your theme&apos;s accent color: go to{' '}
+                  <strong>Online Store &gt; Themes &gt; Customize</strong>, then open{' '}
+                  <strong>Theme settings &gt; Colors</strong>. Copy the hex value for your primary
+                  or accent color and paste it into the VocUI widget color picker in your{' '}
                   <Link
-                    href="/blog/how-to-add-chatbot-to-website"
+                    href="/login"
                     className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
-                    full chatbot setup guide
+                    dashboard
                   </Link>
                   .
                 </p>
                 <p className="mt-4">
-                  <strong>Shopify-specific tip:</strong> To find your store&apos;s exact brand
-                  color, go to <strong>Online Store &gt; Themes &gt; Customize</strong>, then open{' '}
-                  <strong>Theme settings &gt; Colors</strong>. Copy the hex value for your accent
-                  or primary color and paste it into VocUI&apos;s widget color picker. This
-                  ensures the chat bubble blends seamlessly with your storefront buttons and
-                  navigation.
+                  Widget position matters on ecommerce storefronts. Bottom-right is the standard
+                  placement, but if your Shopify theme uses a cart drawer that slides in from the
+                  right side of the screen (common in Dawn, Refresh, and many custom themes),
+                  switch the widget to bottom-left to prevent the chat bubble from overlapping
+                  the cart panel. You can change this in one click from the VocUI widget settings.
+                </p>
+                <p className="mt-4">
+                  Welcome message, avatar, and all other appearance options are configured in
+                  the VocUI dashboard under your chatbot&apos;s Deploy tab — no code changes
+                  needed after the initial embed.
                 </p>
               </section>
 
@@ -369,71 +331,22 @@ export default function HowToEmbedChatbotInShopifyPage() {
                   Most Shopify embeds work immediately. When they don&apos;t, these are the
                   Shopify-specific causes:
                 </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4">
-                  <li>
-                    <strong>Script not loading on Online Store 2.0 themes.</strong> Newer Shopify
-                    themes use sections and blocks architecture, but theme.liquid still exists and
-                    still wraps every page. If you cannot find theme.liquid, check under the{' '}
-                    <strong>Layout</strong> folder in the code editor, not Sections or Templates.
-                  </li>
-                  <li>
-                    <strong>Liquid syntax error after pasting.</strong> Make sure you paste the
-                    VocUI script tag as raw HTML, not inside a Liquid{' '}
-                    <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">
-                      {'{{'}...{'}}'}
-                    </code>{' '}
-                    or{' '}
-                    <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">
-                      {'{%'}...{'%}'}
-                    </code>{' '}
-                    block. The script tag should be plain HTML placed before the
-                    closing{' '}
-                    <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">
-                      &lt;/body&gt;
-                    </code>{' '}
-                    tag.
-                  </li>
-                  <li>
-                    <strong>Chatbot not visible in theme preview.</strong> Shopify&apos;s theme
-                    preview sometimes does not execute third-party scripts. Publish the theme and
-                    check your live storefront URL instead.
-                  </li>
-                  <li>
-                    <strong>Shopify speed report flags the script.</strong> The Shopify speed
-                    report lists all third-party scripts. VocUI will appear in the list but will
-                    not reduce your score because it loads asynchronously and does not block
-                    rendering. You can safely ignore this line item.
-                  </li>
-                  <li>
-                    <strong>Password-protected storefront blocking the widget.</strong> If your
-                    store is password-protected (common during development), the chatbot script
-                    still loads behind the password wall but is not visible to public visitors.
-                    Remove the password to test the live experience.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Script not loading on Online Store 2.0 themes.', description: <>Newer Shopify themes use sections and blocks architecture, but theme.liquid still exists and still wraps every page. If you cannot find theme.liquid, check under the <strong>Layout</strong> folder in the code editor, not Sections or Templates.</> },
+                  { title: 'Liquid syntax error after pasting.', description: <>Make sure you paste the VocUI script tag as raw HTML, not inside a Liquid <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">{'{{'}...{'}}'}</code> or <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">{'{%'}...{'%}'}</code> block. The script tag should be plain HTML placed before the closing <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">&lt;/body&gt;</code> tag.</> },
+                  { title: 'Chatbot not visible in theme preview.', description: 'Shopify\u2019s theme preview sometimes does not execute third-party scripts. Publish the theme and check your live storefront URL instead.' },
+                  { title: 'Shopify speed report flags the script.', description: 'The Shopify speed report lists all third-party scripts. VocUI will appear in the list but will not reduce your score because it loads asynchronously and does not block rendering. You can safely ignore this line item.' },
+                  { title: 'Password-protected storefront blocking the widget.', description: 'If your store is password-protected (common during development), the chatbot script still loads behind the password wall but is not visible to public visitors. Remove the password to test the live experience.' },
+                ]} />
                 <p className="mt-4">
-                  For other platforms, see our{' '}
-                  <Link
-                    href="/blog/how-to-embed-chatbot-in-wordpress"
-                    className="text-primary-600 dark:text-primary-400 hover:underline"
-                  >
-                    WordPress embed guide
-                  </Link>
-                  ,{' '}
-                  <Link
-                    href="/blog/how-to-embed-chatbot-in-squarespace"
-                    className="text-primary-600 dark:text-primary-400 hover:underline"
-                  >
-                    Squarespace embed guide
-                  </Link>
-                  , or the general{' '}
+                  If you also run a site on another platform, our{' '}
                   <Link
                     href="/blog/how-to-add-chatbot-to-website"
                     className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
-                    chatbot website embed guide
-                  </Link>
-                  .
+                    general embed guide
+                  </Link>{' '}
+                  covers the process for any website.
                 </p>
               </section>
 
@@ -482,12 +395,13 @@ export default function HowToEmbedChatbotInShopifyPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Ready to add it to your site?</h2>
+            <h2 className="text-2xl font-bold mb-3">Add AI to your Shopify store</h2>
             <p className="text-white/80 mb-2">
-              Create your chatbot, copy one line of code, and paste it into your site -- done.
+              Train a chatbot on your products and policies, then paste one script tag
+              into theme.liquid — your store has 24/7 AI support.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Works with any theme or page builder. No plugins required.
+              Works with any Shopify theme — Dawn, Debut, custom builds. No app install required.
             </p>
             <Button
               size="xl"
@@ -496,11 +410,11 @@ export default function HowToEmbedChatbotInShopifyPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Build and embed yours
+                Build your store&apos;s chatbot
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
-            <p className="text-xs text-white/50 mt-4">Takes about 3 minutes from signup to live widget</p>
+            <p className="text-xs text-white/50 mt-4">About 3 minutes from signup to live widget on your storefront</p>
           </div>
         </div>
       </main>

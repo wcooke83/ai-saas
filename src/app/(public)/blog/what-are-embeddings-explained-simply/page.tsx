@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { EmbeddingVisualizationDiagram } from '@/components/blog/diagrams';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -48,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/what-are-embeddings-explained-simply',
       },
       datePublished: '2025-12-01',
-      dateModified: '2025-12-01',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -62,6 +59,12 @@ const jsonLd = {
           '@type': 'ImageObject',
           url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/what-are-embeddings-explained-simply/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {
@@ -106,6 +109,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'No. Embeddings are the behind-the-scenes technology that makes chatbot search work. Platforms like VocUI handle embedding generation, storage, and retrieval automatically. You just add your content and the system does the rest.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'What Are Embeddings? A Simple Explanation',
+          item: 'https://vocui.com/blog/what-are-embeddings-explained-simply',
         },
       ],
     },

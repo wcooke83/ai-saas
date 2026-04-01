@@ -156,6 +156,8 @@ const jsonLd = {
       description:
         'How businesses across industries use AI chatbots to automate support, capture leads, and serve customers 24/7.',
       url: 'https://vocui.com/blog/chatbot-for-business-guide',
+      dateCreated: '2026-03-08',
+      dateModified: '2026-04-02',
       mainEntity: {
         '@type': 'ItemList',
         numberOfItems: allPosts.length,

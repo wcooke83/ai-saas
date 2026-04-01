@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { StatInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
@@ -48,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/ai-chatbot-for-after-hours-support',
       },
       datePublished: '2025-12-29',
-      dateModified: '2025-12-29',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -106,6 +103,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'With VocUI, you can have an AI chatbot running on your website in under an hour. The process is straightforward: create a chatbot, add your knowledge sources (website URLs, documents, or manual entries), configure the system prompt and appearance, then embed the widget on your site with a single code snippet. The chatbot starts answering questions immediately based on the content you provide. You can refine and expand the knowledge base over time, but the initial setup is fast enough to go live the same day you start.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'Why Your Business Needs an After-Hours AI Chatbot',
+          item: 'https://vocui.com/blog/ai-chatbot-for-after-hours-support',
         },
       ],
     },
@@ -190,7 +200,7 @@ export default function AiChatbotForAfterHoursSupportPage() {
                 <p>
                   Your business operates 9 to 5, but your customers don&apos;t. They browse
                   your website during their commute, research solutions after dinner, and make
-                  purchase decisions on weekends. According to <a href="https://www.dashly.io/blog/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Dashly</a>, 39% of all chatbot conversations occur when offices are closed — and that only counts the interactions companies are actually capturing. The peak periods
+                  purchase decisions on weekends. Industry research on conversational marketing data shows that roughly 39% of all chatbot conversations occur when offices are closed — and that only counts the interactions companies are actually capturing. The peak periods
                   are evenings (6pm&ndash;10pm) and weekend afternoons.
                 </p>
                 <p className="mt-4">
@@ -233,7 +243,7 @@ export default function AiChatbotForAfterHoursSupportPage() {
                 </p>
                 <p className="mt-4">
                   For service-based businesses, delayed responses can mean missed appointments
-                  and lost revenue. <a href="https://www.dashly.io/blog/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Drift found via Dashly</a> that 41% of meetings booked via chatbots happened outside 9-to-5 hours — representing conversations that would have been lost entirely without automation. A potential client trying to book a consultation at 7pm
+                  and lost revenue. Conversational marketing research found that 41% of meetings booked via chatbots happened outside 9-to-5 hours — representing conversations that would have been lost entirely without automation. A potential client trying to book a consultation at 7pm
                   won&apos;t wait until tomorrow to hear back. They will call the next provider
                   on their list. An AI chatbot that answers their initial questions and collects
                   their booking information ensures that lead stays warm until your team can

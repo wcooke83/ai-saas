@@ -135,6 +135,8 @@ const jsonLd = {
       description:
         'Everything you need to know about building, training, and deploying AI chatbots powered by your own content.',
       url: 'https://vocui.com/blog/knowledge-base-chatbot-guide',
+      dateCreated: '2026-03-08',
+      dateModified: '2026-04-02',
       mainEntity: {
         '@type': 'ItemList',
         numberOfItems: allPosts.length,

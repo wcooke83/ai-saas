@@ -25,7 +25,7 @@ test.describe('Webhooks Dashboard Page', () => {
     await page.goto(WEBHOOKS_URL);
     await page.waitForLoadState('domcontentloaded');
 
-    await expect(page.getByRole('heading', { name: 'Webhooks' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Webhooks', level: 1 })).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole('button', { name: /Add Webhook/i })).toBeVisible({ timeout: 10000 });
   });
 
@@ -342,6 +342,6 @@ test.describe('Webhooks Sidebar Nav', () => {
     await webhooksLink.click();
 
     await page.waitForURL('**/dashboard/webhooks', { timeout: 15000 });
-    await expect(page.getByRole('heading', { name: 'Webhooks' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Webhooks', level: 1 })).toBeVisible({ timeout: 10000 });
   });
 });

@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { MidArticleCta } from '@/components/blog/mid-article-cta';
 import { NumberedListInfographic } from '@/components/blog/infographics';
@@ -50,12 +51,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/chatbot-best-practices-for-small-business',
       },
       datePublished: '2026-03-30',
-      dateModified: '2026-03-30',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -114,6 +111,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Track five core metrics: conversation volume (how many chats per day/week), resolution rate (percentage of questions answered without human escalation), unanswered question rate (questions the chatbot could not handle), customer satisfaction (if you collect ratings), and conversion impact (whether chatbot users convert at a higher rate). These five metrics give you a complete picture of chatbot health and business impact.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'Chatbot Best Practices for Small Business Owners',
+          item: 'https://vocui.com/blog/chatbot-best-practices-for-small-business',
         },
       ],
     },

@@ -8,6 +8,8 @@ import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { DashboardPath } from '@/components/blog/dashboard-path';
 import { NumberedListInfographic } from '@/components/blog/infographics';
+import { StyledNumberedList, StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -49,12 +51,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/how-to-write-chatbot-system-prompt',
       },
       datePublished: '2026-02-27',
-      dateModified: '2026-02-27',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -63,6 +61,12 @@ const jsonLd = {
           '@type': 'ImageObject',
           url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/how-to-write-chatbot-system-prompt/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {
@@ -123,6 +127,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: "Technically, a chatbot can function without one — the AI model will use its default behavior. But in practice, every business chatbot should have a system prompt. Without one, the chatbot may go off-topic, adopt an inconsistent tone, or answer questions it shouldn't. The system prompt is what turns a general-purpose AI into your specific business assistant.",
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'How to Write a Chatbot System Prompt That Actually Works',
+          item: 'https://vocui.com/blog/how-to-write-chatbot-system-prompt',
         },
       ],
     },
@@ -272,36 +289,13 @@ export default function HowToWriteChatbotSystemPromptPage() {
                   An effective system prompt covers five areas. You don&apos;t need pages of
                   text — 100 to 300 words is the sweet spot. The goal is clarity, not length.
                 </p>
-                <ol className="list-decimal pl-5 space-y-4 mt-4">
-                  <li>
-                    <strong>Role definition.</strong> Tell the bot exactly who it is. &quot;You
-                    are a customer support assistant for [Company Name], a [brief description of
-                    what you do].&quot; This anchors every response in the right context.
-                  </li>
-                  <li>
-                    <strong>Tone and personality.</strong> Specify how the bot should communicate.
-                    Friendly and casual? Professional and concise? Match your brand voice. Be
-                    specific: &quot;Use a warm, conversational tone. Keep answers under 3
-                    sentences when possible.&quot;
-                  </li>
-                  <li>
-                    <strong>Knowledge boundaries.</strong> This is the most critical part. Tell
-                    the bot to only answer from the provided knowledge base content. &quot;Only
-                    answer questions using the provided documentation. Do not use your general
-                    knowledge.&quot;
-                  </li>
-                  <li>
-                    <strong>Fallback behavior.</strong> Define what happens when the bot
-                    doesn&apos;t know the answer. &quot;If the answer is not in the provided
-                    content, say: &apos;I don&apos;t have that information. Please contact our
-                    team at support@example.com for help.&apos;&quot;
-                  </li>
-                  <li>
-                    <strong>Guardrails.</strong> Set explicit boundaries. &quot;Never discuss
-                    competitors. Never make promises about pricing that aren&apos;t in the
-                    documentation. Never provide legal, medical, or financial advice.&quot;
-                  </li>
-                </ol>
+                <StyledNumberedList items={[
+                  { title: 'Role definition.', description: 'Tell the bot exactly who it is. \u201CYou are a customer support assistant for [Company Name], a [brief description of what you do].\u201D This anchors every response in the right context.' },
+                  { title: 'Tone and personality.', description: 'Specify how the bot should communicate. Friendly and casual? Professional and concise? Match your brand voice. Be specific: \u201CUse a warm, conversational tone. Keep answers under 3 sentences when possible.\u201D' },
+                  { title: 'Knowledge boundaries.', description: 'This is the most critical part. Tell the bot to only answer from the provided knowledge base content. \u201COnly answer questions using the provided documentation. Do not use your general knowledge.\u201D' },
+                  { title: 'Fallback behavior.', description: 'Define what happens when the bot doesn\u2019t know the answer. \u201CIf the answer is not in the provided content, say: \u2018I don\u2019t have that information. Please contact our team at support@example.com for help.\u2019\u201D' },
+                  { title: 'Guardrails.', description: 'Set explicit boundaries. \u201CNever discuss competitors. Never make promises about pricing that aren\u2019t in the documentation. Never provide legal, medical, or financial advice.\u201D' },
+                ]} />
               </section>
 
               <NumberedListInfographic
@@ -393,49 +387,15 @@ export default function HowToWriteChatbotSystemPromptPage() {
                   information — is the biggest risk with AI chatbots. Most hallucinations trace
                   back to system prompt issues:
                 </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4">
-                  <li>
-                    <strong>No knowledge boundary instruction.</strong> If you don&apos;t
-                    explicitly tell the bot to only answer from its knowledge base, it will fill
-                    gaps with its general training data. This is the number one cause of incorrect
-                    answers.
-                  </li>
-                  <li>
-                    <strong>No fallback behavior.</strong> Without a clear &quot;I don&apos;t
-                    know&quot; instruction, the bot will try to answer every question — even ones
-                    it has no information about. Always tell the bot what to do when it can&apos;t
-                    find an answer.
-                  </li>
-                  <li>
-                    <strong>Vague language.</strong> &quot;Try to be accurate&quot; is weak.
-                    &quot;Only answer from the provided content. If the answer is not in the
-                    content, say you don&apos;t know&quot; is strong. Use direct, unambiguous
-                    language.
-                  </li>
-                  <li>
-                    <strong>Conflicting instructions.</strong> Don&apos;t tell the bot to &quot;be
-                    helpful and answer every question&quot; while also telling it to &quot;only
-                    answer from the knowledge base.&quot; When instructions conflict, the bot
-                    picks one unpredictably. Prioritize accuracy over helpfulness.
-                  </li>
-                  <li>
-                    <strong>Too many instructions.</strong> A 1,000-word system prompt dilutes
-                    the important rules. The bot may follow some instructions and ignore others.
-                    Keep it focused on the essentials.
-                  </li>
-                  <li>
-                    <strong>Putting secrets in the prompt.</strong> The system prompt is not a
-                    secure vault. Don&apos;t put API keys, passwords, or internal credentials in
-                    it. A determined user can sometimes extract prompt contents through creative
-                    questioning.
-                  </li>
-                  <li>
-                    <strong>Never updating it.</strong> Your first system prompt is a starting
-                    point, not a final draft. Review your chatbot&apos;s conversations regularly.
-                    When you see responses that miss the mark, update the prompt to address
-                    those specific cases.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'No knowledge boundary instruction.', description: 'If you don\u2019t explicitly tell the bot to only answer from its knowledge base, it will fill gaps with its general training data. This is the number one cause of incorrect answers.' },
+                  { title: 'No fallback behavior.', description: 'Without a clear \u201CI don\u2019t know\u201D instruction, the bot will try to answer every question \u2014 even ones it has no information about. Always tell the bot what to do when it can\u2019t find an answer.' },
+                  { title: 'Vague language.', description: '\u201CTry to be accurate\u201D is weak. \u201COnly answer from the provided content. If the answer is not in the content, say you don\u2019t know\u201D is strong. Use direct, unambiguous language.' },
+                  { title: 'Conflicting instructions.', description: 'Don\u2019t tell the bot to \u201Cbe helpful and answer every question\u201D while also telling it to \u201Conly answer from the knowledge base.\u201D When instructions conflict, the bot picks one unpredictably. Prioritize accuracy over helpfulness.' },
+                  { title: 'Too many instructions.', description: 'A 1,000-word system prompt dilutes the important rules. The bot may follow some instructions and ignore others. Keep it focused on the essentials.' },
+                  { title: 'Putting secrets in the prompt.', description: 'The system prompt is not a secure vault. Don\u2019t put API keys, passwords, or internal credentials in it. A determined user can sometimes extract prompt contents through creative questioning.' },
+                  { title: 'Never updating it.', description: 'Your first system prompt is a starting point, not a final draft. Review your chatbot\u2019s conversations regularly. When you see responses that miss the mark, update the prompt to address those specific cases.' },
+                ]} />
               </section>
 
               {/* Section 5 */}

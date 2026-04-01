@@ -8,6 +8,8 @@ import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { DashboardPath } from '@/components/blog/dashboard-path';
 import { StepFlow, KnowledgeSourceCards } from '@/components/blog/process-visuals';
+import { StyledNumberedList, StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -49,12 +51,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/how-to-build-internal-knowledge-bot',
       },
       datePublished: '2026-03-13',
-      dateModified: '2026-03-13',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -63,6 +61,12 @@ const jsonLd = {
           '@type': 'ImageObject',
           url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/how-to-build-internal-knowledge-bot/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {
@@ -107,6 +111,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'You can update knowledge sources from the VocUI dashboard at any time. Re-scrape URLs to pull in the latest content, upload new versions of documents, or add new knowledge sources. Changes are reflected within minutes.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'How to Build an Internal Knowledge Bot for Your Team',
+          item: 'https://vocui.com/blog/how-to-build-internal-knowledge-bot',
         },
       ],
     },
@@ -212,29 +229,13 @@ export default function HowToBuildInternalKnowledgeBotPage() {
                   ask about frequently. Start with the documents that generate the most
                   &quot;Hey, do you know where I can find...&quot; messages in your Slack channels.
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4">
-                  <li>
-                    <strong>HR policies</strong> — PTO, sick leave, parental leave, expense
-                    reimbursement, remote work guidelines, dress code, and benefits enrollment.
-                  </li>
-                  <li>
-                    <strong>IT documentation</strong> — How to set up VPN, request software
-                    licenses, reset passwords, configure email on mobile, and troubleshoot common
-                    issues.
-                  </li>
-                  <li>
-                    <strong>Standard operating procedures (SOPs)</strong> — How to submit a
-                    purchase order, create a new project, onboard a vendor, or file a bug report.
-                  </li>
-                  <li>
-                    <strong>Onboarding materials</strong> — New hire checklists, tool access
-                    guides, team org charts, and first-week schedules.
-                  </li>
-                  <li>
-                    <strong>Product documentation</strong> — Internal feature specs, API
-                    references, architecture diagrams, and release notes.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'HR policies', description: 'PTO, sick leave, parental leave, expense reimbursement, remote work guidelines, dress code, and benefits enrollment.' },
+                  { title: 'IT documentation', description: 'How to set up VPN, request software licenses, reset passwords, configure email on mobile, and troubleshoot common issues.' },
+                  { title: 'Standard operating procedures (SOPs)', description: 'How to submit a purchase order, create a new project, onboard a vendor, or file a bug report.' },
+                  { title: 'Onboarding materials', description: 'New hire checklists, tool access guides, team org charts, and first-week schedules.' },
+                  { title: 'Product documentation', description: 'Internal feature specs, API references, architecture diagrams, and release notes.' },
+                ]} />
                 <p className="mt-4">
                   You don&apos;t need to upload everything on day one. Start with the top 10
                   most-asked questions and expand from there based on what employees are searching
@@ -264,43 +265,13 @@ export default function HowToBuildInternalKnowledgeBotPage() {
                   ]}
                   caption="Five steps to a working internal knowledge bot"
                 />
-                <ol className="list-decimal pl-5 space-y-4 mt-4">
-                  <li>
-                    <strong>Create a new chatbot.</strong> Log in to VocUI and click &quot;Create
-                    Chatbot.&quot; Name it something your team will recognize, like &quot;HR
-                    Bot&quot; or &quot;Company Knowledge Base.&quot;
-                    <DashboardPath steps={['Chatbots', 'Create New']} tip="Name your bot, add your internal docs, and deploy to Slack." />
-                  </li>
-                  <li>
-                    <strong>Upload your documents.</strong> Add knowledge sources: upload PDFs of
-                    your employee handbook, paste URLs to your internal wiki pages, or drag in DOCX
-                    files. VocUI processes the content, chunks it into searchable segments, and
-                    creates embeddings for semantic search.
-                  </li>
-                  <li>
-                    <strong>Configure the system prompt.</strong> Tell the bot its role — for
-                    example: &quot;You are an internal HR assistant for [Company Name]. Answer
-                    questions using only the provided documentation. If the answer is not in the
-                    documents, say you don&apos;t know and suggest who to contact.&quot; Learn more
-                    about{' '}
-                    <Link
-                      href="/blog/how-to-train-chatbot-on-your-own-data"
-                      className="text-primary-600 dark:text-primary-400 hover:underline"
-                    >
-                      training chatbots on your own data
-                    </Link>
-                    .
-                  </li>
-                  <li>
-                    <strong>Test thoroughly.</strong> Ask the bot questions you know the answers to.
-                    Verify that it pulls the correct information and handles edge cases gracefully.
-                    Adjust the system prompt or add more content as needed.
-                  </li>
-                  <li>
-                    <strong>Deploy.</strong> Choose your deployment method — Slack integration for
-                    team chat, an embed code for your intranet, or both.
-                  </li>
-                </ol>
+                <StyledNumberedList items={[
+                  { title: 'Create a new chatbot.', description: <>Log in to VocUI and click &quot;Create Chatbot.&quot; Name it something your team will recognize, like &quot;HR Bot&quot; or &quot;Company Knowledge Base.&quot;<DashboardPath steps={['Chatbots', 'Create New']} tip="Name your bot, add your internal docs, and deploy to Slack." /></> },
+                  { title: 'Upload your documents.', description: 'Add knowledge sources: upload PDFs of your employee handbook, paste URLs to your internal wiki pages, or drag in DOCX files. VocUI processes the content, chunks it into searchable segments, and creates embeddings for semantic search.' },
+                  { title: 'Configure the system prompt.', description: <>Tell the bot its role \u2014 for example: &quot;You are an internal HR assistant for [Company Name]. Answer questions using only the provided documentation. If the answer is not in the documents, say you don&apos;t know and suggest who to contact.&quot; Learn more about{' '}<Link href="/blog/how-to-train-chatbot-on-your-own-data" className="text-primary-600 dark:text-primary-400 hover:underline">training chatbots on your own data</Link>.</> },
+                  { title: 'Test thoroughly.', description: 'Ask the bot questions you know the answers to. Verify that it pulls the correct information and handles edge cases gracefully. Adjust the system prompt or add more content as needed.' },
+                  { title: 'Deploy.', description: 'Choose your deployment method \u2014 Slack integration for team chat, an embed code for your intranet, or both.' },
+                ]} />
               </section>
 
               {/* Section 4 */}

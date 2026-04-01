@@ -6,6 +6,8 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -47,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/what-is-a-chatbot-widget',
       },
       datePublished: '2025-11-17',
-      dateModified: '2025-11-17',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -61,6 +59,12 @@ const jsonLd = {
           '@type': 'ImageObject',
           url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/what-is-a-chatbot-widget/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {
@@ -105,6 +109,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'No. The chatbot widget runs entirely in the visitor\'s web browser. They don\'t need to install any software, create an account, or download an app. They simply click the chat button and start typing.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'What Is a Chatbot Widget and How Does It Work?',
+          item: 'https://vocui.com/blog/what-is-a-chatbot-widget',
         },
       ],
     },
@@ -177,11 +194,7 @@ export default function WhatIsAChatbotWidgetPage() {
                   If you&apos;ve visited a website and noticed a small chat bubble in the corner of
                   the screen, you&apos;ve seen a chatbot widget. It&apos;s a lightweight chat interface
                   that sits on top of your existing website, giving visitors a way to ask
-                  questions and get answers in real time. According to{' '}
-                  <a href="https://www.tidio.com/blog/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Tidio</a>,
-                  88% of customers had at least one conversation with a chatbot in 2022 — these
-                  widgets have become one of the most common touchpoints between businesses and
-                  their customers. The widget is added to your site with a small piece of code —
+                  questions and get answers in real time. The widget is added to your site with a small piece of code —
                   typically a single script tag — and it works on any website regardless of the
                   platform.
                 </p>
@@ -270,30 +283,12 @@ export default function WhatIsAChatbotWidgetPage() {
                   site. It should feel like a natural part of your brand. Most chatbot platforms
                   offer several customization options to achieve this.
                 </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Colors:</strong> Match the widget&apos;s primary color to your brand.
-                    The chat button, header, and message bubbles all adopt your chosen color,
-                    so the widget looks like it belongs on your site.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Position:</strong> Choose bottom-right or bottom-left placement
-                    depending on your site layout. Bottom-right is the most common and what
-                    visitors expect.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Greeting message:</strong> Set a welcome message that appears
-                    when the widget opens. This can introduce the chatbot, set expectations
-                    (&quot;I can help with questions about our products and pricing&quot;), or prompt
-                    the visitor with a suggested first question.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Display name and avatar:</strong> Give your chatbot a name and
-                    image. Some businesses use a human name and photo; others use their company
-                    logo. Both work — the key is setting clear expectations about whether the
-                    visitor is talking to AI or a human.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Colors:', description: 'Match the widget\u2019s primary color to your brand. The chat button, header, and message bubbles all adopt your chosen color, so the widget looks like it belongs on your site.' },
+                  { title: 'Position:', description: 'Choose bottom-right or bottom-left placement depending on your site layout. Bottom-right is the most common and what visitors expect.' },
+                  { title: 'Greeting message:', description: 'Set a welcome message that appears when the widget opens. This can introduce the chatbot, set expectations (\u201cI can help with questions about our products and pricing\u201d), or prompt the visitor with a suggested first question.' },
+                  { title: 'Display name and avatar:', description: 'Give your chatbot a name and image. Some businesses use a human name and photo; others use their company logo. Both work \u2014 the key is setting clear expectations about whether the visitor is talking to AI or a human.' },
+                ]} />
               </section>
 
               <section>
@@ -315,18 +310,10 @@ export default function WhatIsAChatbotWidgetPage() {
                   the site settings or theme editor. Our step-by-step guides cover the details
                   for each platform:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <Link href="/blog/how-to-add-chatbot-to-website" className="text-primary-600 dark:text-primary-400 hover:underline">
-                      How to add a chatbot to any website
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/blog/how-to-embed-chatbot-in-wordpress" className="text-primary-600 dark:text-primary-400 hover:underline">
-                      How to embed a chatbot in WordPress
-                    </Link>
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  <Link href="/blog/how-to-add-chatbot-to-website" className="text-primary-600 dark:text-primary-400 hover:underline">How to add a chatbot to any website</Link>,
+                  <Link href="/blog/how-to-embed-chatbot-in-wordpress" className="text-primary-600 dark:text-primary-400 hover:underline">How to embed a chatbot in WordPress</Link>,
+                ]} />
                 <p className="mt-4">
                   The script loads asynchronously, meaning it won&apos;t block your page from
                   rendering. Your site loads first; the widget loads in the background.

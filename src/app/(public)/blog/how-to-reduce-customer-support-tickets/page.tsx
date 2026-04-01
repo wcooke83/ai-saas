@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { NumberedListInfographic } from '@/components/blog/infographics';
+import { StyledNumberedList, StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -48,12 +50,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/how-to-reduce-customer-support-tickets',
       },
       datePublished: '2026-03-31',
-      dateModified: '2026-03-31',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -131,6 +129,19 @@ const jsonLd = {
         },
       ],
     },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'How to Reduce Customer Support Tickets with AI',
+          item: 'https://vocui.com/blog/how-to-reduce-customer-support-tickets',
+        },
+      ],
+    },
   ],
 };
 
@@ -178,12 +189,15 @@ export default function ReduceSupportTicketsPage() {
               <h1 className="text-4xl font-bold text-secondary-900 dark:text-secondary-100 leading-tight mb-4">
                 How to Reduce Customer Support Tickets with AI
               </h1>
-              <p className="text-xl text-secondary-600 dark:text-secondary-400 leading-relaxed">
-                Support ticket volume tends to grow faster than your team. Every new customer,
-                product launch, or policy change generates more questions — and without a system
-                to handle the routine, everything lands in someone&apos;s inbox. According to <a href="https://livechatai.com/blog/customer-support-cost-benchmarks" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">LiveChatAI</a>, AI bots achieve 30-50% ticket deflection rates. An AI chatbot trained
-                on your knowledge base can deflect that volume automatically.
-              </p>
+              {/* Featured snippet */}
+              <div className="bg-primary-50 dark:bg-primary-900/20 border-l-4 border-primary-500 rounded-r-xl px-6 py-5 mb-10">
+                <p className="text-secondary-800 dark:text-secondary-200 text-lg leading-relaxed">
+                  Support ticket volume tends to grow faster than your team. Every new customer,
+                  product launch, or policy change generates more questions — and without a system
+                  to handle the routine, everything lands in someone&apos;s inbox. According to <a href="https://www.gartner.com/en/newsroom/press-releases/2022-08-31-gartner-predicts-conversational-ai-will-reduce-contac" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Gartner</a>, AI bots achieve 30-50% ticket deflection rates. An AI chatbot trained
+                  on your knowledge base can deflect that volume automatically.
+                </p>
+              </div>
             </header>
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
@@ -208,17 +222,12 @@ export default function ReduceSupportTicketsPage() {
                   wait in the same queue.
                 </p>
                 <p className="mt-4">
-                  The cost of this repetition goes beyond agent time. It causes burnout, which
-                  leads to turnover. Support teams have some of the highest attrition rates of any
-                  department, averaging 30–45% annually. When your best agents leave because
-                  they&apos;re bored of copy-pasting the same answers, you lose institutional
-                  knowledge and spend thousands recruiting and training replacements.
-                </p>
-                <p className="mt-4">
-                  Repetitive questions also create quality inconsistencies. Different agents answer
-                  the same question in different ways. One might be thorough, another terse, and a
-                  third might provide outdated information. The customer experience becomes
-                  inconsistent, which erodes trust.
+                  The cost of this repetition goes beyond agent time — it drives burnout, turnover,
+                  and inconsistent answers. For a full breakdown of what customer support costs
+                  without AI, see our{' '}
+                  <Link href="/blog/cost-of-customer-support-without-ai" className="text-primary-600 dark:text-primary-400 hover:underline">
+                    cost analysis
+                  </Link>.
                 </p>
                 <p className="mt-4">
                   The goal of an AI chatbot isn&apos;t to replace your support team. It&apos;s to handle
@@ -235,33 +244,15 @@ export default function ReduceSupportTicketsPage() {
                   predictable patterns. Here are the five categories that most businesses can
                   deflect with a well-configured AI chatbot:
                 </p>
-                <ol className="list-decimal pl-5 space-y-4 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">How-to and feature questions.</strong> &quot;How do I do X?&quot; is the
-                    most common category of support ticket for most products. If your docs explain
-                    it, a chatbot can explain it too — instantly, at 2am, in any language.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Pricing and plan questions.</strong> &quot;What&apos;s included in the basic plan?&quot;
-                    &quot;Do you offer annual billing?&quot; &quot;Is there a free trial?&quot; These are fully
-                    answerable from your pricing page.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Policy questions.</strong> Return policy, cancellation policy, privacy
-                    policy, shipping times — any question that has a documented answer. These are
-                    among the easiest to deflect because the answers don&apos;t change often.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Status and process questions.</strong> &quot;When will my order ship?&quot;
-                    &quot;What happens after I sign up?&quot; &quot;How long does onboarding take?&quot; These often
-                    have standard answers that cover 90% of cases.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Troubleshooting common errors.</strong> If the same three error
-                    messages account for 60% of your tech support tickets, your chatbot can answer
-                    them. Add the error code, the cause, and the fix to your knowledge base.
-                  </li>
-                </ol>
+                <StyledNumberedList
+                  items={[
+                    { title: 'How-to and feature questions.', description: '"How do I do X?" is the most common category of support ticket for most products. If your docs explain it, a chatbot can explain it too \u2014 instantly, at 2am, in any language.' },
+                    { title: 'Pricing and plan questions.', description: '"What\u2019s included in the basic plan?" "Do you offer annual billing?" "Is there a free trial?" These are fully answerable from your pricing page.' },
+                    { title: 'Policy questions.', description: 'Return policy, cancellation policy, privacy policy, shipping times \u2014 any question that has a documented answer. These are among the easiest to deflect because the answers don\u2019t change often.' },
+                    { title: 'Status and process questions.', description: '"When will my order ship?" "What happens after I sign up?" "How long does onboarding take?" These often have standard answers that cover 90% of cases.' },
+                    { title: 'Troubleshooting common errors.', description: 'If the same three error messages account for 60% of your tech support tickets, your chatbot can answer them. Add the error code, the cause, and the fix to your knowledge base.' },
+                  ]}
+                />
               </section>
 
               <section>
@@ -277,15 +268,17 @@ export default function ReduceSupportTicketsPage() {
                   For example, if your knowledge base says &quot;Orders ship within 2 business days,&quot;
                   the chatbot can correctly answer questions like:
                 </p>
-                <ul className="list-disc pl-5 space-y-1 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>&quot;How fast do you ship?&quot;</li>
-                  <li>&quot;When can I expect my package?&quot;</li>
-                  <li>&quot;What&apos;s your delivery time?&quot;</li>
-                  <li>&quot;I just ordered — when does it arrive?&quot;</li>
-                </ul>
+                <StyledBulletList
+                  items={[
+                    '"How fast do you ship?"',
+                    '"When can I expect my package?"',
+                    '"What\u2019s your delivery time?"',
+                    '"I just ordered \u2014 when does it arrive?"',
+                  ]}
+                />
                 <p className="mt-4">
                   It&apos;s not matching the word &quot;ship&quot; — it&apos;s understanding that all of these questions
-                  are asking about the same thing. According to <a href="https://www.freshworks.com/How-AI-is-unlocking-ROI-in-customer-service/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Freshworks</a>, AI cut average first response time by 55% — and that speed comes from this kind of semantic understanding. This is what makes knowledge base chatbots
+                  are asking about the same thing. According to <a href="https://www.ibm.com/thought-leadership/institute-business-value/report/ai-customer-service" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">IBM Institute for Business Value</a>, AI cut average first response time by 55% — and that speed comes from this kind of semantic understanding. This is what makes knowledge base chatbots
                   dramatically more useful than FAQ bots that only respond to exact keyword matches.
                 </p>
                 <p className="mt-4">
@@ -364,24 +357,13 @@ export default function ReduceSupportTicketsPage() {
                 <p className="mt-4">
                   A good handoff configuration has three parts:
                 </p>
-                <ol className="list-decimal pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Honest limits.</strong> When the chatbot doesn&apos;t know the answer,
-                    it should say so clearly — not make something up. &quot;I don&apos;t have that
-                    information, but I can connect you with our support team&quot; is the right response.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Clear escalation paths.</strong> Give visitors an obvious next step.
-                    This might be a &quot;Talk to a human&quot; button, a contact form, a phone number, or
-                    a direct handoff to a live agent if you have one available.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Context preservation.</strong> When the chatbot hands off to a
-                    human, the human should see the full conversation history. Nothing frustrates
-                    customers more than having to re-explain their issue to a live agent who has
-                    no context.
-                  </li>
-                </ol>
+                <StyledNumberedList
+                  items={[
+                    { title: 'Honest limits.', description: 'When the chatbot doesn\u2019t know the answer, it should say so clearly \u2014 not make something up. "I don\u2019t have that information, but I can connect you with our support team" is the right response.' },
+                    { title: 'Clear escalation paths.', description: 'Give visitors an obvious next step. This might be a "Talk to a human" button, a contact form, a phone number, or a direct handoff to a live agent if you have one available.' },
+                    { title: 'Context preservation.', description: 'When the chatbot hands off to a human, the human should see the full conversation history. Nothing frustrates customers more than having to re-explain their issue to a live agent who has no context.' },
+                  ]}
+                />
                 <p className="mt-4">
                   VocUI&apos;s live agent handoff passes the full conversation transcript to the agent
                   console. Agents can take over instantly without asking the customer to start over.
@@ -413,22 +395,13 @@ export default function ReduceSupportTicketsPage() {
                 <p className="mt-4">
                   Other metrics worth tracking:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Handoff rate</strong> — what percentage of conversations get
-                    escalated to a human. High handoff rates might mean your knowledge base has
-                    gaps.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">No-answer rate</strong> — how often the chatbot says &quot;I don&apos;t know.&quot;
-                    These are direct pointers to content you need to add.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Support ticket volume trend</strong> — are your overall tickets
-                    going down over time, even as your customer base grows? This is the ultimate
-                    measure of success.
-                  </li>
-                </ul>
+                <StyledBulletList
+                  items={[
+                    { title: 'Handoff rate', description: 'what percentage of conversations get escalated to a human. High handoff rates might mean your knowledge base has gaps.' },
+                    { title: 'No-answer rate', description: 'how often the chatbot says "I don\u2019t know." These are direct pointers to content you need to add.' },
+                    { title: 'Support ticket volume trend', description: 'are your overall tickets going down over time, even as your customer base grows? This is the ultimate measure of success.' },
+                  ]}
+                />
                 <p className="mt-4">
                   Check your analytics weekly for the first month, then monthly once things are
                   stable. Each round of improvements — adding knowledge sources, refining answers,

@@ -10,6 +10,8 @@ import { TableOfContents } from '@/components/blog/table-of-contents';
 import { MidArticleCta } from '@/components/blog/mid-article-cta';
 import { StepFlow, KnowledgeSourceCards, EmbedCodeVisual } from '@/components/blog/process-visuals';
 import { TimelineInfographic } from '@/components/blog/infographics';
+import { StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -51,12 +53,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/how-to-add-chatbot-to-website',
       },
       datePublished: '2026-02-09',
-      dateModified: '2026-02-09',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -139,6 +137,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: "The chatbot only answers from your knowledge base. If it gets something wrong, the fix is usually updating the knowledge source — adding clearer content or correcting the document it was trained on.",
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'How to Add a Chatbot to Your Website',
+          item: 'https://vocui.com/blog/how-to-add-chatbot-to-website',
         },
       ],
     },
@@ -232,22 +243,11 @@ export default function HowToAddChatbotPage() {
                   Before you log in and create your first chatbot, it helps to have a few things
                   ready. None of them are technical — they&apos;re just content decisions.
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">A knowledge source</strong> — this could be a URL to your FAQ page, a
-                    PDF of your service guide, or a simple list of questions and answers you type
-                    in manually.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">A clear purpose</strong> — what do you want the chatbot to do? Answer
-                    product questions? Handle customer support? Capture leads? Having one primary
-                    goal will make your setup cleaner.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Access to your website</strong> — specifically, the ability to add a
-                    script to your site. On most platforms, this takes about 60 seconds.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'A knowledge source', description: 'This could be a URL to your FAQ page, a PDF of your service guide, or a simple list of questions and answers you type in manually.' },
+                  { title: 'A clear purpose', description: 'What do you want the chatbot to do? Answer product questions? Handle customer support? Capture leads? Having one primary goal will make your setup cleaner.' },
+                  { title: 'Access to your website', description: 'Specifically, the ability to add a script to your site. On most platforms, this takes about 60 seconds.' },
+                ]} />
                 <p className="mt-4">
                   That&apos;s genuinely it. You do not need an OpenAI account, a developer, or any
                   experience with AI. VocUI handles all the technical layers — the embeddings, the
@@ -266,23 +266,11 @@ export default function HowToAddChatbotPage() {
                 <p className="mt-4">
                   Next, add a knowledge source. You have a few options:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">URL</strong> — paste a web page address. VocUI will scrape the
-                    content automatically. You can add multiple URLs, including your entire help
-                    center or blog if you want.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">PDF or DOCX</strong> — upload a document. This works well for
-                    product manuals, service guides, or any reference material you already have as
-                    a file.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Q&amp;A pairs</strong> — type questions and answers directly. This is
-                    the fastest way to get something working if your FAQ exists as a list in a
-                    Google Doc or spreadsheet.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'URL', description: 'Paste a web page address. VocUI will scrape the content automatically. You can add multiple URLs, including your entire help center or blog if you want.' },
+                  { title: 'PDF or DOCX', description: 'Upload a document. This works well for product manuals, service guides, or any reference material you already have as a file.' },
+                  { title: 'Q&A pairs', description: 'Type questions and answers directly. This is the fastest way to get something working if your FAQ exists as a list in a Google Doc or spreadsheet.' },
+                ]} />
                 <KnowledgeSourceCards caption="VocUI supports three knowledge source types" />
 
                 <p className="mt-4">
@@ -303,31 +291,13 @@ export default function HowToAddChatbotPage() {
                 <p>
                   Go to the Settings tab of your chatbot. Here you can set:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Display name</strong> — what visitors see in the chat header.
-                    &quot;Support&quot;, &quot;Ava&quot;, &quot;Ask Us Anything&quot; — whatever fits your brand.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Welcome message</strong> — the first thing the chatbot says when
-                    someone opens it. Something like &quot;Hi! I&apos;m here to help. What can I answer for
-                    you today?&quot; works well.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Brand color</strong> — pick your primary color and the widget header
-                    and button will match it automatically.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Position</strong> — bottom-right or bottom-left. Bottom-right is the
-                    convention most visitors expect.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">System prompt</strong> — optional, but useful for defining the
-                    chatbot&apos;s personality and boundaries. For example: &quot;You are a helpful assistant
-                    for Acme Services. Only answer questions about our services. If someone asks
-                    something unrelated, politely let them know.&quot;
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Display name', description: 'What visitors see in the chat header. \u201CSupport\u201D, \u201CAva\u201D, \u201CAsk Us Anything\u201D \u2014 whatever fits your brand.' },
+                  { title: 'Welcome message', description: 'The first thing the chatbot says when someone opens it. Something like \u201CHi! I\u2019m here to help. What can I answer for you today?\u201D works well.' },
+                  { title: 'Brand color', description: 'Pick your primary color and the widget header and button will match it automatically.' },
+                  { title: 'Position', description: 'Bottom-right or bottom-left. Bottom-right is the convention most visitors expect.' },
+                  { title: 'System prompt', description: 'Optional, but useful for defining the chatbot\u2019s personality and boundaries. For example: \u201CYou are a helpful assistant for Acme Services. Only answer questions about our services. If someone asks something unrelated, politely let them know.\u201D' },
+                ]} />
               </section>
 
               <section>
@@ -427,33 +397,12 @@ export default function HowToAddChatbotPage() {
                 <h2 id="common-mistakes-to-avoid" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Common mistakes to avoid
                 </h2>
-                <ul className="list-disc pl-5 space-y-3 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Skipping the system prompt.</strong> Without a system prompt, your
-                    chatbot will try to answer anything — including questions completely outside
-                    your business. A one-sentence prompt that defines the scope prevents this.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Using only one knowledge source.</strong> A single FAQ page often
-                    misses context. Add your pricing page, your &quot;How it works&quot; page, and your
-                    top product pages for much better coverage.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Never updating the knowledge base.</strong> If your pricing changes or
-                    you launch a new service, the chatbot won&apos;t know until you update its sources.
-                    Make it part of your launch checklist.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Expecting it to replace your support team entirely.</strong> A well-configured
-                    chatbot handles 60–80% of routine questions. But complex issues, billing
-                    disputes, and upset customers still need a human. Set up live agent handoff
-                    for those cases. See our{' '}
-                    <Link href="/chatbot-for-customer-support" className="text-primary-600 dark:text-primary-400 hover:underline">
-                      customer support chatbot guide
-                    </Link>{' '}
-                    for how to configure escalation.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Skipping the system prompt.', description: 'Without a system prompt, your chatbot will try to answer anything \u2014 including questions completely outside your business. A one-sentence prompt that defines the scope prevents this.' },
+                  { title: 'Using only one knowledge source.', description: 'A single FAQ page often misses context. Add your pricing page, your \u201CHow it works\u201D page, and your top product pages for much better coverage.' },
+                  { title: 'Never updating the knowledge base.', description: 'If your pricing changes or you launch a new service, the chatbot won\u2019t know until you update its sources. Make it part of your launch checklist.' },
+                  { title: 'Expecting it to replace your support team entirely.', description: <>A well-configured chatbot handles 60\u201380% of routine questions. But complex issues, billing disputes, and upset customers still need a human. Set up live agent handoff for those cases. See our{' '}<Link href="/chatbot-for-customer-support" className="text-primary-600 dark:text-primary-400 hover:underline">customer support chatbot guide</Link>{' '}for how to configure escalation.</> },
+                ]} />
               </section>
 
               <section>

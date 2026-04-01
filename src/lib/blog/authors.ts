@@ -58,12 +58,12 @@ export const AUTHORS: Record<string, BlogAuthor> = {
     ],
   },
   'will-cooke': {
-    name: 'Will Cooke',
+    name: 'William Cooke',
     slug: 'will-cooke',
     title: 'Founder at VocUI',
     bio: 'Founder of VocUI. Writes about the chatbot landscape and product comparisons.',
     extendedBio:
-      'Will Cooke is the founder of VocUI, an AI chatbot platform that helps businesses deploy knowledge-base chatbots. He writes about the competitive landscape and product strategy.',
+      'William Cooke is the founder of VocUI, an AI chatbot platform that helps businesses deploy knowledge-base chatbots. He writes about the competitive landscape and product strategy.',
     expertise: [
       'SaaS entrepreneurship',
       'AI chatbot platforms',

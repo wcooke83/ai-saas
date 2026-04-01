@@ -8,6 +8,8 @@ import { ArrowRight, ExternalLink } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { OnboardingTimeComparison } from '@/components/blog/charts';
 import { StatInfographic } from '@/components/blog/infographics';
+import { StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -49,12 +51,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/reduce-employee-onboarding-time-with-ai',
       },
       datePublished: '2026-01-12',
-      dateModified: '2026-01-12',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -63,6 +61,12 @@ const jsonLd = {
           '@type': 'ImageObject',
           url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/reduce-employee-onboarding-time-with-ai/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {
@@ -107,6 +111,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Set a quarterly review cadence where you audit the knowledge base for outdated content. Assign a knowledge base owner — typically someone in HR or operations — who is responsible for updating content when policies change, new tools are adopted, or processes evolve. VocUI makes it easy to add, update, or remove knowledge sources from the dashboard. You can also re-scrape website URLs to pull in updated content automatically. The most common trigger for updates is when the bot gives an outdated answer and someone flags it — use those flags as signals to update the source material.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'Reduce Employee Onboarding Time with an AI Knowledge Bot',
+          item: 'https://vocui.com/blog/reduce-employee-onboarding-time-with-ai',
         },
       ],
     },
@@ -285,41 +302,29 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
               {/* Section 4 */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
-                  What Content to Train It On
+                  What Content to Prioritize for Onboarding
                 </h2>
                 <p>
-                  The knowledge base should cover the four categories of questions new hires
-                  ask most frequently:
+                  For a full guide on what knowledge sources to include, see our{' '}
+                  <Link
+                    href="/blog/how-to-build-internal-knowledge-bot"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
+                  >
+                    guide to building an internal knowledge bot
+                  </Link>
+                  . When building specifically for onboarding, prioritize content by
+                  how often new hires ask about it in their first 30 days:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong>HR policies.</strong> PTO accrual and request process, benefits
-                    enrollment, expense report procedures, remote work policy, dress code,
-                    performance review schedule, and company holidays.
-                  </li>
-                  <li>
-                    <strong>IT and tool setup.</strong> How to access email, VPN setup, password
-                    management, requesting software licenses, connecting to printers, setting up
-                    development environments, and troubleshooting common tech issues.
-                  </li>
-                  <li>
-                    <strong>Standard operating procedures.</strong> How to use your project
-                    management tool, code review process, design review workflow, deployment
-                    procedures, communication norms (when to use Slack vs email vs meetings),
-                    and escalation paths.
-                  </li>
-                  <li>
-                    <strong>Organizational information.</strong> Team structure, who to contact
-                    for what, office locations and logistics, meeting room booking, company
-                    values and culture norms, and key stakeholder introductions.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Day 1 blockers.', description: 'Laptop setup, email access, VPN configuration, badge/building access, and Slack workspace invites. New hires cannot do anything until these are resolved, so the bot should answer them instantly.' },
+                  { title: 'Week 1 questions.', description: 'Team org chart, who to contact for what, meeting cadence, communication norms (Slack vs email vs meetings), and how to use your project management tool.' },
+                  { title: 'First month policies.', description: 'How to submit expenses from the onboarding trip, benefits enrollment deadlines (often time-sensitive), PTO request process, and performance review timeline.' },
+                ]} />
                 <p className="mt-4">
-                  Upload your employee handbook, IT setup guides, and team SOPs as documents.
-                  If you have an internal wiki, add the relevant URLs. VocUI scrapes and chunks
-                  the content automatically — you do not need to reformat anything. Focus on
-                  content that is stable and factual. Avoid uploading content that changes weekly
-                  or requires real-time data (like current project status or sprint boards).
+                  The key difference from a general knowledge bot: onboarding content should
+                  be sequenced by urgency. A new hire on day one does not need the expense
+                  report process — they need wifi access and a working laptop. Structure your
+                  knowledge base so the bot surfaces the most time-sensitive answers first.
                 </p>
               </section>
 
@@ -397,7 +402,15 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
                   >
                     pricing
                   </Link>
-                  {' '}to find the right plan for your team.
+                  {' '}to find the right plan for your team. For customer-facing onboarding,
+                  see our guide on{' '}
+                  <Link
+                    href="/blog/chatbot-for-saas-onboarding"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
+                  >
+                    chatbots for SaaS product onboarding
+                  </Link>
+                  .
                 </p>
               </section>
 

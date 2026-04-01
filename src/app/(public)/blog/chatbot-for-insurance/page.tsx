@@ -6,7 +6,9 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { ChatPreview, WorkflowDiagram } from '@/components/blog/industry-visuals';
+import { StyledBulletList } from '@/components/blog/styled-lists';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -48,12 +50,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/chatbot-for-insurance',
       },
       datePublished: '2026-03-17',
-      dateModified: '2026-03-17',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -90,6 +88,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'This is one of the strongest use cases. After a major weather event, your phone lines are overwhelmed with policyholders asking the same questions: "How do I file a claim?" "What documentation do I need?" "Will my homeowner\'s policy cover this?" "How long will the claims process take?" A chatbot answers all of these instantly, at any hour, without adding to your staff\'s workload during an already stressful period. Update your knowledge base before storm seasons with current claims procedures and emergency contact information.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'AI Chatbots for Insurance: Automate Policy Questions',
+          item: 'https://vocui.com/blog/chatbot-for-insurance',
         },
       ],
     },
@@ -377,24 +388,12 @@ export default function ChatbotForInsurancePage() {
                 <p className="mt-4">
                   Key regulatory bodies to be aware of:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong>California Department of Insurance (CDI)</strong> — strict advertising
-                    standards; all marketing materials must be filed and approved.
-                  </li>
-                  <li>
-                    <strong>New York Department of Financial Services (DFS)</strong> — detailed
-                    requirements for consumer-facing communications and unfair trade practices.
-                  </li>
-                  <li>
-                    <strong>Texas Department of Insurance (TDI)</strong> — specific rules around
-                    advertising accuracy and prohibited representations.
-                  </li>
-                  <li>
-                    <strong>Florida Office of Insurance Regulation (OIR)</strong> — heightened
-                    requirements around property insurance communications given hurricane exposure.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'California Department of Insurance (CDI)', description: 'Strict advertising standards; all marketing materials must be filed and approved.' },
+                  { title: 'New York Department of Financial Services (DFS)', description: 'Detailed requirements for consumer-facing communications and unfair trade practices.' },
+                  { title: 'Texas Department of Insurance (TDI)', description: 'Specific rules around advertising accuracy and prohibited representations.' },
+                  { title: 'Florida Office of Insurance Regulation (OIR)', description: 'Heightened requirements around property insurance communications given hurricane exposure.' },
+                ]} />
                 <p className="mt-4">
                   The principle across all states: marketing communications must be accurate, not
                   misleading, and clearly distinguished from policy documents. Train the chatbot

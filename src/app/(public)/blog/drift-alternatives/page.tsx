@@ -6,6 +6,8 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle2, XCircle, MinusCircle } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
+import { StyledBulletList } from '@/components/blog/styled-lists';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -47,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/drift-alternatives',
       },
       datePublished: '2025-11-28',
-      dateModified: '2025-11-28',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -111,6 +109,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: "Yes, but with trade-offs. VocUI ($29/month) handles AI chat with lead capture but not ABM or meeting booking. HubSpot\u2019s free chatbot covers lead routing and meeting scheduling but has limited AI. Tidio ($29/month) offers chat automation for small businesses. None replicate Drift\u2019s full ABM feature set at that price.",
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: '5 Drift Alternatives for Conversational Marketing',
+          item: 'https://vocui.com/blog/drift-alternatives',
         },
       ],
     },
@@ -267,32 +278,12 @@ export default function DriftAlternativesPage() {
                   Drift product has been folded into Salesloft&apos;s broader revenue platform. For
                   existing users, this means:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Product consolidation.</strong> Drift
-                    features are being merged into Salesloft. Some standalone capabilities have been
-                    deprecated or renamed. The roadmap now serves Salesloft&apos;s priorities.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Pricing changes.</strong> Drift
-                    was already enterprise-priced. The Salesloft bundle hasn&apos;t made it cheaper — and
-                    for teams that only need chat, paying for a full revenue platform is overkill.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">No new standalone signups.</strong> You
-                    can&apos;t sign up for &quot;Drift&quot; anymore in most cases — you&apos;re signing up for
-                    Salesloft. The brand is being absorbed.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Limited AI for support use cases.</strong> Drift&apos;s
-                    AI was always about routing and playbooks, not answering questions from your
-                    knowledge base. See our{' '}
-                    <Link href="/blog/chatbot-lead-generation-strategies" className="text-primary-600 dark:text-primary-400 hover:underline">
-                      chatbot lead generation strategies
-                    </Link>{' '}
-                    for approaches that combine AI answers with lead capture.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Product consolidation.', description: 'Drift features are being merged into Salesloft. Some standalone capabilities have been deprecated or renamed. The roadmap now serves Salesloft\u2019s priorities.' },
+                  { title: 'Pricing changes.', description: 'Drift was already enterprise-priced. The Salesloft bundle hasn\u2019t made it cheaper \u2014 and for teams that only need chat, paying for a full revenue platform is overkill.' },
+                  { title: 'No new standalone signups.', description: 'You can\u2019t sign up for \u201cDrift\u201d anymore in most cases \u2014 you\u2019re signing up for Salesloft. The brand is being absorbed.' },
+                  { title: 'Limited AI for support use cases.', description: <>Drift\u2019s AI was always about routing and playbooks, not answering questions from your knowledge base. See our <Link href="/blog/chatbot-lead-generation-strategies" className="text-primary-600 dark:text-primary-400 hover:underline">chatbot lead generation strategies</Link> for approaches that combine AI answers with lead capture.</> },
+                ]} />
                 <p className="mt-4">
                   Whether you&apos;re a current Drift user evaluating your options or a new buyer who
                   found this page searching for what Drift used to offer, the alternatives below
@@ -535,29 +526,13 @@ export default function DriftAlternativesPage() {
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Which is right for you?
                 </h2>
-                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you want AI-driven conversations with lead capture:</strong>{' '}
-                    VocUI gives visitors real answers from your content and captures leads naturally
-                    — no scripted playbooks needed.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you need a full conversational suite:</strong>{' '}
-                    Intercom covers marketing, support, and AI in one platform.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you&apos;re already on HubSpot:</strong>{' '}
-                    The free chatbot builder integrates natively with your CRM.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If budget is the priority:</strong>{' '}
-                    Tidio offers chat and basic automation at the lowest cost.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you need enterprise ABM with Salesforce:</strong>{' '}
-                    Qualified is the direct Drift replacement at that scale.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'If you want AI-driven conversations with lead capture:', description: 'VocUI gives visitors real answers from your content and captures leads naturally \u2014 no scripted playbooks needed.' },
+                  { title: 'If you need a full conversational suite:', description: 'Intercom covers marketing, support, and AI in one platform.' },
+                  { title: 'If you\u2019re already on HubSpot:', description: 'The free chatbot builder integrates natively with your CRM.' },
+                  { title: 'If budget is the priority:', description: 'Tidio offers chat and basic automation at the lowest cost.' },
+                  { title: 'If you need enterprise ABM with Salesforce:', description: 'Qualified is the direct Drift replacement at that scale.' },
+                ]} />
               </section>
 
               <section id="faq">

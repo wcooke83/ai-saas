@@ -6,6 +6,8 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle2, XCircle, MinusCircle } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -47,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/intercom-alternatives',
       },
       datePublished: '2025-11-24',
-      dateModified: '2025-11-24',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -111,6 +109,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'A typical small team (3 agents, 500 AI resolutions/month) might pay $700+/month on Intercom. VocUI handles the AI chatbot portion for $29\u201379/month. HelpScout covers help desk needs for $75/month. The savings are significant, but you may need two tools to replace everything Intercom bundles.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: '5 Intercom Alternatives That Won\u2019t Break the Budget',
+          item: 'https://vocui.com/blog/intercom-alternatives',
         },
       ],
     },
@@ -260,24 +271,12 @@ export default function IntercomAlternativesPage() {
                 <p className="mt-4">
                   Here&apos;s what the real cost looks like:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">$74/month per seat</strong> for
-                    the Essential plan. A 3-person support team is $222/month before any add-ons.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">$0.99 per Fin resolution</strong> on
-                    top of that. 500 AI resolutions per month adds $495.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Product tours and campaigns</strong> are
-                    bundled into higher tiers even if you never use them.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">No free plan.</strong> You
-                    can&apos;t test Intercom without committing to at least $74/month.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: '$74/month per seat', description: 'for the Essential plan. A 3-person support team is $222/month before any add-ons.' },
+                  { title: '$0.99 per Fin resolution', description: 'on top of that. 500 AI resolutions per month adds $495.' },
+                  { title: 'Product tours and campaigns', description: 'are bundled into higher tiers even if you never use them.' },
+                  { title: 'No free plan.', description: 'You can\u2019t test Intercom without committing to at least $74/month.' },
+                ]} />
                 <p className="mt-4">
                   The question isn&apos;t whether Intercom is good — it is. The question is whether you need
                   everything it bundles. If you need a CRM-integrated help desk with ticketing, Intercom
@@ -522,29 +521,13 @@ export default function IntercomAlternativesPage() {
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Which is right for you?
                 </h2>
-                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you want AI chatbot answers from your knowledge base:</strong>{' '}
-                    VocUI gives you what Intercom Fin does at a fraction of the cost — with a free
-                    plan to test first.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you need affordable live chat with basic AI:</strong>{' '}
-                    Tidio is simple, fast to set up, and priced for small businesses.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you want a free shared inbox:</strong>{' '}
-                    Crisp&apos;s free plan covers two agents with unlimited history.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you prefer email-first support with a knowledge base:</strong>{' '}
-                    HelpScout is clean, focused, and AI-assisted.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If your priority is B2B lead capture:</strong>{' '}
-                    Drift is built for sales conversations, not support.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'If you want AI chatbot answers from your knowledge base:', description: 'VocUI gives you what Intercom Fin does at a fraction of the cost \u2014 with a free plan to test first.' },
+                  { title: 'If you need affordable live chat with basic AI:', description: 'Tidio is simple, fast to set up, and priced for small businesses.' },
+                  { title: 'If you want a free shared inbox:', description: 'Crisp\u2019s free plan covers two agents with unlimited history.' },
+                  { title: 'If you prefer email-first support with a knowledge base:', description: 'HelpScout is clean, focused, and AI-assisted.' },
+                  { title: 'If your priority is B2B lead capture:', description: 'Drift is built for sales conversations, not support.' },
+                ]} />
               </section>
 
               <section id="faq">

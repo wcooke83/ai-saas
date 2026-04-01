@@ -7,6 +7,7 @@ import { Header } from '@/components/layout';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
 import { ArrowRight, Check, X, BookOpen, CalendarCheck, Zap } from 'lucide-react';
+import { StyledBulletList } from '@/components/blog/styled-lists';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -211,20 +212,13 @@ export default function VsIntercomPage() {
                   </div>
                   <h3 className="text-lg font-bold text-secondary-900 dark:text-secondary-100">Choose VocUI if...</h3>
                 </div>
-                <ul className="space-y-3">
-                  {[
-                    'You want a chatbot trained on your own docs, URLs, and PDFs',
-                    'You need appointment booking built into the chat',
-                    'You want a free plan with no credit card required',
-                    "You're an SMB or growing team without a dedicated support ops team",
-                    'You want to be live in under an hour',
-                  ].map((item) => (
-                    <li key={item} className="flex items-start gap-3">
-                      <Check className="h-4 w-4 text-primary-500 mt-0.5 flex-shrink-0" aria-hidden="true" />
-                      <span className="text-sm text-secondary-700 dark:text-secondary-300">{item}</span>
-                    </li>
-                  ))}
-                </ul>
+                <StyledBulletList items={[
+                  'You want a chatbot trained on your own docs, URLs, and PDFs',
+                  'You need appointment booking built into the chat',
+                  'You want a free plan with no credit card required',
+                  "You're an SMB or growing team without a dedicated support ops team",
+                  'You want to be live in under an hour',
+                ]} />
               </div>
 
               {/* Choose Intercom */}
@@ -235,19 +229,12 @@ export default function VsIntercomPage() {
                   </div>
                   <h3 className="text-lg font-bold text-secondary-900 dark:text-secondary-100">Choose Intercom if...</h3>
                 </div>
-                <ul className="space-y-3">
-                  {[
-                    "You're an enterprise with a dedicated CX team",
-                    'You need deep CRM integrations and a full helpdesk suite',
-                    'You have budget for $74+/month',
-                    'You need advanced workflow automation at scale',
-                  ].map((item) => (
-                    <li key={item} className="flex items-start gap-3">
-                      <Check className="h-4 w-4 text-secondary-400 mt-0.5 flex-shrink-0" aria-hidden="true" />
-                      <span className="text-sm text-secondary-700 dark:text-secondary-300">{item}</span>
-                    </li>
-                  ))}
-                </ul>
+                <StyledBulletList items={[
+                  "You're an enterprise with a dedicated CX team",
+                  'You need deep CRM integrations and a full helpdesk suite',
+                  'You have budget for $74+/month',
+                  'You need advanced workflow automation at scale',
+                ]} />
               </div>
             </div>
           </div>

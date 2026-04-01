@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { ChatPreview, WorkflowDiagram } from '@/components/blog/industry-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
@@ -48,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/chatbot-for-saas-onboarding',
       },
       datePublished: '2026-02-03',
-      dateModified: '2026-02-03',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -106,6 +103,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Yes. Configure your chatbot\'s system prompt to recognize when a question is beyond its scope — billing disputes, bug reports, account-specific issues requiring authentication — and direct users to your support team. The chatbot can provide a link to your support portal, suggest emailing your team, or offer to create a ticket. The key is training the system prompt with clear escalation rules so handoffs happen seamlessly without frustrating the user.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'How SaaS Companies Use Chatbots to Improve Onboarding',
+          item: 'https://vocui.com/blog/chatbot-for-saas-onboarding',
         },
       ],
     },
@@ -472,6 +482,13 @@ export default function ChatbotForSaasOnboardingPage() {
                     className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     VocUI pricing
+                  </Link>
+                  . Looking for employee onboarding instead? See our guide on{' '}
+                  <Link
+                    href="/blog/reduce-employee-onboarding-time-with-ai"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
+                  >
+                    using AI to reduce employee onboarding time
                   </Link>
                   .
                 </p>

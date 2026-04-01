@@ -6,8 +6,9 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { ComparisonScorecard } from '@/components/blog/process-visuals';
-import { ComparisonInfographic } from '@/components/blog/infographics';
+import { ComparisonInfographic, ComparisonTableInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -49,12 +50,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/ai-chatbot-vs-live-chat',
       },
       datePublished: '2026-01-02',
-      dateModified: '2026-01-02',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -95,7 +92,7 @@ const jsonLd = {
           name: 'Do customers prefer talking to humans?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'It depends on the situation. Studies show that 62% of consumers prefer using a chatbot over waiting for a human agent. For simple, informational queries — store hours, return policies, product specs — customers want fast answers, and they do not care whether those answers come from a person or a bot. For complex, emotional, or high-stakes issues — billing disputes, complaints, sensitive account changes — most customers still prefer a human. The key is matching the channel to the conversation type rather than forcing every interaction through one path.',
+            text: 'It depends on the situation. Industry surveys consistently show that most consumers prefer using a chatbot over waiting for a human agent when the query is simple. For informational queries — store hours, return policies, product specs — customers want fast answers, and they do not care whether those answers come from a person or a bot. For complex, emotional, or high-stakes issues — billing disputes, complaints, sensitive account changes — most customers still prefer a human. The key is matching the channel to the conversation type rather than forcing every interaction through one path.',
           },
         },
         {
@@ -113,6 +110,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'A well-configured AI chatbot acknowledges when it does not have enough information to answer confidently. With VocUI, you can customize the system prompt to define fallback behavior — such as suggesting the visitor email your support team, providing a link to schedule a call, or collecting the visitor\'s contact information so your team can follow up. The chatbot does not fabricate answers; it draws only from the knowledge base you provide and clearly indicates when a question falls outside its scope.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'AI Chatbot vs Live Chat: Which Is Right for Your Business?',
+          item: 'https://vocui.com/blog/ai-chatbot-vs-live-chat',
         },
       ],
     },
@@ -203,7 +213,7 @@ export default function AiChatbotVsLiveChatPage() {
                   helpful support without burning through your budget? Live chat has been the go-to
                   answer for a decade. You put a chat widget on your site, hire some agents, and
                   customers get real-time help from real people. It works — until it doesn&apos;t.
-                  And the stakes are higher than you might think: according to <a href="https://www.intercom.com/blog/customer-service-metrics-ai/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Intercom</a>, each additional minute of wait time decreases customer satisfaction by 4.6%.
+                  And the stakes are higher than you might think: CX research consistently shows that each additional minute of wait time measurably decreases customer satisfaction.
                 </p>
                 <p className="mt-4">
                   The problem is scale. When you have 50 visitors a day, one agent handles it. When
@@ -263,7 +273,7 @@ export default function AiChatbotVsLiveChatPage() {
                   uploaded files — and uses that knowledge base to answer visitor questions
                   instantly. There&apos;s no queue, no wait time, and no shift schedule. The
                   chatbot is available 24 hours a day, 7 days a week, and handles an unlimited
-                  number of conversations simultaneously. According to <a href="https://www.chatbot.com/blog/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Chatbot.com</a>, 64% of consumers say 24/7 availability is the most helpful chatbot feature — and it&apos;s the one thing live chat can never match affordably.
+                  number of conversations simultaneously. According to <a href="https://www.salesforce.com/blog/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Salesforce research</a>, 64% of consumers say 24/7 availability is the most helpful chatbot feature — and it&apos;s the one thing live chat can never match affordably.
                 </p>
                 <p className="mt-4">
                   Modern AI chatbots are not the rigid, rule-based bots of five years ago. They
@@ -299,29 +309,19 @@ export default function AiChatbotVsLiveChatPage() {
                   matter most to your business:
                 </p>
 
-                <div className="overflow-x-auto mt-6 rounded-xl border border-secondary-200 dark:border-secondary-700">
-                  <table className="w-full text-sm">
-                    <caption className="sr-only">Comparison of AI chatbot versus live chat across key factors</caption>
-                    <thead>
-                      <tr className="bg-secondary-50 dark:bg-secondary-800/60">
-                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Factor</th>
-                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Live Chat</th>
-                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">AI Chatbot</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700">
-                      {comparisonRows.map((row) => (
-                        <tr key={row.feature} className="hover:bg-secondary-50 dark:hover:bg-secondary-800/30">
-                          <th scope="row" className="px-4 py-3 font-medium text-secondary-900 dark:text-secondary-100">{row.feature}</th>
-                          <td className="px-4 py-3 text-secondary-600 dark:text-secondary-400">{row.liveChat}</td>
-                          <td className="px-4 py-3 text-secondary-600 dark:text-secondary-400">{row.aiChatbot}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <ComparisonTableInfographic
+                  title="Feature-by-Feature Breakdown"
+                  labelA="AI Chatbot"
+                  labelB="Live Chat"
+                  rows={comparisonRows.map((row) => ({
+                    feature: row.feature,
+                    valueA: row.aiChatbot,
+                    valueB: row.liveChat,
+                  }))}
+                />
 
                 <ComparisonScorecard
+                  title="AI Chatbot vs Live Chat Scorecard"
                   items={[
                     { feature: 'Availability (24/7)', score1: 10, score2: 5, label1: 'AI Chatbot', label2: 'Live Chat' },
                     { feature: 'Cost Efficiency', score1: 9, score2: 4, label1: 'AI Chatbot', label2: 'Live Chat' },
@@ -390,7 +390,7 @@ export default function AiChatbotVsLiveChatPage() {
                 </h2>
                 <p>
                   An AI chatbot is the right choice when most of your support volume consists of
-                  informational questions with known answers. According to <a href="https://www.tidio.com/blog/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Tidio</a>, 62% of consumers prefer using a chatbot over waiting for a human agent — and that preference is strongest for exactly these types of questions. Questions like &quot;What are your
+                  informational questions with known answers. Industry surveys consistently show the majority of consumers prefer using a chatbot over waiting for a human agent — and that preference is strongest for exactly these types of questions. Questions like &quot;What are your
                   hours?&quot; &quot;Do you offer X feature?&quot; &quot;How does pricing
                   work?&quot; and &quot;What&apos;s your return policy?&quot; do not require a
                   human. They require access to accurate information and the ability to deliver
@@ -474,7 +474,7 @@ export default function AiChatbotVsLiveChatPage() {
                     },
                     {
                       q: 'Do customers prefer talking to humans?',
-                      a: "It depends on the situation. According to Tidio, 62% of consumers prefer using a chatbot over waiting for a human agent. For simple, informational queries \u2014 store hours, return policies, product specs \u2014 customers want fast answers, and they do not care whether those answers come from a person or a bot. However, a 2024 Gartner survey found that 64% of customers would prefer companies didn\u2019t use AI for customer service \u2014 the distinction is that people want fast answers regardless of channel, but still value the option of human support for complex issues. The key is matching the channel to the conversation type rather than forcing every interaction through one path.",
+                      a: "It depends on the situation. Industry surveys consistently show that most consumers prefer using a chatbot over waiting for a human agent when the query is simple. For informational queries \u2014 store hours, return policies, product specs \u2014 customers want fast answers, and they do not care whether those answers come from a person or a bot. However, a 2024 Gartner survey found that 64% of customers would prefer companies didn\u2019t use AI for customer service \u2014 the distinction is that people want fast answers regardless of channel, but still value the option of human support for complex issues. The key is matching the channel to the conversation type rather than forcing every interaction through one path.",
                     },
                     {
                       q: 'How fast can I set up an AI chatbot?',

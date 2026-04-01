@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { ChecklistInfographic } from '@/components/blog/infographics';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -48,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/knowledge-base-content-best-practices',
       },
       datePublished: '2026-03-25',
-      dateModified: '2026-03-25',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -106,6 +103,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Plain text, web pages (URLs), and PDFs work best. These formats preserve the text content that the chatbot needs for retrieval. Avoid image-heavy PDFs where the text is embedded in graphics \u2014 the chatbot can\u2019t read text from images. For best results, use clean web pages or text documents with clear headings and well-structured paragraphs. If you have content in other formats like DOCX, those work too but make sure the formatting translates cleanly.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'How to Organize Your Knowledge Base for Better Chatbot Answers',
+          item: 'https://vocui.com/blog/knowledge-base-content-best-practices',
         },
       ],
     },

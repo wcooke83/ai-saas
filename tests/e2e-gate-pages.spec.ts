@@ -18,8 +18,8 @@ test.describe('Coming Soon page', () => {
     // "In Development" badge
     await expect(page.getByText('In Development')).toBeVisible();
 
-    // App name
-    await expect(page.getByText('VocUI')).toBeVisible();
+    // App name in page title
+    await expect(page).toHaveTitle(/VocUI/);
   });
 
   test('page loads without errors (no 5xx)', async ({ page }) => {

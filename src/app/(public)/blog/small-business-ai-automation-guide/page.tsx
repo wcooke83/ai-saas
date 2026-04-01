@@ -9,15 +9,17 @@ import { AuthorByline } from '@/components/blog/author-byline';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { MidArticleCta } from '@/components/blog/mid-article-cta';
 import { TimelineInfographic } from '@/components/blog/infographics';
+import { StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
-  title: 'The Small Business Guide to AI Automation in 2025 | VocUI',
+  title: 'The Small Business Guide to AI Automation in 2026 | VocUI',
   description:
     'A practical guide to AI automation for small businesses — what to automate first, which tools to use, and how to start without technical skills or a big budget.',
   openGraph: {
-    title: 'The Small Business Guide to AI Automation in 2025 | VocUI',
+    title: 'The Small Business Guide to AI Automation in 2026 | VocUI',
     description:
       'A practical guide to AI automation for small businesses — what to automate first, which tools to use, and how to start without technical skills or a big budget.',
     url: 'https://vocui.com/blog/small-business-ai-automation-guide',
@@ -26,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'The Small Business Guide to AI Automation in 2025 | VocUI',
+    title: 'The Small Business Guide to AI Automation in 2026 | VocUI',
     description:
       'A practical guide to AI automation for small businesses — what to automate first, which tools to use, and how to start without technical skills or a big budget.',
   },
@@ -41,7 +43,7 @@ const jsonLd = {
   '@graph': [
     {
       '@type': 'Article',
-      headline: 'The Small Business Guide to AI Automation in 2025',
+      headline: 'The Small Business Guide to AI Automation in 2026',
       description:
         'A practical guide to AI automation for small businesses — what to automate first, which tools to use, and how to start without technical skills or a big budget.',
       url: 'https://vocui.com/blog/small-business-ai-automation-guide',
@@ -50,12 +52,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/small-business-ai-automation-guide',
       },
       datePublished: '2026-02-17',
-      dateModified: '2026-02-17',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-02',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -117,6 +115,19 @@ const jsonLd = {
         },
       ],
     },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'The Small Business Guide to AI Automation in 2026',
+          item: 'https://vocui.com/blog/small-business-ai-automation-guide',
+        },
+      ],
+    },
   ],
 };
 
@@ -166,7 +177,7 @@ export default function SmallBusinessAiAutomationGuidePage() {
               </div>
               <AuthorByline className="mb-4" />
               <h1 className="text-4xl font-bold text-secondary-900 dark:text-secondary-100 leading-tight mb-4">
-                The Small Business Guide to AI Automation in 2025
+                The Small Business Guide to AI Automation in 2026
               </h1>
             </header>
 
@@ -214,7 +225,7 @@ export default function SmallBusinessAiAutomationGuidePage() {
                   making strategic decisions.
                 </p>
                 <p className="mt-4">
-                  The tools have reached a tipping point in 2025. According to <a href="https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">McKinsey</a>, 78% of companies now use AI in at least one business function — up from 55% in 2023. Five years ago, meaningful AI
+                  The tools have reached a tipping point in 2026. According to <a href="https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">McKinsey</a>, 78% of companies now use AI in at least one business function — up from 55% in 2023. Five years ago, meaningful AI
                   automation required custom development. Today, you can deploy an AI chatbot in
                   under an hour, connect your tools with visual workflow builders, and set up
                   automated email sequences with AI-generated content — all without writing a
@@ -237,23 +248,11 @@ export default function SmallBusinessAiAutomationGuidePage() {
                 <p className="mt-4">
                   The top three starting points, ranked by impact per hour of setup:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong>Customer support chatbot.</strong> Train an AI chatbot on your
-                    website content and FAQs. Deploy it in under an hour. It handles 60–80%
-                    of customer questions instantly, 24/7.
-                  </li>
-                  <li>
-                    <strong>Lead capture and qualification.</strong> Add conversational lead
-                    capture to your website. The chatbot engages visitors, answers their
-                    questions, and collects contact information — replacing static forms.
-                  </li>
-                  <li>
-                    <strong>Internal knowledge management.</strong> Build a knowledge bot
-                    trained on your processes and policies. Deploy it in Slack so your team
-                    can get instant answers without interrupting colleagues.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Customer support chatbot.', description: 'Train an AI chatbot on your website content and FAQs. Deploy it in under an hour. It handles 60\u201380% of customer questions instantly, 24/7.' },
+                  { title: 'Lead capture and qualification.', description: 'Add conversational lead capture to your website. The chatbot engages visitors, answers their questions, and collects contact information \u2014 replacing static forms.' },
+                  { title: 'Internal knowledge management.', description: 'Build a knowledge bot trained on your processes and policies. Deploy it in Slack so your team can get instant answers without interrupting colleagues.' },
+                ]} />
                 <p className="mt-4">
                   Each of these can be set up in a single afternoon and starts delivering value
                   the same day. Start with whichever one addresses your biggest pain point,
@@ -376,34 +375,13 @@ export default function SmallBusinessAiAutomationGuidePage() {
                   Small businesses make predictable mistakes when adopting AI automation. Knowing
                   these in advance saves you time and frustration:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong>Automating too much too fast.</strong> Start with one use case, get
-                    it working well, then expand. Trying to automate everything at once leads
-                    to half-finished projects and no measurable results.
-                  </li>
-                  <li>
-                    <strong>Poor knowledge base content.</strong> An AI chatbot is only as good
-                    as the content it&apos;s trained on. If your website has outdated FAQ
-                    answers or your documentation is incomplete, the chatbot will reflect that.
-                    Invest time in your content before deploying.
-                  </li>
-                  <li>
-                    <strong>No human fallback.</strong> Every automation should have a clear
-                    path to a human when it reaches its limits. A chatbot that cannot escalate
-                    frustrated customers to a real person will damage your brand.
-                  </li>
-                  <li>
-                    <strong>Ignoring the data.</strong> AI tools generate valuable data about
-                    what customers ask, where they get stuck, and what content is missing.
-                    Review this data weekly and use it to improve your automation continuously.
-                  </li>
-                  <li>
-                    <strong>Choosing complexity over simplicity.</strong> You do not need
-                    enterprise-grade AI infrastructure. A well-configured chatbot on a
-                    platform like VocUI delivers 90% of the value at 10% of the complexity.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Automating too much too fast.', description: 'Start with one use case, get it working well, then expand. Trying to automate everything at once leads to half-finished projects and no measurable results.' },
+                  { title: 'Poor knowledge base content.', description: 'An AI chatbot is only as good as the content it\u2019s trained on. If your website has outdated FAQ answers or your documentation is incomplete, the chatbot will reflect that. Invest time in your content before deploying.' },
+                  { title: 'No human fallback.', description: 'Every automation should have a clear path to a human when it reaches its limits. A chatbot that cannot escalate frustrated customers to a real person will damage your brand.' },
+                  { title: 'Ignoring the data.', description: 'AI tools generate valuable data about what customers ask, where they get stuck, and what content is missing. Review this data weekly and use it to improve your automation continuously.' },
+                  { title: 'Choosing complexity over simplicity.', description: 'You do not need enterprise-grade AI infrastructure. A well-configured chatbot on a platform like VocUI delivers 90% of the value at 10% of the complexity.' },
+                ]} />
               </section>
 
               {/* Section 7 */}
@@ -414,29 +392,13 @@ export default function SmallBusinessAiAutomationGuidePage() {
                 <p>
                   Here is a concrete plan for your first week with AI automation:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong>Day 1:</strong> Sign up for VocUI (free plan). Create your first
-                    chatbot and add your website as a knowledge source.
-                  </li>
-                  <li>
-                    <strong>Day 2:</strong> Configure the system prompt. Add any additional
-                    documents — FAQ lists, product guides, pricing information — that cover
-                    common customer questions.
-                  </li>
-                  <li>
-                    <strong>Day 3:</strong> Embed the chatbot widget on your website. Test it
-                    with the 10 most common questions you receive.
-                  </li>
-                  <li>
-                    <strong>Day 4–5:</strong> Monitor conversations. Identify questions the
-                    chatbot struggles with and add content to address those gaps.
-                  </li>
-                  <li>
-                    <strong>Week 2:</strong> Review the data. Measure how many questions the
-                    chatbot resolved, how much time your team saved, and where to improve.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Day 1:', description: 'Sign up for VocUI (free plan). Create your first chatbot and add your website as a knowledge source.' },
+                  { title: 'Day 2:', description: 'Configure the system prompt. Add any additional documents \u2014 FAQ lists, product guides, pricing information \u2014 that cover common customer questions.' },
+                  { title: 'Day 3:', description: 'Embed the chatbot widget on your website. Test it with the 10 most common questions you receive.' },
+                  { title: 'Day 4\u20135:', description: 'Monitor conversations. Identify questions the chatbot struggles with and add content to address those gaps.' },
+                  { title: 'Week 2:', description: 'Review the data. Measure how many questions the chatbot resolved, how much time your team saved, and where to improve.' },
+                ]} />
                 <p className="mt-4">
                   By the end of week one, you will have a working AI chatbot handling customer
                   questions 24/7. By the end of month one, you will have data showing exactly

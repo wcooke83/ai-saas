@@ -6,7 +6,9 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { ChatPreview, WorkflowDiagram } from '@/components/blog/industry-visuals';
+import { StyledBulletList, StyledNumberedList } from '@/components/blog/styled-lists';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -48,12 +50,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/chatbot-for-education',
       },
       datePublished: '2026-03-27',
-      dateModified: '2026-03-27',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -122,6 +120,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'For multi-campus institutions, you can run a single chatbot with campus-specific content clearly labeled in the knowledge base, or deploy separate chatbots per campus with targeted content. Separate bots work best when campuses have different programs, schedules, or policies. A shared bot works when the content is mostly the same and the chatbot can route based on campus-specific questions. For K-12 districts with multiple schools, separate bots per school keeps answers accurate for each community.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'AI Chatbots for Education: Automate Student FAQs',
+          item: 'https://vocui.com/blog/chatbot-for-education',
         },
       ],
     },
@@ -241,34 +252,14 @@ export default function ChatbotForEducationPage() {
                   they&apos;re factual questions with documented answers:
                 </p>
 
-                {/* Numbered list instead of bullets — structural variation */}
-                <ol className="list-decimal pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong>Enrollment and admissions.</strong> Application deadlines, required
-                    documents, acceptance criteria, transfer credit policies, and how to submit
-                    applications.
-                  </li>
-                  <li>
-                    <strong>Course information.</strong> Prerequisites, schedules, credit hours,
-                    instructor details, and course descriptions from the catalog.
-                  </li>
-                  <li>
-                    <strong>Financial aid and tuition.</strong> FAFSA deadlines, scholarship
-                    availability, payment plans, tuition rates by program, and refund policies.
-                  </li>
-                  <li>
-                    <strong>Academic policies.</strong> Drop/add deadlines, grading scales,
-                    academic probation rules, graduation requirements, and GPA calculation.
-                  </li>
-                  <li>
-                    <strong>Campus services.</strong> Library hours, IT help desk, health services,
-                    parking, dining, and student organizations.
-                  </li>
-                  <li>
-                    <strong>LMS and technology.</strong> How to log into Canvas or Blackboard,
-                    submit assignments, access recorded lectures, and reset passwords.
-                  </li>
-                </ol>
+                <StyledBulletList items={[
+                  { title: 'Enrollment and admissions.', description: 'Application deadlines, required documents, acceptance criteria, transfer credit policies, and how to submit applications.' },
+                  { title: 'Course information.', description: 'Prerequisites, schedules, credit hours, instructor details, and course descriptions from the catalog.' },
+                  { title: 'Financial aid and tuition.', description: 'FAFSA deadlines, scholarship availability, payment plans, tuition rates by program, and refund policies.' },
+                  { title: 'Academic policies.', description: 'Drop/add deadlines, grading scales, academic probation rules, graduation requirements, and GPA calculation.' },
+                  { title: 'Campus services.', description: 'Library hours, IT help desk, health services, parking, dining, and student organizations.' },
+                  { title: 'LMS and technology.', description: 'How to log into Canvas or Blackboard, submit assignments, access recorded lectures, and reset passwords.' },
+                ]} />
                 <p className="mt-4">
                   For a deeper look at building a chatbot focused on frequently asked questions,
                   see our guide on{' '}
@@ -348,32 +339,14 @@ export default function ChatbotForEducationPage() {
                   <p className="text-sm font-semibold text-green-800 dark:text-green-200 mb-3">
                     FERPA compliance checklist for chatbot deployment
                   </p>
-                  <ul className="space-y-2 text-sm text-secondary-600 dark:text-secondary-400">
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">1.</span>
-                      <span>Train only on publicly available institutional content (catalogs, calendars, policy pages).</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">2.</span>
-                      <span>Never upload documents containing student names, IDs, grades, or enrollment data.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">3.</span>
-                      <span>Configure the chatbot personality to redirect personal record requests to authenticated portals.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">4.</span>
-                      <span>Confirm no SIS, LMS backend, or financial aid system connections exist.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">5.</span>
-                      <span>Review conversation logs periodically; delete any that inadvertently contain student PII.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">6.</span>
-                      <span>Document your chatbot&apos;s data scope in your institution&apos;s FERPA compliance records.</span>
-                    </li>
-                  </ul>
+                  <StyledNumberedList items={[
+                    'Train only on publicly available institutional content (catalogs, calendars, policy pages).',
+                    'Never upload documents containing student names, IDs, grades, or enrollment data.',
+                    'Configure the chatbot personality to redirect personal record requests to authenticated portals.',
+                    'Confirm no SIS, LMS backend, or financial aid system connections exist.',
+                    'Review conversation logs periodically; delete any that inadvertently contain student PII.',
+                    "Document your chatbot's data scope in your institution's FERPA compliance records.",
+                  ]} />
                 </div>
               </section>
 

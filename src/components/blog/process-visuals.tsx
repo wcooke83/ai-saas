@@ -167,6 +167,8 @@ export interface ComparisonScorecardItem {
 
 export interface ComparisonScorecardProps {
   items: ComparisonScorecardItem[];
+  /** Heading displayed at the top of the infographic card */
+  title: string;
   /** Optional caption rendered as a figcaption */
   caption?: string;
 }
@@ -437,6 +439,47 @@ export function ChatbotSetupTimeline({ caption }: { caption?: string }) {
 
 // ─── 5. ComparisonScorecard ────────────────────────────────────────────────────
 
+/** VocUI logo mark for infographic headers. */
+function ScorecardBrandMark() {
+  return (
+    <div className="flex items-center gap-2 mb-6">
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true"
+        className="shrink-0"
+      >
+        <path
+          d="M12 2L21.5 7.5V16.5L12 22L2.5 16.5V7.5L12 2Z"
+          fill="currentColor"
+          className="text-primary-400"
+          opacity="0.9"
+        />
+        <path
+          d="M12 6L17.5 9V15L12 18L6.5 15V9L12 6Z"
+          fill="currentColor"
+          className="text-primary-300"
+          opacity="0.6"
+        />
+      </svg>
+      <span className="text-sm font-semibold tracking-wide text-white/70">
+        VocUI
+      </span>
+    </div>
+  );
+}
+
+/** Footer with vocui.com branding. */
+function ScorecardBrandFooter() {
+  return (
+    <div className="mt-8 pt-4 border-t border-white/10">
+      <p className="text-xs text-white/55 tracking-wide">vocui.com</p>
+    </div>
+  );
+}
+
 /**
  * Returns muted, professional HSL colors for a score on a red-to-green scale.
  * Lower scores lean warm/red, mid scores lean amber, higher scores lean green.
@@ -455,26 +498,35 @@ function scoreColors(score: number): { bright: string; dim: string; text: string
 }
 
 /**
- * A visual feature comparison showing side-by-side gradient score bars.
- * Each bar uses a red-to-green color scale based on the score value.
- * The filled portion is brighter; the unfilled portion is the same hue but dimmer.
+ * An infographic-style feature comparison showing side-by-side gradient score bars.
+ * Dark gradient background with VocUI branding. Each bar uses a red-to-green
+ * color scale based on the score value.
  */
-export function ComparisonScorecard({ items, caption }: ComparisonScorecardProps) {
+export function ComparisonScorecard({ items, title, caption }: ComparisonScorecardProps) {
   return (
-    <figure className="my-8" role="img" aria-label={`Feature comparison scorecard: ${items.map((i) => `${i.feature} — ${i.label1} ${i.score1} out of 10, ${i.label2} ${i.score2} out of 10`).join('; ')}`}>
-      <div className="rounded-xl border border-secondary-200 dark:border-secondary-700 overflow-hidden">
+    <figure
+      className="my-14 md:my-16 rounded-2xl bg-gradient-to-br from-primary-950 via-primary-900 to-primary-800 p-8 md:p-10 shadow-xl"
+      role="img"
+      aria-label={`Feature comparison scorecard: ${items.map((i) => `${i.feature} — ${i.label1} ${i.score1} out of 10, ${i.label2} ${i.score2} out of 10`).join('; ')}`}
+    >
+      <ScorecardBrandMark />
+      <h3 className="text-2xl md:text-3xl font-bold text-white leading-tight mb-8">
+        {title}
+      </h3>
+
+      <div className="overflow-hidden">
         {/* Header row */}
-        <div className="grid grid-cols-[1fr_1fr] bg-secondary-50 dark:bg-secondary-800/60 px-4 py-3 border-b border-secondary-200 dark:border-secondary-700">
-          <span className="text-sm font-semibold text-secondary-700 dark:text-secondary-300">
+        <div className="grid grid-cols-[1fr_1fr] px-4 py-3 border-b border-white/10">
+          <span className="text-xs font-bold uppercase tracking-wider text-primary-400">
             {items[0]?.label1 ?? 'Option A'}
           </span>
-          <span className="text-sm font-semibold text-secondary-700 dark:text-secondary-300 text-right sm:text-left">
+          <span className="text-xs font-bold uppercase tracking-wider text-amber-400 text-right sm:text-left">
             {items[0]?.label2 ?? 'Option B'}
           </span>
         </div>
 
         {/* Rows */}
-        <div className="divide-y divide-secondary-100 dark:divide-secondary-800">
+        <div className="divide-y divide-white/10">
           {items.map((item) => {
             const pct1 = (item.score1 / 10) * 100;
             const pct2 = (item.score2 / 10) * 100;
@@ -484,7 +536,7 @@ export function ComparisonScorecard({ items, caption }: ComparisonScorecardProps
             return (
               <div key={item.feature} className="px-4 py-4">
                 {/* Feature label */}
-                <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 mb-2.5 uppercase tracking-wide">
+                <p className="text-xs font-medium text-white/60 mb-2.5 uppercase tracking-wide">
                   {item.feature}
                 </p>
 
@@ -538,11 +590,13 @@ export function ComparisonScorecard({ items, caption }: ComparisonScorecardProps
           })}
         </div>
       </div>
+
       {caption && (
-        <figcaption className="mt-3 text-center text-xs text-secondary-400 dark:text-secondary-500">
+        <p className="mt-6 text-center text-xs text-white/55">
           {caption}
-        </figcaption>
+        </p>
       )}
+      <ScorecardBrandFooter />
     </figure>
   );
 }

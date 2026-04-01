@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { NlpPipelineDiagram } from '@/components/blog/diagrams';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -48,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/how-ai-chatbots-understand-questions',
       },
       datePublished: '2025-11-10',
-      dateModified: '2025-11-10',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -62,6 +59,12 @@ const jsonLd = {
           '@type': 'ImageObject',
           url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/how-ai-chatbots-understand-questions/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {
@@ -106,6 +109,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Misunderstandings happen, though they are less frequent with modern AI than with older keyword-based systems. When they do occur, it\'s usually because the knowledge base lacks relevant content or the question is genuinely ambiguous. The best mitigation is reviewing chat logs regularly, adding missing content to the knowledge base, and refining the system prompt to handle common edge cases. Users can also rephrase their question, and the chatbot will often get it right on the second attempt.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'How AI Chatbots Understand Your Questions',
+          item: 'https://vocui.com/blog/how-ai-chatbots-understand-questions',
         },
       ],
     },
@@ -204,7 +220,7 @@ export default function HowAiChatbotsUnderstandQuestionsPage() {
                   How natural language processing works
                 </h2>
                 <p>
-                  Natural language processing (NLP) is the branch of AI that deals with
+                  <a href="https://en.wikipedia.org/wiki/Natural_language_processing" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Natural language processing</a> (NLP) is the branch of AI that deals with
                   understanding human language. When you send a message to an AI chatbot,
                   NLP handles several tasks simultaneously. It identifies the intent behind
                   your message — are you asking a question, making a complaint, requesting
@@ -213,7 +229,7 @@ export default function HowAiChatbotsUnderstandQuestionsPage() {
                   neutral, or satisfied?
                 </p>
                 <p className="mt-4">
-                  Modern NLP is built on transformer architectures — the same technology behind
+                  Modern NLP is built on transformer architectures (introduced in the landmark <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">&quot;Attention Is All You Need&quot;</a> paper) — the same technology behind
                   models like Claude and GPT. These models process text by examining each word
                   in relation to every other word in the input, building a rich understanding
                   of context. The word &quot;bank&quot; means something completely different in &quot;I need
@@ -225,7 +241,8 @@ export default function HowAiChatbotsUnderstandQuestionsPage() {
                   contractions, informal grammar, industry jargon, or even incomplete sentences.
                   The NLP layer parses your intent regardless of how polished your phrasing is.
                   This is a direct result of training on billions of examples of real human
-                  communication, including informal text.
+                  communication, including informal text. The <a href="https://huggingface.co/learn/nlp-course/chapter1/2" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Hugging Face NLP Course</a> offers
+                  a good technical primer on how these pipelines tokenize and process input.
                 </p>
 
                 <NlpPipelineDiagram />

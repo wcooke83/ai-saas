@@ -5,7 +5,9 @@ import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle2, XCircle, MinusCircle } from 'lucide-react';
+import { StyledBulletList } from '@/components/blog/styled-lists';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -47,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/tidio-alternatives',
       },
       datePublished: '2025-11-21',
-      dateModified: '2025-11-21',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -111,6 +109,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: "VocUI combines AI chatbot answers with live agent handoff in one product \u2014 AI handles what it can, and hands off to humans when it can\u2019t. Intercom does this too but at a much higher price. Crisp handles live chat well but its AI is rule-based, not generative.",
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: '5 Tidio Alternatives for AI-Powered Customer Chat',
+          item: 'https://vocui.com/blog/tidio-alternatives',
         },
       ],
     },
@@ -266,29 +277,12 @@ export default function TidioAlternativesPage() {
                   But Tidio&apos;s strengths are also its boundaries. Here&apos;s where businesses typically
                   start looking elsewhere:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">AI is an add-on, not the core.</strong> Tidio&apos;s
-                    AI assistant (Lyro) costs extra and works best for simple FAQ-style responses. If
-                    you need a chatbot that can answer complex questions from your docs, you&apos;ll hit
-                    a ceiling quickly.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">No Slack deployment.</strong> Tidio
-                    is built for website chat. If you want your chatbot available inside Slack for
-                    internal team use, you need a different tool entirely.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Pricing jumps with AI.</strong> The
-                    $29/month starting price doesn&apos;t include Lyro. Add that at $39/month and
-                    you&apos;re suddenly at $68+/month — more than some full-featured alternatives.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Limited document training.</strong> You
-                    can&apos;t train Tidio on PDFs, DOCX files, or large knowledge bases the way you
-                    can with purpose-built AI chatbot platforms.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'AI is an add-on, not the core.', description: 'Tidio\u2019s AI assistant (Lyro) costs extra and works best for simple FAQ-style responses. If you need a chatbot that can answer complex questions from your docs, you\u2019ll hit a ceiling quickly.' },
+                  { title: 'No Slack deployment.', description: 'Tidio is built for website chat. If you want your chatbot available inside Slack for internal team use, you need a different tool entirely.' },
+                  { title: 'Pricing jumps with AI.', description: 'The $29/month starting price doesn\u2019t include Lyro. Add that at $39/month and you\u2019re suddenly at $68+/month \u2014 more than some full-featured alternatives.' },
+                  { title: 'Limited document training.', description: 'You can\u2019t train Tidio on PDFs, DOCX files, or large knowledge bases the way you can with purpose-built AI chatbot platforms.' },
+                ]} />
                 <p className="mt-4">
                   None of these are dealbreakers for everyone. If Tidio covers your needs, stick with
                   it — especially if you rely on its mobile app or ecommerce integrations. But if any
@@ -535,29 +529,13 @@ export default function TidioAlternativesPage() {
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Which is right for you?
                 </h2>
-                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you need AI-powered answers from your own content:</strong>{' '}
-                    VocUI is the strongest option — knowledge base training is the core product, not
-                    an afterthought.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you need a full customer communication suite:</strong>{' '}
-                    Intercom has the deepest feature set, but expect to pay for it.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you need free live chat with basic automation:</strong>{' '}
-                    Crisp&apos;s free plan is hard to beat for simple use cases.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you&apos;re already on Freshworks:</strong>{' '}
-                    Freshchat integrates natively with the rest of the suite.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you want a simple embed-only AI chatbot:</strong>{' '}
-                    Chatbase is focused and easy to set up.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'If you need AI-powered answers from your own content:', description: 'VocUI is the strongest option \u2014 knowledge base training is the core product, not an afterthought.' },
+                  { title: 'If you need a full customer communication suite:', description: 'Intercom has the deepest feature set, but expect to pay for it.' },
+                  { title: 'If you need free live chat with basic automation:', description: 'Crisp\u2019s free plan is hard to beat for simple use cases.' },
+                  { title: 'If you\u2019re already on Freshworks:', description: 'Freshchat integrates natively with the rest of the suite.' },
+                  { title: 'If you want a simple embed-only AI chatbot:', description: 'Chatbase is focused and easy to set up.' },
+                ]} />
               </section>
 
               <section id="faq">

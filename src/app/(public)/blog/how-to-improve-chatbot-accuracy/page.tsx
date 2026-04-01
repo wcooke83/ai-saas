@@ -8,6 +8,8 @@ import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { DashboardPath } from '@/components/blog/dashboard-path';
 import { ChecklistInfographic } from '@/components/blog/infographics';
+import { StyledNumberedList, StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -49,12 +51,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/how-to-improve-chatbot-accuracy',
       },
       datePublished: '2026-03-03',
-      dateModified: '2026-03-03',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -63,6 +61,12 @@ const jsonLd = {
           '@type': 'ImageObject',
           url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/how-to-improve-chatbot-accuracy/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {
@@ -107,6 +111,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Yes. VocUI\'s dashboard includes conversation logs where you can review every chat session. Read through recent conversations regularly to spot incorrect answers, identify content gaps, and find opportunities to improve your system prompt or knowledge sources.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'How to Improve Your Chatbot\u2019s Answer Accuracy',
+          item: 'https://vocui.com/blog/how-to-improve-chatbot-accuracy',
         },
       ],
     },
@@ -224,26 +241,11 @@ export default function HowToImproveChatbotAccuracyPage() {
                   dashboard and look at your knowledge sources. Ask yourself these questions:
                 </p>
                 <DashboardPath steps={['Chatbots', 'Your chatbot', 'Knowledge Sources']} tip="Review your sources and re-scrape any outdated content." />
-                <ul className="list-disc pl-5 space-y-2 mt-4">
-                  <li>
-                    <strong>Is the information complete?</strong> If customers ask about returns
-                    and your return policy isn&apos;t in the knowledge base, the bot will either
-                    guess or say it doesn&apos;t know. Neither is ideal. List your top 20
-                    customer questions and verify that answers to all of them exist in your
-                    training data.
-                  </li>
-                  <li>
-                    <strong>Is the information current?</strong> Outdated content is a common
-                    source of wrong answers. If you changed your pricing six months ago but
-                    didn&apos;t update your knowledge sources, the bot is still quoting the old
-                    prices. Check dates and refresh stale content.
-                  </li>
-                  <li>
-                    <strong>Is the information consistent?</strong> If two different documents
-                    mention different business hours or conflicting policies, the bot may pull
-                    from either one. Remove duplicates and resolve contradictions.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Is the information complete?', description: 'If customers ask about returns and your return policy isn\u2019t in the knowledge base, the bot will either guess or say it doesn\u2019t know. Neither is ideal. List your top 20 customer questions and verify that answers to all of them exist in your training data.' },
+                  { title: 'Is the information current?', description: 'Outdated content is a common source of wrong answers. If you changed your pricing six months ago but didn\u2019t update your knowledge sources, the bot is still quoting the old prices. Check dates and refresh stale content.' },
+                  { title: 'Is the information consistent?', description: 'If two different documents mention different business hours or conflicting policies, the bot may pull from either one. Remove duplicates and resolve contradictions.' },
+                ]} />
                 <p className="mt-4">
                   For a deeper dive into building an effective knowledge base, see our guide on{' '}
                   <Link
@@ -267,29 +269,12 @@ export default function HowToImproveChatbotAccuracyPage() {
                   content is well-structured, the right chunk gets retrieved. If it&apos;s a
                   wall of text, the bot may pull an irrelevant section.
                 </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4">
-                  <li>
-                    <strong>Use clear headings.</strong> Break content into sections with
-                    descriptive H2 and H3 headings. &quot;Return Policy for US Orders&quot; is
-                    better than &quot;Section 4.2&quot;.
-                  </li>
-                  <li>
-                    <strong>Keep topics focused.</strong> One page per topic works better than a
-                    single document covering everything. A dedicated shipping policy page will
-                    produce more accurate shipping answers than a general FAQ page that mentions
-                    shipping in passing.
-                  </li>
-                  <li>
-                    <strong>Write in Q&A format where possible.</strong> If you have a FAQ page,
-                    structure it as clear question-and-answer pairs. This format aligns perfectly
-                    with how the retrieval system matches user queries to content.
-                  </li>
-                  <li>
-                    <strong>Avoid large tables and complex formatting.</strong> Tables with many
-                    columns or deeply nested lists can confuse the chunking process. Convert
-                    important table data into simple prose or short bullet lists.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Use clear headings.', description: 'Break content into sections with descriptive H2 and H3 headings. \u201CReturn Policy for US Orders\u201D is better than \u201CSection 4.2\u201D.' },
+                  { title: 'Keep topics focused.', description: 'One page per topic works better than a single document covering everything. A dedicated shipping policy page will produce more accurate shipping answers than a general FAQ page that mentions shipping in passing.' },
+                  { title: 'Write in Q&A format where possible.', description: 'If you have a FAQ page, structure it as clear question-and-answer pairs. This format aligns perfectly with how the retrieval system matches user queries to content.' },
+                  { title: 'Avoid large tables and complex formatting.', description: 'Tables with many columns or deeply nested lists can confuse the chunking process. Convert important table data into simple prose or short bullet lists.' },
+                ]} />
                 <p className="mt-4">
                   For more on this topic, see our{' '}
                   <Link
@@ -316,28 +301,12 @@ export default function HowToImproveChatbotAccuracyPage() {
                 <p className="mt-4">
                   Key principles for an accuracy-focused system prompt:
                 </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4">
-                  <li>
-                    <strong>Set explicit boundaries.</strong> Tell the bot: &quot;Only answer
-                    questions using the provided knowledge base content. If the answer is not in
-                    the provided content, say &apos;I don&apos;t have specific information about
-                    that. Please contact us at [email] for help.&apos;&quot;
-                  </li>
-                  <li>
-                    <strong>Define the bot&apos;s identity.</strong> &quot;You are a customer
-                    support assistant for [Company Name]. You help visitors with questions about
-                    our products, services, shipping, and returns.&quot;
-                  </li>
-                  <li>
-                    <strong>Specify what to avoid.</strong> &quot;Do not make up information. Do
-                    not provide medical, legal, or financial advice. Do not discuss competitor
-                    products.&quot;
-                  </li>
-                  <li>
-                    <strong>Set the tone.</strong> &quot;Respond in a friendly, professional
-                    tone. Keep answers concise — under three sentences when possible.&quot;
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Set explicit boundaries.', description: 'Tell the bot: \u201COnly answer questions using the provided knowledge base content. If the answer is not in the provided content, say \u2018I don\u2019t have specific information about that. Please contact us at [email] for help.\u2019\u201D' },
+                  { title: 'Define the bot\u2019s identity.', description: '\u201CYou are a customer support assistant for [Company Name]. You help visitors with questions about our products, services, shipping, and returns.\u201D' },
+                  { title: 'Specify what to avoid.', description: '\u201CDo not make up information. Do not provide medical, legal, or financial advice. Do not discuss competitor products.\u201D' },
+                  { title: 'Set the tone.', description: '\u201CRespond in a friendly, professional tone. Keep answers concise \u2014 under three sentences when possible.\u201D' },
+                ]} />
                 <p className="mt-4">
                   Our full{' '}
                   <Link
@@ -363,28 +332,12 @@ export default function HowToImproveChatbotAccuracyPage() {
                 <p className="mt-4">
                   Build a testing routine:
                 </p>
-                <ol className="list-decimal pl-5 space-y-3 mt-4">
-                  <li>
-                    <strong>Review conversation logs weekly.</strong> Open VocUI&apos;s chat
-                    history and read recent conversations. Flag answers that were wrong, vague,
-                    or unhelpful.
-                  </li>
-                  <li>
-                    <strong>Identify content gaps.</strong> If the bot repeatedly fails on a
-                    specific topic, add or improve the content for that topic in your knowledge
-                    base.
-                  </li>
-                  <li>
-                    <strong>Test after every change.</strong> When you update a knowledge source
-                    or modify your system prompt, immediately test with 5-10 relevant questions
-                    to make sure the change improved things without breaking other answers.
-                  </li>
-                  <li>
-                    <strong>Track accuracy over time.</strong> Keep a simple log of correct vs.
-                    incorrect answers. You should see the ratio improve as you refine your
-                    content.
-                  </li>
-                </ol>
+                <StyledNumberedList items={[
+                  { title: 'Review conversation logs weekly.', description: 'Open VocUI\u2019s chat history and read recent conversations. Flag answers that were wrong, vague, or unhelpful.' },
+                  { title: 'Identify content gaps.', description: 'If the bot repeatedly fails on a specific topic, add or improve the content for that topic in your knowledge base.' },
+                  { title: 'Test after every change.', description: 'When you update a knowledge source or modify your system prompt, immediately test with 5-10 relevant questions to make sure the change improved things without breaking other answers.' },
+                  { title: 'Track accuracy over time.', description: 'Keep a simple log of correct vs. incorrect answers. You should see the ratio improve as you refine your content.' },
+                ]} />
               </section>
 
               {/* Section 6 */}
@@ -407,12 +360,12 @@ export default function HowToImproveChatbotAccuracyPage() {
                 <p className="mt-4">
                   Q&A pairs are especially useful for:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4">
-                  <li>Pricing information that must be exact</li>
-                  <li>Business hours and location details</li>
-                  <li>Warranty and return deadlines</li>
-                  <li>Answers that customers frequently get wrong or confused about</li>
-                </ul>
+                <StyledBulletList items={[
+                  'Pricing information that must be exact',
+                  'Business hours and location details',
+                  'Warranty and return deadlines',
+                  'Answers that customers frequently get wrong or confused about',
+                ]} />
                 <p className="mt-4">
                   Combine Q&A pairs with your regular knowledge sources for the best results.
                   The broader documents handle general questions, while Q&A pairs handle the

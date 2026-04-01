@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { ChatbotArchitectureDiagram } from '@/components/blog/diagrams';
+import { StyledNumberedList, StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -48,12 +50,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/what-is-a-knowledge-base-chatbot',
       },
       datePublished: '2026-01-26',
-      dateModified: '2026-01-26',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -112,6 +110,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: "With VocUI, most businesses go from zero to a deployed chatbot in under an hour. The time depends on how much content you want to add — a single help page or FAQ document can be processed in minutes.",
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'What Is a Knowledge Base Chatbot?',
+          item: 'https://vocui.com/blog/what-is-a-knowledge-base-chatbot',
         },
       ],
     },
@@ -187,30 +198,12 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
                   content.
                 </p>
                 <p className="mt-4">Here&apos;s the sequence of events when someone asks a question:</p>
-                <ol className="list-decimal pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Indexing (happens once, during setup):</strong> Your documents
-                    are chunked into small sections. Each chunk is converted into a numerical
-                    representation called an embedding — a list of numbers that captures the
-                    meaning of the text. These embeddings are stored in a vector database.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Query processing:</strong> When a user asks a question, the same
-                    embedding process is applied to their question. This converts their question
-                    into a numerical representation.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Semantic search:</strong> The system finds the knowledge base chunks
-                    whose embeddings are closest to the question&apos;s embedding. This is semantic
-                    search — it matches meaning, not keywords. A question about &quot;shipping time&quot;
-                    will match a passage about &quot;delivery schedule&quot; even without the exact word match.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Answer generation:</strong> The relevant chunks are passed to a
-                    large language model (like Claude or GPT-4) along with the user&apos;s question.
-                    The model synthesizes an answer from that content.
-                  </li>
-                </ol>
+                <StyledNumberedList items={[
+                  { title: 'Indexing (happens once, during setup):', description: 'Your documents are chunked into small sections. Each chunk is converted into a numerical representation called an embedding \u2014 a list of numbers that captures the meaning of the text. These embeddings are stored in a vector database.' },
+                  { title: 'Query processing:', description: 'When a user asks a question, the same embedding process is applied to their question. This converts their question into a numerical representation.' },
+                  { title: 'Semantic search:', description: 'The system finds the knowledge base chunks whose embeddings are closest to the question\u2019s embedding. This is semantic search \u2014 it matches meaning, not keywords. A question about \u201Cshipping time\u201D will match a passage about \u201Cdelivery schedule\u201D even without the exact word match.' },
+                  { title: 'Answer generation:', description: 'The relevant chunks are passed to a large language model (like Claude or GPT-4) along with the user\u2019s question. The model synthesizes an answer from that content.' },
+                ]} />
                 <ChatbotArchitectureDiagram />
 
                 <p className="mt-4">
@@ -240,23 +233,12 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
                 <p className="mt-4">
                   A knowledge base chatbot is fundamentally different:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    It understands the meaning of questions, not just their exact wording.
-                  </li>
-                  <li>
-                    It generates answers dynamically from your content, rather than retrieving
-                    pre-written responses.
-                  </li>
-                  <li>
-                    It can answer follow-up questions that reference earlier parts of the
-                    conversation.
-                  </li>
-                  <li>
-                    It handles novel questions — ones you never specifically anticipated —
-                    as long as the answer is somewhere in the content you provided.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  'It understands the meaning of questions, not just their exact wording.',
+                  'It generates answers dynamically from your content, rather than retrieving pre-written responses.',
+                  'It can answer follow-up questions that reference earlier parts of the conversation.',
+                  'It handles novel questions \u2014 ones you never specifically anticipated \u2014 as long as the answer is somewhere in the content you provided.',
+                ]} />
                 <p className="mt-4">
                   The tradeoff: FAQ bots are completely predictable (you control every response
                   exactly), while knowledge base chatbots are more flexible but require you to
@@ -317,30 +299,13 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
                 <p>
                   Almost any text-based content works. The most common sources:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Website pages</strong> — your help center, FAQ page, product pages,
-                    pricing page, &quot;How it works&quot; page. Paste the URL and the content is scraped
-                    automatically.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">PDF documents</strong> — service guides, product manuals, brochures,
-                    onboarding materials. VocUI extracts the text from multi-page PDFs.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Word documents</strong> — internal knowledge bases, policy documents,
-                    staff handbooks.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Q&amp;A pairs</strong> — type questions and answers directly. This is
-                    the most precise format because you control both the question and the answer
-                    exactly.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Plain text</strong> — anything that doesn&apos;t fit neatly into the
-                    above categories. Copy and paste it in.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Website pages', description: 'Your help center, FAQ page, product pages, pricing page, \u201CHow it works\u201D page. Paste the URL and the content is scraped automatically.' },
+                  { title: 'PDF documents', description: 'Service guides, product manuals, brochures, onboarding materials. VocUI extracts the text from multi-page PDFs.' },
+                  { title: 'Word documents', description: 'Internal knowledge bases, policy documents, staff handbooks.' },
+                  { title: 'Q&A pairs', description: 'Type questions and answers directly. This is the most precise format because you control both the question and the answer exactly.' },
+                  { title: 'Plain text', description: 'Anything that doesn\u2019t fit neatly into the above categories. Copy and paste it in.' },
+                ]} />
                 <p className="mt-4">
                   The main limitation: the content must be text. Images, video, and scanned
                   document images without OCR won&apos;t work.
@@ -355,43 +320,13 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
                   Knowledge base chatbots work well anywhere that customers or employees are
                   asking questions that have documented answers. Common use cases:
                 </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Customer support deflection</strong> — handle routine questions
-                    about pricing, policies, and product features without tickets.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Professional services intake</strong> — law firms, clinics, and
-                    consultancies can use knowledge base chatbots to answer common client
-                    questions and qualify leads before a call. See our guides for{' '}
-                    <Link href="/chatbot-for-lawyers" className="text-primary-600 dark:text-primary-400 hover:underline">
-                      law firms
-                    </Link>
-                    {', '}
-                    <Link href="/chatbot-for-healthcare" className="text-primary-600 dark:text-primary-400 hover:underline">
-                      healthcare providers
-                    </Link>
-                    {', and '}
-                    <Link href="/chatbot-for-real-estate" className="text-primary-600 dark:text-primary-400 hover:underline">
-                      real estate agents
-                    </Link>
-                    .
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Internal knowledge management</strong> — deploy the chatbot in
-                    Slack so employees can query internal documentation, HR policies, and
-                    process guides without pinging colleagues.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">E-commerce product questions</strong> — answer questions about
-                    specifications, compatibility, shipping, and returns without live agent time.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Lead qualification</strong> — a chatbot that answers prospect
-                    questions and captures contact information is a low-friction way to fill your
-                    pipeline.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Customer support deflection', description: 'Handle routine questions about pricing, policies, and product features without tickets.' },
+                  { title: 'Professional services intake', description: <>Law firms, clinics, and consultancies can use knowledge base chatbots to answer common client questions and qualify leads before a call. See our guides for{' '}<Link href="/chatbot-for-lawyers" className="text-primary-600 dark:text-primary-400 hover:underline">law firms</Link>{', '}<Link href="/chatbot-for-healthcare" className="text-primary-600 dark:text-primary-400 hover:underline">healthcare providers</Link>{', and '}<Link href="/chatbot-for-real-estate" className="text-primary-600 dark:text-primary-400 hover:underline">real estate agents</Link>.</> },
+                  { title: 'Internal knowledge management', description: 'Deploy the chatbot in Slack so employees can query internal documentation, HR policies, and process guides without pinging colleagues.' },
+                  { title: 'E-commerce product questions', description: 'Answer questions about specifications, compatibility, shipping, and returns without live agent time.' },
+                  { title: 'Lead qualification', description: 'A chatbot that answers prospect questions and captures contact information is a low-friction way to fill your pipeline.' },
+                ]} />
               </section>
 
               <section>
@@ -404,13 +339,13 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
                   infrastructure automatically.
                 </p>
                 <p className="mt-4">The practical steps are straightforward:</p>
-                <ol className="list-decimal pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>Create a chatbot in VocUI and give it a name.</li>
-                  <li>Add your knowledge sources — paste a URL, upload a file, or type Q&amp;A pairs.</li>
-                  <li>Wait for processing (usually under two minutes).</li>
-                  <li>Test it with the built-in chat tester.</li>
-                  <li>Embed the widget on your site with a single script tag.</li>
-                </ol>
+                <StyledNumberedList items={[
+                  'Create a chatbot in VocUI and give it a name.',
+                  'Add your knowledge sources \u2014 paste a URL, upload a file, or type Q&A pairs.',
+                  'Wait for processing (usually under two minutes).',
+                  'Test it with the built-in chat tester.',
+                  'Embed the widget on your site with a single script tag.',
+                ]} />
                 <p className="mt-4">
                   The free plan gets you started with no credit card required. Most businesses are
                   live in under an hour. Read our step-by-step guide on{' '}

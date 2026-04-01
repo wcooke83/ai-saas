@@ -6,6 +6,8 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { StyledNumberedList, StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -47,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/how-to-embed-chatbot-in-wix',
       },
       datePublished: '2026-02-25',
-      dateModified: '2026-02-25',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -105,6 +103,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'If you used the HTML Embed widget method, check that the embed element is also placed on the mobile version of your page. Wix maintains separate desktop and mobile layouts — elements added in the desktop editor do not always appear on mobile automatically. Switch to the mobile editor view and confirm the HTML embed widget is present. If you used the site-wide Custom Code method, the script loads on both desktop and mobile by default.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'How to Embed a Chatbot in Wix',
+          item: 'https://vocui.com/blog/how-to-embed-chatbot-in-wix',
         },
       ],
     },
@@ -172,64 +183,71 @@ export default function HowToEmbedChatbotInWixPage() {
             </div>
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
-              {/* Section 1 */}
+              {/* Section 1 — Choose your embed method */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
-                  Why Add a Chatbot to Wix
+                  Two Embed Methods: Pick the One That Fits Your Wix Plan
                 </h2>
                 <p>
-                  According to <a href="https://www.searchenginejournal.com/cms-market-share/454039/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Search Engine Journal</a>, Wix holds 3.7% of the CMS market and is the fastest-growing major CMS at 32.6% year-over-year growth. Wix powers millions of small business websites — from local service providers
-                  to online stores and portfolio sites. These sites get traffic, but converting
-                  that traffic into leads or sales depends on answering visitor questions quickly.
-                  A contact form with a 24-hour response time doesn&apos;t cut it when your
-                  competitor&apos;s site gives answers in seconds.
+                  Wix gives you two ways to embed a chatbot, and which one you use depends on
+                  your plan:
                 </p>
+                <StyledBulletList items={[
+                  { title: 'Custom Code (Premium plans).', description: 'A site-wide setting under Settings > Custom Code. Paste the script once and it loads on every page automatically. This is the faster, set-and-forget option \u2014 but it requires a Wix Premium, Combo, or higher plan.' },
+                  { title: 'HTML Embed widget (any plan, including free).', description: 'A drag-and-drop element you add to individual pages in the Wix Editor. No paid plan required. You\u2019ll need to add the widget to each page where you want the chatbot, but it works on every Wix plan \u2014 even free sites.' },
+                ]} />
                 <p className="mt-4">
-                  An AI chatbot bridges this gap. It sits on your Wix site and handles the
-                  questions your visitors ask most: pricing inquiries, service details, business
-                  hours, booking processes, and product information. The bot pulls answers from
-                  your own content, so responses are accurate and specific to your business.
-                </p>
-                <p className="mt-4">
-                  Wix does offer a built-in chat feature, but it requires you or your team to be
-                  online to respond. An AI chatbot works around the clock. Visitors who land on
-                  your site at 2 AM get the same quality answers as someone visiting during
-                  business hours. No missed leads, no delayed responses, no extra staff.
+                  Both methods use the same one-line script from your VocUI dashboard. The
+                  difference is where you paste it. Read on to decide which fits your
+                  situation, then skip to the matching step-by-step section.
                 </p>
               </section>
 
-              {/* Section 2 */}
+              {/* Section 2 — Why, Wix-specific */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
-                  Prerequisites
+                  Why Wix Sites Need an AI Chatbot
                 </h2>
                 <p>
-                  Before you start, confirm that you have the following:
+                  Wix has a built-in live chat feature called Wix Chat, but it is strictly
+                  live-agent — someone on your team has to be on the other end typing responses
+                  in real time. For the solo freelancer, local bakery, or two-person consulting
+                  firm that makes up most of Wix&apos;s user base, that means chat goes dead the
+                  moment you step away from your computer. Visitors see an empty chat window with
+                  no one to answer, which is worse than having no chat at all. An AI chatbot
+                  trained on your own content handles those conversations around the clock without
+                  needing anyone online.
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4">
-                  <li>
-                    <strong>A VocUI account with a chatbot ready.</strong> Create your chatbot,
-                    add your knowledge sources (your site URL, FAQ pages, PDFs), and configure
-                    the widget appearance. Follow our{' '}
-                    <Link
-                      href="/blog/how-to-add-chatbot-to-website"
-                      className="text-primary-600 dark:text-primary-400 hover:underline"
-                    >
-                      chatbot setup guide
-                    </Link>{' '}
-                    if you haven&apos;t done this yet.
-                  </li>
-                  <li>
-                    <strong>Wix site editor access.</strong> You need to be the site owner or
-                    have editor permissions. The custom code method works on both Wix Editor
-                    (classic) and Wix Studio.
-                  </li>
-                  <li>
-                    <strong>A Wix Premium plan (recommended).</strong> The site-wide custom code
-                    injection feature requires a Premium plan. If you&apos;re on a free Wix plan,
-                    you can use the HTML embed widget method described below instead.
-                  </li>
-                </ul>
+                <p className="mt-4">
+                  Cost matters too. Many Wix users run on free or low-tier plans because they are
+                  bootstrapping a side project or testing a business idea. The HTML Embed widget
+                  method works on any Wix plan, including free, so AI-powered support is
+                  accessible even before you upgrade. You do not need to buy a Premium plan just
+                  to add a chatbot.
+                </p>
+                <p className="mt-4">
+                  Wix users are builders, not developers. The drag-and-drop editor is the whole
+                  point. Both embed methods reflect that: Custom Code is a single paste into a
+                  settings panel (no code files to find or edit), and the HTML Embed widget is a
+                  visual element you drag onto the page like any other Wix block. Neither method
+                  requires you to write, read, or debug code.
+                </p>
+              </section>
+
+              {/* Section 3 — Prerequisites */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  What You Need Before You Start
+                </h2>
+                <p>
+                  Pick your method first, then confirm you have everything lined up:
+                </p>
+                <StyledBulletList items={[
+                  { title: 'Decide: Custom Code or HTML Embed.', description: 'Custom Code is site-wide and requires a paid Wix plan. HTML Embed works per-page and works on any plan, including free. If you are not sure which plan you have, check Account > Subscriptions in your Wix dashboard.' },
+                  { title: 'Wix dashboard access.', description: 'You need to be the site owner or a team member with editor permissions. Both Wix Editor (classic) and Wix Studio work.' },
+                  { title: 'A VocUI chatbot ready to deploy.', description: <>Create your chatbot in VocUI, add your knowledge sources (your site URL, FAQ pages, PDFs), and grab the embed code from the Deploy tab. Our <Link href="/blog/how-to-add-chatbot-to-website" className="text-primary-600 dark:text-primary-400 hover:underline">chatbot setup guide</Link> walks through this step by step.</> },
+                  { title: 'Premium, Combo, or higher (Custom Code only).', description: 'The Settings > Custom Code panel only appears on paid Wix plans. If you see the option, you\u2019re set. If not, use the HTML Embed widget method instead \u2014 no upgrade needed.' },
+                ]} />
               </section>
 
               {/* Section 3 */}
@@ -245,35 +263,16 @@ export default function HowToEmbedChatbotInWixPage() {
                 <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mt-6 mb-3">
                   Method 1: Site-Wide Custom Code (Premium)
                 </h3>
-                <ol className="list-decimal pl-5 space-y-3 mt-3">
-                  <li>
-                    In your Wix dashboard, go to <strong>Settings</strong> in the left sidebar.
-                  </li>
-                  <li>
-                    Click <strong>Custom Code</strong> (under the Advanced section). See{' '}
-                    <a href="https://support.wix.com/en/article/wix-editor-embedding-custom-code-on-your-site" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Wix&apos;s custom code documentation</a>{' '}
-                    for the full walkthrough.
-                  </li>
-                  <li>
-                    Click <strong>Add Custom Code</strong> in the top right.
-                  </li>
-                  <li>
-                    Paste your VocUI embed script into the code field.
-                  </li>
-                  <li>
-                    Name it something like &quot;VocUI Chatbot&quot; for easy identification.
-                  </li>
-                  <li>
-                    Set placement to <strong>Body - end</strong>. This ensures the script loads
-                    after your page content, which is best for performance.
-                  </li>
-                  <li>
-                    Under &quot;Add Code to Pages,&quot; select <strong>All pages</strong>.
-                  </li>
-                  <li>
-                    Click <strong>Apply</strong>. Then publish your site.
-                  </li>
-                </ol>
+                <StyledNumberedList items={[
+                  <>In your Wix dashboard, go to <strong>Settings</strong> in the left sidebar.</>,
+                  <>Click <strong>Custom Code</strong> (under the Advanced section). See <a href="https://support.wix.com/en/article/wix-editor-embedding-custom-code-on-your-site" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Wix&apos;s custom code documentation</a> for the full walkthrough.</>,
+                  <>Click <strong>Add Custom Code</strong> in the top right.</>,
+                  'Paste your VocUI embed script into the code field.',
+                  'Name it something like \u201cVocUI Chatbot\u201d for easy identification.',
+                  <>Set placement to <strong>Body - end</strong>. This ensures the script loads after your page content, which is best for performance.</>,
+                  <>Under \u201cAdd Code to Pages,\u201d select <strong>All pages</strong>.</>,
+                  <>Click <strong>Apply</strong>. Then publish your site.</>,
+                ]} />
 
                 <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mt-6 mb-3">
                   Method 2: HTML Embed Widget (Any Plan)
@@ -282,28 +281,14 @@ export default function HowToEmbedChatbotInWixPage() {
                   If you&apos;re on a free Wix plan or want the chatbot on specific pages only,
                   use the HTML embed approach:
                 </p>
-                <ol className="list-decimal pl-5 space-y-3 mt-3">
-                  <li>
-                    Open your page in the Wix Editor.
-                  </li>
-                  <li>
-                    Click the <strong>+</strong> (Add) button in the left panel.
-                  </li>
-                  <li>
-                    Search for <strong>Embed Code</strong> or navigate to{' '}
-                    <strong>Embed &gt; Custom Embeds &gt; Embed a Widget</strong>.
-                  </li>
-                  <li>
-                    Drag the HTML element onto your page (position doesn&apos;t matter since the
-                    chatbot uses fixed positioning).
-                  </li>
-                  <li>
-                    Click <strong>Enter Code</strong> and paste your VocUI script tag.
-                  </li>
-                  <li>
-                    Click <strong>Update</strong> and publish your site.
-                  </li>
-                </ol>
+                <StyledNumberedList items={[
+                  'Open your page in the Wix Editor.',
+                  <>Click the <strong>+</strong> (Add) button in the left panel.</>,
+                  <>Search for <strong>Embed Code</strong> or navigate to <strong>Embed &gt; Custom Embeds &gt; Embed a Widget</strong>.</>,
+                  'Drag the HTML element onto your page (position doesn\u2019t matter since the chatbot uses fixed positioning).',
+                  <>Click <strong>Enter Code</strong> and paste your VocUI script tag.</>,
+                  <>Click <strong>Update</strong> and publish your site.</>,
+                ]} />
                 <p className="mt-4">
                   Note: With Method 2, you&apos;ll need to add the embed widget to each page
                   where you want the chatbot. For a site-wide deployment, Method 1 is more
@@ -311,34 +296,43 @@ export default function HowToEmbedChatbotInWixPage() {
                 </p>
               </section>
 
-              {/* Section 4 */}
+              {/* Section 5 — Widget Customization */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
-                  Widget Customization
+                  Making the Widget Look Native to Your Wix Site
                 </h2>
                 <p>
-                  Customize colors, position, welcome message, and avatar from the VocUI
-                  dashboard. For the full list of widget options, see our{' '}
+                  Wix separates desktop and mobile into two independent layouts, which means your
+                  chatbot widget may need attention in both views. If you used the HTML Embed
+                  method, switch to the Wix Editor&apos;s mobile preview to confirm the embed
+                  element is present on the mobile layout — elements added on desktop do not
+                  always carry over. With site-wide Custom Code this is handled automatically.
+                </p>
+                <p className="mt-4">
+                  To match the widget to your site&apos;s color palette, open the Wix Editor and
+                  go to <strong>Design &gt; Color &amp; Text Themes</strong>. Copy the hex value
+                  of your accent color and paste it into VocUI&apos;s widget color picker in
+                  the dashboard. This keeps the chat bubble visually consistent with your buttons,
+                  links, and headings.
+                </p>
+                <p className="mt-4">
+                  If you used the HTML Embed method, think about which pages actually need the
+                  chatbot. A pricing page, contact page, and product pages are high-value
+                  placements where visitors are most likely to have questions. A portfolio gallery
+                  or photo page may not need it. With Custom Code, the widget loads everywhere by
+                  default — you can restrict it to specific pages from the VocUI dashboard
+                  instead.
+                </p>
+                <p className="mt-4">
+                  All other widget settings — position, welcome message, avatar, response tone —
+                  are controlled from the{' '}
                   <Link
                     href="/blog/how-to-add-chatbot-to-website"
                     className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
-                    full chatbot setup guide
+                    VocUI dashboard
                   </Link>
-                  .
-                </p>
-                <p className="mt-4">
-                  <strong>Wix-specific tip:</strong> Wix maintains separate desktop and mobile
-                  layouts. If you used the HTML Embed widget method (not site-wide Custom Code),
-                  make sure the embed element is placed on both the desktop and mobile versions
-                  of your pages. Switch to the mobile editor view in Wix to verify. With
-                  site-wide Custom Code, both layouts are covered automatically.
-                </p>
-                <p className="mt-4">
-                  To find your Wix site&apos;s brand color, open the Wix Editor, click{' '}
-                  <strong>Design &gt; Color &amp; Text Themes</strong>, and note the hex values in
-                  your active palette. Paste the accent color into VocUI&apos;s widget color
-                  picker for a seamless match.
+                  . No need to touch Wix again after the initial embed.
                 </p>
               </section>
 
@@ -351,70 +345,23 @@ export default function HowToEmbedChatbotInWixPage() {
                   Most Wix embeds work after a single publish. When they don&apos;t, the cause
                   is almost always one of these Wix-specific issues:
                 </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4">
-                  <li>
-                    <strong>Custom Code option missing from Settings.</strong> Site-wide Custom
-                    Code requires a Wix Premium plan. Free Wix plans do not show this option. Use
-                    the HTML Embed widget method (Method 2) instead, which works on all plans
-                    including free.
-                  </li>
-                  <li>
-                    <strong>Chatbot appears on desktop but not mobile.</strong> If you used the
-                    HTML Embed widget, Wix manages desktop and mobile layouts separately. Switch
-                    to the mobile editor view and confirm the embed element exists on the mobile
-                    version of the page. With site-wide Custom Code, this is not an issue — the
-                    script loads on both layouts automatically.
-                  </li>
-                  <li>
-                    <strong>Changes not visible after publish.</strong> Wix caches published
-                    pages at the CDN level. Hard-refresh (Ctrl+Shift+R / Cmd+Shift+R) or open
-                    your site in an incognito window. If the chatbot still does not appear, wait
-                    2-3 minutes for Wix&apos;s CDN cache to propagate and try again.
-                  </li>
-                  <li>
-                    <strong>Chatbot overlaps with Wix Chat bubble.</strong> Both widgets try to
-                    claim the same bottom-right corner. Either disable Wix Chat (go to your Wix
-                    dashboard &gt; <strong>Inbox &gt; Chat Settings</strong> &gt; toggle off) or
-                    move the VocUI widget to bottom-left in the VocUI dashboard settings.
-                  </li>
-                  <li>
-                    <strong>HTML Embed widget shows a blank box in the editor.</strong> This is
-                    normal. The Wix editor sandboxes embed elements for security. The chatbot
-                    will render correctly on your published live site. Always test on the
-                    published URL, not the editor preview.
-                  </li>
-                  <li>
-                    <strong>Wix Studio (Editor X) custom code location.</strong> In Wix Studio,
-                    the Custom Code setting is in a different location than the classic Editor.
-                    Go to <strong>Settings &gt; Custom Code</strong> from the Wix Studio
-                    dashboard (not from within the design canvas). The functionality is
-                    identical — paste the script, set placement to Body - end, and apply to All
-                    pages.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Custom Code option missing from Settings.', description: 'Site-wide Custom Code requires a Wix Premium plan. Free Wix plans do not show this option. Use the HTML Embed widget method (Method 2) instead, which works on all plans including free.' },
+                  { title: 'Chatbot appears on desktop but not mobile.', description: 'If you used the HTML Embed widget, Wix manages desktop and mobile layouts separately. Switch to the mobile editor view and confirm the embed element exists on the mobile version of the page. With site-wide Custom Code, this is not an issue \u2014 the script loads on both layouts automatically.' },
+                  { title: 'Changes not visible after publish.', description: 'Wix caches published pages at the CDN level. Hard-refresh (Ctrl+Shift+R / Cmd+Shift+R) or open your site in an incognito window. If the chatbot still does not appear, wait 2-3 minutes for Wix\u2019s CDN cache to propagate and try again.' },
+                  { title: 'Chatbot overlaps with Wix Chat bubble.', description: <>Both widgets try to claim the same bottom-right corner. Either disable Wix Chat (go to your Wix dashboard &gt; <strong>Inbox &gt; Chat Settings</strong> &gt; toggle off) or move the VocUI widget to bottom-left in the VocUI dashboard settings.</> },
+                  { title: 'HTML Embed widget shows a blank box in the editor.', description: 'This is normal. The Wix editor sandboxes embed elements for security. The chatbot will render correctly on your published live site. Always test on the published URL, not the editor preview.' },
+                  { title: 'Wix Studio (Editor X) custom code location.', description: <>In Wix Studio, the Custom Code setting is in a different location than the classic Editor. Go to <strong>Settings &gt; Custom Code</strong> from the Wix Studio dashboard (not from within the design canvas). The functionality is identical \u2014 paste the script, set placement to Body - end, and apply to All pages.</> },
+                ]} />
                 <p className="mt-4">
-                  For other platforms, see our{' '}
-                  <Link
-                    href="/blog/how-to-embed-chatbot-in-shopify"
-                    className="text-primary-600 dark:text-primary-400 hover:underline"
-                  >
-                    Shopify embed guide
-                  </Link>
-                  ,{' '}
-                  <Link
-                    href="/blog/how-to-embed-chatbot-in-squarespace"
-                    className="text-primary-600 dark:text-primary-400 hover:underline"
-                  >
-                    Squarespace embed guide
-                  </Link>
-                  , or the general{' '}
+                  If none of the above resolves your issue, our{' '}
                   <Link
                     href="/blog/how-to-add-chatbot-to-website"
                     className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
-                    chatbot website embed guide
+                    general chatbot embed guide
                   </Link>
-                  .
+                  {' '}covers platform-independent debugging steps.
                 </p>
               </section>
 
@@ -463,12 +410,13 @@ export default function HowToEmbedChatbotInWixPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Ready to add it to your site?</h2>
+            <h2 className="text-2xl font-bold mb-3">Give your Wix site an AI assistant</h2>
             <p className="text-white/80 mb-2">
-              Create your chatbot, copy one line of code, and paste it into your site -- done.
+              Build your chatbot, grab the embed code, and paste it into Wix — Custom Code or
+              HTML Embed, your choice.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Works with any theme or page builder. No plugins required.
+              Works on any Wix plan, including free. No app install needed.
             </p>
             <Button
               size="xl"

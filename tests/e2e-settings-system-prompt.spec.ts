@@ -6,7 +6,7 @@ const SETTINGS_URL = `/dashboard/chatbots/${CHATBOT_ID}/settings`;
 async function gotoPromptSection(page: import('@playwright/test').Page) {
   await page.goto(SETTINGS_URL, { waitUntil: 'domcontentloaded' });
   await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
-  await page.locator('nav button', { hasText: 'System Prompt' }).click();
+  await page.locator('nav button', { hasText: 'Chatbot Instructions' }).click();
 }
 
 test.describe('3. Settings -- System Prompt', () => {

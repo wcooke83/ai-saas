@@ -8,6 +8,8 @@ import { ArrowRight, ExternalLink } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { ROICalculatorVisual } from '@/components/blog/charts';
 import { ChecklistInfographic } from '@/components/blog/infographics';
+import { StyledNumberedList, StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -49,12 +51,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/how-to-measure-chatbot-roi',
       },
       datePublished: '2026-01-20',
-      dateModified: '2026-01-20',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -113,6 +111,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Most businesses see measurable ticket deflection within the first week. Meaningful ROI data typically takes 30-60 days to accumulate, since you need enough conversation volume to establish reliable trends. Start tracking from day one so you have a clean baseline.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'How to Measure Chatbot ROI for Your Business',
+          item: 'https://vocui.com/blog/how-to-measure-chatbot-roi',
         },
       ],
     },
@@ -195,7 +206,7 @@ export default function HowToMeasureChatbotRoiPage() {
                   The good news: chatbot ROI is more measurable than most marketing investments.
                   Unlike brand awareness campaigns or content marketing where attribution is
                   fuzzy, chatbot impact shows up directly in your support ticket volume, response
-                  times, and conversion rates. According to <a href="https://www.freshworks.com/How-AI-is-unlocking-ROI-in-customer-service/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Freshworks<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, businesses see an average $3.50 return for every $1 invested in AI, with top performers seeing up to $8. You can tie specific conversations to specific
+                  times, and conversion rates. According to <a href="https://www.ibm.com/thought-leadership/institute-business-value/report/ai-customer-service" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">IBM Institute for Business Value<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, businesses see an average $3.50 return for every $1 invested in AI, with top performers seeing up to $8. You can tie specific conversations to specific
                   outcomes.
                 </p>
                 <p className="mt-4">
@@ -215,30 +226,12 @@ export default function HowToMeasureChatbotRoiPage() {
                   Not every chatbot metric matters equally. Focus on the four that directly
                   connect to business outcomes:
                 </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4">
-                  <li>
-                    <strong>Deflection rate.</strong> The percentage of conversations that resolve
-                    without a human agent. This is your primary cost-saving metric. Calculate it
-                    by dividing chatbot-only resolutions by total conversations. According to <a href="https://www.ibm.com/think/topics/ai-customer-service-chatbots" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">IBM<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, well-trained chatbots can handle up to 80% of routine inquiries, with most businesses seeing 30-50% deflection rates initially.
-                  </li>
-                  <li>
-                    <strong>Resolution rate.</strong> The percentage of chatbot conversations where
-                    the visitor got a satisfactory answer. Track this through conversation endings
-                    — did the user leave satisfied, ask a follow-up, or escalate to support? Low
-                    resolution rates signal content gaps.
-                  </li>
-                  <li>
-                    <strong>Customer satisfaction (CSAT).</strong> If you add a thumbs-up/down
-                    rating or a post-chat survey, track the satisfaction score over time. The
-                    chatbot should maintain or improve your existing CSAT, not lower it.
-                  </li>
-                  <li>
-                    <strong>Lead conversion.</strong> How many chatbot conversations result in a
-                    signup, booking, purchase, or contact form submission? Track this by monitoring
-                    clicks on links the chatbot shares (booking pages, pricing pages, signup
-                    forms).
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Deflection rate.', description: <>The percentage of conversations that resolve without a human agent. This is your primary cost-saving metric. Calculate it by dividing chatbot-only resolutions by total conversations. According to <a href="https://www.ibm.com/think/topics/ai-customer-service-chatbots" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">IBM<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, well-trained chatbots can handle up to 80% of routine inquiries, with most businesses seeing 30-50% deflection rates initially.</> },
+                  { title: 'Resolution rate.', description: 'The percentage of chatbot conversations where the visitor got a satisfactory answer. Track this through conversation endings \u2014 did the user leave satisfied, ask a follow-up, or escalate to support? Low resolution rates signal content gaps.' },
+                  { title: 'Customer satisfaction (CSAT).', description: 'If you add a thumbs-up/down rating or a post-chat survey, track the satisfaction score over time. The chatbot should maintain or improve your existing CSAT, not lower it.' },
+                  { title: 'Lead conversion.', description: 'How many chatbot conversations result in a signup, booking, purchase, or contact form submission? Track this by monitoring clicks on links the chatbot shares (booking pages, pricing pages, signup forms).' },
+                ]} />
                 <p className="mt-4">
                   Secondary metrics worth monitoring include average conversation length (shorter
                   is usually better for simple queries), peak usage hours (tells you when the bot
@@ -265,7 +258,7 @@ export default function HowToMeasureChatbotRoiPage() {
                 <p className="mt-4">
                   For example: if your chatbot deflects 200 tickets per month and your cost per
                   ticket is $12, that&apos;s $2,400 in monthly savings. Subtract your chatbot
-                  cost and you have your net ROI. According to <a href="https://www.bizbot.com/blog/chatbot-roi-ultimate-guide-2025/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">BizBot<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, most companies see positive ROI within 8-14 months, though businesses with high ticket volumes often break even much faster.
+                  cost and you have your net ROI. Industry research suggests most businesses reach positive ROI within the first year, though businesses with high ticket volumes often break even much faster.
                 </p>
                 <p className="mt-4">
                   Don&apos;t forget to include time savings. Even tickets that aren&apos;t fully
@@ -285,26 +278,11 @@ export default function HowToMeasureChatbotRoiPage() {
                   Cost savings are only half the picture. A chatbot that helps visitors find what
                   they need faster also drives revenue. Here&apos;s how to measure it:
                 </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4">
-                  <li>
-                    <strong>Chatbot-assisted conversions.</strong> Use your analytics tool to
-                    compare conversion rates of visitors who interact with the chatbot versus
-                    those who don&apos;t. If chatbot users convert at 4.2% and non-chatbot users
-                    at 2.8%, the chatbot is directly contributing to revenue.
-                  </li>
-                  <li>
-                    <strong>Link tracking.</strong> When your chatbot shares links to product
-                    pages, booking forms, or signup pages, add UTM parameters so you can trace
-                    those conversions back to the chatbot in Google Analytics or your preferred
-                    tool.
-                  </li>
-                  <li>
-                    <strong>Reduced cart abandonment.</strong> For ecommerce sites, compare cart
-                    abandonment rates before and after chatbot deployment. Visitors who get
-                    shipping or return policy answers in the chat are less likely to abandon their
-                    cart.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Chatbot-assisted conversions.', description: 'Use your analytics tool to compare conversion rates of visitors who interact with the chatbot versus those who don\u2019t. If chatbot users convert at 4.2% and non-chatbot users at 2.8%, the chatbot is directly contributing to revenue.' },
+                  { title: 'Link tracking.', description: 'When your chatbot shares links to product pages, booking forms, or signup pages, add UTM parameters so you can trace those conversions back to the chatbot in Google Analytics or your preferred tool.' },
+                  { title: 'Reduced cart abandonment.', description: 'For ecommerce sites, compare cart abandonment rates before and after chatbot deployment. Visitors who get shipping or return policy answers in the chat are less likely to abandon their cart.' },
+                ]} />
                 <p className="mt-4">
                   According to <a href="https://masterofcode.com/blog/chatbot-statistics" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Master of Code<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, 90% of businesses experienced faster complaint resolution after deploying chatbots, which translates directly to customer retention and repeat revenue. The revenue impact is harder to isolate than cost savings, but even rough
                   estimates are valuable. If your chatbot conversations correlate with a 1%
@@ -334,31 +312,14 @@ export default function HowToMeasureChatbotRoiPage() {
                   Create a simple monthly report that tracks your chatbot&apos;s performance over
                   time. Include these data points:
                 </p>
-                <ol className="list-decimal pl-5 space-y-3 mt-4">
-                  <li>
-                    <strong>Total chatbot conversations</strong> — pulled from VocUI&apos;s
-                    analytics dashboard.
-                  </li>
-                  <li>
-                    <strong>Tickets deflected</strong> — chatbot conversations that resolved
-                    without human escalation. Compare against your helpdesk ticket volume.
-                  </li>
-                  <li>
-                    <strong>Cost savings</strong> — deflected tickets multiplied by your
-                    cost-per-ticket.
-                  </li>
-                  <li>
-                    <strong>Leads or conversions attributed</strong> — tracked via UTM links or
-                    analytics segments.
-                  </li>
-                  <li>
-                    <strong>CSAT score</strong> — if you collect post-chat feedback.
-                  </li>
-                  <li>
-                    <strong>Top unanswered questions</strong> — conversations where the bot
-                    couldn&apos;t help. These are your content improvement opportunities.
-                  </li>
-                </ol>
+                <StyledNumberedList items={[
+                  { title: 'Total chatbot conversations', description: 'Pulled from VocUI\u2019s analytics dashboard.' },
+                  { title: 'Tickets deflected', description: 'Chatbot conversations that resolved without human escalation. Compare against your helpdesk ticket volume.' },
+                  { title: 'Cost savings', description: 'Deflected tickets multiplied by your cost-per-ticket.' },
+                  { title: 'Leads or conversions attributed', description: 'Tracked via UTM links or analytics segments.' },
+                  { title: 'CSAT score', description: 'If you collect post-chat feedback.' },
+                  { title: 'Top unanswered questions', description: 'Conversations where the bot couldn\u2019t help. These are your content improvement opportunities.' },
+                ]} />
                 <p className="mt-4">
                   A spreadsheet works fine for this. Pull the numbers on the first of each month,
                   log them, and look for trends. You should see deflection rates climb as you
@@ -425,7 +386,7 @@ export default function HowToMeasureChatbotRoiPage() {
           </article>
 
           <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-8">
-            Statistics cited from publicly available reports by IBM, DemandSage, Freshworks, BizBot, and Master of Code. Links to original sources are provided inline. Last verified April 2026.
+            Statistics cited from publicly available reports by IBM, DemandSage, and Master of Code. Links to original sources are provided inline. Last verified April 2026.
           </p>
 
           {/* CTA */}

@@ -6,7 +6,9 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { ChatPreview, IndustryStatBar } from '@/components/blog/industry-visuals';
+import { StyledNumberedList } from '@/components/blog/styled-lists';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -48,12 +50,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/chatbot-for-fitness-studios',
       },
       datePublished: '2025-12-22',
-      dateModified: '2025-12-22',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -90,6 +88,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Many gyms prefer to discuss pricing in person or over the phone. Configure the chatbot to handle pricing questions by sharing general information about membership tiers and what each includes, then directing the visitor to schedule a tour or call your front desk for specific pricing. For example: "We offer three membership levels: Basic (gym floor access), Plus (gym + classes), and Premium (unlimited everything including personal training credits). For current rates and any promotions, visit us for a free tour or call (555) 123-4567." This keeps the conversation helpful without revealing prices online.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'AI Chatbots for Gyms and Fitness Studios',
+          item: 'https://vocui.com/blog/chatbot-for-fitness-studios',
         },
       ],
     },
@@ -328,13 +339,13 @@ export default function ChatbotForFitnessStudiosPage() {
                   <p className="text-sm font-semibold text-primary-800 dark:text-primary-200 mb-3">
                     Pre-January chatbot checklist
                   </p>
-                  <ol className="space-y-2 text-sm text-secondary-600 dark:text-secondary-400 list-decimal pl-5">
-                    <li>Update knowledge base with January promotions and new member offers (late December).</li>
-                    <li>Add any new class additions or schedule changes for the new year.</li>
-                    <li>Include waitlist policies if popular classes fill up.</li>
-                    <li>Refresh trial class information and booking links.</li>
-                    <li>Test the chatbot with the top 10 questions you expect (&quot;How much?&quot; &quot;Free trial?&quot; &quot;What classes?&quot;).</li>
-                  </ol>
+                  <StyledNumberedList items={[
+                    'Update knowledge base with January promotions and new member offers (late December).',
+                    'Add any new class additions or schedule changes for the new year.',
+                    'Include waitlist policies if popular classes fill up.',
+                    'Refresh trial class information and booking links.',
+                    'Test the chatbot with the top 10 questions you expect (\u201CHow much?\u201D \u201CFree trial?\u201D \u201CWhat classes?\u201D).',
+                  ]} />
                 </div>
 
                 <p>

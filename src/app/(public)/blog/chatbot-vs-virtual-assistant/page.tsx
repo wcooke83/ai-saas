@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { ComparisonInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
@@ -48,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/chatbot-vs-virtual-assistant',
       },
       datePublished: '2026-01-22',
-      dateModified: '2026-01-22',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -62,6 +59,12 @@ const jsonLd = {
           '@type': 'ImageObject',
           url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/chatbot-vs-virtual-assistant/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {
@@ -106,6 +109,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'VocUI is an AI chatbot platform. You create chatbots trained on your own content — websites, PDFs, documents — and deploy them on your website, in Slack, or via direct link. VocUI chatbots use RAG (Retrieval-Augmented Generation) to answer questions accurately from your knowledge base. While they focus on intelligent Q&A rather than virtual assistant-style task execution, they represent the practical AI solution most businesses actually need.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'Chatbot vs Virtual Assistant: What\u0027s the Difference?',
+          item: 'https://vocui.com/blog/chatbot-vs-virtual-assistant',
         },
       ],
     },

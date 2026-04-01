@@ -32,7 +32,7 @@ export function AuthorByline({
       return { name, title: role || '', slug: null };
     }
     // Default fallback (backward-compatible with existing usage)
-    return { name: 'Will Cooke', title: 'Founder at VocUI', slug: 'will-cooke' };
+    return { name: 'William Cooke', title: 'Founder at VocUI', slug: 'will-cooke' };
   })();
 
   const initials = resolved.name

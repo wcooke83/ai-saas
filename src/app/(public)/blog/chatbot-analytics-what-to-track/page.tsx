@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { StatInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
@@ -48,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/chatbot-analytics-what-to-track',
       },
       datePublished: '2025-12-15',
-      dateModified: '2025-12-15',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -112,6 +109,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Weekly during the first month after launch, then monthly once your chatbot is performing consistently. Weekly reviews during the early period help you catch and fix problems quickly while the chatbot is still being calibrated. After the first month, monthly reviews are sufficient to track trends, identify new question patterns, and keep your knowledge base current. Set a recurring calendar reminder so reviews happen consistently.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'Chatbot Analytics: What to Track and Why It Matters',
+          item: 'https://vocui.com/blog/chatbot-analytics-what-to-track',
         },
       ],
     },
@@ -239,8 +249,7 @@ export default function ChatbotAnalyticsWhatToTrackPage() {
                 <p className="mt-4">
                   Compare conversation volume against your website traffic to calculate your
                   chatbot engagement rate &mdash; the percentage of visitors who interact with the
-                  chatbot. A typical engagement rate is 5&ndash;15%, depending on chatbot
-                  placement and how proactively it greets visitors. If your rate is below 3%,
+                  chatbot. A 5&ndash;15% engagement rate is typical for embedded widgets, though this varies by industry and placement. If your rate is below 3%,
                   your chatbot might be too hard to find or its greeting message isn&apos;t
                   compelling enough to start a conversation.
                 </p>

@@ -6,17 +6,19 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle2, XCircle, MinusCircle } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { MidArticleCta } from '@/components/blog/mid-article-cta';
+import { StyledBulletList } from '@/components/blog/styled-lists';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
-  title: '5 Chatbase Alternatives Worth Trying in 2025 | VocUI',
+  title: '5 Chatbase Alternatives Worth Trying in 2026 | VocUI',
   description:
     'Looking for a Chatbase alternative? Compare the top AI chatbot builders on pricing, knowledge base support, Slack integration, and embed options.',
   openGraph: {
-    title: '5 Chatbase Alternatives Worth Trying in 2025 | VocUI',
+    title: '5 Chatbase Alternatives Worth Trying in 2026 | VocUI',
     description:
       'Looking for a Chatbase alternative? Compare the top AI chatbot builders on pricing, knowledge base support, Slack integration, and embed options.',
     url: 'https://vocui.com/blog/chatbase-alternatives',
@@ -25,7 +27,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '5 Chatbase Alternatives Worth Trying in 2025 | VocUI',
+    title: '5 Chatbase Alternatives Worth Trying in 2026 | VocUI',
     description:
       'Looking for a Chatbase alternative? Compare the top AI chatbot builders on pricing, knowledge base support, Slack integration, and embed options.',
   },
@@ -40,7 +42,7 @@ const jsonLd = {
   '@graph': [
     {
       '@type': 'Article',
-      headline: '5 Chatbase Alternatives Worth Trying in 2025',
+      headline: '5 Chatbase Alternatives Worth Trying in 2026',
       description:
         'A comparison of the top AI chatbot builders for small businesses looking for a Chatbase alternative.',
       url: 'https://vocui.com/blog/chatbase-alternatives',
@@ -49,12 +51,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/chatbase-alternatives',
       },
       datePublished: '2025-12-08',
-      dateModified: '2025-12-08',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -116,6 +114,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Yes. VocUI supports 20+ languages. You can train the knowledge base in any language and the chatbot will respond in the language the visitor is writing in.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: '5 Chatbase Alternatives Worth Trying in 2026',
+          item: 'https://vocui.com/blog/chatbase-alternatives',
         },
       ],
     },
@@ -232,7 +243,7 @@ export default function ChatbaseAlternativesPage() {
               </div>
               <AuthorByline className="mb-4" />
               <h1 className="text-4xl font-bold text-secondary-900 dark:text-secondary-100 leading-tight mb-4">
-                5 Chatbase Alternatives Worth Trying in 2025
+                5 Chatbase Alternatives Worth Trying in 2026
               </h1>
               <p className="text-xl text-secondary-600 dark:text-secondary-400 leading-relaxed">
                 Chatbase was one of the first tools to make &quot;train a chatbot on your own data&quot;
@@ -268,25 +279,12 @@ export default function ChatbaseAlternativesPage() {
                   Chatbase is genuinely useful for getting a chatbot up fast. But users frequently
                   cite a few frustrations that push them to look elsewhere:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Limited integrations.</strong> Chatbase embeds on websites, but
-                    Slack integration, Telegram, and native API access are either limited or
-                    require higher-tier plans.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">No live agent handoff.</strong> When the bot can&apos;t help, there&apos;s
-                    no native way to transfer the conversation to a human agent.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Pricing scales steeply.</strong> The free tier is very limited and
-                    the jump to paid is significant if you have high chat volume.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">No lead capture.</strong> You can&apos;t collect visitor contact
-                    information from within the chatbot without a third-party form tool.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Limited integrations.', description: 'Chatbase embeds on websites, but Slack integration, Telegram, and native API access are either limited or require higher-tier plans.' },
+                  { title: 'No live agent handoff.', description: 'When the bot can\u2019t help, there\u2019s no native way to transfer the conversation to a human agent.' },
+                  { title: 'Pricing scales steeply.', description: 'The free tier is very limited and the jump to paid is significant if you have high chat volume.' },
+                  { title: 'No lead capture.', description: 'You can\u2019t collect visitor contact information from within the chatbot without a third-party form tool.' },
+                ]} />
                 <p className="mt-4">
                   These aren&apos;t fatal flaws — they just mean Chatbase isn&apos;t a fit for everyone.
                   Depending on what you need, one of the alternatives below might be a better match.
@@ -301,13 +299,13 @@ export default function ChatbaseAlternativesPage() {
                   Since Chatbase is primarily a knowledge-base chatbot builder, we focused on the
                   criteria that matter most when comparing tools in this specific category:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li><strong className="text-secondary-800 dark:text-secondary-200">Knowledge base training</strong> — how deep and flexible is the content ingestion?</li>
-                  <li><strong className="text-secondary-800 dark:text-secondary-200">AI model choice</strong> — can you select which AI model powers responses?</li>
-                  <li><strong className="text-secondary-800 dark:text-secondary-200">Custom branding</strong> — can you make the widget match your brand?</li>
-                  <li><strong className="text-secondary-800 dark:text-secondary-200">Analytics dashboard</strong> — can you see what questions users ask and how the bot performs?</li>
-                  <li><strong className="text-secondary-800 dark:text-secondary-200">API access</strong> — can you integrate the chatbot into your own applications programmatically?</li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Knowledge base training', description: 'How deep and flexible is the content ingestion?' },
+                  { title: 'AI model choice', description: 'Can you select which AI model powers responses?' },
+                  { title: 'Custom branding', description: 'Can you make the widget match your brand?' },
+                  { title: 'Analytics dashboard', description: 'Can you see what questions users ask and how the bot performs?' },
+                  { title: 'API access', description: 'Can you integrate the chatbot into your own applications programmatically?' },
+                ]} />
               </section>
 
               <section>
@@ -555,30 +553,13 @@ export default function ChatbaseAlternativesPage() {
                 <p>
                   The &quot;best&quot; Chatbase alternative depends entirely on what you actually need.
                 </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you need a knowledge base chatbot for your website and Slack:</strong>{' '}
-                    VocUI is the most direct match — it does both well without requiring you to
-                    stitch tools together.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you need complex conversation flows and have technical help:</strong>{' '}
-                    Botpress gives you the most flexibility.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If live chat is more important than AI knowledge base answers:</strong>{' '}
-                    Tidio is the best live chat experience at an accessible price.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you&apos;re already deep in the Intercom ecosystem:</strong>{' '}
-                    Fin is the path of least resistance, even if it&apos;s expensive.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you just need a simple embed with good document support and no
-                    live agent requirements:</strong>{' '}
-                    CustomGPT.ai is a clean, focused option.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'If you need a knowledge base chatbot for your website and Slack:', description: 'VocUI is the most direct match \u2014 it does both well without requiring you to stitch tools together.' },
+                  { title: 'If you need complex conversation flows and have technical help:', description: 'Botpress gives you the most flexibility.' },
+                  { title: 'If live chat is more important than AI knowledge base answers:', description: 'Tidio is the best live chat experience at an accessible price.' },
+                  { title: 'If you\u2019re already deep in the Intercom ecosystem:', description: 'Fin is the path of least resistance, even if it\u2019s expensive.' },
+                  { title: 'If you just need a simple embed with good document support and no live agent requirements:', description: 'CustomGPT.ai is a clean, focused option.' },
+                ]} />
                 <p className="mt-4">
                   If you&apos;re not sure, the best approach is to start with something free, run a quick
                   test with your own content, and see if the answers are good enough for your use

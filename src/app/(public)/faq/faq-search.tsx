@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, X, Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { faqCategories, FaqQuestion, FaqCategory } from './faq-data';
+import { faqCategories, type FaqQuestion, type FaqCategory } from './faq-data';
 
 interface SearchResult extends FaqQuestion {
   categoryId: string;
@@ -31,7 +31,6 @@ export function FaqSearch({ onSearchResults, onClear }: FaqSearchProps) {
         inputRef.current?.focus();
       }
 
-      // Escape to clear and blur
       if (e.key === 'Escape' && document.activeElement === inputRef.current) {
         handleClear();
         inputRef.current?.blur();
@@ -62,7 +61,7 @@ export function FaqSearch({ onSearchResults, onClear }: FaqSearchProps) {
   }, [onClear]);
 
   return (
-    <div className="relative max-w-2xl mx-auto" role="search">
+    <div className="relative" role="search">
       <div
         className={cn(
           'relative flex items-center rounded-xl border-2 transition-all duration-200',
@@ -141,7 +140,7 @@ function filterFaqs(
   return results;
 }
 
-// Search results display component
+// Search results display
 interface SearchResultsProps {
   results: SearchResult[];
   query: string;
@@ -152,7 +151,6 @@ export function SearchResults({ results, query, onSelectQuestion }: SearchResult
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Reset and trigger animation when results change
     setIsVisible(false);
     const timer = setTimeout(() => setIsVisible(true), 50);
     return () => clearTimeout(timer);
@@ -163,10 +161,8 @@ export function SearchResults({ results, query, onSelectQuestion }: SearchResult
   if (results.length === 0) {
     return (
       <div
-        className="mt-8 text-center py-12 rounded-xl"
+        className="text-center py-16"
         style={{
-          backgroundColor: 'rgb(var(--card-bg))',
-          border: '1px solid rgb(var(--card-border))',
           opacity: isVisible ? 1 : 0,
           transform: isVisible ? 'translateY(0)' : 'translateY(8px)',
           transition: 'opacity 0.3s ease-out, transform 0.3s ease-out',
@@ -177,7 +173,7 @@ export function SearchResults({ results, query, onSelectQuestion }: SearchResult
           No results found
         </h3>
         <p className="text-secondary-500 dark:text-secondary-400 max-w-md mx-auto">
-          We couldn&apos;t find any questions matching &quot;{query}&quot;. Try searching with different keywords or{' '}
+          We couldn&apos;t find any questions matching &quot;{query}&quot;. Try different keywords or{' '}
           <a href="/help" className="text-primary-500 hover:underline">
             contact support
           </a>
@@ -188,54 +184,49 @@ export function SearchResults({ results, query, onSelectQuestion }: SearchResult
   }
 
   // Group results by category
-  const groupedResults = results.reduce((acc, result) => {
-    if (!acc[result.categoryId]) {
-      acc[result.categoryId] = {
-        title: result.categoryTitle,
-        questions: [],
-      };
-    }
-    acc[result.categoryId].questions.push(result);
-    return acc;
-  }, {} as Record<string, { title: string; questions: SearchResult[] }>);
+  const groupedResults = results.reduce(
+    (acc, result) => {
+      if (!acc[result.categoryId]) {
+        acc[result.categoryId] = { title: result.categoryTitle, questions: [] };
+      }
+      acc[result.categoryId].questions.push(result);
+      return acc;
+    },
+    {} as Record<string, { title: string; questions: SearchResult[] }>
+  );
 
-  // Track running index for staggered animations
   let resultIndex = 0;
 
   return (
-    <div className="mt-8 space-y-6" role="region" aria-label="Search results">
+    <div className="space-y-8" role="region" aria-label="Search results">
       <div
-        className="flex items-center justify-between"
         style={{
           opacity: isVisible ? 1 : 0,
           transition: 'opacity 0.2s ease-out',
         }}
       >
         <p className="text-sm text-secondary-600 dark:text-secondary-400" aria-live="polite">
-          Found <span className="font-medium text-secondary-900 dark:text-secondary-100">{results.length}</span>{' '}
+          Found{' '}
+          <span className="font-medium text-secondary-900 dark:text-secondary-100">
+            {results.length}
+          </span>{' '}
           {results.length === 1 ? 'result' : 'results'} for &quot;{query}&quot;
         </p>
       </div>
 
       {Object.entries(groupedResults).map(([categoryId, { title, questions }]) => (
         <div key={categoryId}>
-          <h3
-            className="text-sm font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wide mb-3"
-            style={{
-              opacity: isVisible ? 1 : 0,
-              transition: 'opacity 0.25s ease-out 100ms',
-            }}
-          >
+          <h3 className="text-xs font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-[0.15em] mb-4">
             {title}
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {questions.map((q) => {
               const currentIndex = resultIndex++;
               return (
                 <button
                   key={q.id}
                   onClick={() => onSelectQuestion(categoryId, q.id)}
-                  className="w-full text-left p-4 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors group"
+                  className="w-full text-left p-5 rounded-lg transition-colors group"
                   style={{
                     backgroundColor: 'rgb(var(--card-bg))',
                     border: '1px solid rgb(var(--card-border))',
@@ -244,10 +235,10 @@ export function SearchResults({ results, query, onSelectQuestion }: SearchResult
                     transition: `opacity 0.3s ease-out ${100 + currentIndex * 50}ms, transform 0.3s ease-out ${100 + currentIndex * 50}ms, background-color 0.2s ease`,
                   }}
                 >
-                  <p className="font-medium text-secondary-900 dark:text-secondary-100 group-hover:text-primary-600 dark:group-hover:text-primary-400">
+                  <p className="font-semibold text-secondary-900 dark:text-secondary-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                     {highlightMatch(q.question, query)}
                   </p>
-                  <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-1 line-clamp-2">
+                  <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-1.5 line-clamp-2">
                     {highlightMatch(q.answer, query)}
                   </p>
                 </button>
@@ -260,12 +251,9 @@ export function SearchResults({ results, query, onSelectQuestion }: SearchResult
   );
 }
 
-// Highlight matching text
 function highlightMatch(text: string, query: string): React.ReactNode {
   if (!query.trim()) return text;
-
   const parts = text.split(new RegExp(`(${escapeRegex(query)})`, 'gi'));
-
   return parts.map((part, i) =>
     part.toLowerCase() === query.toLowerCase() ? (
       <mark

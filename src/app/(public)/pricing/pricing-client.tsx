@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import type { SubscriptionPlan } from '@/types/billing';
 import { isCustomPricingPlan, sortPlansByDisplayOrder } from '@/lib/billing/utils';
+import { StyledBulletList } from '@/components/blog/styled-lists';
 
 // Tool display configuration
 const toolConfig: Record<string, { name: string; icon: typeof Bot }> = {
@@ -481,64 +482,39 @@ export default function PricingClient({ plans }: { plans: SubscriptionPlan[] }) 
                             <>
                               {/* Enterprise features for custom pricing */}
                               <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Everything in Pro, plus:</p>
-                              <ul className="space-y-2">
-                                {[
-                                  'Custom credit allocation',
-                                  'Dedicated account manager',
-                                  'Priority support (SLA)',
-                                  'Custom integrations',
-                                  'SSO & advanced security',
-                                  'Onboarding & training',
-                                ].map((feature) => (
-                                  <li key={feature} className="flex items-start gap-3">
-                                    <Check className="w-5 h-5 text-amber-500 dark:text-amber-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                                    <span className="text-sm text-secondary-700 dark:text-secondary-300">{feature}</span>
-                                  </li>
-                                ))}
-                              </ul>
+                              <StyledBulletList items={[
+                                'Custom credit allocation',
+                                'Dedicated account manager',
+                                'Priority support (SLA)',
+                                'Custom integrations',
+                                'SSO & advanced security',
+                                'Onboarding & training',
+                              ]} />
                             </>
                           ) : (
                             <>
                               {/* Credits and API keys */}
-                              <ul className="space-y-2">
-                                <li className="flex items-start gap-3">
-                                  <Check className="w-5 h-5 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                                  <span className="text-sm text-secondary-700 dark:text-secondary-300">{creditsText} credits/month</span>
-                                </li>
-                                <li className="flex items-start gap-3">
-                                  <Check className="w-5 h-5 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                                  <span className="text-sm text-secondary-700 dark:text-secondary-300">{apiKeysText} API keys</span>
-                                </li>
-                              </ul>
+                              <StyledBulletList items={[
+                                `${creditsText} credits/month`,
+                                `${apiKeysText} API keys`,
+                              ]} />
 
                               {/* Included Tools */}
                               {includedTools.length > 0 && (
                                 <div>
                                   <p className="text-xs font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider mb-2">Included Tools</p>
-                                  <ul className="space-y-2">
-                                    {includedTools.map((tool) => {
-                                      const ToolIcon = tool.icon;
-                                      return (
-                                        <li key={tool.key} className="flex items-start gap-3">
-                                          <ToolIcon className="w-4 h-4 text-primary-500 dark:text-primary-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                                          <span className="text-sm text-secondary-700 dark:text-secondary-300">{tool.name}</span>
-                                        </li>
-                                      );
-                                    })}
-                                  </ul>
+                                  <StyledBulletList items={includedTools.map((tool) => {
+                                    const ToolIcon = tool.icon;
+                                    return (
+                                      <><ToolIcon className="w-4 h-4 text-primary-500 dark:text-primary-400 flex-shrink-0 inline-block mr-1.5" aria-hidden="true" />{tool.name}</>
+                                    );
+                                  })} />
                                 </div>
                               )}
 
                               {/* Other features */}
                               {otherFeatures.length > 0 && (
-                                <ul className="space-y-2">
-                                  {otherFeatures.map((feature) => (
-                                    <li key={feature} className="flex items-start gap-3">
-                                      <Check className="w-5 h-5 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                                      <span className="text-sm text-secondary-700 dark:text-secondary-300">{feature}</span>
-                                    </li>
-                                  ))}
-                                </ul>
+                                <StyledBulletList items={otherFeatures} />
                               )}
                             </>
                           )}

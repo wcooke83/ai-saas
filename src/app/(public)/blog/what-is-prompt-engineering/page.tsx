@@ -6,6 +6,8 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -47,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/what-is-prompt-engineering',
       },
       datePublished: '2025-11-19',
-      dateModified: '2025-11-19',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -61,6 +59,12 @@ const jsonLd = {
           '@type': 'ImageObject',
           url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/what-is-prompt-engineering/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {
@@ -105,6 +109,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Yes, prompt engineering consulting is a growing field. However, for most business chatbot use cases, you can get excellent results on your own with basic principles: be specific about what the chatbot should and shouldn\'t do, define the tone, set boundaries for topics it should decline, and test with real questions. VocUI provides default system prompts that work well out of the box, and you can refine them over time based on conversation quality.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'What Is Prompt Engineering? A Practical Introduction',
+          item: 'https://vocui.com/blog/what-is-prompt-engineering',
         },
       ],
     },
@@ -206,7 +223,7 @@ export default function WhatIsPromptEngineeringPage() {
                 <p>
                   If you run an AI chatbot, prompt engineering is relevant in one critical place:
                   your{' '}
-                  <Link href="/blog/what-is-a-system-prompt" className="text-primary-600 dark:text-primary-400 hover:underline">
+                  <Link href="/blog/how-to-write-chatbot-system-prompt" className="text-primary-600 dark:text-primary-400 hover:underline">
                     system prompt
                   </Link>
                   . The system prompt is a set of instructions that runs before every user
@@ -237,38 +254,13 @@ export default function WhatIsPromptEngineeringPage() {
                   system prompt. These aren&apos;t theoretical — they produce measurably better results
                   in practice.
                 </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Be specific:</strong> Instead
-                    of &quot;be helpful,&quot; say &quot;answer the user&apos;s question in 1-3 sentences using
-                    only the provided context.&quot; Specificity eliminates ambiguity and gives the
-                    model clear criteria to follow.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Provide context:</strong> Tell
-                    the model who it is and what situation it&apos;s in. &quot;You are a customer support
-                    assistant for a SaaS company that sells project management software&quot; gives the
-                    model a frame of reference that shapes every response.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Define constraints:</strong> State
-                    what the model should not do as clearly as what it should do. &quot;Never discuss
-                    competitor products. Never speculate about future features. If you don&apos;t know
-                    the answer, say so.&quot; Negative constraints prevent common failure modes.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Use examples:</strong> If
-                    you want a specific output format or tone, show the model an example.
-                    &quot;When asked about pricing, respond like this: &apos;Our Pro plan is $29/month
-                    and includes...&apos;&quot; Examples are often more effective than abstract descriptions.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Iterate:</strong> No prompt
-                    is perfect on the first try. Write a draft, test it with real questions,
-                    identify where it fails, and refine. Prompt engineering is an iterative
-                    process, not a one-shot task.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Be specific:', description: 'Instead of \u201cbe helpful,\u201d say \u201canswer the user\u2019s question in 1-3 sentences using only the provided context.\u201d Specificity eliminates ambiguity and gives the model clear criteria to follow.' },
+                  { title: 'Provide context:', description: 'Tell the model who it is and what situation it\u2019s in. \u201cYou are a customer support assistant for a SaaS company that sells project management software\u201d gives the model a frame of reference that shapes every response.' },
+                  { title: 'Define constraints:', description: 'State what the model should not do as clearly as what it should do. \u201cNever discuss competitor products. Never speculate about future features. If you don\u2019t know the answer, say so.\u201d Negative constraints prevent common failure modes.' },
+                  { title: 'Use examples:', description: 'If you want a specific output format or tone, show the model an example. \u201cWhen asked about pricing, respond like this: \u2018Our Pro plan is $29/month and includes...\u2019\u201d Examples are often more effective than abstract descriptions.' },
+                  { title: 'Iterate:', description: 'No prompt is perfect on the first try. Write a draft, test it with real questions, identify where it fails, and refine. Prompt engineering is an iterative process, not a one-shot task.' },
+                ]} />
               </section>
 
               <section>
@@ -302,41 +294,14 @@ export default function WhatIsPromptEngineeringPage() {
                   customer&apos;s name if provided.&quot; Tone consistency builds trust and makes the
                   chatbot feel like a natural extension of your brand.
                 </p>
-              </section>
-
-              <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
-                  Common prompt engineering mistakes
-                </h2>
-                <p>
-                  Understanding what doesn&apos;t work is as valuable as knowing what does. Here are
-                  the mistakes that most commonly derail chatbot system prompts:
-                </p>
                 <p className="mt-4">
-                  <strong className="text-secondary-800 dark:text-secondary-200">Being too vague.</strong> &quot;Be
-                  a good assistant&quot; tells the model nothing actionable. What does &quot;good&quot; mean
-                  in your context? Specific enough to answer technical questions? Casual enough
-                  for a lifestyle brand? The model can&apos;t read your mind — spell it out.
-                </p>
-                <p className="mt-4">
-                  <strong className="text-secondary-800 dark:text-secondary-200">Contradictory instructions.</strong> &quot;Be
-                  concise&quot; in one part and &quot;provide comprehensive answers&quot; in another creates
-                  conflicting signals. The model will oscillate between the two, producing
-                  inconsistent responses. Review your system prompt for internal contradictions.
-                </p>
-                <p className="mt-4">
-                  <strong className="text-secondary-800 dark:text-secondary-200">Forgetting the fallback case.</strong> Every
-                  system prompt should define what happens when the chatbot doesn&apos;t have the
-                  answer. Without this, the model defaults to its training instinct to be helpful,
-                  which often means making something up. Always include an explicit &quot;when you
-                  don&apos;t know&quot; instruction.
-                </p>
-                <p className="mt-4">
-                  <strong className="text-secondary-800 dark:text-secondary-200">Over-engineering.</strong> A
-                  system prompt that&apos;s 2,000 words long with dozens of rules is harder for the
-                  model to follow than a focused 200-word prompt with 5 clear rules. Start simple,
-                  add rules only when you identify specific problems, and keep the total prompt
-                  concise.
+                  Even with a solid structure, small mistakes in your system prompt — vague
+                  instructions, contradictory rules, missing fallback behavior — can undermine
+                  chatbot quality. For a detailed breakdown of common mistakes and how to fix
+                  them, including templates you can use directly, see our{' '}
+                  <Link href="/blog/how-to-write-chatbot-system-prompt" className="text-primary-600 dark:text-primary-400 hover:underline">
+                    guide to writing chatbot system prompts
+                  </Link>.
                 </p>
               </section>
 

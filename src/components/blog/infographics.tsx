@@ -42,7 +42,7 @@ function BrandMark() {
 function BrandFooter() {
   return (
     <div className="mt-8 pt-4 border-t border-white/10">
-      <p className="text-xs text-white/40 tracking-wide">vocui.com</p>
+      <p className="text-xs text-white/55 tracking-wide">vocui.com</p>
     </div>
   );
 }
@@ -59,7 +59,7 @@ function InfographicCard({
 }) {
   return (
     <figure
-      className={`my-10 rounded-2xl bg-gradient-to-br from-primary-950 via-primary-900 to-primary-800 p-8 md:p-10 shadow-xl ${className}`}
+      className={`my-14 md:my-16 rounded-2xl bg-gradient-to-br from-primary-950 via-primary-900 to-primary-800 p-8 md:p-10 shadow-xl ${className}`}
       role="img"
       aria-label={ariaLabel}
     >
@@ -166,8 +166,8 @@ export function ComparisonInfographic({
   leftLabel,
   rightLabel,
   items,
-  leftColor = 'text-emerald-400',
-  rightColor = 'text-emerald-400',
+  leftColor = 'text-primary-400',
+  rightColor = 'text-amber-400',
 }: ComparisonInfographicProps) {
   return (
     <InfographicCard
@@ -455,6 +455,268 @@ export function ChecklistInfographic({
         <span className="text-xs font-medium text-white/50">
           {completedCount}/{items.length} complete
         </span>
+      </div>
+
+      <BrandFooter />
+    </InfographicCard>
+  );
+}
+
+// ─── 6. HeadToHeadInfographic ────────────────────────────────────────────────
+
+/**
+ * Returns HSL colors for a 0-10 score with per-column color identity.
+ * Column A (AI/tech) uses a cyan family; Column B (human) uses a warm amber family.
+ * Higher scores produce more vivid, saturated bars; lower scores are more muted.
+ */
+function columnScoreColors(
+  score: number,
+  column: 'a' | 'b'
+): { bright: string; dim: string; text: string } {
+  const t = Math.max(0, Math.min(10, score)) / 10;
+
+  if (column === 'a') {
+    // Cyan family — aligns with VocUI brand primary
+    return {
+      bright: `hsl(195, ${40 + t * 30}%, ${35 + t * 20}%)`,
+      dim: `hsl(195, 25%, 18%)`,
+      text: `hsl(195, 50%, ${55 + t * 10}%)`,
+    };
+  }
+  // Warm amber family — human/live agent association
+  return {
+    bright: `hsl(30, ${40 + t * 25}%, ${35 + t * 18}%)`,
+    dim: `hsl(30, 25%, 18%)`,
+    text: `hsl(30, 45%, ${55 + t * 10}%)`,
+  };
+}
+
+/** A single comparison factor in the head-to-head infographic. */
+export interface HeadToHeadFactor {
+  /** Factor name displayed as the row label (e.g. "Availability"). */
+  factor: string;
+  /** Score for option A (0-10). Drives the colored bar width and hue. */
+  scoreA: number;
+  /** Score for option B (0-10). */
+  scoreB: number;
+  /** Brief text description for option A (e.g. "24/7/365, instant responses"). */
+  textA: string;
+  /** Brief text description for option B (e.g. "Business hours only"). */
+  textB: string;
+}
+
+/** Props for the HeadToHeadInfographic component. */
+export interface HeadToHeadInfographicProps {
+  /** Main heading displayed at the top of the infographic. */
+  title: string;
+  /** Label for option A (displayed above column A bars). */
+  labelA: string;
+  /** Label for option B (displayed above column B bars). */
+  labelB: string;
+  /** The comparison factors to render. Each becomes a row with bars + descriptions. */
+  factors: HeadToHeadFactor[];
+}
+
+/**
+ * A combined head-to-head comparison infographic that merges text descriptions
+ * with HSL-gradient score bars into one cohesive, branded dark card.
+ *
+ * Combines the roles of ComparisonInfographic (text descriptions),
+ * ComparisonScorecard (visual score bars), and the HTML comparison table
+ * into a single visual element.
+ *
+ * Server-safe: no hooks, no state, no client-side interactivity.
+ * Designed for ~600px blog column width, responsive on mobile.
+ */
+export function HeadToHeadInfographic({
+  title,
+  labelA,
+  labelB,
+  factors,
+}: HeadToHeadInfographicProps) {
+  const ariaDescription = factors
+    .map(
+      (f) =>
+        `${f.factor}: ${labelA} ${f.scoreA} out of 10 (${f.textA}), ${labelB} ${f.scoreB} out of 10 (${f.textB})`
+    )
+    .join('. ');
+
+  return (
+    <InfographicCard
+      ariaLabel={`${title}. ${ariaDescription}`}
+      className=""
+    >
+      <BrandMark />
+
+      <h3 className="text-2xl md:text-3xl font-bold text-white leading-tight mb-10">
+        {title}
+      </h3>
+
+      {/* Column headers */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="text-xs font-bold uppercase tracking-wider text-primary-400">
+          {labelA}
+        </div>
+        <div className="text-xs font-bold uppercase tracking-wider text-amber-400 text-right sm:text-left">
+          {labelB}
+        </div>
+      </div>
+
+      {/* Factor rows */}
+      <div className="space-y-8">
+        {factors.map((f) => {
+          const pctA = (Math.max(0, Math.min(10, f.scoreA)) / 10) * 100;
+          const pctB = (Math.max(0, Math.min(10, f.scoreB)) / 10) * 100;
+          const colorsA = columnScoreColors(f.scoreA, 'a');
+          const colorsB = columnScoreColors(f.scoreB, 'b');
+
+          return (
+            <div key={f.factor}>
+              {/* Factor label */}
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-white/60 mb-3">
+                {f.factor}
+              </p>
+
+              {/* Score bars — side by side on sm+, stacked on mobile */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Option A — cyan family */}
+                <div>
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="flex-1 h-3 rounded-full overflow-hidden"
+                      style={{ backgroundColor: colorsA.dim }}
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${pctA}%`,
+                          backgroundColor: colorsA.bright,
+                        }}
+                      />
+                    </div>
+                    <span
+                      className="text-xs font-semibold tabular-nums w-10 text-right shrink-0"
+                      style={{ color: colorsA.text }}
+                    >
+                      {f.scoreA}/10
+                    </span>
+                  </div>
+                  <p className="text-xs text-white/70 mt-1.5 leading-snug">
+                    {f.textA}
+                  </p>
+                </div>
+
+                {/* Option B — amber family */}
+                <div>
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="flex-1 h-3 rounded-full overflow-hidden"
+                      style={{ backgroundColor: colorsB.dim }}
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${pctB}%`,
+                          backgroundColor: colorsB.bright,
+                        }}
+                      />
+                    </div>
+                    <span
+                      className="text-xs font-semibold tabular-nums w-10 text-right shrink-0"
+                      style={{ color: colorsB.text }}
+                    >
+                      {f.scoreB}/10
+                    </span>
+                  </div>
+                  <p className="text-xs text-white/70 mt-1.5 leading-snug">
+                    {f.textB}
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <BrandFooter />
+    </InfographicCard>
+  );
+}
+
+// ─── 7. ComparisonTableInfographic ──────────────────────────────────────────
+
+/** A single row in a comparison table infographic. */
+export interface ComparisonTableRow {
+  /** Row label shown in the first column. */
+  feature: string;
+  /** Value for column A. */
+  valueA: string;
+  /** Value for column B. */
+  valueB: string;
+}
+
+/** Props for the ComparisonTableInfographic component. */
+export interface ComparisonTableInfographicProps {
+  /** Main heading displayed at the top. */
+  title: string;
+  /** Label for the first value column. */
+  labelA: string;
+  /** Label for the second value column. */
+  labelB: string;
+  /** Rows of comparison data. */
+  rows: ComparisonTableRow[];
+}
+
+/**
+ * An infographic-style comparison table with a dark gradient card,
+ * three columns (feature label + two value columns), and VocUI branding.
+ * Server-safe: no hooks, no state.
+ */
+export function ComparisonTableInfographic({
+  title,
+  labelA,
+  labelB,
+  rows,
+}: ComparisonTableInfographicProps) {
+  return (
+    <InfographicCard
+      ariaLabel={`${title}. Comparing ${labelA} and ${labelB}: ${rows.map((r) => `${r.feature} — ${labelA}: ${r.valueA}, ${labelB}: ${r.valueB}`).join('. ')}`}
+      className=""
+    >
+      <BrandMark />
+
+      <h3 className="text-2xl md:text-3xl font-bold text-white leading-tight mb-8">
+        {title}
+      </h3>
+
+      {/* Column headers */}
+      <div className="grid grid-cols-[1fr_1fr_1fr] gap-2 pb-3 border-b border-white/15">
+        <span className="text-xs font-bold uppercase tracking-wider text-white/50">
+          Factor
+        </span>
+        <span className="text-xs font-bold uppercase tracking-wider text-primary-400">
+          {labelA}
+        </span>
+        <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+          {labelB}
+        </span>
+      </div>
+
+      {/* Rows */}
+      <div className="divide-y divide-white/10">
+        {rows.map((row) => (
+          <div key={row.feature} className="grid grid-cols-[1fr_1fr_1fr] gap-2 py-3.5">
+            <p className="text-sm font-medium text-white/90">
+              {row.feature}
+            </p>
+            <p className="text-sm text-white/70 leading-snug">
+              {row.valueA}
+            </p>
+            <p className="text-sm text-white/70 leading-snug">
+              {row.valueB}
+            </p>
+          </div>
+        ))}
       </div>
 
       <BrandFooter />

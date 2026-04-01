@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { ComparisonInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
@@ -48,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/chatbot-personality-and-tone-guide',
       },
       datePublished: '2025-12-11',
-      dateModified: '2025-12-11',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -62,6 +59,12 @@ const jsonLd = {
           '@type': 'ImageObject',
           url: 'https://vocui.com/icon.png',
         },
+      },
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://vocui.com/blog/chatbot-personality-and-tone-guide/opengraph-image',
+        width: 1200,
+        height: 630,
       },
     },
     {
@@ -106,6 +109,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: "Not directly, but it can affect perceived accuracy. A chatbot with a confident, authoritative tone makes visitors trust the answers more, while an overly casual chatbot might make accurate information seem less reliable. The key is matching personality to the seriousness of the content. For factual questions (pricing, policies, technical details), keep the tone clear and direct. For general conversation, you can be warmer and more relaxed.",
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'How to Choose the Right Personality and Tone for Your Chatbot',
+          item: 'https://vocui.com/blog/chatbot-personality-and-tone-guide',
         },
       ],
     },
@@ -188,9 +204,7 @@ export default function ChatbotPersonalityAndToneGuidePage() {
                   need.
                 </p>
                 <p className="mt-4">
-                  Research on conversational AI shows that users rate chatbots with consistent,
-                  well-defined personalities as more trustworthy and more helpful than those with
-                  generic, default-sounding responses. The personality doesn&apos;t need to be
+                  In practice, chatbots with clearly defined personalities generate fewer escalations and higher satisfaction scores — users feel they&apos;re talking to something with a defined purpose rather than a general AI. The personality doesn&apos;t need to be
                   complex &mdash; it just needs to be intentional. A chatbot that consistently
                   communicates in a specific voice feels reliable, while one that shifts between
                   formal and casual randomly feels unpredictable.

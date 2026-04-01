@@ -12,6 +12,10 @@ export function ChatbotWidget() {
   if (pathname?.startsWith('/widget/')) {
     return null;
   }
+  // Don't load on deploy pages — the chatbot's own widget is shown there as a demo
+  if (pathname?.includes('/deploy')) {
+    return null;
+  }
 
   return (
     <Script

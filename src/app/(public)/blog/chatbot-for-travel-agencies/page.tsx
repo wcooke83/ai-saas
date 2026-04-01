@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { ChatPreview, IndustryStatBar } from '@/components/blog/industry-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
@@ -48,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/chatbot-for-travel-agencies',
       },
       datePublished: '2026-02-06',
-      dateModified: '2026-02-06',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -122,6 +119,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Yes. Train the chatbot on your group travel policies, corporate travel programs, and large-party logistics. Group travel prospects ask specific questions: minimum group size, group discounts, dedicated coordinator availability, and custom itinerary options. The chatbot answers these and directs qualified group inquiries to your corporate or group travel desk for personalized planning.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'AI Chatbots for Travel Agencies: Answer Booking Questions 24/7',
+          item: 'https://vocui.com/blog/chatbot-for-travel-agencies',
         },
       ],
     },

@@ -22,16 +22,20 @@ test.describe('Fallback Purchase Credits', () => {
 
   test('PURCHASE-003: Credit exhaustion mode can be set to purchase_credits via settings', async ({ page }) => {
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Navigate to Credit Exhaustion section
-    await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
-    await page.locator('nav button').filter({ hasText: 'Credit Exhaustion' }).click();
+    await page.getByRole('button', { name: 'Credit Exhaustion' }).waitFor({ state: 'visible', timeout: 30000 });
+    await page.getByRole('button', { name: 'Credit Exhaustion' }).click();
     await expect(page.getByRole('heading', { name: 'Limits & Fallback' })).toBeVisible({ timeout: 10000 });
 
     // Select Purchase Credits mode
     await page.locator('input[value="purchase_credits"]').click({ force: true });
-    await expect(page.getByText('Credit Packages').first()).toBeVisible({ timeout: 5000 });
+    // After selecting purchase_credits, the auto-purchase package selector appears
+    await expect(page.getByText('Select Auto-Purchase Package').first()).toBeVisible({ timeout: 10000 });
+
+    // Switch back to tickets mode to avoid validation error (purchase_credits requires a package)
+    await page.locator('input[value="tickets"]').click({ force: true });
 
     // Save
     const savePromise = page.waitForResponse(

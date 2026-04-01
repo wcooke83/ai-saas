@@ -6,7 +6,9 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { ChatPreview, WorkflowDiagram } from '@/components/blog/industry-visuals';
+import { StyledBulletList } from '@/components/blog/styled-lists';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -48,12 +50,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/chatbot-for-accounting-firms',
       },
       datePublished: '2026-03-19',
-      dateModified: '2026-03-19',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -122,6 +120,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Yes. If your firm serves both individual and business clients with different service lines, document requirements, and deadlines, separate chatbots can provide more targeted answers. An individual tax client asking about deductions gets personal tax content. A business client asking about payroll gets business service content. Deploy each on the relevant section of your website.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'AI Chatbots for Accounting Firms: Client Self-Service',
+          item: 'https://vocui.com/blog/chatbot-for-accounting-firms',
         },
       ],
     },
@@ -375,20 +386,12 @@ export default function ChatbotForAccountingFirmsPage() {
                   standards because it functions as an informational tool, not a licensed
                   practitioner:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    It does not provide personalized tax advice or prepare returns.
-                  </li>
-                  <li>
-                    It does not make representations about specific tax outcomes.
-                  </li>
-                  <li>
-                    It does not access client financial data, tax returns, or account details.
-                  </li>
-                  <li>
-                    It is trained only on public-facing content your firm has already approved.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  'It does not provide personalized tax advice or prepare returns.',
+                  'It does not make representations about specific tax outcomes.',
+                  'It does not access client financial data, tax returns, or account details.',
+                  'It is trained only on public-facing content your firm has already approved.',
+                ]} />
                 <p className="mt-4">
                   When sharing IRS deadline information, train the chatbot on content you update
                   annually. The IRS publishes official deadline calendars, and your firm likely

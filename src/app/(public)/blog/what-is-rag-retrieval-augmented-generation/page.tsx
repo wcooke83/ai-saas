@@ -9,6 +9,7 @@ import { AuthorByline } from '@/components/blog/author-byline';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { MidArticleCta } from '@/components/blog/mid-article-cta';
 import { RagPipelineDiagram } from '@/components/blog/diagrams';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -50,12 +51,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/what-is-rag-retrieval-augmented-generation',
       },
       datePublished: '2026-01-28',
-      dateModified: '2026-01-28',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -114,6 +111,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'No. RAG is the underlying technology, but platforms like VocUI handle all of it automatically. You just upload your content — URLs, PDFs, or documents — and the system takes care of chunking, embedding, retrieval, and generation behind the scenes.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'What Is RAG? Retrieval-Augmented Generation Explained',
+          item: 'https://vocui.com/blog/what-is-rag-retrieval-augmented-generation',
         },
       ],
     },

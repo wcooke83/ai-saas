@@ -6,6 +6,8 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle2, XCircle, MinusCircle } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
+import { StyledBulletList } from '@/components/blog/styled-lists';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -47,12 +49,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/freshchat-alternatives',
       },
       datePublished: '2025-12-31',
-      dateModified: '2025-12-31',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -105,6 +103,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: "Technically yes, but you lose most of the integration value. Ticket creation, CRM sync, and advanced analytics all require other Freshworks products. If you\u2019re not using the ecosystem, a standalone tool like VocUI, Tidio, or Crisp will give you a simpler, more focused experience.",
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: '5 Freshchat Alternatives for Small Business Support',
+          item: 'https://vocui.com/blog/freshchat-alternatives',
         },
       ],
     },
@@ -260,32 +271,12 @@ export default function FreshchatAlternativesPage() {
                   The problem is what happens when you don&apos;t. As a standalone product, Freshchat
                   loses much of its value:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Features expect siblings.</strong> Ticket
-                    creation, CRM sync, and advanced reporting are designed around Freshdesk and
-                    Freshsales. Without them, you get partial versions of these features — or need
-                    third-party connectors to fill the gaps.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Freddy AI is shallow.</strong> Freshchat&apos;s
-                    AI handles basic deflection and FAQ routing, but can&apos;t answer open-ended
-                    questions from your knowledge base. Purpose-built AI chatbot tools go
-                    significantly deeper.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Pricing is a puzzle.</strong> Per-agent
-                    pricing, bot session limits, and AI features spread across tiers make it hard to
-                    know what you&apos;ll actually pay. The listed price rarely matches the real cost
-                    for meaningful usage.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">Switching costs grow.</strong> The
-                    deeper you go into Freshworks, the harder it is to leave. Data, workflows, and
-                    automations become entangled across products. If you&apos;re evaluating Freshchat,
-                    consider whether you want that level of dependency.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'Features expect siblings.', description: 'Ticket creation, CRM sync, and advanced reporting are designed around Freshdesk and Freshsales. Without them, you get partial versions of these features \u2014 or need third-party connectors to fill the gaps.' },
+                  { title: 'Freddy AI is shallow.', description: 'Freshchat\u2019s AI handles basic deflection and FAQ routing, but can\u2019t answer open-ended questions from your knowledge base. Purpose-built AI chatbot tools go significantly deeper.' },
+                  { title: 'Pricing is a puzzle.', description: 'Per-agent pricing, bot session limits, and AI features spread across tiers make it hard to know what you\u2019ll actually pay. The listed price rarely matches the real cost for meaningful usage.' },
+                  { title: 'Switching costs grow.', description: 'The deeper you go into Freshworks, the harder it is to leave. Data, workflows, and automations become entangled across products. If you\u2019re evaluating Freshchat, consider whether you want that level of dependency.' },
+                ]} />
                 <p className="mt-4">
                   If you&apos;re already committed to Freshworks, Freshchat makes sense — the ecosystem
                   integration is a real advantage. But if you&apos;re choosing a standalone chat tool or
@@ -534,28 +525,13 @@ export default function FreshchatAlternativesPage() {
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Which is right for you?
                 </h2>
-                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you need a standalone AI chatbot with knowledge base training:</strong>{' '}
-                    VocUI is purpose-built for this — no ecosystem required.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you run an ecommerce store:</strong>{' '}
-                    Tidio has the deepest Shopify and WordPress integrations.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you want the best free plan:</strong>{' '}
-                    Crisp gives you two agents with unlimited chat history at no cost.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you&apos;ve outgrown Freshchat entirely:</strong>{' '}
-                    Intercom is the full-platform upgrade, at a premium price.
-                  </li>
-                  <li>
-                    <strong className="text-secondary-800 dark:text-secondary-200">If you just need focused live chat:</strong>{' '}
-                    LiveChat is the most polished agent-centric tool available.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'If you need a standalone AI chatbot with knowledge base training:', description: 'VocUI is purpose-built for this \u2014 no ecosystem required.' },
+                  { title: 'If you run an ecommerce store:', description: 'Tidio has the deepest Shopify and WordPress integrations.' },
+                  { title: 'If you want the best free plan:', description: 'Crisp gives you two agents with unlimited chat history at no cost.' },
+                  { title: 'If you\u2019ve outgrown Freshchat entirely:', description: 'Intercom is the full-platform upgrade, at a premium price.' },
+                  { title: 'If you just need focused live chat:', description: 'LiveChat is the most polished agent-centric tool available.' },
+                ]} />
               </section>
 
               <section id="faq">

@@ -6,7 +6,9 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 import { ChatPreview, IndustryStatBar } from '@/components/blog/industry-visuals';
+import { StyledBulletList } from '@/components/blog/styled-lists';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -48,12 +50,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/chatbot-for-restaurants',
       },
       datePublished: '2025-12-19',
-      dateModified: '2025-12-19',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -114,6 +112,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'No. The VocUI widget loads asynchronously, which means your website content appears first and the chatbot loads in the background without affecting page speed. The widget itself is lightweight — it adds minimal load time. This matters for restaurants because Google uses page speed as a ranking factor, and hungry customers are not going to wait for a slow-loading site.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'AI Chatbots for Restaurants: Answer Menus, Hours, and Reservations',
+          item: 'https://vocui.com/blog/chatbot-for-restaurants',
         },
       ],
     },
@@ -201,7 +212,7 @@ export default function ChatbotForRestaurantsPage() {
                   answering the phone about parking availability or whether you serve brunch on
                   Sundays is a minute they&apos;re not seating guests or managing the dining room.
                   During peak hours, phone calls go unanswered — and those are often potential
-                  customers who end up choosing a competitor that was easier to get information from. According to <a href="https://www.tidio.com/blog/live-chat-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Tidio</a>, 90% of customers consider instant customer service crucial — if you can&apos;t answer fast, they go somewhere that can.
+                  customers who end up choosing a competitor that was easier to get information from. According to <a href="https://www.salesforce.com/resources/research-reports/state-of-service/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Salesforce research</a>, 83% of customers expect to interact with someone immediately when they contact a company — if you can&apos;t answer fast, they go somewhere that can.
                 </p>
                 <p className="mt-4">
                   The questions are remarkably repetitive. According to <a href="https://masterofcode.com/blog/chatbot-statistics" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Master of Code</a>, 30% of restaurants have already shifted to chatbots for automated interactions, and 33% of consumers say they want to use chatbots to make reservations at hotels or restaurants. Hours of operation, menu items, dietary
@@ -297,19 +308,19 @@ export default function ChatbotForRestaurantsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-6">
                   <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-5">
                     <p className="font-semibold text-red-800 dark:text-red-200 mb-3">Peak hours (highest chatbot value)</p>
-                    <ul className="space-y-2 text-sm text-secondary-600 dark:text-secondary-400">
-                      <li><strong>Friday-Saturday 5-9 PM:</strong> Dinner rush. Staff is on the floor, phones go unanswered.</li>
-                      <li><strong>Sunday 10 AM-1 PM:</strong> Brunch volume. &quot;Do you take reservations?&quot; spikes.</li>
-                      <li><strong>Holidays:</strong> &quot;Are you open on Christmas Eve?&quot; surges 2-3 weeks before.</li>
-                    </ul>
+                    <StyledBulletList items={[
+                      { title: 'Friday-Saturday 5-9 PM:', description: 'Dinner rush. Staff is on the floor, phones go unanswered.' },
+                      { title: 'Sunday 10 AM-1 PM:', description: 'Brunch volume. "Do you take reservations?" spikes.' },
+                      { title: 'Holidays:', description: '"Are you open on Christmas Eve?" surges 2-3 weeks before.' },
+                    ]} />
                   </div>
                   <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-5">
                     <p className="font-semibold text-blue-800 dark:text-blue-200 mb-3">Off-hours (steady chatbot value)</p>
-                    <ul className="space-y-2 text-sm text-secondary-600 dark:text-secondary-400">
-                      <li><strong>9 PM-midnight:</strong> Late-night planners researching for tomorrow.</li>
-                      <li><strong>Monday-Tuesday:</strong> Lower foot traffic, but website research is active.</li>
-                      <li><strong>Between meal services:</strong> Staff prepping, not available for calls.</li>
-                    </ul>
+                    <StyledBulletList items={[
+                      { title: '9 PM-midnight:', description: 'Late-night planners researching for tomorrow.' },
+                      { title: 'Monday-Tuesday:', description: 'Lower foot traffic, but website research is active.' },
+                      { title: 'Between meal services:', description: 'Staff prepping, not available for calls.' },
+                    ]} />
                   </div>
                 </div>
 

@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { EmbedCodeVisual } from '@/components/blog/process-visuals';
+import { StyledNumberedList, StyledBulletList } from '@/components/blog/styled-lists';
+import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -48,12 +50,8 @@ const jsonLd = {
         '@id': 'https://vocui.com/blog/how-to-embed-chatbot-in-wordpress',
       },
       datePublished: '2026-01-06',
-      dateModified: '2026-01-06',
-      author: {
-        '@type': 'Person',
-        name: 'Will Cooke',
-        url: 'https://vocui.com/about',
-      },
+      dateModified: '2026-04-01',
+      author: VOCUI_AUTHOR,
       publisher: {
         '@type': 'Organization',
         name: 'VocUI',
@@ -112,6 +110,19 @@ const jsonLd = {
             '@type': 'Answer',
             text: 'Purge your full page cache after adding the script. In WP Rocket, go to WP Rocket > Dashboard > Clear Cache. In W3 Total Cache, click Performance > Dashboard > Empty All Caches. In LiteSpeed Cache, go to LiteSpeed Cache > Toolbox > Purge All. If you use Cloudflare, also purge the Cloudflare cache from your Cloudflare dashboard or the Cloudflare WordPress plugin.',
           },
+        },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://vocui.com' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://vocui.com/blog' },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'How to Embed a Chatbot in WordPress',
+          item: 'https://vocui.com/blog/how-to-embed-chatbot-in-wordpress',
         },
       ],
     },
@@ -179,62 +190,65 @@ export default function HowToEmbedChatbotInWordpressPage() {
             </div>
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
-              {/* Section 1 */}
+              {/* Section 1 — Method comparison overview */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
-                  Why Add a Chatbot to WordPress
+                  Three Ways to Add a Chatbot to WordPress
                 </h2>
                 <p>
-                  According to <a href="https://wordpress.com/blog/2025/04/17/wordpress-market-share/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">WordPress.com</a>, WordPress powers 43.4% of all websites — from small business sites to major
-                  ecommerce stores. But most WordPress sites still rely on static FAQ pages,
-                  contact forms, or third-party live chat tools that require someone to be online
-                  to respond.
-                </p>
-                <p className="mt-4">
-                  An AI chatbot changes this. It answers visitor questions instantly, 24/7, using
-                  the content you&apos;ve trained it on — your product pages, help articles,
-                  return policies, or any other documentation. Visitors get immediate answers
-                  instead of waiting for an email response. You get fewer support tickets and
-                  higher conversion rates.
-                </p>
-                <p className="mt-4">
-                  Unlike traditional WordPress chat plugins that require monthly subscriptions
-                  and live agents, an AI chatbot works autonomously. Train it once, deploy it,
-                  and it handles the repetitive questions that consume most of your support time.
+                  WordPress gives you more control over how you embed third-party scripts than
+                  any other CMS. You can use a lightweight plugin like WPCode to inject the code
+                  without touching theme files, edit your theme&apos;s <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">footer.php</code> directly
+                  for a zero-plugin approach, or use your theme&apos;s built-in custom code
+                  panel if it has one. Pick the method that matches your comfort level — all
+                  three produce the same result.
                 </p>
               </section>
 
-              {/* Section 2 */}
+              {/* Section 2 — Why, WordPress-specific */}
+              <section>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                  Why WordPress Sites Benefit Most From an AI Chatbot
+                </h2>
+                <p>
+                  The typical WordPress site accumulates plugins for every visitor interaction:
+                  a contact form plugin, a live chat plugin, an FAQ accordion plugin, maybe a
+                  helpdesk or ticketing plugin on top of that. Each one adds database queries,
+                  admin pages, and update cycles. A single AI chatbot widget can replace several
+                  of these — it answers questions from your own content, captures leads, and
+                  works 24/7 without any of the server-side overhead.
+                </p>
+                <p className="mt-4">
+                  Most WordPress sites run on shared hosting where every PHP process counts. The
+                  VocUI embed is a single external script tag — no PHP execution, no database
+                  load, no plugin conflicts. It loads asynchronously from a CDN, so your server
+                  does zero extra work regardless of how many visitors interact with the chatbot.
+                </p>
+                <p className="mt-4">
+                  WordPress&apos;s flexibility also means every site is different: block themes,
+                  classic themes, page builders, caching layers, security plugins. The embed
+                  approach works across all of them because it operates outside your WordPress
+                  stack entirely — it is just a script tag that renders a fixed-position overlay,
+                  independent of your theme, your builder, or your hosting environment.
+                </p>
+              </section>
+
+              {/* Section 3 — Prerequisites */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Prerequisites
                 </h2>
                 <p>
-                  Before you start, make sure you have these two things ready:
+                  Three things to confirm before you start:
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mt-4">
-                  <li>
-                    <strong>A VocUI account with a chatbot created.</strong> If you haven&apos;t
-                    built your chatbot yet, follow our{' '}
-                    <Link
-                      href="/blog/how-to-add-chatbot-to-website"
-                      className="text-primary-600 dark:text-primary-400 hover:underline"
-                    >
-                      guide to adding a chatbot to your website
-                    </Link>{' '}
-                    — it covers creating the chatbot, adding knowledge sources, and configuring the
-                    widget.
-                  </li>
-                  <li>
-                    <strong>WordPress admin access.</strong> You&apos;ll need to be able to edit
-                    your theme&apos;s header or footer. If you&apos;re using a managed WordPress
-                    host, make sure you have access to Appearance &gt; Theme Editor or a header/footer
-                    injection tool.
-                  </li>
-                </ul>
+                <StyledBulletList items={[
+                  { title: 'WordPress admin access (wp-admin).', description: 'You need access to install plugins or edit theme files. On managed hosts like WP Engine, Kinsta, or Flywheel, confirm you can reach Appearance > Theme File Editor or install plugins from the directory.' },
+                  { title: 'WordPress 5.0 or newer.', description: 'The block editor shipped in 5.0 and most modern themes and plugins target it. Classic editor setups work fine too \u2014 the embed method is the same either way.' },
+                  { title: 'A VocUI chatbot ready to deploy.', description: <>If you haven&apos;t created your chatbot yet, <Link href="/blog/how-to-add-chatbot-to-website" className="text-primary-600 dark:text-primary-400 hover:underline">follow our setup guide</Link> to create one, add your knowledge sources, and grab the embed code from the Deploy tab.</> },
+                ]} />
               </section>
 
-              {/* Section 3 */}
+              {/* Section 4 — Step-by-step */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Step-by-Step: Embedding the Widget
@@ -249,41 +263,22 @@ export default function HowToEmbedChatbotInWordpressPage() {
                 <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mt-6 mb-3">
                   Method 1: Using a Header/Footer Plugin (Easiest)
                 </h3>
-                <ol className="list-decimal pl-5 space-y-3 mt-3">
-                  <li>
-                    Install the free &quot;WPCode&quot; plugin (formerly Insert Headers and
-                    Footers) from the WordPress plugin directory.
-                  </li>
-                  <li>
-                    Go to <strong>Code Snippets &gt; Header &amp; Footer</strong> in your WordPress
-                    admin.
-                  </li>
-                  <li>
-                    Paste your VocUI embed code into the <strong>Footer</strong> section.
-                  </li>
-                  <li>Click Save. The chatbot will appear on your site immediately.</li>
-                </ol>
+                <StyledNumberedList items={[
+                  'Install the free \u201cWPCode\u201d plugin (formerly Insert Headers and Footers) from the WordPress plugin directory.',
+                  <>Go to <strong>Code Snippets &gt; Header &amp; Footer</strong> in your WordPress admin.</>,
+                  <>Paste your VocUI embed code into the <strong>Footer</strong> section.</>,
+                  'Click Save. The chatbot will appear on your site immediately.',
+                ]} />
 
                 <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mt-6 mb-3">
                   Method 2: Editing Your Theme (No Plugin Required)
                 </h3>
-                <ol className="list-decimal pl-5 space-y-3 mt-3">
-                  <li>
-                    In your WordPress admin, go to <strong>Appearance &gt; Theme File Editor</strong>.
-                  </li>
-                  <li>
-                    Open the <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">footer.php</code> file
-                    (or <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">header.php</code> if
-                    you prefer). See the{' '}
-                    <a href="https://wordpress.org/documentation/article/custom-html/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">WordPress Custom HTML documentation</a>{' '}
-                    for details on editing theme files.
-                  </li>
-                  <li>
-                    Paste the VocUI embed code just before the
-                    closing <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">&lt;/body&gt;</code> tag.
-                  </li>
-                  <li>Click Update File.</li>
-                </ol>
+                <StyledNumberedList items={[
+                  <>In your WordPress admin, go to <strong>Appearance &gt; Theme File Editor</strong>.</>,
+                  <>Open the <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">footer.php</code> file (or <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">header.php</code> if you prefer). See the <a href="https://wordpress.org/documentation/article/custom-html/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">WordPress Custom HTML documentation</a> for details on editing theme files.</>,
+                  <>Paste the VocUI embed code just before the closing <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">&lt;/body&gt;</code> tag.</>,
+                  'Click Update File.',
+                ]} />
 
                 <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mt-6 mb-3">
                   Method 3: Using Your Theme&apos;s Built-in Options
@@ -298,36 +293,30 @@ export default function HowToEmbedChatbotInWordpressPage() {
                 </p>
               </section>
 
-              {/* Section 4 */}
+              {/* Section 5 — Widget Customization */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Widget Customization
                 </h2>
                 <p>
-                  Customize colors, position, welcome message, and avatar from the VocUI
-                  dashboard — no theme file edits required. For the full list of widget
-                  options, see our{' '}
-                  <Link
-                    href="/blog/how-to-add-chatbot-to-website"
-                    className="text-primary-600 dark:text-primary-400 hover:underline"
-                  >
-                    full chatbot setup guide
-                  </Link>
-                  .
+                  The VocUI dashboard handles colors, position, welcome message, and avatar.
+                  But WordPress gives you an extra layer of control: you can add custom CSS
+                  rules via <strong>Appearance &gt; Customize &gt; Additional CSS</strong> (or
+                  your theme&apos;s custom CSS panel, if it has one) to fine-tune the widget&apos;s
+                  appearance beyond what the dashboard offers.
                 </p>
                 <p className="mt-4">
-                  <strong>WordPress-specific tip:</strong> If your theme uses a sticky header or
-                  floating menu bar, check that the chat bubble does not overlap with it on
-                  mobile. You can adjust the widget&apos;s vertical offset in VocUI settings, or
-                  add a small CSS rule in <strong>Appearance &gt; Customize &gt; Additional CSS</strong> to
-                  nudge the bubble up — for example:{' '}
+                  <strong>Sticky header tip:</strong> If your theme uses a sticky header or
+                  floating menu bar, the chat bubble may overlap with it on mobile. Adjust
+                  the widget&apos;s vertical offset in VocUI settings, or add a CSS rule in
+                  Additional CSS to nudge it — for example:{' '}
                   <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">
                     .vocui-widget {'{'} bottom: 80px !important; {'}'}
                   </code>
                 </p>
               </section>
 
-              {/* Section 5 */}
+              {/* Section 6 — Troubleshooting */}
               <section>
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   WordPress-Specific Troubleshooting
@@ -336,81 +325,13 @@ export default function HowToEmbedChatbotInWordpressPage() {
                   Most WordPress embeds work on the first try. When they don&apos;t, the cause
                   is almost always one of these WordPress-specific issues:
                 </p>
-                <ul className="list-disc pl-5 space-y-3 mt-4">
-                  <li>
-                    <strong>Caching plugin serving stale pages.</strong> This is the number one
-                    issue on WordPress. After adding the script, purge your cache: WP Rocket
-                    (Settings &gt; WP Rocket &gt; Clear Cache), W3 Total Cache (Performance &gt;
-                    Dashboard &gt; Empty All Caches), LiteSpeed Cache (LiteSpeed Cache &gt;
-                    Toolbox &gt; Purge All), WP Super Cache (Settings &gt; WP Super Cache &gt;
-                    Delete Cache). If you use a CDN like Cloudflare or Sucuri, purge that cache
-                    too.
-                  </li>
-                  <li>
-                    <strong>Theme conflict blocking external scripts.</strong> Some security-hardened
-                    themes block inline scripts or third-party JavaScript. Check your browser&apos;s
-                    developer console (F12 &gt; Console tab) for errors mentioning
-                    &quot;Content-Security-Policy&quot; or &quot;refused to load script.&quot; Fix
-                    this by adding{' '}
-                    <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">
-                      vocui.com
-                    </code>{' '}
-                    to your CSP whitelist, typically in your security plugin (Wordfence, Sucuri,
-                    iThemes Security) or your hosting panel&apos;s HTTP headers configuration.
-                  </li>
-                  <li>
-                    <strong>Child theme overriding footer.php.</strong> If you edited the parent
-                    theme&apos;s footer.php but your site uses a child theme, the child theme&apos;s
-                    footer.php takes precedence. Edit the child theme&apos;s file instead, or use
-                    a header/footer plugin (WPCode) which injects code regardless of theme hierarchy.
-                  </li>
-                  <li>
-                    <strong>Chatbot appears on homepage only.</strong> You likely added the script
-                    to a page-specific template (like{' '}
-                    <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">
-                      front-page.php
-                    </code>
-                    ) instead of the global{' '}
-                    <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">
-                      footer.php
-                    </code>
-                    . Move the script to footer.php, or use WPCode&apos;s site-wide footer injection.
-                  </li>
-                  <li>
-                    <strong>Optimization plugins deferring the script incorrectly.</strong> Plugins
-                    like Autoptimize, WP Rocket&apos;s JS delay, or Perfmatters may try to defer,
-                    combine, or minify the VocUI script. Exclude{' '}
-                    <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">
-                      vocui.com/widget.js
-                    </code>{' '}
-                    from JavaScript optimization in your performance plugin&apos;s settings. The
-                    script already loads asynchronously, so additional deferral can break it.
-                  </li>
-                </ul>
-                <p className="mt-4">
-                  For other platforms, see our{' '}
-                  <Link
-                    href="/blog/how-to-embed-chatbot-in-shopify"
-                    className="text-primary-600 dark:text-primary-400 hover:underline"
-                  >
-                    Shopify embed guide
-                  </Link>
-                  ,{' '}
-                  <Link
-                    href="/blog/how-to-embed-chatbot-in-squarespace"
-                    className="text-primary-600 dark:text-primary-400 hover:underline"
-                  >
-                    Squarespace embed guide
-                  </Link>
-                  , or the general{' '}
-                  <Link
-                    href="/blog/how-to-add-chatbot-to-website"
-                    className="text-primary-600 dark:text-primary-400 hover:underline"
-                  >
-                    chatbot website embed guide
-                  </Link>
-                  .
-                </p>
+                <StyledBulletList items={[
+                  { title: 'Caching plugin serving stale pages.', description: 'This is the number one issue on WordPress. After adding the script, purge your cache: WP Rocket (Settings > WP Rocket > Clear Cache), W3 Total Cache (Performance > Dashboard > Empty All Caches), LiteSpeed Cache (LiteSpeed Cache > Toolbox > Purge All), WP Super Cache (Settings > WP Super Cache > Delete Cache). If you use a CDN like Cloudflare or Sucuri, purge that cache too.' },
+                  { title: 'Theme conflict blocking external scripts.', description: <>Some security-hardened themes block inline scripts or third-party JavaScript. Check your browser&apos;s developer console (F12 &gt; Console tab) for errors mentioning &quot;Content-Security-Policy&quot; or &quot;refused to load script.&quot; Fix this by adding <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">vocui.com</code> to your CSP whitelist, typically in your security plugin (Wordfence, Sucuri, iThemes Security) or your hosting panel&apos;s HTTP headers configuration.</> },
+                  { title: 'Child theme overriding footer.php.', description: 'If you edited the parent theme\u2019s footer.php but your site uses a child theme, the child theme\u2019s footer.php takes precedence. Edit the child theme\u2019s file instead, or use a header/footer plugin (WPCode) which injects code regardless of theme hierarchy.' },
+                  { title: 'Chatbot appears on homepage only.', description: <>You likely added the script to a page-specific template (like <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">front-page.php</code>) instead of the global <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">footer.php</code>. Move the script to footer.php, or use WPCode&apos;s site-wide footer injection.</> },
+                  { title: 'Optimization plugins deferring the script incorrectly.', description: <>Plugins like Autoptimize, WP Rocket&apos;s JS delay, or Perfmatters may try to defer, combine, or minify the VocUI script. Exclude <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">vocui.com/widget.js</code> from JavaScript optimization in your performance plugin&apos;s settings. The script already loads asynchronously, so additional deferral can break it.</> },
+                ]} />
               </section>
 
               {/* FAQ section */}
@@ -458,12 +379,14 @@ export default function HowToEmbedChatbotInWordpressPage() {
 
           {/* CTA */}
           <div className="mt-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-center text-white shadow-xl shadow-primary-500/20">
-            <h2 className="text-2xl font-bold mb-3">Ready to add it to your site?</h2>
+            <h2 className="text-2xl font-bold mb-3">Add an AI chatbot to your WordPress site</h2>
             <p className="text-white/80 mb-2">
-              Create your chatbot, copy one line of code, and paste it into your site -- done.
+              Create your chatbot, copy one script tag, and paste it into WordPress. Works
+              with Elementor, Divi, Beaver Builder, WPBakery, Bricks, GeneratePress,
+              Kadence, and the block editor.
             </p>
             <p className="text-white/60 text-sm mb-8">
-              Works with any theme or page builder. No plugins required.
+              No plugins required — though WPCode works too if you prefer it.
             </p>
             <Button
               size="xl"
@@ -472,7 +395,7 @@ export default function HowToEmbedChatbotInWordpressPage() {
               asChild
             >
               <Link href="/login?mode=signup">
-                Build and embed yours
+                Build your WordPress chatbot
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
