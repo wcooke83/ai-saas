@@ -5,6 +5,7 @@ import { OnboardingProvider } from '@/components/onboarding/OnboardingContext';
 import { OnboardingProgressStepper } from '@/components/onboarding/OnboardingProgressStepper';
 import { CreateStep } from '@/components/onboarding/steps/CreateStep';
 import { TrainStep } from '@/components/onboarding/steps/TrainStep';
+import { TestStep } from '@/components/onboarding/steps/TestStep';
 import { StyleStep } from '@/components/onboarding/steps/StyleStep';
 import { DeployStep } from '@/components/onboarding/steps/DeployStep';
 import type { Chatbot } from '@/lib/chatbots/types';
@@ -12,8 +13,9 @@ import type { Chatbot } from '@/lib/chatbots/types';
 const STEP_LABELS: Record<number, string> = {
   1: 'Name your chatbot',
   2: 'Train your chatbot',
-  3: 'Style your widget',
-  4: 'Deploy your chatbot',
+  3: 'Test your chatbot',
+  4: 'Style your widget',
+  5: 'Deploy your chatbot',
 };
 
 interface OnboardingStepClientProps {
@@ -43,7 +45,7 @@ export function OnboardingStepClient({ chatbot, step }: OnboardingStepClientProp
         aria-atomic="true"
         className="sr-only"
       >
-        {`Step ${step} of 4: ${STEP_LABELS[step] ?? ''}`}
+        {`Step ${step} of 5: ${STEP_LABELS[step] ?? ''}`}
       </div>
 
       {/* Step content wrapper with focus management */}
@@ -67,8 +69,10 @@ function StepContent({ step }: { step: number }) {
     case 2:
       return <TrainStep />;
     case 3:
-      return <StyleStep />;
+      return <TestStep />;
     case 4:
+      return <StyleStep />;
+    case 5:
       return <DeployStep />;
     default:
       return null;

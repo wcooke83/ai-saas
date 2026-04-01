@@ -1,129 +1,166 @@
 # E2E Test Results
 
-**Run started:** 2026-03-29
-**Status:** In Progress
+**Run started:** 2026-04-01 09:46
+**Status:** In Progress (suite still running in background, ~37/121 files completed)
 
-## E2E Tests (authenticated, project: e2e)
+| # | Test | Status | Result | Fix Notes | Timestamp |
+|---|------|--------|--------|-----------|-----------|
+| 1 | e2e-activation-onboarding-api | ✅ Passed | 7 passed | — | 2026-04-01 |
+| 2 | e2e-admin-auth | ✅ Passed | 4 passed | — | 2026-04-01 |
+| 3 | e2e-admin-credits | ❌ Failed | 25 passed, 1 failed | ADMIN-CREDITS-019: Submit adjustment -- Credit Back success (31.6s timeout) | 2026-04-01 |
+| 4 | e2e-admin-dataflow | ✅ Passed | 20 passed | — | 2026-04-01 |
+| 5 | e2e-admin-logs | ✅ Passed | 18 passed | — | 2026-04-01 |
+| 6 | e2e-admin-navigation | ✅ Passed | 4 passed | — | 2026-04-01 |
+| 7 | e2e-admin-trials | ✅ Passed | 20 passed | — | 2026-04-01 |
+| 8 | e2e-agent-actions | ✅ Passed | 5 passed | — | 2026-04-01 |
+| 9 | e2e-agent-console-advanced | ❌ Failed | 5 passed, 6 failed, 6 skipped | Realtime/presence tests timeout (3m); beforeAll state failures cascade. Test infra issues. | 2026-04-01 |
+| 10 | e2e-agent-console-core | ❌ Failed | 0 passed, 1 failed, 18 skipped | AGENT-001 layout fails (1ms), all others skipped due to dependency on beforeAll. | 2026-04-01 |
+| 11 | e2e-analytics-comprehensive | ✅ Passed | 30 passed | — | 2026-04-01 |
+| 12 | e2e-analytics | ❌ Failed | 2 passed, 2 failed | Export button and sentiment export selectors not found. | 2026-04-01 |
+| 13 | e2e-api-key-auth | ✅ Passed | 4 passed | — | 2026-04-01 |
+| 14 | e2e-api-keys-crud | ❌ Failed | 2 passed, 1 failed | Delete API key test fails. | 2026-04-01 |
+| 15 | e2e-appsumo-license | ❌ Failed | 9 passed, 2 failed | Billing page contains Redeem License Key text (expected removed). | 2026-04-01 |
+| 16 | e2e-article-generation | ❌ Failed | 28 passed, 4 failed | AG-062 extraction prompts, AG-066 schedule persistence, AG-067 URL distinction, AG-100 badge/helper. | 2026-04-01 |
+| 17 | e2e-auto-topup | ❌ Failed | 8 passed, 4 failed, 2 skipped | Save flow tests fail (TOPUP-040/041); toggle tests skipped. | 2026-04-01 |
+| 18 | e2e-billing | ❌ Failed | 3 passed, 1 failed | 1 billing page assertion failure. | 2026-04-01 |
+| 19 | e2e-branding-lock | ✅ Passed | 6 passed | — | 2026-04-01 |
+| 20 | e2e-calendar-booking | ❌ Failed | 16 passed, 15 failed, 16 skipped | Mixed results: live EA tests pass, some UI/DB tests fail. Widget booking tests flaky. | 2026-04-01 |
+| 21 | e2e-calendar-scheduling | ❌ Failed | 0 passed, 25 failed | All tests timeout (~33s). Calendar scheduling UI likely not rendering expected selectors. | 2026-04-01 |
+| 22 | e2e-chat-advanced | ❌ Failed | 3 passed, 1 failed | 1 test failure. | 2026-04-01 |
+| 23 | e2e-chat-flow | ❌ Failed | 0 passed, 1 failed, 5 skipped | beforeAll fails, all others skipped. | 2026-04-01 |
+| 24 | e2e-chat-widget-survey | ❌ Failed | 1 passed, 1 failed | 1 widget survey test fails. | 2026-04-01 |
+| 25 | e2e-chatbot-booking-page | ❌ Failed | 5 passed, 1 failed | 1 booking page test fails. | 2026-04-01 |
+| 26 | e2e-chatbot-creation | ❌ Failed | 9 passed, 8 failed | Multi-step wizard creation tests failing. | 2026-04-01 |
+| 27 | e2e-chatbot-crud | ❌ Failed | 1 passed, 1 failed, 3 skipped | CRUD operations partially failing. | 2026-04-01 |
+| 28 | e2e-chatbot-pages | ✅ Passed | 12 passed | — | 2026-04-01 |
+| 29 | e2e-chatbot-subnav-updates | ✅ Passed | 8 passed | — | 2026-04-01 |
+| 30 | e2e-chatbot-widget-deploy-page | ❌ Failed | 12 passed, 14 failed | Deploy page widget tests: selectors/iframe issues. | 2026-04-01 |
+| 31 | e2e-contact-submissions | ❌ Failed | 38 passed, 1 failed, 1 skipped | CS-039: Thread chronological order fails. | 2026-04-01 |
+| 32 | e2e-conversations | ❌ Failed | 2 passed, 2 failed | 2 conversation tests fail. | 2026-04-01 |
+| 33 | e2e-credit-exhaustion-comprehensive | ❌ Failed | 56 passed, 8 failed | Widget fallback transitions and admin ticket lifecycle tests fail. | 2026-04-01 |
+| 34 | e2e-credit-exhaustion-ux-fixes | ❌ Failed | 11 passed, 33 failed | Most widget interaction tests timeout (1m). Widget iframe not loading fallback views. | 2026-04-01 |
+| 35 | e2e-credit-meter-alerts | ✅ Passed | 11 passed | — | 2026-04-01 |
+| 36 | e2e-credit-purchase | ❌ Failed | 3 passed, 3 failed, 4 skipped | Custom amount purchase UI tests fail. | 2026-04-01 |
+| 37 | e2e-cross-feature-integration | 🔄 Running | 17 passed, 4+ failed so far | Credit exhaustion auto-purchase widget tests timing out. | 2026-04-01 |
+| 38 | e2e-dashboard-analytics | ⏳ Queued | — | — | — |
+| 39 | e2e-dashboard-escalations | ⏳ Queued | — | — | — |
+| 40 | e2e-dashboard-leads | ⏳ Queued | — | — | — |
+| 41 | e2e-dashboard-pages | ⏳ Queued | — | — | — |
+| 42 | e2e-dashboard-performance | ⏳ Queued | — | — | — |
+| 43 | e2e-dashboard-sentiment | ⏳ Queued | — | — | — |
+| 44 | e2e-dashboard-smoke | ⏳ Queued | — | — | — |
+| 45 | e2e-dashboard-surveys | ⏳ Queued | — | — | — |
+| 46 | e2e-data-integrity | ⏳ Queued | — | — | — |
+| 47 | e2e-debug-widget | ⏳ Queued | — | — | — |
+| 48 | e2e-deploy-publish-flow | ⏳ Queued | — | — | — |
+| 49 | e2e-deployment-page | ⏳ Queued | — | — | — |
+| 50 | e2e-escalation-management | ⏳ Queued | — | — | — |
+| 51 | e2e-fallback-articles | ⏳ Queued | — | — | — |
+| 52 | e2e-fallback-contact | ⏳ Queued | — | — | — |
+| 53 | e2e-fallback-purchase | ⏳ Queued | — | — | — |
+| 54 | e2e-fallback-settings | ⏳ Queued | — | — | — |
+| 55 | e2e-fallback-tickets | ⏳ Queued | — | — | — |
+| 56 | e2e-feedback | ⏳ Queued | — | — | — |
+| 57 | e2e-file-upload | ⏳ Queued | — | — | — |
+| 58 | e2e-gate-pages | ⏳ Queued | — | — | — |
+| 59 | e2e-global-credit-packages | ⏳ Queued | — | — | — |
+| 60 | e2e-handoff | ⏳ Queued | — | — | — |
+| 61 | e2e-help-articles-knowledge-rag | ⏳ Queued | — | — | — |
+| 62 | e2e-integration-flows | ⏳ Queued | — | — | — |
+| 63 | e2e-invoice-history | ⏳ Queued | — | — | — |
+| 64 | e2e-knowledge-advanced | ⏳ Queued | — | — | — |
+| 65 | e2e-knowledge-base | ⏳ Queued | — | — | — |
+| 66 | e2e-knowledge-lifecycle | ⏳ Queued | — | — | — |
+| 67 | e2e-knowledge-management | ⏳ Queued | — | — | — |
+| 68 | e2e-leads | ⏳ Queued | — | — | — |
+| 69 | e2e-memory-otp | ⏳ Queued | — | — | — |
+| 70 | e2e-middleware-infra | ⏳ Queued | — | — | — |
+| 71 | e2e-model-selection-removal | ⏳ Queued | — | — | — |
+| 72 | e2e-navigation-onboarding | ⏳ Queued | — | — | — |
+| 73 | e2e-navigation | ⏳ Queued | — | — | — |
+| 74 | e2e-notification-preferences | ⏳ Queued | — | — | — |
+| 75 | e2e-onboarding-checklist | ⏳ Queued | — | — | — |
+| 76 | e2e-onboarding-wizard | ⏳ Queued | — | — | — |
+| 77 | e2e-otp-advanced | ⏳ Queued | — | — | — |
+| 78 | e2e-overview-page | ⏳ Queued | — | — | — |
+| 79 | e2e-ownership-fix | ⏳ Queued | — | — | — |
+| 80 | e2e-performance-page | ⏳ Queued | — | — | — |
+| 81 | e2e-plan-limits | ⏳ Queued | — | — | — |
+| 82 | e2e-pricing | ⏳ Queued | — | — | — |
+| 83 | e2e-profile-removed | ⏳ Queued | — | — | — |
+| 84 | e2e-public-pages | ⏳ Queued | — | — | — |
+| 85 | e2e-publish | ⏳ Queued | — | — | — |
+| 86 | e2e-quick-templates | ⏳ Queued | — | — | — |
+| 87 | e2e-rag-memory-edge-cases | ⏳ Queued | — | — | — |
+| 88 | e2e-recover-stuck-sources | ⏳ Queued | — | — | — |
+| 89 | e2e-reembed-detection | ⏳ Queued | — | — | — |
+| 90 | e2e-security | ⏳ Queued | — | — | — |
+| 91 | e2e-sentiment | ⏳ Queued | — | — | — |
+| 92 | e2e-settings-ai-model | ⏳ Queued | — | — | — |
+| 93 | e2e-settings-editors | ⏳ Queued | — | — | — |
+| 94 | e2e-settings-escalation | ⏳ Queued | — | — | — |
+| 95 | e2e-settings-feedback | ⏳ Queued | — | — | — |
+| 96 | e2e-settings-general | ⏳ Queued | — | — | — |
+| 97 | e2e-settings-handoff | ⏳ Queued | — | — | — |
+| 98 | e2e-settings-memory | ⏳ Queued | — | — | — |
+| 99 | e2e-settings-prechat | ⏳ Queued | — | — | — |
+| 100 | e2e-settings-proactive | ⏳ Queued | — | — | — |
+| 101 | e2e-settings-save | ⏳ Queued | — | — | — |
+| 102 | e2e-settings-survey | ⏳ Queued | — | — | — |
+| 103 | e2e-settings-system-prompt | ⏳ Queued | — | — | — |
+| 104 | e2e-settings-transcripts | ⏳ Queued | — | — | — |
+| 105 | e2e-settings-uploads | ⏳ Queued | — | — | — |
+| 106 | e2e-slack-integration | ⏳ Queued | — | — | — |
+| 107 | e2e-survey | ⏳ Queued | — | — | — |
+| 108 | e2e-telegram-integration | ⏳ Queued | — | — | — |
+| 109 | e2e-ticketing-system | ⏳ Queued | — | — | — |
+| 110 | e2e-tooltip | ⏳ Queued | — | — | — |
+| 111 | e2e-untested-endpoints | ⏳ Queued | — | — | — |
+| 112 | e2e-upgrade-page | ⏳ Queued | — | — | — |
+| 113 | e2e-webhooks | ⏳ Queued | — | — | — |
+| 114 | e2e-widget-advanced | ⏳ Queued | — | — | — |
+| 115 | e2e-widget-config | ⏳ Queued | — | — | — |
+| 116 | e2e-widget-core | ⏳ Queued | — | — | — |
+| 117 | e2e-widget-customization | ⏳ Queued | — | — | — |
+| 118 | e2e-widget-sdk | ⏳ Queued | — | — | — |
+| 119 | e2e-zapier | ⏳ Queued | — | — | — |
+| 120 | e2e-zero-state-dashboard | ⏳ Queued | — | — | — |
+| 121 | e2e-zz-widget-chat-interaction | ⏳ Queued | — | — | — |
 
-| # | Test | Status | Passed | Fixed | Failed | Skipped | Notes | Timestamp |
-|---|------|--------|--------|-------|--------|---------|-------|-----------|
-| 1 | e2e-admin-auth | &#x2705; Done | &#x2705; | — | — | — | 5 passed | 03-29 05:20 |
-| 2 | e2e-admin-credits | &#x2705; Done | &#x2705; | — | — | — | 27 passed | 03-29 05:24 |
-| 3 | e2e-admin-dataflow | &#x2705; Done | &#x2705; | — | — | — | 21 passed | 03-29 05:26 |
-| 4 | e2e-admin-logs | &#x2705; Done | &#x2705; | — | — | — | 19 passed | 03-29 05:28 |
-| 5 | e2e-admin-navigation | &#x2705; Done | &#x2705; | — | — | — | 5 passed | 03-29 05:29 |
-| 6 | e2e-admin-trials | &#x2705; Done | &#x2705; | — | — | — | 18 passed, 3 skipped | 03-29 05:30 |
-| 7 | e2e-agent-actions | &#x2705; Done | &#x2705; | — | — | — | 6 passed | 03-29 05:31 |
-| 8 | e2e-agent-console-advanced | &#x2705; Done | — | — | &#x274C; | — | 6 passed, 6 failed (Realtime timeout + missing test data), 6 skipped | 03-29 06:00 |
-| 9 | e2e-agent-console-core | &#x2705; Done | — | — | &#x274C; | — | 5 passed, 7 failed (Realtime/presence timeouts + missing conversations), 7 skipped, 1 flaky | 03-29 06:33 |
-| 10 | e2e-analytics-comprehensive | &#x2705; Done | &#x2705; | — | — | — | 31 passed | 03-29 06:38 |
-| 11 | e2e-analytics | &#x2705; Done | — | &#x1F527; | — | — | Fixed POST->GET for export endpoints (routes are GET) | 03-29 06:40 |
-| 12 | e2e-api-key-auth | &#x2705; Done | &#x2705; | — | — | — | 5 passed | 03-29 06:41 |
-| 13 | e2e-api-keys-crud | &#x2705; Done | — | &#x1F527; | — | — | Fixed selector for name input + .first() for duplicate keys | 03-29 06:44 |
-| 14 | e2e-appsumo-license | &#x2705; Done | — | &#x1F527; | — | — | Fixed selector strict violations; 1 remains (APPSUMO-014 error toast .or() resolves 2 elems), 1 flaky | 03-29 06:49 |
-| 15 | e2e-article-generation | &#x2705; Done | — | — | &#x274C; | — | 24 passed, 5 failed (UI selector/timing), 4 flaky | 03-29 07:04 |
-| 16 | e2e-auto-topup | &#x2705; Done | — | &#x1F527; | — | — | Fixed strict mode on heading selector; 10 passed, 3 failed (UI timing), 2 skipped | 03-29 07:10 |
-| 17 | e2e-billing | &#x2705; Done | &#x2705; | — | — | — | 5 passed | 03-29 07:11 |
-| 18 | e2e-calendar-booking | &#x2705; Done | — | — | &#x274C; | — | 11 passed, 5 failed (dashboard calendar UI selectors), 5 flaky, 27 skipped | 03-29 07:25 |
-| 19 | e2e-calendar-scheduling | &#x2705; Done | — | — | &#x274C; | — | 1 passed, 28 failed (all 32s timeout - calendar page requires Easy!Appointments config) | 03-29 07:55 |
-| 20 | e2e-chat-advanced | &#x2705; Done | — | — | — | &#x26A0;&#xFE0F; | 4 passed, 1 failed (expects 403 for unpublished chatbot, gets 200 - app behavior) | 03-29 07:56 |
-| 21 | e2e-chat-flow | &#x2705; Done | &#x2705; | — | — | — | 6 passed (auth flaky but recovered) | 03-29 07:58 |
-| 22 | e2e-chat-widget-survey | &#x2705; Done | &#x2705; | — | — | — | 3 passed | 03-29 07:59 |
-| 23 | e2e-chatbot-creation | &#x2705; Done | — | — | &#x274C; | — | 9 passed, 9 failed (plan limit + stateful test chain dependencies) | 03-29 08:09 |
-| 24 | e2e-chatbot-crud | &#x2705; Done | — | — | &#x274C; | — | 2 passed, 1 failed (Next button matches Next.js dev tools), 3 skipped | 03-29 08:11 |
-| 25 | e2e-chatbot-pages | &#x2705; Done | &#x2705; | — | — | — | 13 passed | 03-29 08:12 |
-| 26 | e2e-contact-submissions | &#x2705; Done | — | — | &#x274C; | — | 1 passed, 1 failed (chatbot 404), 39 did not run (chain dependency) | 03-29 08:13 |
-| 27 | e2e-conversations | &#x2705; Done | — | — | &#x274C; | — | 3 passed, 2 failed (API endpoint issues) | 03-29 08:16 |
-| 28 | e2e-credit-exhaustion-comprehensive | &#x2705; Done | — | — | &#x274C; | — | 29 passed, 36 failed (widget fallback config propagation issues) | 03-29 08:35 |
-| 29 | e2e-credit-exhaustion-ux-fixes | &#x2705; Done | — | — | &#x274C; | — | 13 passed, 31 failed (widget fallback UI tests) | 03-29 10:40 |
-| 30 | e2e-credit-purchase | &#x2705; Done | — | — | &#x274C; | — | 1 passed, 9 failed (billing/stripe integration) | 03-29 10:40 |
-| 31 | e2e-cross-feature-integration | &#x2705; Done | — | — | &#x274C; | — | 3 passed, 21 failed (widget integration timeouts) | 03-29 10:40 |
-| 32 | e2e-dashboard-analytics | &#x2705; Done | — | — | &#x274C; | — | 2 passed, 6 failed (analytics dashboard) | 03-29 10:40 |
-| 33 | e2e-dashboard-escalations | &#x2705; Done | — | — | &#x274C; | — | 4 passed, 4 failed (escalation features) | 03-29 10:40 |
-| 34 | e2e-dashboard-leads | &#x2705; Done | — | — | &#x274C; | — | 6 passed, 13 failed (leads page selectors) | 03-29 10:40 |
-| 35 | e2e-dashboard-pages | &#x2705; Done | &#x2705; | — | — | — | 7 passed | 03-29 10:40 |
-| 36 | e2e-dashboard-performance | &#x2705; Done | &#x2705; | — | — | — | 2 passed (3 skipped) | 03-29 10:40 |
-| 37 | e2e-dashboard-sentiment | &#x2705; Done | — | — | &#x274C; | — | 3 passed, 5 failed (sentiment page timeouts) | 03-29 10:40 |
-| 38 | e2e-dashboard-smoke | &#x2705; Done | &#x2705; | — | — | — | 2 passed | 03-29 10:40 |
-| 39 | e2e-dashboard-surveys | &#x2705; Done | — | — | &#x274C; | — | 7 passed, 6 failed (survey dashboard) | 03-29 10:40 |
-| 40 | e2e-data-integrity | &#x2705; Done | — | — | &#x274C; | — | 2 passed, 4 failed (data persistence) | 03-29 10:40 |
-| 41 | e2e-debug-widget | &#x2705; Done | &#x2705; | — | — | — | 1 passed | 03-29 12:20 |
-| 42 | e2e-deploy-publish-flow | &#x2705; Done | — | — | &#x274C; | — | 0 passed, 1 failed | 03-29 12:20 |
-| 43 | e2e-deployment-page | &#x2705; Done | — | — | &#x274C; | — | 1 passed, 20 failed (deployment page selectors) | 03-29 12:20 |
-| 44 | e2e-escalation-management | &#x2705; Done | &#x2705; | — | — | — | 4 passed, 1 failed | 03-29 12:20 |
-| 45 | e2e-fallback-articles | &#x2705; Done | — | — | &#x274C; | — | 7 passed, 2 failed | 03-29 12:20 |
-| 46 | e2e-fallback-contact | &#x2705; Done | &#x2705; | — | — | — | 4 passed, 1 failed | 03-29 12:20 |
-| 47 | e2e-fallback-purchase | &#x2705; Done | &#x2705; | — | — | — | 4 passed, 1 failed | 03-29 12:20 |
-| 48 | e2e-fallback-settings | &#x2705; Done | — | — | &#x274C; | — | 0 passed, 10 failed (settings page timeouts) | 03-29 12:20 |
-| 49 | e2e-fallback-tickets | &#x2705; Done | &#x2705; | — | — | — | 7 passed, 1 failed | 03-29 12:20 |
-| 50 | e2e-feedback | &#x2705; Done | &#x2705; | — | — | — | 3 passed | 03-29 12:20 |
-| 51 | e2e-file-upload | &#x2705; Done | &#x2705; | — | — | — | 4 passed | 03-29 12:20 |
-| 52 | e2e-gate-pages | &#x2705; Done | &#x2705; | — | — | — | 7 passed, 1 failed | 03-29 12:20 |
-| 53 | e2e-global-credit-packages | &#x2705; Done | — | — | &#x274C; | — | 24 passed, 13 failed | 03-29 12:20 |
-| 54 | e2e-handoff | &#x2705; Done | &#x2705; | — | — | — | 4 passed | 03-29 12:20 |
-| 55 | e2e-help-articles-knowledge-rag | &#x2705; Done | — | — | &#x274C; | — | 8 passed, 4 failed | 03-29 12:20 |
-| 56 | e2e-integration-flows | &#x2705; Done | &#x2705; | — | — | — | 4 passed, 1 failed | 03-29 12:20 |
-| 57 | e2e-invoice-history | &#x2705; Done | &#x2705; | — | — | — | 7 passed, 1 failed | 03-29 12:20 |
-| 58 | e2e-knowledge-advanced | &#x2705; Done | — | — | &#x274C; | — | 0 passed, 1 failed, 4 skipped | 03-29 12:20 |
-| 59 | e2e-knowledge-base | &#x2705; Done | — | — | &#x274C; | — | 12 passed, 5 failed | 03-29 12:20 |
-| 60 | e2e-knowledge-lifecycle | &#x2705; Done | — | — | &#x274C; | — | 0 passed, 3 failed | 03-29 12:20 |
-| 61 | e2e-knowledge-management | &#x2705; Done | &#x2705; | — | — | — | 2 passed, 1 failed | 03-29 12:20 |
-| 62 | e2e-leads | &#x2705; Done | — | — | &#x274C; | — | 1 passed, 1 failed | 03-29 12:20 |
-| 63 | e2e-memory-otp | &#x2705; Done | &#x2705; | — | — | — | 2 passed | 03-29 12:20 |
-| 64 | e2e-middleware-infra | &#x2705; Done | &#x2705; | — | — | — | 6 passed | 03-29 12:20 |
-| 65 | e2e-model-selection-removal | &#x2705; Done | &#x2705; | — | — | — | 6 passed | 03-29 12:20 |
-| 66 | e2e-navigation-onboarding | &#x1F504; Running | — | — | — | — | — | — |
-| 67 | e2e-navigation | &#x1F504; Running | — | — | — | — | — | — |
-| 68 | e2e-onboarding-checklist | &#x1F504; Running | — | — | — | — | — | — |
-| 69 | e2e-otp-advanced | &#x1F504; Running | — | — | — | — | — | — |
-| 70 | e2e-overview-page | &#x1F504; Running | — | — | — | — | — | — |
-| 71 | e2e-ownership-fix | &#x1F504; Running | — | — | — | — | — | — |
-| 72 | e2e-performance-page | &#x1F504; Running | — | — | — | — | — | — |
-| 73 | e2e-plan-limits | &#x1F504; Running | — | — | — | — | — | — |
-| 74 | e2e-profile-removed | &#x23F3; Queued | — | — | — | — | — | — |
-| 75 | e2e-public-pages | &#x23F3; Queued | — | — | — | — | — | — |
-| 76 | e2e-publish | &#x23F3; Queued | — | — | — | — | — | — |
-| 77 | e2e-quick-templates | &#x23F3; Queued | — | — | — | — | — | — |
-| 78 | e2e-rag-memory-edge-cases | &#x23F3; Queued | — | — | — | — | — | — |
-| 79 | e2e-recover-stuck-sources | &#x23F3; Queued | — | — | — | — | — | — |
-| 80 | e2e-reembed-detection | &#x23F3; Queued | — | — | — | — | — | — |
-| 81 | e2e-security | &#x23F3; Queued | — | — | — | — | — | — |
-| 82 | e2e-sentiment | &#x23F3; Queued | — | — | — | — | — | — |
-| 83 | e2e-settings-ai-model | &#x23F3; Queued | — | — | — | — | — | — |
-| 84 | e2e-settings-editors | &#x23F3; Queued | — | — | — | — | — | — |
-| 85 | e2e-settings-escalation | &#x23F3; Queued | — | — | — | — | — | — |
-| 86 | e2e-settings-feedback | &#x23F3; Queued | — | — | — | — | — | — |
-| 87 | e2e-settings-general | &#x23F3; Queued | — | — | — | — | — | — |
-| 88 | e2e-settings-handoff | &#x23F3; Queued | — | — | — | — | — | — |
-| 89 | e2e-settings-memory | &#x23F3; Queued | — | — | — | — | — | — |
-| 90 | e2e-settings-prechat | &#x23F3; Queued | — | — | — | — | — | — |
-| 91 | e2e-settings-proactive | &#x23F3; Queued | — | — | — | — | — | — |
-| 92 | e2e-settings-save | &#x23F3; Queued | — | — | — | — | — | — |
-| 93 | e2e-settings-survey | &#x23F3; Queued | — | — | — | — | — | — |
-| 94 | e2e-settings-system-prompt | &#x23F3; Queued | — | — | — | — | — | — |
-| 95 | e2e-settings-transcripts | &#x23F3; Queued | — | — | — | — | — | — |
-| 96 | e2e-settings-uploads | &#x23F3; Queued | — | — | — | — | — | — |
-| 97 | e2e-slack-integration | &#x23F3; Queued | — | — | — | — | — | — |
-| 98 | e2e-survey | &#x23F3; Queued | — | — | — | — | — | — |
-| 99 | e2e-telegram-integration | &#x23F3; Queued | — | — | — | — | — | — |
-| 100 | e2e-ticketing-system | &#x23F3; Queued | — | — | — | — | — | — |
-| 101 | e2e-tooltip | &#x23F3; Queued | — | — | — | — | — | — |
-| 102 | e2e-untested-endpoints | &#x23F3; Queued | — | — | — | — | — | — |
-| 103 | e2e-upgrade-page | &#x23F3; Queued | — | — | — | — | — | — |
-| 104 | e2e-widget-advanced | &#x23F3; Queued | — | — | — | — | — | — |
-| 105 | e2e-widget-config | &#x23F3; Queued | — | — | — | — | — | — |
-| 106 | e2e-widget-core | &#x23F3; Queued | — | — | — | — | — | — |
-| 107 | e2e-widget-customization | &#x23F3; Queued | — | — | — | — | — | — |
-| 108 | e2e-widget-sdk | &#x23F3; Queued | — | — | — | — | — | — |
-| 109 | e2e-zz-widget-chat-interaction | &#x23F3; Queued | — | — | — | — | — | — |
+## Partial Summary (37/121 files completed)
+- Total files completed: 37
+- Passed: 12
+- Failed: 24
+- Running: 1
+- Queued: 84
 
-## Chromium Tests (no auth, project: chromium)
+### Individual test counts (completed files):
+- Total tests run: ~600
+- Passed: ~460
+- Failed: ~140
+- Skipped: ~61
 
-| # | Test | Status | Passed | Fixed | Failed | Skipped | Notes | Timestamp |
-|---|------|--------|--------|-------|--------|---------|-------|-----------|
-| 110 | agent-console-feedback | &#x23F3; Queued | — | — | — | — | — | — |
-| 111 | chatbot-widget-deploy-page | &#x23F3; Queued | — | — | — | — | — | — |
-| 112 | chatbot-widget-recursion | &#x23F3; Queued | — | — | — | — | — | — |
-| 113 | chatbot-widget | &#x23F3; Queued | — | — | — | — | — | — |
-| 114 | test-leads-page | &#x23F3; Queued | — | — | — | — | — | — |
-| 115 | test-widget-mock | &#x23F3; Queued | — | — | — | — | — | — |
+## Failure Categories
+
+### Category 1: Widget iframe interaction timeouts (largest group, ~80+ failures)
+**Files:** e2e-credit-exhaustion-ux-fixes (33 fails), e2e-chatbot-widget-deploy-page (14 fails), e2e-calendar-booking (15 fails), e2e-cross-feature-integration (4+ fails)
+**Root cause:** Widget iframe tests timing out waiting for fallback views, credit exhaustion states, or widget elements to render. Likely the widget embed page changed structure or the iframe load timing is different.
+**Safe fix?** No -- would need to investigate whether widget rendering behavior changed (possible UX change).
+
+### Category 2: Calendar scheduling UI not rendering (25 failures)
+**File:** e2e-calendar-scheduling (25/25 fail)
+**Root cause:** All tests timeout at ~33s waiting for calendar scheduling page UI elements. The page structure likely changed.
+**Safe fix?** No -- would need to inspect the actual page to determine if selectors need updating or if the feature is broken.
+
+### Category 3: Agent console beforeAll cascade (19+ failures)
+**Files:** e2e-agent-console-core (1 fail + 18 skipped), e2e-agent-console-advanced (6 fail + 6 skipped)
+**Root cause:** AGENT-001 layout test fails immediately, cascading to skip all dependent tests. Realtime/presence tests timeout (3m) due to Supabase Realtime not available.
+**Safe fix?** No -- the layout render failure needs investigation.
+
+### Category 4: Chatbot creation wizard (8 failures)
+**File:** e2e-chatbot-creation (8/17 fail)
+**Root cause:** Multi-step creation wizard tests failing. Likely step navigation or form selector changes.
+**Safe fix?** Potentially -- if only selectors changed.
+
+### Category 5: Miscellaneous (scattered 1-2 failures per file)
+Various small failures across admin-credits, analytics, api-keys-crud, appsumo-license, article-generation, auto-topup, billing, etc. Each needs individual investigation.

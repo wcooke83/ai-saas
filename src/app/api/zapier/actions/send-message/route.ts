@@ -14,7 +14,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { authenticateAPIKeyStrict } from '@/lib/auth/session';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { executeChat } from '@/lib/chatbots/execute-chat';
+import { executeChat, QuotaExhaustedError } from '@/lib/chatbots/execute-chat';
 
 const sendMessageSchema = z.object({
   chatbot_id: z.string().uuid('chatbot_id must be a valid UUID'),
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
       chatbotId: input.chatbot_id,
       message: input.message,
       sessionId,
-      channel: 'api',
+      channel: 'zapier',
       stream: false,
       visitorId: input.visitor_id,
       userData: input.user_data,
@@ -80,6 +80,13 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('[Zapier:SendMessage] Error:', err);
 
+    if (err instanceof QuotaExhaustedError) {
+      return NextResponse.json(
+        { error: 'This chatbot has reached its monthly message limit. Please upgrade your plan or wait for the next billing cycle.' },
+        { status: 429 },
+      );
+    }
+
     if (err instanceof z.ZodError) {
       return NextResponse.json(
         { error: `Validation error: ${err.errors.map((e) => e.message).join(', ')}` },
@@ -88,9 +95,7 @@ export async function POST(req: NextRequest) {
     }
 
     const message = err instanceof Error ? err.message : 'Internal error';
-    const status = message.includes('API key') || message.includes('Unauthorized') ? 401
-      : message.includes('quota') || message.includes('limit') ? 429
-      : 500;
+    const status = message.includes('API key') || message.includes('Unauthorized') ? 401 : 500;
     return NextResponse.json({ error: message }, { status });
   }
 }

@@ -235,7 +235,7 @@ export default function ChatbotForBusinessGuidePage() {
 
       <Header />
 
-      <main id="main-content" className="container mx-auto px-4 py-16 max-w-4xl">
+      <main id="main-content" className="container mx-auto px-4 py-10 md:py-16 max-w-4xl">
         {/* Breadcrumbs */}
         <nav aria-label="Breadcrumb" className="mb-8">
           <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400">
@@ -325,7 +325,7 @@ export default function ChatbotForBusinessGuidePage() {
             real questions in under 10 minutes.
           </p>
           <Link
-            href="/dashboard"
+            href="/login?mode=signup"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 transition-colors"
           >
             Start free

@@ -124,7 +124,7 @@ export default function WhatAreEmbeddingsExplainedSimplyPage() {
       <Header />
 
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -180,9 +180,11 @@ export default function WhatAreEmbeddingsExplainedSimplyPage() {
                   topic using different words. What you really want is to search by meaning.
                 </p>
                 <p className="mt-4">
-                  Embeddings make this possible. An embedding model reads a piece of text and
-                  assigns it a location in a mathematical space — like GPS coordinates, but with
-                  hundreds of dimensions instead of just latitude and longitude. Texts that mean
+                  Embeddings make this possible. An embedding model — a type of neural network
+                  built on the{' '}
+                  <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">transformer architecture</a>{' '}
+                  — reads a piece of text and assigns it a location in a mathematical space — like GPS
+                  coordinates, but with hundreds of dimensions instead of just latitude and longitude. Texts that mean
                   similar things get assigned nearby coordinates. &quot;How do I cancel my account?&quot;
                   and &quot;Steps to close my subscription&quot; end up close together, even though they
                   share almost no words, because their meaning is similar.
@@ -204,7 +206,9 @@ export default function WhatAreEmbeddingsExplainedSimplyPage() {
                   learned patterns about which words appear in similar contexts, which phrases mean
                   the same thing, and how concepts relate to each other. When you feed it a sentence,
                   it outputs a list of numbers — typically 1,536 numbers for models like OpenAI&apos;s
-                  text-embedding-3-small.
+                  text-embedding-3-small (see the{' '}
+                  <a href="https://developers.openai.com/api/docs/guides/embeddings" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">OpenAI Embeddings Guide</a>{' '}
+                  for technical details).
                 </p>
                 <p className="mt-4">
                   Each number in the list represents one dimension of meaning. No single number maps
@@ -295,7 +299,8 @@ export default function WhatAreEmbeddingsExplainedSimplyPage() {
                   your content through the embedding pipeline. Your text is chunked into
                   overlapping sections (to preserve context at chunk boundaries), each chunk is
                   embedded using OpenAI&apos;s embedding model, and the resulting vectors are stored
-                  in Supabase with pgvector.
+                  in{' '}
+                  <a href="https://supabase.com/docs/guides/database/extensions/pgvector" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Supabase with pgvector</a>.
                 </p>
                 <p className="mt-4">
                   At query time, VocUI uses a Supabase RPC function to perform a cosine similarity

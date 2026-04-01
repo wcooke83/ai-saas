@@ -4,8 +4,10 @@ import { Header } from '@/components/layout';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ExternalLink } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { TableOfContents } from '@/components/blog/table-of-contents';
+import { MidArticleCta } from '@/components/blog/mid-article-cta';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -144,7 +146,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -193,16 +195,31 @@ export default function ChatbotLeadGenerationStrategiesPage() {
               </p>
             </div>
 
+            <TableOfContents items={[
+              { id: 'why-chatbots-beat-contact-forms', label: 'Why Chatbots Beat Contact Forms' },
+              { id: 'strategy-1-greet-visitors-proactively', label: 'Strategy 1: Greet Visitors Proactively' },
+              { id: 'strategy-2-answer-product-questions-then-ask-for-email', label: 'Strategy 2: Answer Product Questions Then Ask for Email' },
+              { id: 'strategy-3-offer-gated-resources', label: 'Strategy 3: Offer Gated Resources' },
+              { id: 'strategy-4-qualify-leads-with-smart-questions', label: 'Strategy 4: Qualify Leads with Smart Questions' },
+              { id: 'strategy-5-book-meetings-directly', label: 'Strategy 5: Book Meetings Directly' },
+              { id: 'strategy-6-segment-by-intent', label: 'Strategy 6: Segment by Intent' },
+              { id: 'strategy-7-follow-up-on-abandoned-pages', label: 'Strategy 7: Follow Up on Abandoned Pages' },
+              { id: 'routing-qualified-leads-to-your-team', label: 'Routing Qualified Leads to Your Team' },
+              { id: 'measuring-lead-qualification-effectiveness', label: 'Measuring Lead Qualification Effectiveness' },
+              { id: 'putting-it-all-together', label: 'Putting It All Together' },
+              { id: 'faq', label: 'FAQ' },
+            ]} />
+
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="why-chatbots-beat-contact-forms" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Why Chatbots Beat Contact Forms
                 </h2>
                 <p>
                   Contact forms have been the default lead capture mechanism since the early days
-                  of the web, and they are showing their age. According to <a href="https://www.invespcro.com/cro/conversion-rate-by-industry/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Invesp</a>, the average website conversion rate hovers around 2&ndash;3%, meaning the vast majority of visitors leave without
-                  taking action. According to <a href="https://formstory.io/learn/form-abandonment-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">FormStory</a>, 81% of people have abandoned at least one web form. The reason is simple: forms are one-directional. They ask for
+                  of the web, and they are showing their age. According to <a href="https://www.invespcro.com/cro/conversion-rate-by-industry/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Invesp<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, the average website conversion rate hovers around 2&ndash;3%, meaning the vast majority of visitors leave without
+                  taking action. According to <a href="https://formstory.io/learn/form-abandonment-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">FormStory<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, 81% of people have abandoned at least one web form. The reason is simple: forms are one-directional. They ask for
                   information without giving anything in return. The visitor has no idea what
                   happens after they submit, how quickly they will get a response, or whether
                   their question even warrants a form submission.
@@ -225,7 +242,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
                   bureaucratic.
                 </p>
                 <p className="mt-4">
-                  The numbers back this up. According to <a href="https://www.dashly.io/blog/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Dashly</a>, chatbots convert into sales 3x better than traditional website forms. The leads are also
+                  The numbers back this up. According to <a href="https://www.dashly.io/blog/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Dashly<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, chatbots convert into sales 3x better than traditional website forms. The leads are also
                   higher quality because the chatbot conversation pre-qualifies them — you know
                   what they asked about, what they&apos;re interested in, and how engaged they
                   are before you ever reach out.
@@ -234,14 +251,14 @@ export default function ChatbotLeadGenerationStrategiesPage() {
 
               {/* Strategy 1 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="strategy-1-greet-visitors-proactively" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Strategy 1: Greet Visitors Proactively
                 </h2>
                 <p>
                   Most chatbots sit quietly in the corner of the screen, waiting for the visitor
                   to initiate a conversation. This is a missed opportunity. A proactive greeting
                   — a small message bubble that appears after a few seconds — significantly
-                  increases engagement compared to a silent widget. According to <a href="https://www.smartsupp.com/blog/analysing-5-billion-website-visits-how-ecommerce-customers-use-chat/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Smartsupp&apos;s analysis of 5 billion visits</a>, websites with proactive chat handle 6x more customer conversations.
+                  increases engagement compared to a silent widget. According to <a href="https://www.smartsupp.com/blog/analysing-5-billion-website-visits-how-ecommerce-customers-use-chat/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Smartsupp&apos;s analysis of 5 billion visits<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, websites with proactive chat handle 6x more customer conversations.
                 </p>
                 <p className="mt-4">
                   The key is making the greeting relevant to the page. On a pricing page:
@@ -263,7 +280,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
 
               {/* Strategy 2 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="strategy-2-answer-product-questions-then-ask-for-email" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Strategy 2: Answer Product Questions Then Ask for Email
                 </h2>
                 <p>
@@ -292,7 +309,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
 
               {/* Strategy 3 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="strategy-3-offer-gated-resources" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Strategy 3: Offer Gated Resources
                 </h2>
                 <p>
@@ -321,7 +338,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
 
               {/* Strategy 4 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="strategy-4-qualify-leads-with-smart-questions" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Strategy 4: Qualify Leads with Smart Questions
                 </h2>
                 <p>
@@ -359,9 +376,11 @@ export default function ChatbotLeadGenerationStrategiesPage() {
                 </p>
               </section>
 
+              <MidArticleCta message="Following along? Create your chatbot now and try each step live." />
+
               {/* Strategy 5 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="strategy-5-book-meetings-directly" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Strategy 5: Book Meetings Directly
                 </h2>
                 <p>
@@ -389,7 +408,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
 
               {/* Strategy 6 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="strategy-6-segment-by-intent" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Strategy 6: Segment by Intent
                 </h2>
                 <p>
@@ -408,7 +427,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
                   certifications. Visit our{' '}
                   <Link
                     href="/chatbot-for-lead-capture"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     lead capture chatbot page
                   </Link>
@@ -416,7 +435,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
                 </p>
                 <p className="mt-4">
                   Use these segments to prioritize follow-up. High-intent leads get a personal
-                  email from sales within an hour — <a href="https://agentiveaiq.com/blog/what-is-a-realistic-lead-conversion-rate-with-ai-chatbots" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Agentive AIQ</a> reports that leads contacted within 1 minute are 391% more likely to convert. Medium-intent leads enter a nurture sequence.
+                  email from sales within an hour — <a href="https://agentiveaiq.com/blog/what-is-a-realistic-lead-conversion-rate-with-ai-chatbots" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Agentive AIQ<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a> reports that leads contacted within 1 minute are 391% more likely to convert. Medium-intent leads enter a nurture sequence.
                   Low-intent leads get added to your newsletter. The chatbot does the initial
                   sorting so your team spends time on the prospects most likely to convert.
                 </p>
@@ -424,7 +443,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
 
               {/* Strategy 7 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="strategy-7-follow-up-on-abandoned-pages" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Strategy 7: Follow Up on Abandoned Pages
                 </h2>
                 <p>
@@ -452,7 +471,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
 
               {/* Routing qualified leads */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="routing-qualified-leads-to-your-team" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Routing Qualified Leads to Your Team
                 </h2>
                 <p>
@@ -483,7 +502,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
 
               {/* Measuring qualification effectiveness */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="measuring-lead-qualification-effectiveness" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Measuring Lead Qualification Effectiveness
                 </h2>
                 <p>
@@ -496,7 +515,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
                 <p className="mt-4">
                   Compare chatbot-qualified leads against your other lead sources. If
                   chatbot-qualified leads convert to customers at a higher rate than form
-                  submissions, your qualification criteria are working well. <a href="https://www.dashly.io/blog/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Dashly reports</a> chatbots convert into sales 3x better than forms, largely because conversational qualification produces higher-quality leads.
+                  submissions, your qualification criteria are working well. <a href="https://www.dashly.io/blog/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Dashly reports<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a> chatbots convert into sales 3x better than forms, largely because conversational qualification produces higher-quality leads.
                 </p>
                 <p className="mt-4">
                   Review disqualified conversations too. Look at leads the chatbot did not route
@@ -509,7 +528,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
 
               {/* Putting it all together */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="putting-it-all-together" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Putting It All Together
                 </h2>
                 <p>
@@ -528,14 +547,14 @@ export default function ChatbotLeadGenerationStrategiesPage() {
                   that is underutilized, add direct meeting booking. Check our{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     pricing
                   </Link>
                   {' '}to find the right plan for your lead generation needs.
                 </p>
                 <p className="mt-4">
-                  The compound effect of these strategies is significant. According to <a href="https://www.demandsage.com/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">DemandSage</a>, companies deploying chatbots see a 67% increase in lead generation. Each one of these strategies incrementally
+                  The compound effect of these strategies is significant. According to <a href="https://www.demandsage.com/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">DemandSage<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, companies deploying chatbots see a 67% increase in lead generation. Each one of these strategies incrementally
                   increases the percentage of visitors who become leads. Together, they can
                   transform your website from a passive brochure into an active lead generation
                   engine that works 24/7 — without adding headcount to your sales team.

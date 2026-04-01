@@ -4,7 +4,7 @@ import { Header } from '@/components/layout';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ExternalLink } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
@@ -122,7 +122,7 @@ export default function CostOfCustomerSupportWithoutAiPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -166,7 +166,7 @@ export default function CostOfCustomerSupportWithoutAiPage() {
               <p className="text-secondary-800 dark:text-secondary-200 text-lg leading-relaxed">
                 Manual customer support can cost $5&ndash;$35 per ticket when you factor in salaries,
                 tools, training, and management overhead. But the real expense is invisible: lost
-                leads from slow response times (<a href="https://www.superoffice.com/blog/response-times/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">12+ hours on average</a>), staff burnout from repetitive questions, and
+                leads from slow response times (<a href="https://www.superoffice.com/blog/response-times/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">12+ hours on average<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>), staff burnout from repetitive questions, and
                 customer churn from inconsistent answers. An AI chatbot handles a large portion of
                 tickets for pennies each &mdash; and your team gets to focus on work that matters.
               </p>
@@ -179,9 +179,9 @@ export default function CostOfCustomerSupportWithoutAiPage() {
                   The Visible Costs: Salaries, Tools, and Training
                 </h2>
                 <p>
-                  The costs you can see on a spreadsheet are already significant. According to the <a href="https://www.bls.gov/ooh/office-and-administrative-support/customer-service-representatives.htm" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">U.S. Bureau of Labor Statistics</a>, the median customer service representative earns about $43,000 per year in salary.
+                  The costs you can see on a spreadsheet are already significant. According to the <a href="https://www.bls.gov/ooh/office-and-administrative-support/customer-service-representatives.htm" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">U.S. Bureau of Labor Statistics<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, the median customer service representative earns about $43,000 per year in salary.
                   Add benefits, payroll taxes, and management time, and you&apos;re looking at
-                  $55,000&ndash;$75,000 fully loaded. According to <a href="https://livechatai.com/blog/customer-support-cost-benchmarks" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">LiveChatAI</a>, self-service channels cost just $1.84 per contact compared to $13.50 for assisted channels — a 7x difference. Then layer on the tools: a helpdesk
+                  $55,000&ndash;$75,000 fully loaded. According to <a href="https://livechatai.com/blog/customer-support-cost-benchmarks" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">LiveChatAI<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, self-service channels cost just $1.84 per contact compared to $13.50 for assisted channels — a 7x difference. Then layer on the tools: a helpdesk
                   platform ($50&ndash;$150/month per agent), a live chat tool, a knowledge base,
                   and whatever integrations keep everything connected.
                 </p>
@@ -210,11 +210,11 @@ export default function CostOfCustomerSupportWithoutAiPage() {
                 </h2>
                 <p>
                   The costs you don&apos;t see are often larger than the ones you do. Start with
-                  response time. According to <a href="https://www.superoffice.com/blog/response-times/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">SuperOffice</a>, the average business takes 12 hours and 10 minutes to respond to a customer
+                  response time. According to <a href="https://www.superoffice.com/blog/response-times/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">SuperOffice<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, the average business takes 12 hours and 10 minutes to respond to a customer
                   inquiry. During those 12 hours, the customer may have already found a
                   competitor, lost interest, or decided the problem isn&apos;t worth solving.
-                  Every hour of delay reduces the probability of conversion or retention. According to <a href="https://www.freshworks.com/How-AI-is-unlocking-ROI-in-customer-service/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Forrester research via Freshworks</a>, customers are 2.4x more likely to remain loyal when problems resolve quickly. For
-                  sales inquiries, the <a href="https://www.insidesales.com/response-time-matters/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">MIT/InsideSales.com Lead Response Management Study</a> found that a 5-minute response time qualifies leads 21x better than waiting 30 minutes.
+                  Every hour of delay reduces the probability of conversion or retention. According to <a href="https://www.freshworks.com/How-AI-is-unlocking-ROI-in-customer-service/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Forrester research via Freshworks<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, customers are 2.4x more likely to remain loyal when problems resolve quickly. For
+                  sales inquiries, the <a href="https://www.insidesales.com/response-time-matters/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">MIT/InsideSales.com Lead Response Management Study<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a> found that a 5-minute response time qualifies leads 21x better than waiting 30 minutes.
                 </p>
                 <p className="mt-4">
                   Lost leads are the most expensive hidden cost. When a potential customer visits
@@ -228,14 +228,14 @@ export default function CostOfCustomerSupportWithoutAiPage() {
                 <p className="mt-4">
                   Staff burnout is the third hidden cost. Support agents who spend their day
                   answering the same five questions develop frustration, disengagement, and
-                  eventually leave. According to <a href="https://www.nextiva.com/blog/call-center-turnover-rates.html" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Nextiva</a>, turnover in customer support averages 30&ndash;45% per year.
+                  eventually leave. According to <a href="https://www.nextiva.com/blog/call-center-turnover-rates.html" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Nextiva<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, turnover in customer support averages 30&ndash;45% per year.
                   Each departure costs thousands in recruiting, hiring, and training a
                   replacement. The cycle repeats because the underlying problem &mdash; repetitive,
                   unrewarding work &mdash; never changes. Read more about reducing repetitive
                   ticket load in our guide to{' '}
                   <Link
                     href="/blog/how-to-reduce-customer-support-tickets"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     reducing customer support tickets
                   </Link>.
@@ -251,7 +251,7 @@ export default function CostOfCustomerSupportWithoutAiPage() {
                   To understand your real support costs, calculate your fully loaded cost per
                   ticket. Take your total monthly support spend &mdash; salaries, benefits,
                   tools, training, management time &mdash; and divide by the number of tickets
-                  resolved per month. According to <a href="https://www.demandsage.com/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">DemandSage</a>, human-agent interactions cost $6&ndash;$15 each compared to $0.50&ndash;$0.70 for AI chatbot interactions. Most businesses are surprised to find that even
+                  resolved per month. According to <a href="https://www.demandsage.com/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">DemandSage<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, human-agent interactions cost $6&ndash;$15 each compared to $0.50&ndash;$0.70 for AI chatbot interactions. Most businesses are surprised to find that even
                   &quot;simple&quot; tickets carry significant per-ticket costs when all overhead is included.
                 </p>
                 <p className="mt-4">
@@ -281,11 +281,11 @@ export default function CostOfCustomerSupportWithoutAiPage() {
                 </h2>
                 <p>
                   AI chatbots excel at handling the predictable, repetitive, and well-documented
-                  portion of your support volume. According to <a href="https://livechatai.com/blog/customer-support-response-time-statistics" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Zendesk research</a>, AI-assisted agents handle 33% more tickets per hour. Account questions (&quot;how do I reset my
+                  portion of your support volume. According to <a href="https://livechatai.com/blog/customer-support-response-time-statistics" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Zendesk research<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, AI-assisted agents handle 33% more tickets per hour. Account questions (&quot;how do I reset my
                   password?&quot;), product information (&quot;does your tool integrate with
                   Slack?&quot;), policy questions (&quot;what&apos;s your refund policy?&quot;),
                   and how-to guidance (&quot;how do I set up a webhook?&quot;) are all perfect
-                  candidates for automation. <a href="https://www.ibm.com/think/topics/ai-customer-service-chatbots" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">IBM reports</a> chatbots can handle up to 80% of routine inquiries, and these routine questions typically make up the majority of
+                  candidates for automation. <a href="https://www.ibm.com/think/topics/ai-customer-service-chatbots" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">IBM reports<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a> chatbots can handle up to 80% of routine inquiries, and these routine questions typically make up the majority of
                   your total volume.
                 </p>
                 <p className="mt-4">
@@ -321,7 +321,7 @@ export default function CostOfCustomerSupportWithoutAiPage() {
                   chatbot return, see our{' '}
                   <Link
                     href="/blog/how-to-measure-chatbot-roi"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     chatbot ROI guide
                   </Link>.
@@ -334,7 +334,7 @@ export default function CostOfCustomerSupportWithoutAiPage() {
                   availability, and happier support staff. Check our{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     pricing
                   </Link>{' '}
@@ -344,7 +344,7 @@ export default function CostOfCustomerSupportWithoutAiPage() {
                   The ROI calculation also improves over time. As you add more content to your
                   chatbot&apos;s knowledge base and refine its responses based on real
                   conversations, the deflection rate increases. A chatbot that starts at 40%
-                  deflection often reaches 60&ndash;70% within three months of active use. The scale of this opportunity is massive: <a href="https://livechatai.com/blog/customer-support-cost-benchmarks" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Juniper Research projects</a> conversational AI will save $80 billion in contact-center labor costs by 2026. Your
+                  deflection often reaches 60&ndash;70% within three months of active use. The scale of this opportunity is massive: <a href="https://livechatai.com/blog/customer-support-cost-benchmarks" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Juniper Research projects<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a> conversational AI will save $80 billion in contact-center labor costs by 2026. Your
                   savings grow without any additional investment in the tool &mdash; you just keep
                   feeding it better training data.
                 </p>

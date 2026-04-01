@@ -9,6 +9,7 @@ import type { Json } from '@/types/database';
 import type { KnowledgeSource, KnowledgeSourceInsert } from '../types';
 import { chunkText } from './chunker';
 import { generateEmbeddings, resolveEmbeddingConfig } from './embeddings';
+import { emitTypedWebhookEvent } from '@/lib/webhooks/emit';
 
 /** Wrap a promise with a timeout. Rejects with a clear message on expiry. */
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
@@ -254,6 +255,23 @@ export async function processKnowledgeSource(
 
     // Update source status to completed
     await updateSourceStatus(sourceId, 'completed', undefined, totalChunksCreated);
+
+    // Emit knowledge.updated webhook (fire-and-forget)
+    const { data: chatbot } = await supabase
+      .from('chatbots')
+      .select('user_id')
+      .eq('id', source.chatbot_id)
+      .single();
+
+    if (chatbot?.user_id) {
+      emitTypedWebhookEvent(chatbot.user_id, source.chatbot_id, 'knowledge.updated', {
+        source_id: sourceId,
+        source_type: source.type,
+        source_name: source.name || source.url || 'Untitled',
+        action: 'added',
+        chunk_count: totalChunksCreated,
+      }).catch(() => {});
+    }
 
     return {
       success: true,

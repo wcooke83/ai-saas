@@ -4,7 +4,7 @@ import { Header } from '@/components/layout';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ExternalLink } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
@@ -122,7 +122,7 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -167,7 +167,7 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
                 Every new hire asks the same questions: &quot;Where do I find the PTO
                 policy?&quot; &quot;How do I set up VPN?&quot; &quot;Who do I talk to about
                 expenses?&quot; An AI knowledge bot trained on your internal documentation
-                answers these instantly. According to <a href="https://superagi.com/case-studies-in-ai-onboarding-success-how-companies-achieved-82-new-hire-retention-rates-in-2025/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">SuperAGI</a>, AI-powered onboarding reduces time-to-productivity by up to 40% &mdash; freeing
+                answers these instantly. According to <a href="https://superagi.com/case-studies-in-ai-onboarding-success-how-companies-achieved-82-new-hire-retention-rates-in-2025/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">SuperAGI<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, AI-powered onboarding reduces time-to-productivity by up to 40% &mdash; freeing
                 managers from repetitive Q&amp;A.
               </p>
             </div>
@@ -179,7 +179,7 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
                   The Hidden Cost of Employee Onboarding
                 </h2>
                 <p>
-                  Onboarding a new employee costs an average of <a href="https://www.shrm.org/topics-tools/news/shrm-benchmarking-report-4129-average-cost-per-hire" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">$4,129 per new hire</a> according to SHRM&apos;s Human Capital Benchmarking Report, but
+                  Onboarding a new employee costs an average of <a href="https://www.shrm.org/topics-tools/news/shrm-benchmarking-report-4129-average-cost-per-hire" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">$4,129 per new hire<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a> according to SHRM&apos;s Human Capital Benchmarking Report, but
                   the indirect costs are much higher. Managers often spend significant time answering
                   questions for each new hire during their first month. Senior team members get
                   pulled into ad-hoc training sessions. Productivity takes a hit across the
@@ -188,7 +188,7 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
                 </p>
                 <p className="mt-4">
                   The frustrating part is that most of these questions have documented answers.
-                  According to <a href="https://enboarder.com/blog/employee-engagement-onboarding-stats/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Enboarder</a>, only 12% of employees say their company has a great onboarding process — yet organizations with strong onboarding see 82% higher new hire retention.
+                  According to <a href="https://enboarder.com/blog/employee-engagement-onboarding-stats/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Enboarder<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, only 12% of employees say their company has a great onboarding process — yet organizations with strong onboarding see 82% higher new hire retention.
                   The information exists somewhere — in an employee handbook, a Confluence page,
                   a Google Doc, or a Notion database. But new hires do not know where to look,
                   do not want to bother their manager with &quot;simple&quot; questions, and
@@ -259,7 +259,7 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
                   guide on{' '}
                   <Link
                     href="/blog/how-to-build-internal-knowledge-bot"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     how to build an internal knowledge bot
                   </Link>
@@ -279,7 +279,7 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
                   The knowledge base should cover the four categories of questions new hires
                   ask most frequently:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong>HR policies.</strong> PTO accrual and request process, benefits
                     enrollment, expense report procedures, remote work policy, dress code,
@@ -324,7 +324,7 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
                   colleague. For setup instructions, see our guide on{' '}
                   <Link
                     href="/blog/how-to-set-up-slack-chatbot-for-team"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     setting up a Slack chatbot for your team
                   </Link>
@@ -346,7 +346,7 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
                   experience. Visit our{' '}
                   <Link
                     href="/slack-chatbot"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     Slack chatbot page
                   </Link>
@@ -363,7 +363,7 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
                   Track three metrics to measure the knowledge bot&apos;s impact on onboarding.
                   First, <strong>time-to-productivity</strong>: how long it takes new hires to
                   complete their first independent task or project. Compare this before and after
-                  deploying the bot. According to <a href="https://superagi.com/case-studies-in-ai-onboarding-success-how-companies-achieved-82-new-hire-retention-rates-in-2025/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">SuperAGI</a>, AI-powered onboarding reduces time-to-productivity by 40%.
+                  deploying the bot. According to <a href="https://superagi.com/case-studies-in-ai-onboarding-success-how-companies-achieved-82-new-hire-retention-rates-in-2025/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">SuperAGI<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, AI-powered onboarding reduces time-to-productivity by 40%.
                 </p>
                 <p className="mt-4">
                   Second, <strong>manager time saved</strong>: survey managers on how much time
@@ -381,7 +381,7 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
                   because your documentation gets better. Check our{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     pricing
                   </Link>

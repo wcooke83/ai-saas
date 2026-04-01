@@ -20,7 +20,7 @@ test.describe('Onboarding Wizard Flow', () => {
     }
   });
 
-  test('full wizard flow: name -> train -> style -> deploy -> dashboard', async ({ page }) => {
+  test('full wizard flow: name -> train -> test -> style -> deploy -> dashboard', async ({ page }) => {
     // Log console messages and errors for debugging
     page.on('console', (msg) => {
       if (msg.type() === 'error') console.log(`[BROWSER ERROR]: ${msg.text()}`);
@@ -110,10 +110,10 @@ test.describe('Onboarding Wizard Flow', () => {
     expect(sidebarCount).toBe(0);
     console.log('PASS: No sidebar visible (onboarding layout)');
 
-    // 4 steps in stepper
+    // 5 steps in stepper
     const stepButtons = stepper.locator('button');
-    expect(await stepButtons.count()).toBe(4);
-    console.log('PASS: 4 steps in the stepper');
+    expect(await stepButtons.count()).toBe(5);
+    console.log('PASS: 5 steps in the stepper');
 
     // Step 1 is active
     const activeStep = page.locator('button[aria-current="step"]');
@@ -223,14 +223,14 @@ test.describe('Onboarding Wizard Flow', () => {
     await page.waitForTimeout(1000);
     await page.screenshot({ path: `${SCREENSHOTS}/05-step2-source-added.png`, fullPage: true });
 
-    // Next: Style
-    const nextBtn2 = page.locator('button', { hasText: 'Next: Style your widget' });
+    // Next: Test
+    const nextBtn2 = page.locator('button', { hasText: 'Next: Test your chatbot' });
     const sPromise2 = page.waitForResponse(
       (r) => r.url().includes('/step') && r.request().method() === 'PATCH',
       { timeout: 30000 }
     );
     await nextBtn2.click();
-    console.log('Clicked "Next: Style your widget"');
+    console.log('Clicked "Next: Test your chatbot"');
 
     const sResp2 = await sPromise2;
     console.log(`Step 2->3 API: ${sResp2.status()}`);
@@ -239,16 +239,54 @@ test.describe('Onboarding Wizard Flow', () => {
     console.log(`PASS: Navigated to step 3: ${page.url()}`);
 
     // ──────────────────────────────────────────────
-    // 4. Step 3: Style your widget
+    // 4. Step 3: Test your chatbot
     // ──────────────────────────────────────────────
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
-    await page.screenshot({ path: `${SCREENSHOTS}/06-step3-style.png`, fullPage: true });
+    await page.screenshot({ path: `${SCREENSHOTS}/06-step3-test.png`, fullPage: true });
 
     // Verify step 3 active
     const step3Label = await page.locator('button[aria-current="step"]').getAttribute('aria-label');
-    expect(step3Label).toContain('Style');
-    console.log('PASS: Step 3 (Style) is active');
+    expect(step3Label).toContain('Test');
+    console.log('PASS: Step 3 (Test) is active');
+
+    // Chat input should be visible
+    const chatInput = page.locator('input[placeholder*="message"], textarea[placeholder*="message"], input[type="text"]').first();
+    await expect(chatInput).toBeVisible({ timeout: 10000 });
+    console.log('PASS: Chat input visible');
+
+    // Suggested questions should be visible
+    const suggestions = page.locator('button[data-suggestion], button:has-text("Try:")').first();
+    const hasSuggestions = await suggestions.isVisible({ timeout: 5000 }).catch(() => false);
+    console.log(`Suggested questions visible: ${hasSuggestions}`);
+
+    // Skip the test step (we don't want to wait for AI response in e2e)
+    const skipTest = page.locator('button, a', { hasText: /skip|Next: Style/i }).first();
+    await expect(skipTest).toBeVisible({ timeout: 5000 });
+    const skipStepPromise = page.waitForResponse(
+      (r) => r.url().includes('/step') && r.request().method() === 'PATCH',
+      { timeout: 30000 }
+    );
+    await skipTest.click();
+    console.log('Clicked skip/next on Test step');
+
+    const skipResp = await skipStepPromise;
+    console.log(`Step 3->4 API: ${skipResp.status()}`);
+
+    await page.waitForURL(/\/step\/4/, { timeout: 30000 });
+    console.log(`PASS: Navigated to step 4: ${page.url()}`);
+
+    // ──────────────────────────────────────────────
+    // 5. Step 4: Style your widget
+    // ──────────────────────────────────────────────
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(2000);
+    await page.screenshot({ path: `${SCREENSHOTS}/07-step4-style.png`, fullPage: true });
+
+    // Verify step 4 active
+    const step4StyleLabel = await page.locator('button[aria-current="step"]').getAttribute('aria-label');
+    expect(step4StyleLabel).toContain('Style');
+    console.log('PASS: Step 4 (Style) is active');
 
     // Color swatches
     const purple = page.locator('button[aria-label="Purple"]');
@@ -272,15 +310,15 @@ test.describe('Onboarding Wizard Flow', () => {
     expect(await bl.getAttribute('aria-checked')).toBe('true');
     console.log('PASS: Bottom Left position selected');
 
-    await page.screenshot({ path: `${SCREENSHOTS}/07-step3-styled.png`, fullPage: true });
+    await page.screenshot({ path: `${SCREENSHOTS}/08-step4-styled.png`, fullPage: true });
 
     // Next: Deploy
-    const nextBtn3 = page.locator('button', { hasText: 'Next: Deploy your chatbot' });
+    const nextBtn4 = page.locator('button', { hasText: 'Next: Deploy your chatbot' });
     const styleApiPromise = page.waitForResponse(
       (r) => r.url().match(/\/api\/chatbots\/[^/]+$/) !== null && r.request().method() === 'PATCH',
       { timeout: 30000 }
     ).catch(() => null);
-    await nextBtn3.click({ force: true });
+    await nextBtn4.click({ force: true });
     console.log('Clicked "Next: Deploy your chatbot"');
 
     if (styleApiPromise) {
@@ -288,20 +326,20 @@ test.describe('Onboarding Wizard Flow', () => {
       if (styleResp) console.log(`Style save API: ${styleResp.status()}`);
     }
 
-    await page.waitForURL(/\/step\/4/, { timeout: 30000 });
-    console.log(`PASS: Navigated to step 4: ${page.url()}`);
+    await page.waitForURL(/\/step\/5/, { timeout: 30000 });
+    console.log(`PASS: Navigated to step 5: ${page.url()}`);
 
     // ──────────────────────────────────────────────
-    // 5. Step 4: Deploy your chatbot
+    // 6. Step 5: Deploy your chatbot
     // ──────────────────────────────────────────────
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
-    await page.screenshot({ path: `${SCREENSHOTS}/08-step4-deploy.png`, fullPage: true });
+    await page.screenshot({ path: `${SCREENSHOTS}/09-step5-deploy.png`, fullPage: true });
 
-    // Verify step 4 active
-    const step4Label = await page.locator('button[aria-current="step"]').getAttribute('aria-label');
-    expect(step4Label).toContain('Deploy');
-    console.log('PASS: Step 4 (Deploy) is active');
+    // Verify step 5 active
+    const step5Label = await page.locator('button[aria-current="step"]').getAttribute('aria-label');
+    expect(step5Label).toContain('Deploy');
+    console.log('PASS: Step 5 (Deploy) is active');
 
     // Publish button
     const publishBtn = page.locator('button', { hasText: 'Publish Chatbot' });
@@ -334,7 +372,7 @@ test.describe('Onboarding Wizard Flow', () => {
     console.log('PASS: "Your chatbot is live" message appeared');
 
     await page.waitForTimeout(500);
-    await page.screenshot({ path: `${SCREENSHOTS}/09-step4-published.png`, fullPage: true });
+    await page.screenshot({ path: `${SCREENSHOTS}/10-step5-published.png`, fullPage: true });
 
     // Embed code active after publish
     expect(await embedPre.getAttribute('class')).not.toContain('opacity-50');

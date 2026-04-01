@@ -124,7 +124,7 @@ export default function HowAiChatbotsUnderstandQuestionsPage() {
       <Header />
 
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">

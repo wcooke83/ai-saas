@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import Script from 'next/script';
 import { toast } from 'sonner';
 import {
   Code, Copy, Check, ExternalLink, Globe, Terminal,
@@ -2058,6 +2059,7 @@ const data = await res.json();`;
           </div>
         </TabsContent>
       </Tabs>
+      <Script src="/widget/sdk.js" data-chatbot-id={id} strategy="afterInteractive" />
     </div>
   );
 }

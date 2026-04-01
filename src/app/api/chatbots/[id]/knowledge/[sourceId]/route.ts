@@ -15,6 +15,7 @@ import {
   deleteKnowledgeSource,
   updateKnowledgeSource,
 } from '@/lib/chatbots/api';
+import { emitTypedWebhookEvent } from '@/lib/webhooks/emit';
 
 import { reprocessKnowledgeSource } from '@/lib/chatbots/knowledge/processor';
 
@@ -91,6 +92,14 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
 
     // Delete source (cascades to chunks)
     await deleteKnowledgeSource(sourceId);
+
+    // Emit knowledge.updated webhook (fire-and-forget)
+    emitTypedWebhookEvent(user.id, id, 'knowledge.updated', {
+      source_id: sourceId,
+      source_type: source.type,
+      source_name: source.name || source.url || 'Untitled',
+      action: 'deleted',
+    }).catch(() => {});
 
     return successResponse({ deleted: true });
   } catch (error) {

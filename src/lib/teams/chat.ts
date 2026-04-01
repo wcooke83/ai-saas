@@ -6,7 +6,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import { executeChat, QuotaExhaustedError } from '@/lib/chatbots/execute-chat';
-import { sendTeamsMessage, sendTeamsTypingIndicator } from './client';
+import { sendTeamsMessage, sendTeamsTypingIndicator, validateServiceUrl } from './client';
 import { checkTeamsRateLimit } from './rate-limit';
 import type { TeamsActivity, TeamsConfig } from './types';
 
@@ -30,6 +30,9 @@ export async function handleTeamsMessage(
   if (!chatbot || !chatbot.is_published) return;
 
   if (!activity.text || !activity.from) return;
+
+  // Validate serviceUrl before making any outbound requests (SSRF prevention)
+  validateServiceUrl(activity.serviceUrl);
 
   // Rate limit per user
   const rateLimit = checkTeamsRateLimit(chatbotId, activity.from.id);

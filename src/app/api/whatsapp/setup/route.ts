@@ -11,6 +11,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { DEFAULT_WHATSAPP_CONFIG } from '@/lib/whatsapp/types';
 import type { WhatsAppConfig } from '@/lib/whatsapp/types';
 import { decryptWhatsAppConfig } from '@/lib/whatsapp/crypto';
+import { CHATBOT_PLAN_LIMITS } from '@/lib/chatbots/types';
 import type { Json } from '@/types/database';
 
 function parseWhatsAppConfig(raw: Json | null): WhatsAppConfig {
@@ -37,7 +38,18 @@ async function getAuthenticatedChatbot(req: NextRequest) {
     .eq('user_id', user.id)
     .single();
 
-  return chatbot || null;
+  return chatbot ? { ...chatbot, _userId: user.id } : null;
+}
+
+async function checkWhatsAppPlanGate(userId: string): Promise<boolean> {
+  const admin = createAdminClient();
+  const { data: sub } = await admin
+    .from('subscriptions')
+    .select('plan')
+    .eq('user_id', userId)
+    .single();
+  const planSlug = sub?.plan || 'free';
+  return CHATBOT_PLAN_LIMITS[planSlug]?.whatsappIntegration ?? false;
 }
 
 /**
@@ -48,6 +60,15 @@ export async function POST(req: NextRequest) {
     const chatbot = await getAuthenticatedChatbot(req);
     if (!chatbot) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Plan gate: require WhatsApp integration permission
+    const allowed = await checkWhatsAppPlanGate(chatbot._userId);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'WhatsApp integration requires a Pro or Agency plan' },
+        { status: 403 }
+      );
     }
 
     const config = parseWhatsAppConfig(chatbot.whatsapp_config as Json);
@@ -80,8 +101,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       webhook_url: webhookUrl,
-      verify_token: config.verify_token,
-      instructions: 'Configure this webhook URL and verify token in your Meta App Dashboard under WhatsApp > Configuration > Webhook.',
+      instructions: 'Configure this webhook URL in your Meta App Dashboard under WhatsApp > Configuration > Webhook. Use the verify token you saved in your WhatsApp settings.',
     });
   } catch (error) {
     console.error('[WhatsApp Setup] POST error:', error);

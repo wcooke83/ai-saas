@@ -7,8 +7,9 @@ import { useOnboarding } from './OnboardingContext';
 const STEPS = [
   { number: 1, label: 'Name' },
   { number: 2, label: 'Train' },
-  { number: 3, label: 'Style' },
-  { number: 4, label: 'Deploy' },
+  { number: 3, label: 'Test' },
+  { number: 4, label: 'Style' },
+  { number: 5, label: 'Deploy' },
 ] as const;
 
 export function OnboardingProgressStepper() {

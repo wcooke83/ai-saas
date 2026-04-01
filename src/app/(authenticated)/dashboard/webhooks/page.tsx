@@ -20,6 +20,12 @@ import {
   Webhook,
   ChevronDown,
   Shield,
+  Play,
+  History,
+  CheckCircle2,
+  XCircle,
+  FlaskConical,
+  Loader2,
 } from 'lucide-react';
 
 interface WebhookRow {
@@ -29,6 +35,19 @@ interface WebhookRow {
   is_active: boolean | null;
   last_triggered_at: string | null;
   failure_count: number | null;
+  created_at: string | null;
+}
+
+interface DeliveryEntry {
+  id: string;
+  delivery_id: string | null;
+  event: string | null;
+  chatbot_id: string | null;
+  status: 'success' | 'failed';
+  status_code: number | null;
+  attempts: number | null;
+  error: string | null;
+  is_test: boolean;
   created_at: string | null;
 }
 
@@ -65,6 +84,10 @@ export default function WebhooksPage() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showDocs, setShowDocs] = useState(false);
+  const [testingId, setTestingId] = useState<string | null>(null);
+  const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
+  const [deliveryLogs, setDeliveryLogs] = useState<Record<string, DeliveryEntry[]>>({});
+  const [loadingLogs, setLoadingLogs] = useState<string | null>(null);
 
   const { confirm: confirmDelete, ConfirmDialog: DeleteConfirmDialog } = useConfirmDialog({
     title: 'Delete webhook?',
@@ -181,6 +204,55 @@ export default function WebhooksPage() {
     await navigator.clipboard.writeText(newSecret);
     setCopiedSecret(true);
     setTimeout(() => setCopiedSecret(false), 2000);
+  };
+
+  const handleTest = async (webhookId: string) => {
+    setTestingId(webhookId);
+    try {
+      const res = await fetch(`/api/webhooks/${webhookId}/test`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || 'Test delivery failed');
+
+      if (data.data?.success) {
+        toast.success(`Test delivered (HTTP ${data.data.status_code})`);
+      } else {
+        toast.error(`Test failed: ${data.data?.error || 'Unknown error'}`);
+      }
+
+      // Refresh delivery logs if expanded
+      if (expandedLogId === webhookId) {
+        fetchDeliveryLogs(webhookId);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Test delivery failed');
+    } finally {
+      setTestingId(null);
+    }
+  };
+
+  const fetchDeliveryLogs = async (webhookId: string) => {
+    setLoadingLogs(webhookId);
+    try {
+      const res = await fetch(`/api/webhooks/${webhookId}/deliveries?limit=20`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || 'Failed to load delivery logs');
+      setDeliveryLogs((prev) => ({ ...prev, [webhookId]: data.data.deliveries }));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to load logs');
+    } finally {
+      setLoadingLogs(null);
+    }
+  };
+
+  const toggleDeliveryLogs = (webhookId: string) => {
+    if (expandedLogId === webhookId) {
+      setExpandedLogId(null);
+    } else {
+      setExpandedLogId(webhookId);
+      if (!deliveryLogs[webhookId]) {
+        fetchDeliveryLogs(webhookId);
+      }
+    }
   };
 
   return (
@@ -432,6 +504,31 @@ export default function WebhooksPage() {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => handleTest(wh.id)}
+                        disabled={testingId === wh.id}
+                        title="Send test delivery"
+                        className="gap-1.5"
+                      >
+                        {testingId === wh.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Play className="w-3.5 h-3.5" />
+                        )}
+                        Test
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => toggleDeliveryLogs(wh.id)}
+                        title="View delivery history"
+                        className="gap-1.5"
+                      >
+                        <History className="w-3.5 h-3.5" />
+                        Logs
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleToggle(wh)}
                         disabled={togglingId === wh.id}
                       >
@@ -456,6 +553,84 @@ export default function WebhooksPage() {
                       </Button>
                     </div>
                   </div>
+
+                  {/* Delivery log panel */}
+                  {expandedLogId === wh.id && (
+                    <div className="mt-3 border-t border-secondary-100 dark:border-secondary-800 pt-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-xs font-medium text-secondary-700 dark:text-secondary-300 flex items-center gap-1.5">
+                          <History className="w-3.5 h-3.5" />
+                          Recent Deliveries
+                        </h4>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => fetchDeliveryLogs(wh.id)}
+                          disabled={loadingLogs === wh.id}
+                          className="text-xs h-7 px-2"
+                        >
+                          {loadingLogs === wh.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            'Refresh'
+                          )}
+                        </Button>
+                      </div>
+
+                      {loadingLogs === wh.id && !deliveryLogs[wh.id] ? (
+                        <div className="py-6 text-center text-xs text-secondary-500">
+                          <Loader2 className="w-4 h-4 animate-spin mx-auto mb-2" />
+                          Loading delivery history...
+                        </div>
+                      ) : !deliveryLogs[wh.id]?.length ? (
+                        <div className="py-6 text-center text-xs text-secondary-500">
+                          No deliveries yet. Click &quot;Test&quot; to send a test event.
+                        </div>
+                      ) : (
+                        <div className="space-y-1 max-h-64 overflow-y-auto">
+                          {deliveryLogs[wh.id].map((entry) => (
+                            <div
+                              key={entry.id}
+                              className="flex items-center gap-3 px-3 py-2 rounded-md bg-secondary-50 dark:bg-secondary-800/50 text-xs"
+                            >
+                              {entry.status === 'success' ? (
+                                <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                              ) : (
+                                <XCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+                              )}
+                              <span className="font-mono text-secondary-700 dark:text-secondary-300 min-w-0 truncate">
+                                {entry.event || 'unknown'}
+                              </span>
+                              {entry.is_test && (
+                                <span className="flex items-center gap-0.5 text-amber-600 dark:text-amber-400 flex-shrink-0">
+                                  <FlaskConical className="w-3 h-3" />
+                                  test
+                                </span>
+                              )}
+                              {entry.status_code && (
+                                <span className={`flex-shrink-0 ${entry.status === 'success' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                  {entry.status_code}
+                                </span>
+                              )}
+                              {entry.attempts && entry.attempts > 1 && (
+                                <span className="text-secondary-500 flex-shrink-0">
+                                  {entry.attempts} attempts
+                                </span>
+                              )}
+                              {entry.error && (
+                                <span className="text-red-500 truncate min-w-0" title={entry.error}>
+                                  {entry.error}
+                                </span>
+                              )}
+                              <span className="ml-auto text-secondary-400 flex-shrink-0 whitespace-nowrap">
+                                {entry.created_at ? formatRelativeTime(entry.created_at) : ''}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

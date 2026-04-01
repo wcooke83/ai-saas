@@ -128,7 +128,7 @@ export default function HowToEmbedChatbotInShopifyPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -212,13 +212,13 @@ export default function HowToEmbedChatbotInShopifyPage() {
                 <p>
                   The setup process is straightforward, but make sure you have these ready:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-2 mt-4">
                   <li>
                     <strong>A VocUI account with a chatbot created.</strong> If you haven&apos;t
                     set one up yet, start with our{' '}
                     <Link
                       href="/blog/how-to-add-chatbot-to-website"
-                      className="text-primary-500 hover:text-primary-600 underline"
+                      className="text-primary-600 dark:text-primary-400 hover:underline"
                     >
                       general chatbot setup guide
                     </Link>
@@ -246,7 +246,7 @@ export default function HowToEmbedChatbotInShopifyPage() {
                   Follow these steps to add the VocUI chatbot to your Shopify store. The entire
                   process takes about three minutes.
                 </p>
-                <ol className="list-decimal list-inside space-y-4 mt-4 ml-4">
+                <ol className="list-decimal pl-5 space-y-4 mt-4">
                   <li>
                     <strong>Copy your embed code.</strong> Log in to your VocUI dashboard, open
                     your chatbot, and go to the Deploy tab. Copy the JavaScript embed snippet.
@@ -254,7 +254,10 @@ export default function HowToEmbedChatbotInShopifyPage() {
                   <li>
                     <strong>Open your Shopify theme editor.</strong> In your Shopify admin, go
                     to <strong>Online Store &gt; Themes</strong>. Click the three-dot menu on your
-                    active theme and select <strong>Edit code</strong>.
+                    active theme and select <strong>Edit code</strong>. For advanced customization,
+                    Shopify&apos;s{' '}
+                    <a href="https://shopify.dev/docs/apps/build/online-store/theme-app-extensions/configuration" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Theme App Extensions documentation</a>{' '}
+                    covers the full theme architecture.
                   </li>
                   <li>
                     <strong>Find the theme.liquid file.</strong> In the Layout folder on the
@@ -262,7 +265,8 @@ export default function HowToEmbedChatbotInShopifyPage() {
                     <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">
                       theme.liquid
                     </code>
-                    . This is the master template that wraps every page in your store.
+                    . This is the master template that wraps every page in your store. For more on how Shopify handles scripts, see the{' '}
+                    <a href="https://shopify.dev/docs/storefronts/themes/best-practices/javascript-and-stylesheet-tags" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Shopify JavaScript and Stylesheet Tags documentation</a>.
                   </li>
                   <li>
                     <strong>Paste the embed code.</strong> Scroll to the bottom of the file and
@@ -294,7 +298,7 @@ export default function HowToEmbedChatbotInShopifyPage() {
                   A chatbot is only as good as the content it&apos;s trained on. For a Shopify
                   store, you&apos;ll want to cover the topics shoppers ask about most:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-2 mt-4">
                   <li>
                     <strong>Product details.</strong> Add your store&apos;s URL as a knowledge
                     source and VocUI will crawl your product pages. The bot can then answer
@@ -319,7 +323,7 @@ export default function HowToEmbedChatbotInShopifyPage() {
                   For more advanced training strategies, check out our guide on{' '}
                   <Link
                     href="/chatbot-for-ecommerce"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     chatbots for ecommerce
                   </Link>
@@ -337,7 +341,7 @@ export default function HowToEmbedChatbotInShopifyPage() {
                   dashboard. For the full list of widget options, see our{' '}
                   <Link
                     href="/blog/how-to-add-chatbot-to-website"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     full chatbot setup guide
                   </Link>
@@ -362,7 +366,7 @@ export default function HowToEmbedChatbotInShopifyPage() {
                   Most Shopify embeds work immediately. When they don&apos;t, these are the
                   Shopify-specific causes:
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-3 mt-4">
                   <li>
                     <strong>Script not loading on Online Store 2.0 themes.</strong> Newer Shopify
                     themes use sections and blocks architecture, but theme.liquid still exists and
@@ -408,21 +412,21 @@ export default function HowToEmbedChatbotInShopifyPage() {
                   For other platforms, see our{' '}
                   <Link
                     href="/blog/how-to-embed-chatbot-in-wordpress"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     WordPress embed guide
                   </Link>
                   ,{' '}
                   <Link
                     href="/blog/how-to-embed-chatbot-in-squarespace"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     Squarespace embed guide
                   </Link>
                   , or the general{' '}
                   <Link
                     href="/blog/how-to-add-chatbot-to-website"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     chatbot website embed guide
                   </Link>

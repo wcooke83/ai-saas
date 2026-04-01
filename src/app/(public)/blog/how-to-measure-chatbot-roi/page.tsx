@@ -4,7 +4,7 @@ import { Header } from '@/components/layout';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ExternalLink } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
@@ -128,7 +128,7 @@ export default function HowToMeasureChatbotRoiPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -193,7 +193,7 @@ export default function HowToMeasureChatbotRoiPage() {
                   The good news: chatbot ROI is more measurable than most marketing investments.
                   Unlike brand awareness campaigns or content marketing where attribution is
                   fuzzy, chatbot impact shows up directly in your support ticket volume, response
-                  times, and conversion rates. According to <a href="https://www.freshworks.com/How-AI-is-unlocking-ROI-in-customer-service/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Freshworks</a>, businesses see an average $3.50 return for every $1 invested in AI, with top performers seeing up to $8. You can tie specific conversations to specific
+                  times, and conversion rates. According to <a href="https://www.freshworks.com/How-AI-is-unlocking-ROI-in-customer-service/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Freshworks<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, businesses see an average $3.50 return for every $1 invested in AI, with top performers seeing up to $8. You can tie specific conversations to specific
                   outcomes.
                 </p>
                 <p className="mt-4">
@@ -213,11 +213,11 @@ export default function HowToMeasureChatbotRoiPage() {
                   Not every chatbot metric matters equally. Focus on the four that directly
                   connect to business outcomes:
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-3 mt-4">
                   <li>
                     <strong>Deflection rate.</strong> The percentage of conversations that resolve
                     without a human agent. This is your primary cost-saving metric. Calculate it
-                    by dividing chatbot-only resolutions by total conversations. According to <a href="https://www.ibm.com/think/topics/ai-customer-service-chatbots" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">IBM</a>, well-trained chatbots can handle up to 80% of routine inquiries, with most businesses seeing 30-50% deflection rates initially.
+                    by dividing chatbot-only resolutions by total conversations. According to <a href="https://www.ibm.com/think/topics/ai-customer-service-chatbots" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">IBM<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, well-trained chatbots can handle up to 80% of routine inquiries, with most businesses seeing 30-50% deflection rates initially.
                   </li>
                   <li>
                     <strong>Resolution rate.</strong> The percentage of chatbot conversations where
@@ -264,13 +264,13 @@ export default function HowToMeasureChatbotRoiPage() {
                 </div>
                 <p>
                   To find your cost per ticket, divide your monthly support team costs (salaries,
-                  tools, overhead) by the number of tickets handled. According to <a href="https://www.demandsage.com/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">DemandSage</a>, human-agent interactions typically cost $6&ndash;$15 each. Enterprise support
+                  tools, overhead) by the number of tickets handled. According to <a href="https://www.demandsage.com/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">DemandSage<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, human-agent interactions typically cost $6&ndash;$15 each. Enterprise support
                   with more complex workflows can run significantly higher.
                 </p>
                 <p className="mt-4">
                   For example: if your chatbot deflects 200 tickets per month and your cost per
                   ticket is $12, that&apos;s $2,400 in monthly savings. Subtract your chatbot
-                  cost and you have your net ROI. According to <a href="https://www.bizbot.com/blog/chatbot-roi-ultimate-guide-2025/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">BizBot</a>, most companies see positive ROI within 8-14 months, though businesses with high ticket volumes often break even much faster.
+                  cost and you have your net ROI. According to <a href="https://www.bizbot.com/blog/chatbot-roi-ultimate-guide-2025/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">BizBot<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, most companies see positive ROI within 8-14 months, though businesses with high ticket volumes often break even much faster.
                 </p>
                 <p className="mt-4">
                   Don&apos;t forget to include time savings. Even tickets that aren&apos;t fully
@@ -290,7 +290,7 @@ export default function HowToMeasureChatbotRoiPage() {
                   Cost savings are only half the picture. A chatbot that helps visitors find what
                   they need faster also drives revenue. Here&apos;s how to measure it:
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-3 mt-4">
                   <li>
                     <strong>Chatbot-assisted conversions.</strong> Use your analytics tool to
                     compare conversion rates of visitors who interact with the chatbot versus
@@ -311,7 +311,7 @@ export default function HowToMeasureChatbotRoiPage() {
                   </li>
                 </ul>
                 <p className="mt-4">
-                  According to <a href="https://masterofcode.com/blog/chatbot-statistics" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Master of Code</a>, 90% of businesses experienced faster complaint resolution after deploying chatbots, which translates directly to customer retention and repeat revenue. The revenue impact is harder to isolate than cost savings, but even rough
+                  According to <a href="https://masterofcode.com/blog/chatbot-statistics" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Master of Code<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, 90% of businesses experienced faster complaint resolution after deploying chatbots, which translates directly to customer retention and repeat revenue. The revenue impact is harder to isolate than cost savings, but even rough
                   estimates are valuable. If your chatbot conversations correlate with a 1%
                   increase in conversion rate on a site doing $50,000/month in revenue,
                   that&apos;s $500/month in attributable revenue.
@@ -327,7 +327,7 @@ export default function HowToMeasureChatbotRoiPage() {
                   Create a simple monthly report that tracks your chatbot&apos;s performance over
                   time. Include these data points:
                 </p>
-                <ol className="list-decimal list-inside space-y-3 mt-4 ml-4">
+                <ol className="list-decimal pl-5 space-y-3 mt-4">
                   <li>
                     <strong>Total chatbot conversations</strong> — pulled from VocUI&apos;s
                     analytics dashboard.
@@ -359,14 +359,14 @@ export default function HowToMeasureChatbotRoiPage() {
                   grows. For more on reducing support ticket volume, see our guide on{' '}
                   <Link
                     href="/blog/how-to-reduce-customer-support-tickets"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     reducing customer support tickets with a chatbot
                   </Link>
                   . Check out{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     our pricing
                   </Link>{' '}

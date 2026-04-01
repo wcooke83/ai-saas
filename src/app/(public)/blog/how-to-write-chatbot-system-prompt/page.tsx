@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { DashboardPath } from '@/components/blog/dashboard-path';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -138,7 +139,7 @@ export default function HowToWriteChatbotSystemPromptPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -210,7 +211,7 @@ export default function HowToWriteChatbotSystemPromptPage() {
                   The system prompt is particularly important for{' '}
                   <Link
                     href="/blog/what-is-a-knowledge-base-chatbot"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     knowledge base chatbots
                   </Link>{' '}
@@ -236,7 +237,7 @@ export default function HowToWriteChatbotSystemPromptPage() {
                   specific question to answer. In a{' '}
                   <Link
                     href="/blog/what-is-a-knowledge-base-chatbot"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     knowledge base chatbot
                   </Link>
@@ -244,7 +245,7 @@ export default function HowToWriteChatbotSystemPromptPage() {
                   passages from your knowledge base that the{' '}
                   <Link
                     href="/blog/what-is-rag-retrieval-augmented-generation"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     RAG system
                   </Link>{' '}
@@ -270,7 +271,7 @@ export default function HowToWriteChatbotSystemPromptPage() {
                   An effective system prompt covers five areas. You don&apos;t need pages of
                   text — 100 to 300 words is the sweet spot. The goal is clarity, not length.
                 </p>
-                <ol className="list-decimal list-inside space-y-4 mt-4 ml-4">
+                <ol className="list-decimal pl-5 space-y-4 mt-4">
                   <li>
                     <strong>Role definition.</strong> Tell the bot exactly who it is. &quot;You
                     are a customer support assistant for [Company Name], a [brief description of
@@ -361,7 +362,7 @@ export default function HowToWriteChatbotSystemPromptPage() {
                   on{' '}
                   <Link
                     href="/blog/how-to-train-chatbot-on-your-own-data"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     training chatbots on your own data
                   </Link>
@@ -379,7 +380,7 @@ export default function HowToWriteChatbotSystemPromptPage() {
                   information — is the biggest risk with AI chatbots. Most hallucinations trace
                   back to system prompt issues:
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-3 mt-4">
                   <li>
                     <strong>No knowledge boundary instruction.</strong> If you don&apos;t
                     explicitly tell the bot to only answer from its knowledge base, it will fill
@@ -429,6 +430,7 @@ export default function HowToWriteChatbotSystemPromptPage() {
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Template You Can Copy and Customize
                 </h2>
+                <DashboardPath steps={['Chatbots', 'Your chatbot', 'Settings', 'System Prompt']} tip="Paste your system prompt and click Save." />
                 <p>
                   Here&apos;s a general-purpose system prompt template that works for most
                   business chatbots. Replace the bracketed sections with your own details:
@@ -458,7 +460,7 @@ When a visitor asks about [pricing/demos/getting started], direct them to [speci
                   documents, not set-and-forget configurations. View{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     our pricing plans
                   </Link>{' '}

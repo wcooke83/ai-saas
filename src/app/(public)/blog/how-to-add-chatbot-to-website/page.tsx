@@ -6,6 +6,8 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { TableOfContents } from '@/components/blog/table-of-contents';
+import { MidArticleCta } from '@/components/blog/mid-article-cta';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -154,7 +156,7 @@ export default function HowToAddChatbotPage() {
       <Header />
 
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -196,17 +198,29 @@ export default function HowToAddChatbotPage() {
               </p>
             </header>
 
+            <TableOfContents items={[
+              { id: 'what-you-need-before-you-start', label: 'What You Need Before You Start' },
+              { id: 'step-1-create-your-chatbot-and-connect-a-knowledge-source', label: 'Step 1: Create Your Chatbot and Connect a Knowledge Source' },
+              { id: 'step-2-configure-the-widget', label: 'Step 2: Configure the Widget' },
+              { id: 'step-3-copy-the-embed-code', label: 'Step 3: Copy the Embed Code' },
+              { id: 'step-4-paste-the-script-into-your-site', label: 'Step 4: Paste the Script into Your Site' },
+              { id: 'step-5-test-the-live-widget', label: 'Step 5: Test the Live Widget' },
+              { id: 'common-mistakes-to-avoid', label: 'Common Mistakes to Avoid' },
+              { id: 'what-to-do-after-launch', label: 'What to Do After Launch' },
+              { id: 'faq', label: 'FAQ' },
+            ]} />
+
             <div className="prose prose-secondary dark:prose-invert max-w-none space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="what-you-need-before-you-start" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   What you need before you start
                 </h2>
                 <p>
                   Before you log in and create your first chatbot, it helps to have a few things
                   ready. None of them are technical — they&apos;re just content decisions.
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">A knowledge source</strong> — this could be a URL to your FAQ page, a
                     PDF of your service guide, or a simple list of questions and answers you type
@@ -230,7 +244,7 @@ export default function HowToAddChatbotPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="step-1-create-your-chatbot-and-connect-a-knowledge-source" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Step 1: Create your chatbot and connect a knowledge source
                 </h2>
                 <p>
@@ -240,7 +254,7 @@ export default function HowToAddChatbotPage() {
                 <p className="mt-4">
                   Next, add a knowledge source. You have a few options:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">URL</strong> — paste a web page address. VocUI will scrape the
                     content automatically. You can add multiple URLs, including your entire help
@@ -269,13 +283,13 @@ export default function HowToAddChatbotPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="step-2-configure-the-widget" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Step 2: Configure the widget
                 </h2>
                 <p>
                   Go to the Settings tab of your chatbot. Here you can set:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">Display name</strong> — what visitors see in the chat header.
                     &quot;Support&quot;, &quot;Ava&quot;, &quot;Ask Us Anything&quot; — whatever fits your brand.
@@ -303,7 +317,7 @@ export default function HowToAddChatbotPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="step-3-copy-the-embed-code" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Step 3: Copy the embed code
                 </h2>
                 <p>
@@ -322,7 +336,7 @@ export default function HowToAddChatbotPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="step-4-paste-the-script-into-your-site" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Step 4: Paste the script into your site
                 </h2>
                 <p>
@@ -357,8 +371,10 @@ export default function HowToAddChatbotPage() {
                 </p>
               </section>
 
+              <MidArticleCta message="Following along? Create your chatbot now and try each step live." />
+
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="step-5-test-the-live-widget" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Step 5: Test the live widget
                 </h2>
                 <p>
@@ -379,10 +395,10 @@ export default function HowToAddChatbotPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="common-mistakes-to-avoid" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Common mistakes to avoid
                 </h2>
-                <ul className="list-disc list-inside space-y-3 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-3 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">Skipping the system prompt.</strong> Without a system prompt, your
                     chatbot will try to answer anything — including questions completely outside
@@ -412,7 +428,7 @@ export default function HowToAddChatbotPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="what-to-do-after-launch" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   What to do after launch
                 </h2>
                 <p>

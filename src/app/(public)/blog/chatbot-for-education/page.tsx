@@ -138,7 +138,7 @@ export default function ChatbotForEducationPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -230,7 +230,7 @@ export default function ChatbotForEducationPage() {
                 </p>
 
                 {/* Numbered list instead of bullets — structural variation */}
-                <ol className="list-decimal list-inside space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ol className="list-decimal pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong>Enrollment and admissions.</strong> Application deadlines, required
                     documents, acceptance criteria, transfer credit policies, and how to submit
@@ -262,7 +262,7 @@ export default function ChatbotForEducationPage() {
                   see our guide on{' '}
                   <Link
                     href="/blog/what-is-a-knowledge-base-chatbot"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     knowledge base chatbots
                   </Link>
@@ -289,9 +289,10 @@ export default function ChatbotForEducationPage() {
                 </div>
 
                 <p>
-                  The Family Educational Rights and Privacy Act (FERPA) protects student education
-                  records — grades, enrollment status, financial aid details, disciplinary records,
-                  and other personally identifiable information. Any tool that accesses these
+                  The{' '}
+                  <a href="https://studentprivacy.ed.gov" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Family Educational Rights and Privacy Act (FERPA)</a>{' '}
+                  protects student education records — grades, enrollment status, financial aid details,
+                  disciplinary records, and other personally identifiable information. Any tool that accesses these
                   records must comply with strict disclosure and consent requirements.
                 </p>
                 <p className="mt-4">
@@ -312,7 +313,7 @@ export default function ChatbotForEducationPage() {
                   requires a data processing agreement, review{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     our plans
                   </Link>
@@ -339,7 +340,9 @@ export default function ChatbotForEducationPage() {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">4.</span>
-                      <span>Confirm no SIS, LMS backend, or financial aid system connections exist.</span>
+                      <span>Confirm no SIS, LMS backend, or financial aid system connections exist. Review the{' '}
+                      <a href="https://studentprivacy.ed.gov/audience/education-technology-vendors" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">EdTech vendor FERPA guidelines</a>{' '}
+                      for additional requirements.</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">5.</span>
@@ -398,31 +401,32 @@ export default function ChatbotForEducationPage() {
                 {/* Comparison table — unique to education post */}
                 <div className="overflow-x-auto mt-6 mb-6">
                   <table className="w-full text-left text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg overflow-hidden">
+                    <caption className="sr-only">Chatbot audiences, common questions, and best placement for education</caption>
                     <thead className="bg-secondary-50 dark:bg-secondary-800/50">
                       <tr>
-                        <th className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Audience</th>
-                        <th className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Common Questions</th>
-                        <th className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Best Placement</th>
+                        <th scope="col" className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Audience</th>
+                        <th scope="col" className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Common Questions</th>
+                        <th scope="col" className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Best Placement</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700">
                       <tr>
-                        <td className="px-4 py-3 font-medium">Prospective students</td>
+                        <th scope="row" className="px-4 py-3 font-medium">Prospective students</th>
                         <td className="px-4 py-3">Application deadlines, program requirements, campus visits, financial aid</td>
                         <td className="px-4 py-3">Admissions and program pages</td>
                       </tr>
                       <tr>
-                        <td className="px-4 py-3 font-medium">Enrolled students</td>
+                        <th scope="row" className="px-4 py-3 font-medium">Enrolled students</th>
                         <td className="px-4 py-3">Registration, drop/add, LMS help, campus services, graduation</td>
                         <td className="px-4 py-3">Student portal or intranet</td>
                       </tr>
                       <tr>
-                        <td className="px-4 py-3 font-medium">Parents (K-12)</td>
+                        <th scope="row" className="px-4 py-3 font-medium">Parents (K-12)</th>
                         <td className="px-4 py-3">School calendar, transportation, lunch menus, after-school programs</td>
                         <td className="px-4 py-3">School homepage</td>
                       </tr>
                       <tr>
-                        <td className="px-4 py-3 font-medium">Faculty &amp; staff</td>
+                        <th scope="row" className="px-4 py-3 font-medium">Faculty &amp; staff</th>
                         <td className="px-4 py-3">HR policies, benefits enrollment, IT requests, room scheduling</td>
                         <td className="px-4 py-3">Internal staff portal</td>
                       </tr>
@@ -482,7 +486,7 @@ export default function ChatbotForEducationPage() {
                   Learn more about building effective knowledge bases in our{' '}
                   <Link
                     href="/blog/how-to-build-internal-knowledge-bot"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     internal knowledge bot guide
                   </Link>

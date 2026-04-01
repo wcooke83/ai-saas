@@ -124,7 +124,7 @@ export default function ChatbotVsVirtualAssistantPage() {
       <Header />
 
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -208,11 +208,12 @@ export default function ChatbotVsVirtualAssistantPage() {
                 </h2>
                 <div className="overflow-x-auto mt-4 rounded-xl border border-secondary-200 dark:border-secondary-700">
                   <table className="w-full text-sm">
+                    <caption className="sr-only">Comparison of chatbots versus virtual assistants</caption>
                     <thead>
                       <tr className="bg-secondary-50 dark:bg-secondary-800/60">
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100"></th>
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Chatbot</th>
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Virtual Assistant</th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100"></th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Chatbot</th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Virtual Assistant</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700 bg-white dark:bg-secondary-800/30">
@@ -226,7 +227,7 @@ export default function ChatbotVsVirtualAssistantPage() {
                         ['Best for', 'Customer support, FAQs, lead gen', 'Personal productivity, smart home, enterprise workflows'],
                       ].map(([label, chatbot, assistant]) => (
                         <tr key={label}>
-                          <td className="px-4 py-3 font-medium text-secondary-700 dark:text-secondary-300">{label}</td>
+                          <th scope="row" className="px-4 py-3 font-medium text-secondary-700 dark:text-secondary-300">{label}</th>
                           <td className="px-4 py-3 text-secondary-600 dark:text-secondary-400">{chatbot}</td>
                           <td className="px-4 py-3 text-secondary-600 dark:text-secondary-400">{assistant}</td>
                         </tr>

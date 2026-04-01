@@ -146,7 +146,7 @@ export default function ReduceSupportTicketsPage() {
       <Header />
 
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -234,7 +234,7 @@ export default function ReduceSupportTicketsPage() {
                   predictable patterns. Here are the five categories that most businesses can
                   deflect with a well-configured AI chatbot:
                 </p>
-                <ol className="list-decimal list-inside space-y-4 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ol className="list-decimal pl-5 space-y-4 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">How-to and feature questions.</strong> &quot;How do I do X?&quot; is the
                     most common category of support ticket for most products. If your docs explain
@@ -276,7 +276,7 @@ export default function ReduceSupportTicketsPage() {
                   For example, if your knowledge base says &quot;Orders ship within 2 business days,&quot;
                   the chatbot can correctly answer questions like:
                 </p>
-                <ul className="list-disc list-inside space-y-1 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-1 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>&quot;How fast do you ship?&quot;</li>
                   <li>&quot;When can I expect my package?&quot;</li>
                   <li>&quot;What&apos;s your delivery time?&quot;</li>
@@ -363,7 +363,7 @@ export default function ReduceSupportTicketsPage() {
                 <p className="mt-4">
                   A good handoff configuration has three parts:
                 </p>
-                <ol className="list-decimal list-inside space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ol className="list-decimal pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">Honest limits.</strong> When the chatbot doesn&apos;t know the answer,
                     it should say so clearly — not make something up. &quot;I don&apos;t have that
@@ -412,7 +412,7 @@ export default function ReduceSupportTicketsPage() {
                 <p className="mt-4">
                   Other metrics worth tracking:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">Handoff rate</strong> — what percentage of conversations get
                     escalated to a human. High handoff rates might mean your knowledge base has

@@ -138,7 +138,7 @@ export default function ChatbotForTravelAgenciesPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -222,31 +222,32 @@ export default function ChatbotForTravelAgenciesPage() {
                 {/* Seasonal table — unique to travel post */}
                 <div className="overflow-x-auto mt-6 mb-6">
                   <table className="w-full text-left text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg overflow-hidden">
+                    <caption className="sr-only">Seasonal chatbot content priorities for travel agencies</caption>
                     <thead className="bg-secondary-50 dark:bg-secondary-800/50">
                       <tr>
-                        <th className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Season</th>
-                        <th className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Peak Destinations</th>
-                        <th className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Chatbot Content to Prioritize</th>
+                        <th scope="col" className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Season</th>
+                        <th scope="col" className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Peak Destinations</th>
+                        <th scope="col" className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Chatbot Content to Prioritize</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700">
                       <tr>
-                        <td className="px-4 py-3 font-medium">Jan-Mar</td>
+                        <th scope="row" className="px-4 py-3 font-medium">Jan-Mar</th>
                         <td className="px-4 py-3">Caribbean, Mexico, ski resorts</td>
                         <td className="px-4 py-3">All-inclusive packages, winter getaway deals, spring break offers</td>
                       </tr>
                       <tr>
-                        <td className="px-4 py-3 font-medium">Apr-Jun</td>
+                        <th scope="row" className="px-4 py-3 font-medium">Apr-Jun</th>
                         <td className="px-4 py-3">Europe, Mediterranean cruises</td>
                         <td className="px-4 py-3">Shoulder season pricing, visa requirements, tour itineraries</td>
                       </tr>
                       <tr>
-                        <td className="px-4 py-3 font-medium">Jul-Sep</td>
+                        <th scope="row" className="px-4 py-3 font-medium">Jul-Sep</th>
                         <td className="px-4 py-3">Family resorts, national parks, Alaska</td>
                         <td className="px-4 py-3">Family-friendly packages, adventure travel, group tours</td>
                       </tr>
                       <tr>
-                        <td className="px-4 py-3 font-medium">Oct-Dec</td>
+                        <th scope="row" className="px-4 py-3 font-medium">Oct-Dec</th>
                         <td className="px-4 py-3">Southeast Asia, holiday cruises, tropical escapes</td>
                         <td className="px-4 py-3">Holiday travel, gift certificates, early-bird deals for next year</td>
                       </tr>
@@ -416,14 +417,14 @@ export default function ChatbotForTravelAgenciesPage() {
                   on{' '}
                   <Link
                     href="/blog/how-to-add-chatbot-to-website"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     adding a chatbot to your website
                   </Link>
                   , and check our{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     pricing page
                   </Link>

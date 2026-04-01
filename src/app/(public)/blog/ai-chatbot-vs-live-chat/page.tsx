@@ -140,7 +140,7 @@ export default function AiChatbotVsLiveChatPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -272,7 +272,7 @@ export default function AiChatbotVsLiveChatPage() {
                   knowledge-base chatbots work, see our{' '}
                   <Link
                     href="/blog/what-is-a-knowledge-base-chatbot"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     explainer on knowledge base chatbots
                   </Link>
@@ -299,17 +299,18 @@ export default function AiChatbotVsLiveChatPage() {
 
                 <div className="overflow-x-auto mt-6 rounded-xl border border-secondary-200 dark:border-secondary-700">
                   <table className="w-full text-sm">
+                    <caption className="sr-only">Comparison of AI chatbot versus live chat across key factors</caption>
                     <thead>
                       <tr className="bg-secondary-50 dark:bg-secondary-800/60">
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Factor</th>
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Live Chat</th>
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">AI Chatbot</th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Factor</th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Live Chat</th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">AI Chatbot</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700">
                       {comparisonRows.map((row) => (
                         <tr key={row.feature} className="hover:bg-secondary-50 dark:hover:bg-secondary-800/30">
-                          <td className="px-4 py-3 font-medium text-secondary-900 dark:text-secondary-100">{row.feature}</td>
+                          <th scope="row" className="px-4 py-3 font-medium text-secondary-900 dark:text-secondary-100">{row.feature}</th>
                           <td className="px-4 py-3 text-secondary-600 dark:text-secondary-400">{row.liveChat}</td>
                           <td className="px-4 py-3 text-secondary-600 dark:text-secondary-400">{row.aiChatbot}</td>
                         </tr>
@@ -368,7 +369,7 @@ export default function AiChatbotVsLiveChatPage() {
                   reducing ticket volume, read our guide on{' '}
                   <Link
                     href="/blog/how-to-reduce-customer-support-tickets"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     how to reduce customer support tickets
                   </Link>
@@ -389,7 +390,7 @@ export default function AiChatbotVsLiveChatPage() {
                   do not bounce because nobody was available to help. Check our{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     pricing
                   </Link>
@@ -416,7 +417,7 @@ export default function AiChatbotVsLiveChatPage() {
                   attention. Your support team&apos;s workload drops dramatically because they
                   only handle the conversations that actually need them. And because the chatbot
                   provides conversation context on handoff, agents do not waste time re-asking
-                  questions the visitor already answered. It&apos;s worth noting that a <a href="https://www.gartner.com/en/newsroom/press-releases/2024-07-09-gartner-survey-finds-64-percent-of-customers-would-prefer-that-companies-didnt-use-ai-for-customer-service" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">2024 Gartner survey</a> found 64% of customers would prefer companies didn&apos;t use AI for customer service — which is precisely why the hybrid approach works: you let AI handle the fast, informational queries while keeping humans available for the conversations customers care most about.
+                  questions the visitor already answered. It&apos;s worth noting that a 2024 Gartner survey found 64% of customers would prefer companies didn&apos;t use AI for customer service — which is precisely why the hybrid approach works: you let AI handle the fast, informational queries while keeping humans available for the conversations customers care most about.
                 </p>
                 <p className="mt-4">
                   Start with the AI chatbot. Deploy it, train it on your content, and let it

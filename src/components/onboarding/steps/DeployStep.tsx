@@ -181,7 +181,7 @@ export function DeployStep() {
       <div className="flex flex-col gap-3 border-t border-secondary-200 dark:border-secondary-700 pt-6 sm:flex-row sm:items-center sm:justify-between">
         <Button
           variant="ghost"
-          onClick={() => goToStep(3)}
+          onClick={() => goToStep(4)}
           disabled={completing || ctxLoading}
           className="self-start"
         >

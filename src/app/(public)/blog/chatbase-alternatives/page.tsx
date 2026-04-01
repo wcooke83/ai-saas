@@ -6,6 +6,8 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle2, XCircle, MinusCircle } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { TableOfContents } from '@/components/blog/table-of-contents';
+import { MidArticleCta } from '@/components/blog/mid-article-cta';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -201,7 +203,7 @@ export default function ChatbaseAlternativesPage() {
       <Header />
 
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -243,17 +245,30 @@ export default function ChatbaseAlternativesPage() {
               Disclosure: VocUI is our product. We&apos;ve aimed to be fair in this comparison, but we recommend trying any tool yourself before committing. All pricing and feature information was accurate at time of writing.
             </p>
 
+            <TableOfContents items={[
+              { id: 'why-people-look-for-chatbase-alternatives', label: 'Why People Look for Chatbase Alternatives' },
+              { id: 'how-we-compared-these-tools', label: 'How We Compared These Tools' },
+              { id: 'vocui', label: '1. VocUI' },
+              { id: 'botpress', label: '2. Botpress' },
+              { id: 'tidio', label: '3. Tidio' },
+              { id: 'intercom-fin', label: '4. Intercom Fin' },
+              { id: 'customgpt-ai', label: '5. CustomGPT.ai' },
+              { id: 'side-by-side-comparison', label: 'Side-by-Side Comparison' },
+              { id: 'which-is-right-for-you', label: 'Which Is Right for You?' },
+              { id: 'faq', label: 'FAQ' },
+            ]} />
+
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="why-people-look-for-chatbase-alternatives" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Why people look for Chatbase alternatives
                 </h2>
                 <p>
                   Chatbase is genuinely useful for getting a chatbot up fast. But users frequently
                   cite a few frustrations that push them to look elsewhere:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">Limited integrations.</strong> Chatbase embeds on websites, but
                     Slack integration, Telegram, and native API access are either limited or
@@ -279,14 +294,14 @@ export default function ChatbaseAlternativesPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="how-we-compared-these-tools" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   How we compared these tools
                 </h2>
                 <p>
                   Since Chatbase is primarily a knowledge-base chatbot builder, we focused on the
                   criteria that matter most when comparing tools in this specific category:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li><strong className="text-secondary-800 dark:text-secondary-200">Knowledge base training</strong> — how deep and flexible is the content ingestion?</li>
                   <li><strong className="text-secondary-800 dark:text-secondary-200">AI model choice</strong> — can you select which AI model powers responses?</li>
                   <li><strong className="text-secondary-800 dark:text-secondary-200">Custom branding</strong> — can you make the widget match your brand?</li>
@@ -296,7 +311,7 @@ export default function ChatbaseAlternativesPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="vocui" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   1. VocUI
                 </h2>
                 <p>
@@ -350,7 +365,7 @@ export default function ChatbaseAlternativesPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="botpress" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   2. Botpress
                 </h2>
                 <p>
@@ -382,7 +397,7 @@ export default function ChatbaseAlternativesPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="tidio" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   3. Tidio
                 </h2>
                 <p>
@@ -418,7 +433,7 @@ export default function ChatbaseAlternativesPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="intercom-fin" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   4. Intercom Fin
                 </h2>
                 <p>
@@ -450,8 +465,10 @@ export default function ChatbaseAlternativesPage() {
                 </p>
               </section>
 
+              <MidArticleCta message="Comparing options? Create a free VocUI chatbot and test it side by side." />
+
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="customgpt-ai" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   5. CustomGPT.ai
                 </h2>
                 <p>
@@ -482,22 +499,23 @@ export default function ChatbaseAlternativesPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="side-by-side-comparison" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Side-by-side comparison
                 </h2>
 
                 {/* Comparison table */}
                 <div className="overflow-x-auto mt-6 rounded-xl border border-secondary-200 dark:border-secondary-700">
                   <table className="w-full text-sm">
+                    <caption className="sr-only">Comparison of Chatbase alternatives by features and pricing</caption>
                     <thead>
                       <tr className="bg-secondary-50 dark:bg-secondary-800/60">
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Tool</th>
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Starting price</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">KB training</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Model choice</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Branding</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Analytics</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">API access</th>
+                        <th scope="col" className="sticky left-0 z-10 bg-secondary-50 dark:bg-secondary-800/60 text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Tool</th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Starting price</th>
+                        <th scope="col" className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">KB training</th>
+                        <th scope="col" className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Model choice</th>
+                        <th scope="col" className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Branding</th>
+                        <th scope="col" className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Analytics</th>
+                        <th scope="col" className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">API access</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700">
@@ -510,9 +528,9 @@ export default function ChatbaseAlternativesPage() {
                               : 'bg-white dark:bg-secondary-800/30'
                           }
                         >
-                          <td className="px-4 py-3 font-medium text-secondary-900 dark:text-secondary-100">
+                          <th scope="row" className={`sticky left-0 z-10 px-4 py-3 font-medium text-secondary-900 dark:text-secondary-100 ${i === 0 ? 'bg-primary-50/50 dark:bg-primary-900/10' : 'bg-white dark:bg-secondary-800/30'}`}>
                             {i === 0 ? <strong>{row.tool}</strong> : row.tool}
-                          </td>
+                          </th>
                           <td className="px-4 py-3 text-secondary-600 dark:text-secondary-400">{row.startingPrice}</td>
                           <td className="px-4 py-3 text-center"><SupportIcon level={row.knowledgeBaseTraining} /></td>
                           <td className="px-4 py-3 text-center"><SupportIcon level={row.aiModelChoice} /></td>
@@ -531,13 +549,13 @@ export default function ChatbaseAlternativesPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="which-is-right-for-you" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Which is right for you?
                 </h2>
                 <p>
                   The &quot;best&quot; Chatbase alternative depends entirely on what you actually need.
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">If you need a knowledge base chatbot for your website and Slack:</strong>{' '}
                     VocUI is the most direct match — it does both well without requiring you to

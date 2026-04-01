@@ -452,7 +452,7 @@ export function TrainStep() {
               </>
             ) : (
               <>
-                Next: Style your widget
+                Next: Test your chatbot
                 <ArrowRight className="w-4 h-4 ml-2" />
               </>
             )}

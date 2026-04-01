@@ -12,6 +12,7 @@ import type {
   WebhookSubscription,
   DeliveryResult,
 } from './types';
+import { validateWebhookURL } from './url-validation';
 
 // ── Constants ──────────────────────────────────────────────────────
 
@@ -47,6 +48,17 @@ export async function deliverWebhook<E extends WebhookEvent>(
     version: 'v1',
     data,
   };
+
+  // Defense-in-depth: re-validate URL at delivery time to catch DNS rebinding
+  const urlCheck = await validateWebhookURL(subscription.url);
+  if (!urlCheck.valid) {
+    return {
+      success: false,
+      error: `URL validation failed: ${urlCheck.error}`,
+      attempts: 0,
+      deliveryId,
+    };
+  }
 
   const body = JSON.stringify(envelope);
   const unixTimestamp = Math.floor(Date.now() / 1000).toString();

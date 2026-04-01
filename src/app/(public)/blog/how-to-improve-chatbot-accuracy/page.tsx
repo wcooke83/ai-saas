@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { DashboardPath } from '@/components/blog/dashboard-path';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -122,7 +123,7 @@ export default function HowToImproveChatbotAccuracyPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -208,7 +209,8 @@ export default function HowToImproveChatbotAccuracyPage() {
                   Start by reviewing what your chatbot actually has to work with. Open your VocUI
                   dashboard and look at your knowledge sources. Ask yourself these questions:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 ml-4">
+                <DashboardPath steps={['Chatbots', 'Your chatbot', 'Knowledge Sources']} tip="Review your sources and re-scrape any outdated content." />
+                <ul className="list-disc pl-5 space-y-2 mt-4">
                   <li>
                     <strong>Is the information complete?</strong> If customers ask about returns
                     and your return policy isn&apos;t in the knowledge base, the bot will either
@@ -232,7 +234,7 @@ export default function HowToImproveChatbotAccuracyPage() {
                   For a deeper dive into building an effective knowledge base, see our guide on{' '}
                   <Link
                     href="/blog/how-to-train-chatbot-on-your-own-data"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     training a chatbot on your own data
                   </Link>
@@ -251,7 +253,7 @@ export default function HowToImproveChatbotAccuracyPage() {
                   content is well-structured, the right chunk gets retrieved. If it&apos;s a
                   wall of text, the bot may pull an irrelevant section.
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-3 mt-4">
                   <li>
                     <strong>Use clear headings.</strong> Break content into sections with
                     descriptive H2 and H3 headings. &quot;Return Policy for US Orders&quot; is
@@ -278,7 +280,7 @@ export default function HowToImproveChatbotAccuracyPage() {
                   For more on this topic, see our{' '}
                   <Link
                     href="/blog/what-is-a-knowledge-base-chatbot"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     knowledge base chatbot guide
                   </Link>{' '}
@@ -300,7 +302,7 @@ export default function HowToImproveChatbotAccuracyPage() {
                 <p className="mt-4">
                   Key principles for an accuracy-focused system prompt:
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-3 mt-4">
                   <li>
                     <strong>Set explicit boundaries.</strong> Tell the bot: &quot;Only answer
                     questions using the provided knowledge base content. If the answer is not in
@@ -326,7 +328,7 @@ export default function HowToImproveChatbotAccuracyPage() {
                   Our full{' '}
                   <Link
                     href="/blog/how-to-write-chatbot-system-prompt"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     system prompt writing guide
                   </Link>{' '}
@@ -347,7 +349,7 @@ export default function HowToImproveChatbotAccuracyPage() {
                 <p className="mt-4">
                   Build a testing routine:
                 </p>
-                <ol className="list-decimal list-inside space-y-3 mt-4 ml-4">
+                <ol className="list-decimal pl-5 space-y-3 mt-4">
                   <li>
                     <strong>Review conversation logs weekly.</strong> Open VocUI&apos;s chat
                     history and read recent conversations. Flag answers that were wrong, vague,
@@ -391,7 +393,7 @@ export default function HowToImproveChatbotAccuracyPage() {
                 <p className="mt-4">
                   Q&A pairs are especially useful for:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-2 mt-4">
                   <li>Pricing information that must be exact</li>
                   <li>Business hours and location details</li>
                   <li>Warranty and return deadlines</li>
@@ -403,7 +405,7 @@ export default function HowToImproveChatbotAccuracyPage() {
                   specifics that need to be word-perfect. View{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     our pricing plans
                   </Link>{' '}

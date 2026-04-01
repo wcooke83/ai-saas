@@ -130,7 +130,7 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
       <Header />
 
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -186,7 +186,7 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
                   content.
                 </p>
                 <p className="mt-4">Here&apos;s the sequence of events when someone asks a question:</p>
-                <ol className="list-decimal list-inside space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ol className="list-decimal pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">Indexing (happens once, during setup):</strong> Your documents
                     are chunked into small sections. Each chunk is converted into a numerical
@@ -237,7 +237,7 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
                 <p className="mt-4">
                   A knowledge base chatbot is fundamentally different:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     It understands the meaning of questions, not just their exact wording.
                   </li>
@@ -280,11 +280,12 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
                 </p>
                 <div className="overflow-x-auto mt-6 rounded-xl border border-secondary-200 dark:border-secondary-700">
                   <table className="w-full text-sm">
+                    <caption className="sr-only">Comparison of general AI assistant versus knowledge base chatbot</caption>
                     <thead>
                       <tr className="bg-secondary-50 dark:bg-secondary-800/60">
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100"></th>
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">General AI assistant</th>
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Knowledge base chatbot</th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100"></th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">General AI assistant</th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Knowledge base chatbot</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700 bg-white dark:bg-secondary-800/30">
@@ -296,7 +297,7 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
                         ['Useful for customer support', 'Risky', 'Yes'],
                       ].map(([label, general, kb]) => (
                         <tr key={label}>
-                          <td className="px-4 py-3 font-medium text-secondary-700 dark:text-secondary-300">{label}</td>
+                          <th scope="row" className="px-4 py-3 font-medium text-secondary-700 dark:text-secondary-300">{label}</th>
                           <td className="px-4 py-3 text-secondary-600 dark:text-secondary-400">{general}</td>
                           <td className="px-4 py-3 text-secondary-600 dark:text-secondary-400">{kb}</td>
                         </tr>
@@ -313,7 +314,7 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
                 <p>
                   Almost any text-based content works. The most common sources:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">Website pages</strong> — your help center, FAQ page, product pages,
                     pricing page, &quot;How it works&quot; page. Paste the URL and the content is scraped
@@ -351,7 +352,7 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
                   Knowledge base chatbots work well anywhere that customers or employees are
                   asking questions that have documented answers. Common use cases:
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">Customer support deflection</strong> — handle routine questions
                     about pricing, policies, and product features without tickets.
@@ -400,7 +401,7 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
                   infrastructure automatically.
                 </p>
                 <p className="mt-4">The practical steps are straightforward:</p>
-                <ol className="list-decimal list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ol className="list-decimal pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>Create a chatbot in VocUI and give it a name.</li>
                   <li>Add your knowledge sources — paste a URL, upload a file, or type Q&amp;A pairs.</li>
                   <li>Wait for processing (usually under two minutes).</li>

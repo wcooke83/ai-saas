@@ -122,7 +122,7 @@ export default function ChatbotSecurityAndPrivacyGuidePage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -196,7 +196,9 @@ export default function ChatbotSecurityAndPrivacyGuidePage() {
                 <p className="mt-4">
                   Beyond trust, there are legal implications. Regulations like GDPR in Europe,
                   CCPA in California, and industry-specific rules like HIPAA for healthcare impose
-                  specific requirements on how you collect, store, and process personal data.
+                  specific requirements on how you collect, store, and process personal data. The{' '}
+                  <a href="https://www.nist.gov/itl/ai-risk-management-framework" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">NIST AI Risk Management Framework</a>{' '}
+                  provides a structured approach for organizations to manage these risks.
                   Non-compliance can result in significant fines. The good news is that choosing a
                   chatbot provider with strong security practices covers most of the technical
                   requirements &mdash; but you still need to understand what to look for.
@@ -244,7 +246,9 @@ export default function ChatbotSecurityAndPrivacyGuidePage() {
                   browser and the server. This is handled by TLS (the technology behind HTTPS) and
                   should be non-negotiable &mdash; any chatbot platform that doesn&apos;t use
                   HTTPS is not worth considering. Encryption at rest means data is encrypted while
-                  stored in the database, using standards like AES-256.
+                  stored in the database, using standards like AES-256. The{' '}
+                  <a href="https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">OWASP Cryptographic Storage Cheat Sheet</a>{' '}
+                  is a good reference for evaluating a provider&apos;s encryption practices.
                 </p>
                 <p className="mt-4">
                   Ask your chatbot provider where data is physically stored. For GDPR compliance,
@@ -269,7 +273,7 @@ export default function ChatbotSecurityAndPrivacyGuidePage() {
                   Compliance Considerations
                 </h2>
                 <p>
-                  <strong>GDPR</strong> applies if you serve visitors from the European Union.
+                  <strong><a href="https://gdprlocal.com/chatbot-gdpr-compliance/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">GDPR</a></strong> applies if you serve visitors from the European Union.
                   Key requirements include: informing visitors about data collection (via your
                   privacy policy), obtaining consent where required, providing access to collected
                   data upon request, and enabling data deletion (&quot;right to be forgotten&quot;).
@@ -294,14 +298,14 @@ export default function ChatbotSecurityAndPrivacyGuidePage() {
                   in our{' '}
                   <Link
                     href="/blog/chatbot-for-financial-services"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     financial services chatbot guide
                   </Link>{' '}
                   and our{' '}
                   <Link
                     href="/blog/chatbot-for-insurance"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     insurance chatbot guide
                   </Link>.
@@ -345,8 +349,11 @@ export default function ChatbotSecurityAndPrivacyGuidePage() {
                 <p>
                   If your business handles sensitive data &mdash; financial information, health
                   records, legal matters, or personal data beyond basic contact details &mdash;
-                  take extra precautions with your chatbot deployment. Configure your system
-                  prompt to explicitly instruct the chatbot not to ask for sensitive information:
+                  take extra precautions with your chatbot deployment. Note that the{' '}
+                  <a href="https://artificialintelligenceact.eu/article/50/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">EU AI Act (Article 50)</a>{' '}
+                  also requires chatbots to disclose they are AI-powered by August 2026. Configure
+                  your system prompt to explicitly instruct the chatbot not to ask for sensitive
+                  information:
                   &quot;Never ask for social security numbers, credit card numbers, passwords, or
                   health information.&quot;
                 </p>
@@ -392,14 +399,14 @@ export default function ChatbotSecurityAndPrivacyGuidePage() {
                   requirements. Visit our{' '}
                   <Link
                     href="/security"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     security page
                   </Link>{' '}
                   for detailed information about our security practices, or check our{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     pricing page
                   </Link>{' '}

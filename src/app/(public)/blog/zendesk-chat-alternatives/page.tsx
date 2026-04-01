@@ -198,7 +198,7 @@ export default function ZendeskChatAlternativesPage() {
       <Header />
 
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -265,7 +265,7 @@ export default function ZendeskChatAlternativesPage() {
                 <p className="mt-4">
                   Here&apos;s where the friction shows up:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">You pay for the suite.</strong> Zendesk
                     now pushes the Suite plan ($55/agent/month), bundling ticketing, talk, and chat.
@@ -492,15 +492,16 @@ export default function ZendeskChatAlternativesPage() {
 
                 <div className="overflow-x-auto mt-6 rounded-xl border border-secondary-200 dark:border-secondary-700">
                   <table className="w-full text-sm">
+                    <caption className="sr-only">Comparison of Zendesk Chat alternatives by features and pricing</caption>
                     <thead>
                       <tr className="bg-secondary-50 dark:bg-secondary-800/60">
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Tool</th>
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Starting price</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Tickets</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Knowledge base</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">AI suggestions</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Multichannel</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Reporting</th>
+                        <th scope="col" className="sticky left-0 z-10 bg-secondary-50 dark:bg-secondary-800/60 text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Tool</th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Starting price</th>
+                        <th scope="col" className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Tickets</th>
+                        <th scope="col" className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Knowledge base</th>
+                        <th scope="col" className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">AI suggestions</th>
+                        <th scope="col" className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Multichannel</th>
+                        <th scope="col" className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Reporting</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700">
@@ -513,9 +514,9 @@ export default function ZendeskChatAlternativesPage() {
                               : 'bg-white dark:bg-secondary-800/30'
                           }
                         >
-                          <td className="px-4 py-3 font-medium text-secondary-900 dark:text-secondary-100">
+                          <th scope="row" className={`sticky left-0 z-10 px-4 py-3 font-medium text-secondary-900 dark:text-secondary-100 ${i === 0 ? 'bg-primary-50/50 dark:bg-primary-900/10' : 'bg-white dark:bg-secondary-800/30'}`}>
                             {i === 0 ? <strong>{row.tool}</strong> : row.tool}
-                          </td>
+                          </th>
                           <td className="px-4 py-3 text-secondary-600 dark:text-secondary-400">{row.startingPrice}</td>
                           <td className="px-4 py-3 text-center"><SupportIcon level={row.ticketManagement} /></td>
                           <td className="px-4 py-3 text-center"><SupportIcon level={row.knowledgeBase} /></td>
@@ -537,7 +538,7 @@ export default function ZendeskChatAlternativesPage() {
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Which is right for you?
                 </h2>
-                <ul className="list-disc list-inside space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">If you want AI to answer customer questions automatically:</strong>{' '}
                     VocUI trains on your content and handles conversations without requiring live

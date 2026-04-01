@@ -30,6 +30,35 @@ export const metadata: Metadata = {
 // ─── Posts ─────────────────────────────────────────────────────────────────────
 
 const posts = [
+  // ─── Topic Guides (Hub Pages) ────────────────────────────────────────────────
+  {
+    slug: 'knowledge-base-chatbot-guide',
+    title: 'The Complete Guide to Knowledge Base Chatbots',
+    description: 'Everything you need to build, train, and deploy an AI chatbot powered by your own content. Covers RAG, embeddings, accuracy, and more.',
+    readTime: '9 articles',
+    tag: 'Topic Guide',
+  },
+  {
+    slug: 'embed-chatbot-guide',
+    title: 'How to Add a Chatbot to Any Website',
+    description: 'Step-by-step guides for embedding AI chatbots on WordPress, Shopify, Squarespace, Wix, and any other platform.',
+    readTime: '6 articles',
+    tag: 'Topic Guide',
+  },
+  {
+    slug: 'chatbot-for-business-guide',
+    title: 'AI Chatbots for Business: Industry Guide',
+    description: 'How businesses across industries use AI chatbots to automate support, capture leads, and serve customers 24/7.',
+    readTime: '12 articles',
+    tag: 'Topic Guide',
+  },
+  {
+    slug: 'chatbot-alternatives-guide',
+    title: 'Best Chatbot Platform Alternatives Compared',
+    description: 'Honest comparisons of the top AI chatbot platforms including Chatbase, Tidio, Intercom, Drift, Zendesk, and Freshchat.',
+    readTime: '7 articles',
+    tag: 'Topic Guide',
+  },
   // ─── Original Posts ───────────────────────────────────────────────────────────
   {
     slug: 'how-to-add-chatbot-to-website',
@@ -435,7 +464,7 @@ export default function BlogIndexPage() {
 
       <Header />
 
-      <main id="main-content" className="container mx-auto px-4 py-16 max-w-4xl">
+      <main id="main-content" className="container mx-auto px-4 py-10 md:py-16 max-w-4xl">
         {/* Breadcrumbs */}
         <nav aria-label="Breadcrumb" className="mb-8">
           <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400">

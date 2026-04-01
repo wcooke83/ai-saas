@@ -122,7 +122,7 @@ export default function HowToEmbedChatbotInSquarespacePage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -208,7 +208,7 @@ export default function HowToEmbedChatbotInSquarespacePage() {
                 <p>
                   Before you start, make sure you have these ready:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-2 mt-4">
                   <li>
                     <strong>A Squarespace Business or Commerce plan.</strong> Code Injection is
                     not available on Personal plans. You need at least a Business plan to add
@@ -219,7 +219,7 @@ export default function HowToEmbedChatbotInSquarespacePage() {
                     built one yet, follow our{' '}
                     <Link
                       href="/blog/how-to-add-chatbot-to-website"
-                      className="text-primary-500 hover:text-primary-600 underline"
+                      className="text-primary-600 dark:text-primary-400 hover:underline"
                     >
                       guide to adding a chatbot to your website
                     </Link>{' '}
@@ -243,7 +243,7 @@ export default function HowToEmbedChatbotInSquarespacePage() {
                   Squarespace&apos;s Code Injection feature is the cleanest way to add a chatbot.
                   It takes about two minutes from start to finish.
                 </p>
-                <ol className="list-decimal list-inside space-y-4 mt-4 ml-4">
+                <ol className="list-decimal pl-5 space-y-4 mt-4">
                   <li>
                     <strong>Open your Squarespace dashboard.</strong> Go to your site and click
                     on <strong>Settings</strong> in the left sidebar.
@@ -252,6 +252,8 @@ export default function HowToEmbedChatbotInSquarespacePage() {
                     <strong>Navigate to Code Injection.</strong> Under Settings, scroll down to
                     the <strong>Advanced</strong> section and click{' '}
                     <strong>Code Injection</strong>. This opens two text areas: Header and Footer.
+                    For full details, see{' '}
+                    <a href="https://support.squarespace.com/hc/en-us/articles/205815908-Using-code-injection" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Squarespace&apos;s Code Injection guide</a>.
                   </li>
                   <li>
                     <strong>Paste the embed code in the Footer field.</strong> Copy your VocUI
@@ -268,7 +270,9 @@ export default function HowToEmbedChatbotInSquarespacePage() {
                   The chatbot will now appear on every page of your Squarespace site. If you
                   want it on specific pages only, use the per-page Code Injection option instead:
                   edit a page, click the gear icon, go to <strong>Advanced</strong>, and paste the
-                  script in the <strong>Page Header Code Injection</strong> field.
+                  script in the <strong>Page Header Code Injection</strong> field. Squarespace&apos;s{' '}
+                  <a href="https://support.squarespace.com/hc/en-us/articles/205815928-Adding-custom-code-to-your-site" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">custom code documentation</a>{' '}
+                  covers both site-wide and per-page options.
                 </p>
               </section>
 
@@ -282,7 +286,7 @@ export default function HowToEmbedChatbotInSquarespacePage() {
                   dashboard. For the full list of widget options, see our{' '}
                   <Link
                     href="/blog/how-to-add-chatbot-to-website"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     full chatbot setup guide
                   </Link>
@@ -312,7 +316,7 @@ export default function HowToEmbedChatbotInSquarespacePage() {
                   Most Squarespace embeds work on the first paste. When something goes wrong,
                   it&apos;s usually one of these Squarespace-specific issues:
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-3 mt-4">
                   <li>
                     <strong>Code Injection option missing.</strong> You are on a Personal plan.
                     Code Injection requires Business or Commerce. Check your plan
@@ -362,21 +366,21 @@ export default function HowToEmbedChatbotInSquarespacePage() {
                   For other platforms, see our{' '}
                   <Link
                     href="/blog/how-to-embed-chatbot-in-wordpress"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     WordPress embed guide
                   </Link>
                   ,{' '}
                   <Link
                     href="/blog/how-to-embed-chatbot-in-wix"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     Wix embed guide
                   </Link>
                   , or the general{' '}
                   <Link
                     href="/blog/how-to-add-chatbot-to-website"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     chatbot website embed guide
                   </Link>

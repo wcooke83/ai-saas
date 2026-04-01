@@ -138,7 +138,7 @@ export default function ChatbotForAccountingFirmsPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -354,11 +354,15 @@ export default function ChatbotForAccountingFirmsPage() {
                 </h2>
                 <p>
                   Accounting firms operate under the AICPA Code of Professional Conduct, which
-                  governs how CPAs interact with clients and the public. The chatbot operates
-                  within these standards because it functions as an informational tool, not a
-                  licensed practitioner:
+                  governs how CPAs interact with clients and the public. Firms handling client
+                  financial data should also be familiar with{' '}
+                  <a href="https://www.vanta.com/collection/soc-2/soc-2-compliance-requirements" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">SOC 2 compliance requirements</a>{' '}
+                  — the framework covering security, availability, processing integrity,
+                  confidentiality, and privacy of client data. The chatbot operates within these
+                  standards because it functions as an informational tool, not a licensed
+                  practitioner:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     It does not provide personalized tax advice or prepare returns.
                   </li>
@@ -408,7 +412,7 @@ export default function ChatbotForAccountingFirmsPage() {
                   on{' '}
                   <Link
                     href="/blog/how-to-build-internal-knowledge-bot"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     building an internal knowledge bot
                   </Link>
@@ -435,7 +439,7 @@ export default function ChatbotForAccountingFirmsPage() {
                   of waiting days. The entire setup takes under an hour. Check our{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     pricing page
                   </Link>

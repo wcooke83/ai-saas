@@ -248,7 +248,7 @@ export function StyleStep() {
       <div className="flex flex-col gap-3 border-t border-secondary-200 dark:border-secondary-700 pt-6 sm:flex-row sm:items-center sm:justify-between">
         <Button
           variant="ghost"
-          onClick={() => goToStep(2)}
+          onClick={() => goToStep(3)}
           disabled={saving || ctxLoading}
           className="self-start"
         >

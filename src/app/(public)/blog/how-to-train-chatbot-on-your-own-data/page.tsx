@@ -6,6 +6,8 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { TableOfContents } from '@/components/blog/table-of-contents';
+import { MidArticleCta } from '@/components/blog/mid-article-cta';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -148,7 +150,7 @@ export default function HowToTrainChatbotPage() {
       <Header />
 
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -191,10 +193,22 @@ export default function HowToTrainChatbotPage() {
               </p>
             </header>
 
+            <TableOfContents items={[
+              { id: 'what-training-actually-means', label: 'What "Training" Actually Means' },
+              { id: 'what-data-formats-you-can-use', label: 'What Data Formats You Can Use' },
+              { id: 'step-1-add-a-knowledge-source', label: 'Step 1: Add a Knowledge Source' },
+              { id: 'step-2-let-the-system-embed-your-content', label: 'Step 2: Let the System Embed Your Content' },
+              { id: 'step-3-test-retrieval', label: 'Step 3: Test Retrieval' },
+              { id: 'step-4-refine-with-a-system-prompt', label: 'Step 4: Refine with a System Prompt' },
+              { id: 'how-often-to-update-your-knowledge-base', label: 'How Often to Update Your Knowledge Base' },
+              { id: 'what-to-do-when-the-chatbot-gives-wrong-answers', label: 'What to Do When the Chatbot Gives Wrong Answers' },
+              { id: 'faq', label: 'FAQ' },
+            ]} />
+
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="what-training-actually-means" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   What &quot;training&quot; actually means
                 </h2>
                 <p>
@@ -207,7 +221,7 @@ export default function HowToTrainChatbotPage() {
                   The technical term for this is Retrieval-Augmented Generation (RAG). Here&apos;s how
                   it works in plain English:
                 </p>
-                <ol className="list-decimal list-inside space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ol className="list-decimal pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     Your documents get broken into small chunks (a few hundred words each).
                   </li>
@@ -237,14 +251,14 @@ export default function HowToTrainChatbotPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="what-data-formats-you-can-use" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   What data formats you can use
                 </h2>
                 <p>
                   VocUI accepts several content types. You don&apos;t need to convert everything into
                   one format — you can mix and match.
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">URLs</strong> — paste any web page and VocUI scrapes the text. This
                     works for your help center, pricing page, product pages, blog posts, and more.
@@ -277,7 +291,7 @@ export default function HowToTrainChatbotPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="step-1-add-a-knowledge-source" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Step 1: Add a knowledge source
                 </h2>
                 <p>
@@ -302,7 +316,7 @@ export default function HowToTrainChatbotPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="step-2-let-the-system-embed-your-content" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Step 2: Let the system embed your content
                 </h2>
                 <p>
@@ -313,7 +327,7 @@ export default function HowToTrainChatbotPage() {
                 <p className="mt-4">
                   During processing, VocUI is doing several things:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>Splitting the content into overlapping chunks to preserve context</li>
                   <li>Sending each chunk through an embedding model to create a vector representation</li>
                   <li>Storing those vectors in a database built for fast semantic search</li>
@@ -325,7 +339,7 @@ export default function HowToTrainChatbotPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="step-3-test-retrieval" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Step 3: Test retrieval
                 </h2>
                 <p>
@@ -335,7 +349,7 @@ export default function HowToTrainChatbotPage() {
                 <p className="mt-4">
                   Pay attention to three things:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">Accuracy</strong> — is the answer factually correct based on your
                     content?
@@ -362,7 +376,7 @@ export default function HowToTrainChatbotPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="step-4-refine-with-a-system-prompt" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Step 4: Refine with a system prompt
                 </h2>
                 <p>
@@ -372,7 +386,7 @@ export default function HowToTrainChatbotPage() {
                 <p className="mt-4">
                   A good system prompt for a small business chatbot covers three things:
                 </p>
-                <ol className="list-decimal list-inside space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ol className="list-decimal pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">Identity</strong> — what the chatbot is and who it represents.
                     Example: &quot;You are a helpful assistant for Greenfield Landscaping. Answer
@@ -395,8 +409,10 @@ export default function HowToTrainChatbotPage() {
                 </p>
               </section>
 
+              <MidArticleCta message="Following along? Create your chatbot now and try each step live." />
+
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="how-often-to-update-your-knowledge-base" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   How often to update your knowledge base
                 </h2>
                 <p>
@@ -417,13 +433,13 @@ export default function HowToTrainChatbotPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="what-to-do-when-the-chatbot-gives-wrong-answers" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   What to do when the chatbot gives wrong answers
                 </h2>
                 <p>
                   Wrong answers from a knowledge base chatbot almost always have one of three causes:
                 </p>
-                <ol className="list-decimal list-inside space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ol className="list-decimal pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">The information isn&apos;t in the knowledge base.</strong> Add it.
                     Either upload the document that has it, or create a Q&amp;A pair that covers the

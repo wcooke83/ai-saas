@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { DashboardPath } from '@/components/blog/dashboard-path';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -122,7 +123,7 @@ export default function HowToBuildInternalKnowledgeBotPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -210,7 +211,7 @@ export default function HowToBuildInternalKnowledgeBotPage() {
                   ask about frequently. Start with the documents that generate the most
                   &quot;Hey, do you know where I can find...&quot; messages in your Slack channels.
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-2 mt-4">
                   <li>
                     <strong>HR policies</strong> — PTO, sick leave, parental leave, expense
                     reimbursement, remote work guidelines, dress code, and benefits enrollment.
@@ -249,11 +250,12 @@ export default function HowToBuildInternalKnowledgeBotPage() {
                   Building an internal knowledge bot with VocUI takes about 15 minutes. Here&apos;s
                   the process:
                 </p>
-                <ol className="list-decimal list-inside space-y-4 mt-4 ml-4">
+                <ol className="list-decimal pl-5 space-y-4 mt-4">
                   <li>
                     <strong>Create a new chatbot.</strong> Log in to VocUI and click &quot;Create
                     Chatbot.&quot; Name it something your team will recognize, like &quot;HR
                     Bot&quot; or &quot;Company Knowledge Base.&quot;
+                    <DashboardPath steps={['Chatbots', 'Create New']} tip="Name your bot, add your internal docs, and deploy to Slack." />
                   </li>
                   <li>
                     <strong>Upload your documents.</strong> Add knowledge sources: upload PDFs of
@@ -269,7 +271,7 @@ export default function HowToBuildInternalKnowledgeBotPage() {
                     about{' '}
                     <Link
                       href="/blog/how-to-train-chatbot-on-your-own-data"
-                      className="text-primary-500 hover:text-primary-600 underline"
+                      className="text-primary-600 dark:text-primary-400 hover:underline"
                     >
                       training chatbots on your own data
                     </Link>
@@ -301,7 +303,7 @@ export default function HowToBuildInternalKnowledgeBotPage() {
                   VocUI&apos;s{' '}
                   <Link
                     href="/slack-chatbot"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     Slack integration
                   </Link>{' '}
@@ -346,7 +348,7 @@ export default function HowToBuildInternalKnowledgeBotPage() {
                   and procedures evolve. Check out{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     our pricing plans
                   </Link>{' '}

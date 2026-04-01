@@ -122,7 +122,7 @@ export default function ChatbotForSaasOnboardingPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -224,7 +224,7 @@ export default function ChatbotForSaasOnboardingPage() {
                   your API key is connected, you might want to{' '}
                   <Link
                     href="/blog/how-to-train-chatbot-on-your-own-data"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     train your chatbot on your own data
                   </Link>
@@ -249,36 +249,37 @@ export default function ChatbotForSaasOnboardingPage() {
                 {/* Comparison table — unique to SaaS post */}
                 <div className="overflow-x-auto mt-6 mb-6">
                   <table className="w-full text-left text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg overflow-hidden">
+                    <caption className="sr-only">Comparison of setup wizards versus chatbot-assisted onboarding</caption>
                     <thead className="bg-secondary-50 dark:bg-secondary-800/50">
                       <tr>
-                        <th className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Factor</th>
-                        <th className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Setup Wizard</th>
-                        <th className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Chatbot Assist</th>
+                        <th scope="col" className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Factor</th>
+                        <th scope="col" className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Setup Wizard</th>
+                        <th scope="col" className="px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Chatbot Assist</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700">
                       <tr>
-                        <td className="px-4 py-3 font-medium">User path</td>
+                        <th scope="row" className="px-4 py-3 font-medium">User path</th>
                         <td className="px-4 py-3">Fixed linear steps</td>
                         <td className="px-4 py-3">Adaptive to each user&apos;s questions</td>
                       </tr>
                       <tr>
-                        <td className="px-4 py-3 font-medium">Edge cases</td>
+                        <th scope="row" className="px-4 py-3 font-medium">Edge cases</th>
                         <td className="px-4 py-3">Breaks when users deviate</td>
                         <td className="px-4 py-3">Handles arbitrary questions</td>
                       </tr>
                       <tr>
-                        <td className="px-4 py-3 font-medium">Technical vs. non-technical</td>
+                        <th scope="row" className="px-4 py-3 font-medium">Technical vs. non-technical</th>
                         <td className="px-4 py-3">Same flow for everyone</td>
                         <td className="px-4 py-3">Adjusts depth to user level</td>
                       </tr>
                       <tr>
-                        <td className="px-4 py-3 font-medium">Maintenance</td>
+                        <th scope="row" className="px-4 py-3 font-medium">Maintenance</th>
                         <td className="px-4 py-3">Engineering effort to update</td>
                         <td className="px-4 py-3">Update knowledge base docs</td>
                       </tr>
                       <tr>
-                        <td className="px-4 py-3 font-medium">Best for</td>
+                        <th scope="row" className="px-4 py-3 font-medium">Best for</th>
                         <td className="px-4 py-3">Simple, predictable setups</td>
                         <td className="px-4 py-3">Complex products with varied user types</td>
                       </tr>
@@ -343,7 +344,7 @@ export default function ChatbotForSaasOnboardingPage() {
                   Learn more about{' '}
                   <Link
                     href="/blog/how-to-add-chatbot-to-website"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     adding a chatbot to your website
                   </Link>
@@ -455,7 +456,7 @@ export default function ChatbotForSaasOnboardingPage() {
                   filled, improve all three metrics. For plan options, see our{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     VocUI pricing
                   </Link>

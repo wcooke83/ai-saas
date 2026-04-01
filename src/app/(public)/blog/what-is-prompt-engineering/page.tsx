@@ -124,7 +124,7 @@ export default function WhatIsPromptEngineeringPage() {
       <Header />
 
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -237,7 +237,7 @@ export default function WhatIsPromptEngineeringPage() {
                   system prompt. These aren&apos;t theoretical — they produce measurably better results
                   in practice.
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">Be specific:</strong> Instead
                     of &quot;be helpful,&quot; say &quot;answer the user&apos;s question in 1-3 sentences using

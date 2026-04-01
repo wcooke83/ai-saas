@@ -6,6 +6,8 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { TableOfContents } from '@/components/blog/table-of-contents';
+import { MidArticleCta } from '@/components/blog/mid-article-cta';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -128,7 +130,7 @@ export default function SmallBusinessAiAutomationGuidePage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -178,10 +180,21 @@ export default function SmallBusinessAiAutomationGuidePage() {
               </p>
             </div>
 
+            <TableOfContents items={[
+              { id: 'what-ai-automation-means-for-small-business', label: 'What AI Automation Means for Small Business' },
+              { id: 'the-easiest-wins-where-to-start', label: 'The Easiest Wins: Where to Start' },
+              { id: 'customer-support-automation-with-chatbots', label: 'Customer Support Automation with Chatbots' },
+              { id: 'sales-and-lead-capture-automation', label: 'Sales and Lead Capture Automation' },
+              { id: 'internal-knowledge-and-operations', label: 'Internal Knowledge and Operations' },
+              { id: 'common-mistakes-to-avoid', label: 'Common Mistakes to Avoid' },
+              { id: 'getting-started-today', label: 'Getting Started Today' },
+              { id: 'faq', label: 'FAQ' },
+            ]} />
+
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="what-ai-automation-means-for-small-business" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   What AI Automation Means for Small Business
                 </h2>
                 <p>
@@ -211,7 +224,7 @@ export default function SmallBusinessAiAutomationGuidePage() {
 
               {/* Section 2 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="the-easiest-wins-where-to-start" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   The Easiest Wins: Where to Start
                 </h2>
                 <p>
@@ -223,7 +236,7 @@ export default function SmallBusinessAiAutomationGuidePage() {
                 <p className="mt-4">
                   The top three starting points, ranked by impact per hour of setup:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong>Customer support chatbot.</strong> Train an AI chatbot on your
                     website content and FAQs. Deploy it in under an hour. It handles 60–80%
@@ -249,7 +262,7 @@ export default function SmallBusinessAiAutomationGuidePage() {
 
               {/* Section 3 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="customer-support-automation-with-chatbots" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Customer Support Automation with Chatbots
                 </h2>
                 <p>
@@ -275,7 +288,7 @@ export default function SmallBusinessAiAutomationGuidePage() {
                   guide on{' '}
                   <Link
                     href="/blog/how-to-reduce-customer-support-tickets"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     how to reduce customer support tickets
                   </Link>
@@ -285,7 +298,7 @@ export default function SmallBusinessAiAutomationGuidePage() {
 
               {/* Section 4 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="sales-and-lead-capture-automation" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Sales and Lead Capture Automation
                 </h2>
                 <p>
@@ -308,7 +321,7 @@ export default function SmallBusinessAiAutomationGuidePage() {
                   For specific strategies, see our guide on{' '}
                   <Link
                     href="/blog/chatbot-lead-generation-strategies"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     chatbot lead generation strategies
                   </Link>
@@ -316,9 +329,11 @@ export default function SmallBusinessAiAutomationGuidePage() {
                 </p>
               </section>
 
+              <MidArticleCta message="Ready to see these numbers for yourself? Build a chatbot and track the impact." />
+
               {/* Section 5 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="internal-knowledge-and-operations" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Internal Knowledge and Operations
                 </h2>
                 <p>
@@ -337,7 +352,7 @@ export default function SmallBusinessAiAutomationGuidePage() {
                   guide on{' '}
                   <Link
                     href="/blog/how-to-build-internal-knowledge-bot"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     building an internal knowledge bot
                   </Link>
@@ -353,14 +368,14 @@ export default function SmallBusinessAiAutomationGuidePage() {
 
               {/* Section 6 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="common-mistakes-to-avoid" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Common Mistakes to Avoid
                 </h2>
                 <p>
                   Small businesses make predictable mistakes when adopting AI automation. Knowing
                   these in advance saves you time and frustration:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong>Automating too much too fast.</strong> Start with one use case, get
                     it working well, then expand. Trying to automate everything at once leads
@@ -392,13 +407,13 @@ export default function SmallBusinessAiAutomationGuidePage() {
 
               {/* Section 7 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="getting-started-today" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Getting Started Today
                 </h2>
                 <p>
                   Here is a concrete plan for your first week with AI automation:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong>Day 1:</strong> Sign up for VocUI (free plan). Create your first
                     chatbot and add your website as a knowledge source.
@@ -427,7 +442,7 @@ export default function SmallBusinessAiAutomationGuidePage() {
                   how much time and money it saves. Visit our{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     pricing page
                   </Link>

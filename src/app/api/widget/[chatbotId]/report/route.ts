@@ -8,7 +8,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import type { EscalationReason, EscalationConfig, TelegramConfig } from '@/lib/chatbots/types';
 import { DEFAULT_TELEGRAM_CONFIG, DEFAULT_LIVE_HANDOFF_CONFIG } from '@/lib/chatbots/types';
 import { initiateHandoff } from '@/lib/telegram/handoff';
-import { emitWebhookEvent } from '@/lib/webhooks/emit';
+import { emitTypedWebhookEvent } from '@/lib/webhooks/emit';
 import { sendNewEscalationNotification } from '@/lib/email/resend';
 
 const VALID_REASONS: EscalationReason[] = ['wrong_answer', 'offensive_content', 'need_human_help', 'other'];
@@ -136,15 +136,14 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     console.log(`[Escalation] Report saved for chatbot ${chatbotId}, session ${session_id}, reason: ${reason}`);
 
-    // Emit escalation.created webhook (fire-and-forget)
+    // Emit escalation.requested webhook (fire-and-forget)
     if (chatbot.user_id) {
-      emitWebhookEvent(chatbot.user_id, 'escalation.created', {
-        chatbot_id: chatbotId,
+      emitTypedWebhookEvent(chatbot.user_id, chatbotId, 'escalation.requested', {
+        conversation_id: conversation_id || '',
         escalation_id: result.id,
         session_id,
-        conversation_id: conversation_id || null,
         reason,
-        details: details || null,
+        details: details || undefined,
       }).catch(() => {});
     }
 

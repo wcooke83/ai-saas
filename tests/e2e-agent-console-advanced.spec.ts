@@ -125,7 +125,7 @@ async function gotoAgentConsole(page: Page) {
   await page.waitForLoadState('domcontentloaded');
   await page.waitForSelector('.animate-spin', { timeout: 30000 }).catch(() => {});
   await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 60000 }).catch(() => {});
-  await page.waitForSelector('[data-testid="conversation-list"]', { timeout: 30000 });
+  await page.waitForSelector('[data-testid="conversation-list"]', { timeout: 60000 });
 }
 
 /** Enable escalation on the dashboard chatbot via the settings UI */

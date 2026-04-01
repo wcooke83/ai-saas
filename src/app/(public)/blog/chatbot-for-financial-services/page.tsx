@@ -106,7 +106,7 @@ export default function ChatbotForFinancialServicesPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -225,7 +225,7 @@ export default function ChatbotForFinancialServicesPage() {
                   effective system prompts, see our guide on{' '}
                   <Link
                     href="/blog/how-to-write-chatbot-system-prompt"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     writing a chatbot system prompt
                   </Link>
@@ -241,9 +241,12 @@ export default function ChatbotForFinancialServicesPage() {
                 <p>
                   Financial services is one of the most heavily regulated industries, and any
                   customer-facing communication tool needs to operate within those boundaries.
+                  FINRA&apos;s report on{' '}
+                  <a href="https://www.finra.org/rules-guidance/key-topics/fintech/report/artificial-intelligence-in-the-securities-industry/ai-apps-in-the-industry" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">AI applications in the securities industry</a>{' '}
+                  provides additional context on how firms are deploying AI responsibly.
                   Here is how a VocUI chatbot fits within the major regulatory frameworks:
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong>SEC (Investment Advisers Act of 1940).</strong> For registered
                     investment advisors (RIAs), marketing communications must be fair, balanced,
@@ -252,7 +255,7 @@ export default function ChatbotForFinancialServicesPage() {
                     repeats information your firm has already approved for public use.
                   </li>
                   <li>
-                    <strong>FINRA Rules 2210/2220.</strong> For broker-dealers, communications
+                    <strong><a href="https://www.finra.org/rules-guidance/notices/24-09" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">FINRA Rules 2210/2220</a>.</strong> For broker-dealers, communications
                     with the public are categorized as retail communications, correspondence, or
                     institutional communications. A chatbot on a public website falls under retail
                     communications, which must be supervised and may require principal pre-approval.
@@ -383,7 +386,7 @@ export default function ChatbotForFinancialServicesPage() {
                   The entire setup typically takes under an hour. Check our{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     pricing page
                   </Link>

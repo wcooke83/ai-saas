@@ -6,6 +6,8 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { TableOfContents } from '@/components/blog/table-of-contents';
+import { MidArticleCta } from '@/components/blog/mid-article-cta';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -130,7 +132,7 @@ export default function WhatIsRagRetrievalAugmentedGenerationPage() {
       <Header />
 
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -173,10 +175,20 @@ export default function WhatIsRagRetrievalAugmentedGenerationPage() {
               </p>
             </div>
 
+            <TableOfContents items={[
+              { id: 'rag-in-one-sentence', label: 'RAG in One Sentence' },
+              { id: 'the-problem-rag-solves', label: 'The Problem RAG Solves' },
+              { id: 'how-rag-works-step-by-step', label: 'How RAG Works Step by Step' },
+              { id: 'rag-vs-fine-tuning', label: 'RAG vs Fine-Tuning' },
+              { id: 'why-rag-reduces-hallucinations', label: 'Why RAG Reduces Hallucinations' },
+              { id: 'rag-in-practice-vocuis-approach', label: "RAG in Practice: VocUI's Approach" },
+              { id: 'faq', label: 'FAQ' },
+            ]} />
+
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="rag-in-one-sentence" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   RAG in one sentence
                 </h2>
                 <p>
@@ -198,7 +210,7 @@ export default function WhatIsRagRetrievalAugmentedGenerationPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="the-problem-rag-solves" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   The problem RAG solves
                 </h2>
                 <p>
@@ -225,7 +237,7 @@ export default function WhatIsRagRetrievalAugmentedGenerationPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="how-rag-works-step-by-step" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   How RAG works step by step
                 </h2>
                 <p>
@@ -245,8 +257,9 @@ export default function WhatIsRagRetrievalAugmentedGenerationPage() {
                   <Link href="/blog/what-are-embeddings-explained-simply" className="text-primary-600 dark:text-primary-400 hover:underline">
                     embeddings
                   </Link>
-                  {' '}— lists of numbers that capture the semantic meaning of the text. The embeddings
-                  are stored in a vector database where they can be searched efficiently.
+                  {' '}— lists of numbers that capture the semantic meaning of the text, generated using models like those described in the{' '}
+                  <a href="https://developers.openai.com/api/docs/guides/embeddings" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">OpenAI Embeddings Guide</a>.
+                  The embeddings are stored in a vector database where they can be searched efficiently.
                   The{' '}
                   <a href="https://dev.to/klement_gunndu_e16216829c/vector-databases-guide-rag-applications-2025-55oj" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">vector database market</a>{' '}
                   has grown rapidly alongside RAG adoption, reaching $1.73 billion in 2024 with
@@ -292,7 +305,7 @@ export default function WhatIsRagRetrievalAugmentedGenerationPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="rag-vs-fine-tuning" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   RAG vs fine-tuning
                 </h2>
                 <p>
@@ -303,11 +316,12 @@ export default function WhatIsRagRetrievalAugmentedGenerationPage() {
                 </p>
                 <div className="overflow-x-auto mt-6 rounded-xl border border-secondary-200 dark:border-secondary-700">
                   <table className="w-full text-sm">
+                    <caption className="sr-only">Comparison of RAG versus fine-tuning approaches</caption>
                     <thead>
                       <tr className="bg-secondary-50 dark:bg-secondary-800/60">
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100"></th>
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">RAG</th>
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Fine-tuning</th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100"></th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">RAG</th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Fine-tuning</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700 bg-white dark:bg-secondary-800/30">
@@ -319,7 +333,7 @@ export default function WhatIsRagRetrievalAugmentedGenerationPage() {
                         ['Setup time', 'Minutes to hours', 'Days to weeks'],
                       ].map(([label, rag, ft]) => (
                         <tr key={label}>
-                          <td className="px-4 py-3 font-medium text-secondary-700 dark:text-secondary-300">{label}</td>
+                          <th scope="row" className="px-4 py-3 font-medium text-secondary-700 dark:text-secondary-300">{label}</th>
                           <td className="px-4 py-3 text-secondary-600 dark:text-secondary-400">{rag}</td>
                           <td className="px-4 py-3 text-secondary-600 dark:text-secondary-400">{ft}</td>
                         </tr>
@@ -335,8 +349,10 @@ export default function WhatIsRagRetrievalAugmentedGenerationPage() {
                 </p>
               </section>
 
+              <MidArticleCta message="See RAG in action -- upload a document and ask your chatbot a question." />
+
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="why-rag-reduces-hallucinations" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Why RAG reduces hallucinations
                 </h2>
                 <p>
@@ -367,7 +383,7 @@ export default function WhatIsRagRetrievalAugmentedGenerationPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="rag-in-practice-vocuis-approach" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   RAG in practice: VocUI&apos;s approach
                 </h2>
                 <p>
@@ -375,7 +391,9 @@ export default function WhatIsRagRetrievalAugmentedGenerationPage() {
                   When you add a knowledge source — a URL, PDF, or document — VocUI automatically
                   handles the entire RAG pipeline: chunking the text with overlap to preserve
                   context, generating embeddings via OpenAI&apos;s embedding model, storing them in
-                  Supabase with pgvector, and retrieving relevant chunks at query time using
+                  Supabase with{' '}
+                  <a href="https://supabase.com/docs/guides/ai" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">pgvector</a>,
+                  and retrieving relevant chunks at query time using
                   cosine similarity search.
                 </p>
                 <p className="mt-4">

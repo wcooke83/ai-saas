@@ -128,7 +128,7 @@ export default function HowToEmbedChatbotInWordpressPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -211,13 +211,13 @@ export default function HowToEmbedChatbotInWordpressPage() {
                 <p>
                   Before you start, make sure you have these two things ready:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-2 mt-4">
                   <li>
                     <strong>A VocUI account with a chatbot created.</strong> If you haven&apos;t
                     built your chatbot yet, follow our{' '}
                     <Link
                       href="/blog/how-to-add-chatbot-to-website"
-                      className="text-primary-500 hover:text-primary-600 underline"
+                      className="text-primary-600 dark:text-primary-400 hover:underline"
                     >
                       guide to adding a chatbot to your website
                     </Link>{' '}
@@ -246,7 +246,7 @@ export default function HowToEmbedChatbotInWordpressPage() {
                 <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mt-6 mb-3">
                   Method 1: Using a Header/Footer Plugin (Easiest)
                 </h3>
-                <ol className="list-decimal list-inside space-y-3 mt-3 ml-4">
+                <ol className="list-decimal pl-5 space-y-3 mt-3">
                   <li>
                     Install the free &quot;WPCode&quot; plugin (formerly Insert Headers and
                     Footers) from the WordPress plugin directory.
@@ -264,14 +264,16 @@ export default function HowToEmbedChatbotInWordpressPage() {
                 <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mt-6 mb-3">
                   Method 2: Editing Your Theme (No Plugin Required)
                 </h3>
-                <ol className="list-decimal list-inside space-y-3 mt-3 ml-4">
+                <ol className="list-decimal pl-5 space-y-3 mt-3">
                   <li>
                     In your WordPress admin, go to <strong>Appearance &gt; Theme File Editor</strong>.
                   </li>
                   <li>
                     Open the <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">footer.php</code> file
                     (or <code className="bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded text-sm">header.php</code> if
-                    you prefer).
+                    you prefer). See the{' '}
+                    <a href="https://wordpress.org/documentation/article/custom-html/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">WordPress Custom HTML documentation</a>{' '}
+                    for details on editing theme files.
                   </li>
                   <li>
                     Paste the VocUI embed code just before the
@@ -285,7 +287,9 @@ export default function HowToEmbedChatbotInWordpressPage() {
                 </h3>
                 <p className="mt-3">
                   Many premium WordPress themes (Astra, GeneratePress, Kadence, etc.) include a
-                  custom code injection area in the theme settings. Look for
+                  custom code injection area in the theme settings.
+                  WordPress.com users can also add code via their{' '}
+                  <a href="https://wordpress.com/support/code/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">built-in code injection feature</a>. Look for
                   &quot;Custom JavaScript&quot; or &quot;Footer Scripts&quot; in your theme&apos;s
                   options panel and paste the embed code there.
                 </p>
@@ -302,7 +306,7 @@ export default function HowToEmbedChatbotInWordpressPage() {
                   options, see our{' '}
                   <Link
                     href="/blog/how-to-add-chatbot-to-website"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     full chatbot setup guide
                   </Link>
@@ -329,7 +333,7 @@ export default function HowToEmbedChatbotInWordpressPage() {
                   Most WordPress embeds work on the first try. When they don&apos;t, the cause
                   is almost always one of these WordPress-specific issues:
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-3 mt-4">
                   <li>
                     <strong>Caching plugin serving stale pages.</strong> This is the number one
                     issue on WordPress. After adding the script, purge your cache: WP Rocket
@@ -384,21 +388,21 @@ export default function HowToEmbedChatbotInWordpressPage() {
                   For other platforms, see our{' '}
                   <Link
                     href="/blog/how-to-embed-chatbot-in-shopify"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     Shopify embed guide
                   </Link>
                   ,{' '}
                   <Link
                     href="/blog/how-to-embed-chatbot-in-squarespace"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     Squarespace embed guide
                   </Link>
                   , or the general{' '}
                   <Link
                     href="/blog/how-to-add-chatbot-to-website"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     chatbot website embed guide
                   </Link>

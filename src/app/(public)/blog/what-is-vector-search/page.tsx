@@ -124,7 +124,7 @@ export default function WhatIsVectorSearchPage() {
       <Header />
 
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -249,9 +249,10 @@ export default function WhatIsVectorSearchPage() {
                 </p>
                 <p className="mt-4">
                   The quality of the embeddings directly affects the quality of search results.
-                  Modern embedding models like OpenAI&apos;s text-embedding models produce vectors
-                  with over 1,500 dimensions, capturing nuances in meaning that simpler representations
-                  would miss. The better the embeddings, the more accurately vector search can match
+                  Modern embedding models like{' '}
+                  <a href="https://developers.openai.com/api/docs/guides/embeddings" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">OpenAI&apos;s text-embedding models</a>{' '}
+                  produce vectors with over 1,500 dimensions, capturing nuances in meaning that
+                  simpler representations would miss. The better the embeddings, the more accurately vector search can match
                   questions to relevant content.
                 </p>
               </section>
@@ -268,7 +269,7 @@ export default function WhatIsVectorSearchPage() {
                   , vector search is the retrieval step — the &quot;R&quot; in RAG. Here&apos;s the process that
                   happens every time a user sends a message:
                 </p>
-                <ol className="list-decimal list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ol className="list-decimal pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>The user&apos;s question is converted into an embedding vector.</li>
                   <li>That vector is compared against all knowledge base chunk vectors.</li>
                   <li>The most similar chunks (typically the top 3-5) are retrieved.</li>
@@ -311,8 +312,10 @@ export default function WhatIsVectorSearchPage() {
                   — typically returning results in milliseconds even over large datasets.
                 </p>
                 <p className="mt-4">
-                  Popular vector database options include dedicated solutions like Pinecone and
-                  Weaviate, as well as extensions for existing databases like pgvector for PostgreSQL.
+                  Popular vector database options include dedicated solutions like{' '}
+                  <a href="https://www.pinecone.io/learn/vector-database/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Pinecone</a>{' '}
+                  and Weaviate, as well as extensions for existing databases like{' '}
+                  <a href="https://supabase.com/docs/guides/database/extensions/pgvector" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">pgvector for PostgreSQL</a>.
                   The demand for these systems is growing rapidly — the{' '}
                   <a href="https://dev.to/klement_gunndu_e16216829c/vector-databases-guide-rag-applications-2025-55oj" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">vector database market</a>{' '}
                   is projected to reach $10.6 billion by 2032, driven largely by RAG and semantic

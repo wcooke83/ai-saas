@@ -198,7 +198,7 @@ export default function TidioAlternativesPage() {
       <Header />
 
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -266,7 +266,7 @@ export default function TidioAlternativesPage() {
                   But Tidio&apos;s strengths are also its boundaries. Here&apos;s where businesses typically
                   start looking elsewhere:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">AI is an add-on, not the core.</strong> Tidio&apos;s
                     AI assistant (Lyro) costs extra and works best for simple FAQ-style responses. If
@@ -489,15 +489,16 @@ export default function TidioAlternativesPage() {
 
                 <div className="overflow-x-auto mt-6 rounded-xl border border-secondary-200 dark:border-secondary-700">
                   <table className="w-full text-sm">
+                    <caption className="sr-only">Comparison of Tidio alternatives by features and pricing</caption>
                     <thead>
                       <tr className="bg-secondary-50 dark:bg-secondary-800/60">
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Tool</th>
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Starting price</th>
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Free plan limits</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Live chat</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">AI chatbot</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Ecommerce</th>
-                        <th className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Mobile app</th>
+                        <th scope="col" className="sticky left-0 z-10 bg-secondary-50 dark:bg-secondary-800/60 text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Tool</th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Starting price</th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Free plan limits</th>
+                        <th scope="col" className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Live chat</th>
+                        <th scope="col" className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">AI chatbot</th>
+                        <th scope="col" className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Ecommerce</th>
+                        <th scope="col" className="text-center px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Mobile app</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700">
@@ -510,9 +511,9 @@ export default function TidioAlternativesPage() {
                               : 'bg-white dark:bg-secondary-800/30'
                           }
                         >
-                          <td className="px-4 py-3 font-medium text-secondary-900 dark:text-secondary-100">
+                          <th scope="row" className={`sticky left-0 z-10 px-4 py-3 font-medium text-secondary-900 dark:text-secondary-100 ${i === 0 ? 'bg-primary-50/50 dark:bg-primary-900/10' : 'bg-white dark:bg-secondary-800/30'}`}>
                             {i === 0 ? <strong>{row.tool}</strong> : row.tool}
-                          </td>
+                          </th>
                           <td className="px-4 py-3 text-secondary-600 dark:text-secondary-400">{row.startingPrice}</td>
                           <td className="px-4 py-3 text-secondary-600 dark:text-secondary-400">{row.freePlanLimits}</td>
                           <td className="px-4 py-3 text-center"><SupportIcon level={row.liveChat} /></td>
@@ -534,7 +535,7 @@ export default function TidioAlternativesPage() {
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Which is right for you?
                 </h2>
-                <ul className="list-disc list-inside space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">If you need AI-powered answers from your own content:</strong>{' '}
                     VocUI is the strongest option — knowledge base training is the core product, not

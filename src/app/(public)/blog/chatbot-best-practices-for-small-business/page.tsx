@@ -6,6 +6,8 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { TableOfContents } from '@/components/blog/table-of-contents';
+import { MidArticleCta } from '@/components/blog/mid-article-cta';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -128,7 +130,7 @@ export default function ChatbotBestPracticesForSmallBusinessPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -178,10 +180,23 @@ export default function ChatbotBestPracticesForSmallBusinessPage() {
               </p>
             </div>
 
+            <TableOfContents items={[
+              { id: 'start-with-your-most-common-questions', label: 'Start with Your Most Common Questions' },
+              { id: 'write-a-clear-system-prompt', label: 'Write a Clear System Prompt' },
+              { id: 'keep-your-knowledge-base-focused', label: 'Keep Your Knowledge Base Focused' },
+              { id: 'test-before-you-launch', label: 'Test Before You Launch' },
+              { id: 'set-fallback-behavior-for-unknown-questions', label: 'Set Fallback Behavior for Unknown Questions' },
+              { id: 'monitor-conversations-regularly', label: 'Monitor Conversations Regularly' },
+              { id: 'update-content-as-your-business-changes', label: 'Update Content as Your Business Changes' },
+              { id: 'dont-try-to-replace-humans-entirely', label: "Don't Try to Replace Humans Entirely" },
+              { id: 'measure-what-matters', label: 'Measure What Matters' },
+              { id: 'faq', label: 'FAQ' },
+            ]} />
+
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="start-with-your-most-common-questions" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Start with Your Most Common Questions
                 </h2>
                 <p>
@@ -209,7 +224,7 @@ export default function ChatbotBestPracticesForSmallBusinessPage() {
 
               {/* Section 2 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="write-a-clear-system-prompt" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Write a Clear System Prompt
                 </h2>
                 <p>
@@ -228,7 +243,7 @@ export default function ChatbotBestPracticesForSmallBusinessPage() {
                   guessing or making up information. Read our detailed guide on{' '}
                   <Link
                     href="/blog/how-to-write-chatbot-system-prompt"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     how to write a chatbot system prompt
                   </Link>{' '}
@@ -244,7 +259,7 @@ export default function ChatbotBestPracticesForSmallBusinessPage() {
 
               {/* Section 3 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="keep-your-knowledge-base-focused" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Keep Your Knowledge Base Focused
                 </h2>
                 <p>
@@ -269,7 +284,7 @@ export default function ChatbotBestPracticesForSmallBusinessPage() {
                   Learn more about structuring content effectively in our guide to{' '}
                   <Link
                     href="/blog/how-to-improve-chatbot-accuracy"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     improving chatbot accuracy
                   </Link>.
@@ -278,7 +293,7 @@ export default function ChatbotBestPracticesForSmallBusinessPage() {
 
               {/* Section 4 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="test-before-you-launch" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Test Before You Launch
                 </h2>
                 <p>
@@ -303,7 +318,7 @@ export default function ChatbotBestPracticesForSmallBusinessPage() {
 
               {/* Section 5 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="set-fallback-behavior-for-unknown-questions" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Set Fallback Behavior for Unknown Questions
                 </h2>
                 <p>
@@ -329,9 +344,11 @@ export default function ChatbotBestPracticesForSmallBusinessPage() {
                 </p>
               </section>
 
+              <MidArticleCta message="Following along? Create your chatbot now and try each step live." />
+
               {/* Section 6 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="monitor-conversations-regularly" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Monitor Conversations Regularly
                 </h2>
                 <p>
@@ -355,7 +372,7 @@ export default function ChatbotBestPracticesForSmallBusinessPage() {
                   on{' '}
                   <Link
                     href="/blog/chatbot-analytics-what-to-track"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     chatbot analytics
                   </Link>{' '}
@@ -365,7 +382,7 @@ export default function ChatbotBestPracticesForSmallBusinessPage() {
 
               {/* Section 7 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="update-content-as-your-business-changes" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Update Content as Your Business Changes
                 </h2>
                 <p>
@@ -391,7 +408,7 @@ export default function ChatbotBestPracticesForSmallBusinessPage() {
 
               {/* Section 8 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="dont-try-to-replace-humans-entirely" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Don&apos;t Try to Replace Humans Entirely
                 </h2>
                 <p>
@@ -420,7 +437,7 @@ export default function ChatbotBestPracticesForSmallBusinessPage() {
 
               {/* Section 9 */}
               <section>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
+                <h2 id="measure-what-matters" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">
                   Measure What Matters
                 </h2>
                 <p>
@@ -446,7 +463,7 @@ export default function ChatbotBestPracticesForSmallBusinessPage() {
                   pays for itself within the first month. Check out our{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     pricing plans
                   </Link>{' '}

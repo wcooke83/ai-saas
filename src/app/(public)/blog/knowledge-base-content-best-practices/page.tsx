@@ -122,7 +122,7 @@ export default function KnowledgeBaseContentBestPracticesPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -201,7 +201,7 @@ export default function KnowledgeBaseContentBestPracticesPage() {
                   underlying technology in our{' '}
                   <Link
                     href="/blog/what-is-a-knowledge-base-chatbot"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     knowledge base chatbot guide
                   </Link>.
@@ -265,7 +265,7 @@ export default function KnowledgeBaseContentBestPracticesPage() {
                   on improving answer quality, see our guide to{' '}
                   <Link
                     href="/blog/how-to-improve-chatbot-accuracy"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     improving chatbot accuracy
                   </Link>.
@@ -329,7 +329,7 @@ export default function KnowledgeBaseContentBestPracticesPage() {
                   Learn how to train your chatbot on custom data in our{' '}
                   <Link
                     href="/blog/how-to-train-chatbot-on-your-own-data"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     training guide
                   </Link>.
@@ -393,7 +393,7 @@ export default function KnowledgeBaseContentBestPracticesPage() {
                   quality steadily improves. Visit our{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     pricing page
                   </Link>{' '}

@@ -171,11 +171,29 @@ export async function verifyTeamsToken(
   // Decode payload
   const payload: JWTPayload = JSON.parse(base64urlDecode(payloadB64).toString('utf8'));
 
-  // ── Claim validation (before signature, to fail fast on obvious mismatches) ──
+  // ── Signature verification (must happen BEFORE trusting any claims) ──
 
-  // Check expiry
+  const jwks = await getJWKS();
+  let signingKey = jwks.find((k) => k.kid === header.kid);
+
+  if (!signingKey) {
+    // Key not found — try refreshing cache once
+    jwksCache = null;
+    const refreshedKeys = await getJWKS();
+    signingKey = refreshedKeys.find((k) => k.kid === header.kid);
+    if (!signingKey) {
+      throw new Error(`Signing key not found: kid=${header.kid}`);
+    }
+  }
+
+  verifySignature(headerB64, payloadB64, signatureB64, signingKey, header.alg, payload);
+
+  // ── Claim validation (only after signature is verified) ──
+
   const now = Math.floor(Date.now() / 1000);
-  if (payload.exp && payload.exp < now) {
+
+  // Check expiry — reject tokens without exp claim
+  if (!payload.exp || payload.exp < now) {
     throw new Error('Token expired');
   }
 
@@ -195,23 +213,7 @@ export async function verifyTeamsToken(
     throw new Error(`Invalid issuer: ${payload.iss}`);
   }
 
-  // ── Signature verification ──
-
-  const jwks = await getJWKS();
-  const signingKey = jwks.find((k) => k.kid === header.kid);
-
-  if (!signingKey) {
-    // Key not found — try refreshing cache once
-    jwksCache = null;
-    const refreshedKeys = await getJWKS();
-    const retryKey = refreshedKeys.find((k) => k.kid === header.kid);
-    if (!retryKey) {
-      throw new Error(`Signing key not found: kid=${header.kid}`);
-    }
-    return verifySignature(headerB64, payloadB64, signatureB64, retryKey, header.alg, payload);
-  }
-
-  return verifySignature(headerB64, payloadB64, signatureB64, signingKey, header.alg, payload);
+  return payload;
 }
 
 /**

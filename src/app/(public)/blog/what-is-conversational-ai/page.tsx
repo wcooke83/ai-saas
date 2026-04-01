@@ -130,7 +130,7 @@ export default function WhatIsConversationalAiPage() {
       <Header />
 
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -248,11 +248,13 @@ export default function WhatIsConversationalAiPage() {
                   technologies working together. Understanding the layers helps you evaluate
                   different solutions and understand what each part contributes.
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">Natural Language Processing (NLP):</strong> The
-                    foundation layer that lets machines parse and interpret human language. NLP
-                    handles tasks like identifying what the user is asking about (intent detection),
+                    foundation layer that lets machines parse and interpret human language — a field
+                    covered in depth by{' '}
+                    <a href="https://huggingface.co/learn/nlp-course/chapter1/2" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Hugging Face&apos;s NLP course</a>.
+                    NLP handles tasks like identifying what the user is asking about (intent detection),
                     extracting key details (entity recognition), and understanding sentiment.
                   </li>
                   <li>
@@ -290,14 +292,13 @@ export default function WhatIsConversationalAiPage() {
                 </h2>
                 <p>
                   Conversational AI has moved well beyond novelty. A{' '}
-                  <a href="https://www.gartner.com/en/newsroom/press-releases/2024-12-09-gartner-survey-reveals-85-percent-of-customer-service-leaders-will-explore-or-pilot-customer-facing-conversational-genai-in-2025" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Gartner survey</a>{' '}
-                  found that 85% of customer service leaders plan to explore or pilot
-                  customer-facing conversational GenAI in 2025. The market reflects this momentum:{' '}
+                  Gartner survey found that 85% of customer service leaders plan to explore
+                  or pilot customer-facing conversational GenAI in 2025. The market reflects this momentum:{' '}
                   <a href="https://www.grandviewresearch.com/industry-analysis/chatbot-market" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Grand View Research</a>{' '}
                   valued the chatbot market at $7.76 billion in 2024, with projections reaching
                   $27.29 billion by 2030. Here are the most common applications:
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">Customer support:</strong> Handle
                     routine questions about pricing, policies, shipping, returns, and product
@@ -336,11 +337,12 @@ export default function WhatIsConversationalAiPage() {
                 </h2>
                 <div className="overflow-x-auto mt-4 rounded-xl border border-secondary-200 dark:border-secondary-700">
                   <table className="w-full text-sm">
+                    <caption className="sr-only">Comparison of rule-based bots versus conversational AI</caption>
                     <thead>
                       <tr className="bg-secondary-50 dark:bg-secondary-800/60">
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100"></th>
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Rule-based bot</th>
-                        <th className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Conversational AI</th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100"></th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Rule-based bot</th>
+                        <th scope="col" className="text-left px-4 py-3 font-semibold text-secondary-900 dark:text-secondary-100">Conversational AI</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700 bg-white dark:bg-secondary-800/30">
@@ -353,7 +355,7 @@ export default function WhatIsConversationalAiPage() {
                         ['Response quality', 'Predictable but rigid', 'Natural and flexible'],
                       ].map(([label, rule, ai]) => (
                         <tr key={label}>
-                          <td className="px-4 py-3 font-medium text-secondary-700 dark:text-secondary-300">{label}</td>
+                          <th scope="row" className="px-4 py-3 font-medium text-secondary-700 dark:text-secondary-300">{label}</th>
                           <td className="px-4 py-3 text-secondary-600 dark:text-secondary-400">{rule}</td>
                           <td className="px-4 py-3 text-secondary-600 dark:text-secondary-400">{ai}</td>
                         </tr>
@@ -364,9 +366,12 @@ export default function WhatIsConversationalAiPage() {
                 <p className="mt-4">
                   Rule-based bots still have a place — they&apos;re useful for highly structured
                   workflows where you need exact control over every response (like a medical
-                  triage flow with legal requirements). But for general customer-facing or
-                  employee-facing Q&amp;A, conversational AI is significantly more capable and
-                  easier to maintain.
+                  triage flow with legal requirements). Note that the{' '}
+                  <a href="https://artificialintelligenceact.eu/article/50/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">EU AI Act (Article 50)</a>{' '}
+                  requires all chatbots to disclose that users are interacting with AI by August 2026
+                  — a regulation that applies to both rule-based and conversational AI systems. But
+                  for general customer-facing or employee-facing Q&amp;A, conversational AI is
+                  significantly more capable and easier to maintain.
                 </p>
               </section>
 
@@ -378,7 +383,7 @@ export default function WhatIsConversationalAiPage() {
                   You don&apos;t need an engineering team or an AI budget to deploy conversational AI
                   today. Platforms like VocUI abstract away the complexity. The practical steps are:
                 </p>
-                <ol className="list-decimal list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ol className="list-decimal pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>Create a chatbot and choose a name.</li>
                   <li>Add your knowledge sources — URLs, PDFs, or typed content.</li>
                   <li>Customize the system prompt to control tone and boundaries.</li>

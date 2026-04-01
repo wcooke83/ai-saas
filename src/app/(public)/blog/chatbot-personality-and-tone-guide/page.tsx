@@ -122,7 +122,7 @@ export default function ChatbotPersonalityAndToneGuidePage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -267,7 +267,7 @@ export default function ChatbotPersonalityAndToneGuidePage() {
                   closest to your brand, then customize from there. See our{' '}
                   <Link
                     href="/blog/how-to-write-chatbot-system-prompt"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     system prompt guide
                   </Link>{' '}
@@ -305,7 +305,7 @@ export default function ChatbotPersonalityAndToneGuidePage() {
                   your brand. For deeper guidance on system prompt structure, read our{' '}
                   <Link
                     href="/blog/what-is-a-system-prompt"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     what is a system prompt
                   </Link>{' '}
@@ -343,7 +343,7 @@ export default function ChatbotPersonalityAndToneGuidePage() {
                   them. Review our{' '}
                   <Link
                     href="/blog/chatbot-best-practices-for-small-business"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     small business chatbot best practices
                   </Link>{' '}
@@ -380,7 +380,7 @@ export default function ChatbotPersonalityAndToneGuidePage() {
                   chatbot comes across. Visit our{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     pricing page
                   </Link>{' '}

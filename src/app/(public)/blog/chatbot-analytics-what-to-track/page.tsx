@@ -128,7 +128,7 @@ export default function ChatbotAnalyticsWhatToTrackPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -207,7 +207,7 @@ export default function ChatbotAnalyticsWhatToTrackPage() {
                   chatbot that stagnates from one that continuously gets better. Read our{' '}
                   <Link
                     href="/blog/how-to-measure-chatbot-roi"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     guide to measuring chatbot ROI
                   </Link>{' '}
@@ -274,7 +274,7 @@ export default function ChatbotAnalyticsWhatToTrackPage() {
                   these trends to prioritize your monthly review efforts. See our{' '}
                   <Link
                     href="/blog/how-to-improve-chatbot-accuracy"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     accuracy improvement guide
                   </Link>{' '}
@@ -342,7 +342,7 @@ export default function ChatbotAnalyticsWhatToTrackPage() {
                   and your chatbot&apos;s performance climbs steadily. Learn more in our{' '}
                   <Link
                     href="/blog/chatbot-best-practices-for-small-business"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     chatbot best practices guide
                   </Link>.
@@ -379,7 +379,7 @@ export default function ChatbotAnalyticsWhatToTrackPage() {
                   significant advantage over a blank form submission. Visit our{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     pricing page
                   </Link>{' '}

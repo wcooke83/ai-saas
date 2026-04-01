@@ -41,7 +41,8 @@ export async function DELETE(req: NextRequest) {
     const { error } = await admin
       .from('webhooks')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', user.id);
 
     if (error) {
       console.error('[Zapier:Unsubscribe] Delete failed:', error);

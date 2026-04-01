@@ -106,7 +106,7 @@ export default function ChatbotForFitnessStudiosPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -313,7 +313,7 @@ export default function ChatbotForFitnessStudiosPage() {
                   <p className="text-sm font-semibold text-primary-800 dark:text-primary-200 mb-3">
                     Pre-January chatbot checklist
                   </p>
-                  <ol className="space-y-2 text-sm text-secondary-600 dark:text-secondary-400 list-decimal list-inside">
+                  <ol className="space-y-2 text-sm text-secondary-600 dark:text-secondary-400 list-decimal pl-5">
                     <li>Update knowledge base with January promotions and new member offers (late December).</li>
                     <li>Add any new class additions or schedule changes for the new year.</li>
                     <li>Include waitlist policies if popular classes fill up.</li>
@@ -381,14 +381,14 @@ export default function ChatbotForFitnessStudiosPage() {
                   all. Most gym owners have their chatbot live in 30-60 minutes. Check our{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     pricing page
                   </Link>
                   {' '}to find the right plan for your studio, or see our guide on{' '}
                   <Link
                     href="/blog/how-to-add-chatbot-to-website"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     adding a chatbot to your website
                   </Link>

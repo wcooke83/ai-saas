@@ -9,6 +9,7 @@ import { randomBytes } from 'crypto';
 import { authenticate } from '@/lib/auth/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { successResponse, errorResponse, APIError } from '@/lib/api/utils';
+import { validateWebhookURL } from '@/lib/webhooks/url-validation';
 
 export async function GET(req: NextRequest) {
   try {
@@ -46,15 +47,10 @@ export async function POST(req: NextRequest) {
       throw APIError.badRequest('url is required');
     }
 
-    let parsed: URL;
-    try {
-      parsed = new URL(url);
-    } catch {
-      throw APIError.badRequest('url must be a valid URL');
-    }
-
-    if (parsed.protocol !== 'https:') {
-      throw APIError.badRequest('url must use HTTPS');
+    // SSRF protection: validate URL scheme + DNS resolution
+    const urlCheck = await validateWebhookURL(url);
+    if (!urlCheck.valid) {
+      throw APIError.badRequest(urlCheck.error || 'Invalid webhook URL');
     }
 
     if (!Array.isArray(events)) {
@@ -73,13 +69,13 @@ export async function POST(req: NextRequest) {
         events,
         is_active: true,
       })
-      .select()
+      .select('id, url, events, is_active, created_at')
       .single();
 
     if (error) throw error;
 
-    // Return the full secret only on creation — it will never be shown again
-    return successResponse({ webhook }, undefined, 201);
+    // Return secret only at creation time — it will never be shown again
+    return successResponse({ webhook: { ...webhook, secret } }, undefined, 201);
   } catch (err) {
     return errorResponse(err);
   }

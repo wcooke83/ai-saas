@@ -341,6 +341,31 @@ export async function resolveHandoff(conversationId: string): Promise<boolean> {
         agent_name: session.agent_name,
         resolved_at: resolvedAt,
       }).catch(() => {});
+
+      // Handoff resolution ends the conversation -- emit conversation.ended
+      const { count } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('conversation_id', conversationId);
+
+      const { data: convo } = await supabase
+        .from('conversations')
+        .select('session_id, created_at')
+        .eq('id', conversationId)
+        .single();
+
+      if (convo) {
+        const durationSeconds = convo.created_at
+          ? Math.floor((Date.now() - new Date(convo.created_at).getTime()) / 1000)
+          : 0;
+
+        emitTypedWebhookEvent(chatbot.user_id, session.chatbot_id, 'conversation.ended', {
+          conversation_id: conversationId,
+          session_id: convo.session_id || '',
+          message_count: count ?? 0,
+          duration_seconds: durationSeconds,
+        }).catch(() => {});
+      }
     }
   }
 

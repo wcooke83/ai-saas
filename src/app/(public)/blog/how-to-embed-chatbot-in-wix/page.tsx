@@ -122,7 +122,7 @@ export default function HowToEmbedChatbotInWixPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -206,14 +206,14 @@ export default function HowToEmbedChatbotInWixPage() {
                 <p>
                   Before you start, confirm that you have the following:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-2 mt-4">
                   <li>
                     <strong>A VocUI account with a chatbot ready.</strong> Create your chatbot,
                     add your knowledge sources (your site URL, FAQ pages, PDFs), and configure
                     the widget appearance. Follow our{' '}
                     <Link
                       href="/blog/how-to-add-chatbot-to-website"
-                      className="text-primary-500 hover:text-primary-600 underline"
+                      className="text-primary-600 dark:text-primary-400 hover:underline"
                     >
                       chatbot setup guide
                     </Link>{' '}
@@ -245,12 +245,14 @@ export default function HowToEmbedChatbotInWixPage() {
                 <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mt-6 mb-3">
                   Method 1: Site-Wide Custom Code (Premium)
                 </h3>
-                <ol className="list-decimal list-inside space-y-3 mt-3 ml-4">
+                <ol className="list-decimal pl-5 space-y-3 mt-3">
                   <li>
                     In your Wix dashboard, go to <strong>Settings</strong> in the left sidebar.
                   </li>
                   <li>
-                    Click <strong>Custom Code</strong> (under the Advanced section).
+                    Click <strong>Custom Code</strong> (under the Advanced section). See{' '}
+                    <a href="https://support.wix.com/en/article/wix-editor-embedding-custom-code-on-your-site" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Wix&apos;s custom code documentation</a>{' '}
+                    for the full walkthrough.
                   </li>
                   <li>
                     Click <strong>Add Custom Code</strong> in the top right.
@@ -280,7 +282,7 @@ export default function HowToEmbedChatbotInWixPage() {
                   If you&apos;re on a free Wix plan or want the chatbot on specific pages only,
                   use the HTML embed approach:
                 </p>
-                <ol className="list-decimal list-inside space-y-3 mt-3 ml-4">
+                <ol className="list-decimal pl-5 space-y-3 mt-3">
                   <li>
                     Open your page in the Wix Editor.
                   </li>
@@ -319,7 +321,7 @@ export default function HowToEmbedChatbotInWixPage() {
                   dashboard. For the full list of widget options, see our{' '}
                   <Link
                     href="/blog/how-to-add-chatbot-to-website"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     full chatbot setup guide
                   </Link>
@@ -349,7 +351,7 @@ export default function HowToEmbedChatbotInWixPage() {
                   Most Wix embeds work after a single publish. When they don&apos;t, the cause
                   is almost always one of these Wix-specific issues:
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-3 mt-4">
                   <li>
                     <strong>Custom Code option missing from Settings.</strong> Site-wide Custom
                     Code requires a Wix Premium plan. Free Wix plans do not show this option. Use
@@ -394,21 +396,21 @@ export default function HowToEmbedChatbotInWixPage() {
                   For other platforms, see our{' '}
                   <Link
                     href="/blog/how-to-embed-chatbot-in-shopify"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     Shopify embed guide
                   </Link>
                   ,{' '}
                   <Link
                     href="/blog/how-to-embed-chatbot-in-squarespace"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     Squarespace embed guide
                   </Link>
                   , or the general{' '}
                   <Link
                     href="/blog/how-to-add-chatbot-to-website"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     chatbot website embed guide
                   </Link>

@@ -14,23 +14,25 @@ import type { TeamsActivity } from '@/lib/teams/types';
 import type { TeamsConfig } from '@/lib/chatbots/types';
 import { verifyTeamsToken } from '@/lib/teams/auth';
 import { handleTeamsMessage } from '@/lib/teams/chat';
+import { validateServiceUrl } from '@/lib/teams/client';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { decryptToken } from '@/lib/telegram/crypto';
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Load and decrypt Teams config from the chatbot record.
  */
 async function getTeamsConfig(chatbotId: string): Promise<TeamsConfig | null> {
   const supabase = createAdminClient();
-  // teams_config column not yet in generated DB types — use wildcard select + cast
-  const { data } = await supabase
-    .from('chatbots')
-    .select('*')
+  // teams_config and user_id are the only columns needed
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data } = await (supabase.from('chatbots') as any)
+    .select('teams_config, user_id')
     .eq('id', chatbotId)
     .single();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const raw = (data as any)?.teams_config;
+  const raw = data?.teams_config;
   if (!raw || typeof raw !== 'object') {
     return null;
   }
@@ -50,6 +52,11 @@ export async function POST(
   { params }: { params: Promise<{ chatbotId: string }> }
 ) {
   const { chatbotId } = await params;
+
+  // Validate chatbotId is a valid UUID
+  if (!UUID_RE.test(chatbotId)) {
+    return NextResponse.json({ error: 'Invalid chatbot ID' }, { status: 400 });
+  }
 
   try {
     // Load Teams config
@@ -77,6 +84,15 @@ export async function POST(
 
     // Parse the activity
     const activity: TeamsActivity = await request.json();
+
+    // Validate serviceUrl against allowed Microsoft endpoints (SSRF prevention)
+    if (activity.serviceUrl) {
+      try {
+        validateServiceUrl(activity.serviceUrl);
+      } catch {
+        return NextResponse.json({ error: 'Invalid serviceUrl' }, { status: 400 });
+      }
+    }
 
     // Handle conversationUpdate (welcome message on bot install)
     if (activity.type === 'conversationUpdate') {

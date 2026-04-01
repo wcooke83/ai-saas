@@ -9,6 +9,7 @@
  * IMPORTANT: Always return 200 quickly — Meta retries aggressively on timeouts.
  */
 
+import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { decryptWhatsAppConfig } from '@/lib/whatsapp/crypto';
@@ -20,6 +21,31 @@ import type {
   WhatsAppChangeValue,
 } from '@/lib/whatsapp/types';
 import type { Json } from '@/types/database';
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Verify Meta's X-Hub-Signature-256 HMAC header against the raw request body.
+ * Uses timing-safe comparison to prevent timing attacks.
+ */
+function verifyWhatsAppSignature(rawBody: string, signatureHeader: string, appSecret: string): boolean {
+  const expected = crypto
+    .createHmac('sha256', appSecret)
+    .update(rawBody, 'utf8')
+    .digest('hex');
+
+  const expectedPrefixed = `sha256=${expected}`;
+
+  // Both values must be the same length for timingSafeEqual
+  if (signatureHeader.length !== expectedPrefixed.length) {
+    return false;
+  }
+
+  return crypto.timingSafeEqual(
+    Buffer.from(signatureHeader, 'utf8'),
+    Buffer.from(expectedPrefixed, 'utf8')
+  );
+}
 
 function parseWhatsAppConfig(raw: Json | null): WhatsAppConfig | null {
   const obj = raw && typeof raw === 'object' && !Array.isArray(raw)
@@ -97,8 +123,33 @@ export async function POST(
 ) {
   const { chatbotId } = await params;
 
+  // Validate chatbotId is a valid UUID
+  if (!UUID_RE.test(chatbotId)) {
+    return NextResponse.json({ error: 'Invalid chatbot ID' }, { status: 400 });
+  }
+
   try {
-    const payload: WhatsAppWebhookPayload = await request.json();
+    // Read raw body for HMAC verification before parsing JSON
+    const rawBody = await request.text();
+
+    // Verify Meta's HMAC signature
+    const appSecret = process.env.WHATSAPP_APP_SECRET;
+    const signatureHeader = request.headers.get('X-Hub-Signature-256');
+
+    if (!appSecret) {
+      console.error('[WhatsApp Webhook] WHATSAPP_APP_SECRET env var not set');
+      return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+    }
+
+    if (!signatureHeader) {
+      return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
+    }
+
+    if (!verifyWhatsAppSignature(rawBody, signatureHeader, appSecret)) {
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
+
+    const payload: WhatsAppWebhookPayload = JSON.parse(rawBody);
 
     // Validate payload structure
     if (payload.object !== 'whatsapp_business_account') {

@@ -57,7 +57,7 @@ export function OnboardingProvider({
   // client-side navigations (popstate / router.push) the URL param is the
   // source of truth.
   const urlStep = params.step ? parseInt(params.step as string, 10) : NaN;
-  const currentStep = !isNaN(urlStep) && urlStep >= 1 && urlStep <= 4
+  const currentStep = !isNaN(urlStep) && urlStep >= 1 && urlStep <= 5
     ? urlStep
     : initialStep;
 
@@ -73,7 +73,7 @@ export function OnboardingProvider({
 
   const goToStep = useCallback(
     (step: number) => {
-      if (step < 1 || step > 4) return;
+      if (step < 1 || step > 5) return;
       const id = chatbotId;
       // Guard: can't navigate to a step route with the "new" placeholder ID
       if (!id || id === 'new') return;
@@ -84,7 +84,7 @@ export function OnboardingProvider({
 
   const completeCurrentStep = useCallback(async () => {
     if (!chatbotId || chatbotId === 'new') return;
-    const nextStep = currentStep >= 4 ? null : currentStep + 1;
+    const nextStep = currentStep >= 5 ? null : currentStep + 1;
 
     setLoading(true);
     try {

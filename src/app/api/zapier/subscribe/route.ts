@@ -13,6 +13,7 @@ import { randomBytes } from 'crypto';
 import { authenticateAPIKeyStrict } from '@/lib/auth/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { WEBHOOK_EVENT_NAMES, type WebhookEvent } from '@/lib/webhooks/types';
+import { validateWebhookURL } from '@/lib/webhooks/url-validation';
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,6 +29,12 @@ export async function POST(req: NextRequest) {
 
     if (!target_url || typeof target_url !== 'string') {
       return NextResponse.json({ error: 'target_url is required' }, { status: 400 });
+    }
+
+    // SSRF protection: validate URL before persisting
+    const urlCheck = await validateWebhookURL(target_url);
+    if (!urlCheck.valid) {
+      return NextResponse.json({ error: urlCheck.error }, { status: 400 });
     }
 
     // Validate event if provided

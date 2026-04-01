@@ -4,7 +4,7 @@ import { Header } from '@/components/layout';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ExternalLink } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
@@ -122,7 +122,7 @@ export default function ChatbotConversionRateOptimizationPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -166,7 +166,7 @@ export default function ChatbotConversionRateOptimizationPage() {
               <p className="text-secondary-800 dark:text-secondary-200 text-lg leading-relaxed">
                 AI chatbots improve website conversion rates by engaging visitors the moment they
                 have questions, answering objections before they cause bounces, and guiding
-                prospects toward the right action. A <a href="https://www.glassix.com/article/study-shows-ai-chatbots-enhance-conversions-and-resolve-issues-faster" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Glassix study</a> found chatbots increase conversions by 23% on average, turning passive browsing
+                prospects toward the right action. A <a href="https://www.glassix.com/article/study-shows-ai-chatbots-enhance-conversions-and-resolve-issues-faster" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Glassix study<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a> found chatbots increase conversions by 23% on average, turning passive browsing
                 into active conversations.
               </p>
             </div>
@@ -178,9 +178,9 @@ export default function ChatbotConversionRateOptimizationPage() {
                   Why Most Website Visitors Leave Without Converting
                 </h2>
                 <p>
-                  According to <a href="https://www.invespcro.com/cro/conversion-rate-by-industry/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Invesp</a>, the average website converts roughly 2&ndash;3% of visitors. That means 97 out of every
+                  According to <a href="https://www.invespcro.com/cro/conversion-rate-by-industry/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Invesp<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, the average website converts roughly 2&ndash;3% of visitors. That means 97 out of every
                   100 people who land on your site leave without taking action. They don&apos;t
-                  fill out a form, they don&apos;t sign up, and they don&apos;t buy. A <a href="https://www.glassix.com/article/study-shows-ai-chatbots-enhance-conversions-and-resolve-issues-faster" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Glassix study</a> found AI chatbots increase conversion rates by 23% — because most of these
+                  fill out a form, they don&apos;t sign up, and they don&apos;t buy. A <a href="https://www.glassix.com/article/study-shows-ai-chatbots-enhance-conversions-and-resolve-issues-faster" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Glassix study<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a> found AI chatbots increase conversion rates by 23% — because most of these
                   visitors are not disinterested, they are uncertain. They have questions
                   about your product that the page doesn&apos;t answer, concerns about pricing
                   they can&apos;t resolve on their own, or they simply can&apos;t find the
@@ -225,7 +225,7 @@ export default function ChatbotConversionRateOptimizationPage() {
                   longer, which increases the probability they will eventually convert.
                 </p>
                 <p className="mt-4">
-                  Visitors who interact with a chatbot tend to stay significantly longer on site. According to <a href="https://www.smartsupp.com/blog/analysing-5-billion-website-visits-how-ecommerce-customers-use-chat/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Smartsupp&apos;s analysis of 5 billion website visits</a>, websites with chatbots handle 6x more customer conversations than those without. Longer
+                  Visitors who interact with a chatbot tend to stay significantly longer on site. According to <a href="https://www.smartsupp.com/blog/analysing-5-billion-website-visits-how-ecommerce-customers-use-chat/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Smartsupp&apos;s analysis of 5 billion website visits<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, websites with chatbots handle 6x more customer conversations than those without. Longer
                   sessions correlate strongly with higher conversion rates because the visitor is
                   consuming more information, building more familiarity with your product, and
                   moving further through the decision-making process. Each additional minute on
@@ -257,7 +257,7 @@ export default function ChatbotConversionRateOptimizationPage() {
                   compare to live support in our{' '}
                   <Link
                     href="/blog/ai-chatbot-vs-live-chat"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     AI chatbot vs. live chat comparison
                   </Link>.
@@ -267,7 +267,7 @@ export default function ChatbotConversionRateOptimizationPage() {
                   checkout flows. These are the pages where visitors are closest to converting but
                   also most likely to talk themselves out of it. A chatbot on the pricing page can
                   meaningfully increase conversions simply by answering the three or four
-                  questions that cause most visitors to hesitate. The <a href="https://www.glassix.com/article/study-shows-ai-chatbots-enhance-conversions-and-resolve-issues-faster" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Glassix study</a> noted a 23% average conversion increase, with high-intent pages seeing even stronger lifts.
+                  questions that cause most visitors to hesitate. The <a href="https://www.glassix.com/article/study-shows-ai-chatbots-enhance-conversions-and-resolve-issues-faster" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Glassix study<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a> noted a 23% average conversion increase, with high-intent pages seeing even stronger lifts.
                 </p>
               </section>
 
@@ -301,7 +301,7 @@ export default function ChatbotConversionRateOptimizationPage() {
                   decision. See our{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     pricing page
                   </Link>{' '}
@@ -332,13 +332,13 @@ export default function ChatbotConversionRateOptimizationPage() {
                   in our guide to{' '}
                   <Link
                     href="/blog/chatbot-lead-generation-strategies"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     chatbot lead generation strategies
                   </Link>.
                 </p>
                 <p className="mt-4">
-                  The chatbot can also re-engage visitors who are about to leave. <a href="https://www.smartsupp.com/blog/analysing-5-billion-website-visits-how-ecommerce-customers-use-chat/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Smartsupp</a> found that AI-driven proactive chats recover 35% of abandoned carts. Exit-intent
+                  The chatbot can also re-engage visitors who are about to leave. <a href="https://www.smartsupp.com/blog/analysing-5-billion-website-visits-how-ecommerce-customers-use-chat/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">Smartsupp<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a> found that AI-driven proactive chats recover 35% of abandoned carts. Exit-intent
                   triggers &mdash; detecting when a visitor moves their cursor toward the browser
                   tab bar &mdash; can prompt a final message: &quot;Before you go, want me to
                   send you a summary of what we discussed?&quot; This last-chance capture turns

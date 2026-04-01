@@ -12,6 +12,40 @@ const TOKEN_URL =
   'https://login.microsoftonline.com/botframework.com/oauth2/v2.0/token';
 const BOT_FRAMEWORK_SCOPE = 'https://api.botframework.com/.default';
 
+/**
+ * Allowed hostname patterns for Bot Framework serviceUrl.
+ * Prevents SSRF by ensuring outbound requests only go to Microsoft endpoints.
+ */
+const ALLOWED_SERVICE_URL_PATTERNS = [
+  /\.botframework\.com$/,
+  /\.trafficmanager\.net$/,
+  /\.botframework\.azure\.us$/, // Gov cloud
+];
+
+/**
+ * Validate that a serviceUrl is a known Microsoft Bot Framework endpoint.
+ * Throws if the URL does not match any allowed pattern.
+ */
+export function validateServiceUrl(serviceUrl: string): void {
+  let hostname: string;
+  try {
+    const parsed = new URL(serviceUrl);
+    // Only allow HTTPS
+    if (parsed.protocol !== 'https:') {
+      throw new Error(`[Teams] serviceUrl must use HTTPS: ${serviceUrl}`);
+    }
+    hostname = parsed.hostname.toLowerCase();
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith('[Teams]')) throw err;
+    throw new Error(`[Teams] Invalid serviceUrl: ${serviceUrl}`);
+  }
+
+  const isAllowed = ALLOWED_SERVICE_URL_PATTERNS.some((pattern) => pattern.test(hostname));
+  if (!isAllowed) {
+    throw new Error(`[Teams] Untrusted serviceUrl hostname: ${hostname}`);
+  }
+}
+
 // ── Token Cache ────────────────────────────────────────────────────
 
 interface TokenCache {
@@ -95,6 +129,9 @@ export async function sendTeamsMessage(
     return false;
   }
 
+  // Validate serviceUrl against allowed Microsoft endpoints
+  validateServiceUrl(serviceUrl);
+
   try {
     const token = await getTeamsBotToken(config);
 
@@ -138,6 +175,9 @@ export async function sendTeamsTypingIndicator(
   conversationId: string
 ): Promise<void> {
   if (!config.app_id || !config.app_secret) return;
+
+  // Validate serviceUrl against allowed Microsoft endpoints
+  validateServiceUrl(serviceUrl);
 
   try {
     const token = await getTeamsBotToken(config);

@@ -30,11 +30,18 @@ import {
   type DiscordInteraction,
 } from '@/lib/discord/types';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ chatbotId: string }> }
 ) {
   const { chatbotId } = await params;
+
+  // Validate chatbotId is a valid UUID
+  if (!UUID_RE.test(chatbotId)) {
+    return NextResponse.json({ error: 'Invalid chatbot ID' }, { status: 400 });
+  }
 
   try {
     // Read raw body for signature verification (must be exact bytes)

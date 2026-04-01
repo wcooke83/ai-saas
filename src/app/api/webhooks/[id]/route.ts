@@ -8,6 +8,7 @@ import { NextRequest } from 'next/server';
 import { authenticate } from '@/lib/auth/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { successResponse, errorResponse, APIError } from '@/lib/api/utils';
+import { validateWebhookURL } from '@/lib/webhooks/url-validation';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -35,14 +36,10 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     const update: Record<string, unknown> = {};
 
     if (body.url !== undefined) {
-      let parsed: URL;
-      try {
-        parsed = new URL(body.url);
-      } catch {
-        throw APIError.badRequest('url must be a valid URL');
-      }
-      if (parsed.protocol !== 'https:') {
-        throw APIError.badRequest('url must use HTTPS');
+      // SSRF protection: validate URL scheme + DNS resolution
+      const urlCheck = await validateWebhookURL(body.url);
+      if (!urlCheck.valid) {
+        throw APIError.badRequest(urlCheck.error || 'Invalid webhook URL');
       }
       update.url = body.url;
     }

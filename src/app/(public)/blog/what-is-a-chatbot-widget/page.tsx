@@ -124,7 +124,7 @@ export default function WhatIsAChatbotWidgetPage() {
       <Header />
 
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -270,7 +270,7 @@ export default function WhatIsAChatbotWidgetPage() {
                   site. It should feel like a natural part of your brand. Most chatbot platforms
                   offer several customization options to achieve this.
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-3 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong className="text-secondary-800 dark:text-secondary-200">Colors:</strong> Match the widget&apos;s primary color to your brand.
                     The chat button, header, and message bubbles all adopt your chosen color,
@@ -315,7 +315,7 @@ export default function WhatIsAChatbotWidgetPage() {
                   the site settings or theme editor. Our step-by-step guides cover the details
                   for each platform:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <Link href="/blog/how-to-add-chatbot-to-website" className="text-primary-600 dark:text-primary-400 hover:underline">
                       How to add a chatbot to any website

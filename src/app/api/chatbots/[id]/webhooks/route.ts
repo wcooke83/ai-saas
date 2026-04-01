@@ -11,6 +11,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { checkChatbotOwnership } from '@/lib/chatbots/api';
 import { successResponse, errorResponse, APIError } from '@/lib/api/utils';
 import { WEBHOOK_EVENT_NAMES, type WebhookEvent } from '@/lib/webhooks/types';
+import { validateWebhookURL } from '@/lib/webhooks/url-validation';
 import type { TypedSupabaseClient } from '@/lib/supabase/admin';
 
 interface RouteParams {
@@ -54,24 +55,21 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     if (!isOwner) throw APIError.forbidden('Access denied');
 
     const body = await req.json();
-    const { url, events, secret: providedSecret } = body as {
+    const { url, events } = body as {
       url: string;
       events?: string[];
-      secret?: string;
     };
+    // High 2: Ignore any user-supplied secret — always generate server-side
 
     // Validate URL
     if (!url || typeof url !== 'string') {
       throw APIError.badRequest('url is required');
     }
-    let parsed: URL;
-    try {
-      parsed = new URL(url);
-    } catch {
-      throw APIError.badRequest('url must be a valid URL');
-    }
-    if (parsed.protocol !== 'https:') {
-      throw APIError.badRequest('url must use HTTPS');
+
+    // SSRF protection: validate URL scheme + DNS resolution
+    const urlCheck = await validateWebhookURL(url);
+    if (!urlCheck.valid) {
+      throw APIError.badRequest(urlCheck.error || 'Invalid webhook URL');
     }
 
     // Validate events
@@ -85,7 +83,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       }
     }
 
-    const secret = providedSecret || randomBytes(32).toString('hex');
+    const secret = randomBytes(32).toString('hex');
 
     const { data: webhook, error } = await admin
       .from('webhooks')
@@ -96,12 +94,13 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         events: validatedEvents.length > 0 ? validatedEvents : null,
         is_active: true,
       })
-      .select()
+      .select('id, url, events, is_active, created_at')
       .single();
 
     if (error) throw error;
 
-    return successResponse({ webhook }, undefined, 201);
+    // Return secret only at creation time — it will never be shown again
+    return successResponse({ webhook: { ...webhook, secret } }, undefined, 201);
   } catch (err) {
     return errorResponse(err);
   }

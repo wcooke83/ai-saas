@@ -19,34 +19,29 @@ export interface NavItem {
 }
 
 const defaultNavItems: NavItem[] = [
-  { label: 'Docs', href: '/wiki' },
+  { label: 'Solutions', href: '/solutions' },
   { label: 'Pricing', href: '/pricing' },
-  { label: 'SDK', href: '/sdk' },
-  { label: 'FAQ', href: '/faq' },
+  { label: 'Docs', href: '/wiki' },
+  { label: 'Blog', href: '/blog' },
 ];
 
 const menuLinks = {
   product: [
-    { label: 'Appointment Booking', href: '/chatbot-booking' },
     { label: 'Solutions', href: '/solutions' },
-    { label: 'Industries', href: '/industries' },
     { label: 'Pricing', href: '/pricing' },
-    { label: 'SDK', href: '/sdk' },
+    { label: 'Features', href: '/#features' },
+    { label: 'Integrations', href: '/solutions' },
   ],
   resources: [
     { label: 'Documentation', href: '/wiki' },
-    { label: 'Help Center', href: '/help' },
-    { label: 'FAQ', href: '/faq' },
+    { label: 'SDK', href: '/sdk' },
     { label: 'Changelog', href: '/changelog' },
-  ],
-  company: [
-    { label: 'About', href: '/about' },
-    { label: 'Contact', href: '/contact' },
     { label: 'Blog', href: '/blog' },
   ],
-  legal: [
-    { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Terms of Service', href: '/terms' },
+  support: [
+    { label: 'Help Center', href: '/help' },
+    { label: 'FAQ', href: '/faq' },
+    { label: 'Contact', href: '/contact' },
   ],
 };
 
@@ -428,7 +423,7 @@ export function Header({
           >
             <div className="container mx-auto px-4 py-6 max-w-3xl overflow-y-auto max-h-[calc(100vh-4rem)]">
               {/* Link sections grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
                 {/* Product */}
                 <div>
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-secondary-500 dark:text-secondary-400 mb-3 px-2">
@@ -481,39 +476,13 @@ export function Header({
                   </ul>
                 </div>
 
-                {/* Company */}
+                {/* Support */}
                 <div>
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-secondary-500 dark:text-secondary-400 mb-3 px-2">
-                    Company
+                    Support
                   </h3>
                   <ul className="space-y-1">
-                    {menuLinks.company.map((link) => (
-                      <li key={link.href}>
-                        <Link
-                          href={link.href}
-                          className={cn(
-                            'block px-2 py-2 text-sm font-medium rounded-md transition-colors',
-                            'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
-                            isActive(link.href)
-                              ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30'
-                              : 'text-secondary-700 dark:text-secondary-300 hover:bg-secondary-100 dark:hover:bg-secondary-800'
-                          )}
-                          aria-current={isActive(link.href) ? 'page' : undefined}
-                        >
-                          {link.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Legal */}
-                <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-secondary-500 dark:text-secondary-400 mb-3 px-2">
-                    Legal
-                  </h3>
-                  <ul className="space-y-1">
-                    {menuLinks.legal.map((link) => (
+                    {menuLinks.support.map((link) => (
                       <li key={link.href}>
                         <Link
                           href={link.href}

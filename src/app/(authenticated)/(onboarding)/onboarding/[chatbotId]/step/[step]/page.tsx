@@ -12,7 +12,7 @@ export default async function OnboardingStepPage({ params }: PageProps) {
   const step = parseInt(stepStr, 10);
 
   // Invalid step param -> redirect to onboarding entry instead of 404
-  if (isNaN(step) || step < 1 || step > 4) {
+  if (isNaN(step) || step < 1 || step > 5) {
     if (chatbotId !== 'new') {
       redirect(`/onboarding/${chatbotId}/step/1`);
     }

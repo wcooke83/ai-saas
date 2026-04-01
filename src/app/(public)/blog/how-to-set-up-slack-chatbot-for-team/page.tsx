@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { DashboardPath } from '@/components/blog/dashboard-path';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -122,7 +123,7 @@ export default function HowToSetUpSlackChatbotForTeamPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -208,12 +209,12 @@ export default function HowToSetUpSlackChatbotForTeamPage() {
                 <p>
                   Before starting, make sure you have the following ready:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-2 mt-4">
                   <li>
                     <strong>A VocUI account.</strong> Sign up at{' '}
                     <Link
                       href="/login?mode=signup"
-                      className="text-primary-500 hover:text-primary-600 underline"
+                      className="text-primary-600 dark:text-primary-400 hover:underline"
                     >
                       vocui.com
                     </Link>{' '}
@@ -242,7 +243,7 @@ export default function HowToSetUpSlackChatbotForTeamPage() {
                   The full setup takes about 20-30 minutes, with most of that time spent
                   uploading your knowledge sources. The Slack connection itself is a few clicks.
                 </p>
-                <ol className="list-decimal list-inside space-y-4 mt-4 ml-4">
+                <ol className="list-decimal pl-5 space-y-4 mt-4">
                   <li>
                     <strong>Create a chatbot in VocUI.</strong> Log in to your dashboard and
                     click &quot;Create Chatbot.&quot; Give it a name your team will recognize —
@@ -265,6 +266,7 @@ export default function HowToSetUpSlackChatbotForTeamPage() {
                     <strong>Integrations</strong> tab and click <strong>Connect to Slack</strong>.
                     You&apos;ll be redirected to Slack to authorize the VocUI app. Review the
                     permissions and click <strong>Allow</strong>.
+                    <DashboardPath steps={['Chatbots', 'Your chatbot', 'Deploy', 'Slack']} tip="Click Connect to authorize your Slack workspace." />
                   </li>
                   <li>
                     <strong>Invite the bot to channels.</strong> In Slack, go to the channels
@@ -285,7 +287,7 @@ export default function HowToSetUpSlackChatbotForTeamPage() {
                   For more details on the Slack integration, see our{' '}
                   <Link
                     href="/slack-chatbot"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     Slack chatbot feature page
                   </Link>
@@ -302,7 +304,7 @@ export default function HowToSetUpSlackChatbotForTeamPage() {
                   The bot&apos;s usefulness depends entirely on what you train it on. Here&apos;s
                   what to prioritize for an internal team chatbot:
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-3 mt-4">
                   <li>
                     <strong>HR policies.</strong> PTO policies, benefits information, expense
                     report procedures, remote work guidelines, and leave request processes. These
@@ -331,7 +333,7 @@ export default function HowToSetUpSlackChatbotForTeamPage() {
                   dive, see our guide on{' '}
                   <Link
                     href="/blog/how-to-build-internal-knowledge-bot"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     building an internal knowledge bot
                   </Link>
@@ -348,7 +350,7 @@ export default function HowToSetUpSlackChatbotForTeamPage() {
                   Getting the bot set up is half the battle. Getting your team to actually use it
                   is the other half. Here&apos;s how to drive adoption:
                 </p>
-                <ul className="list-disc list-inside space-y-3 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-3 mt-4">
                   <li>
                     <strong>Announce it with examples.</strong> Don&apos;t just say &quot;we
                     added a bot.&quot; Post a message in your main Slack channel showing 3-5
@@ -382,7 +384,7 @@ export default function HowToSetUpSlackChatbotForTeamPage() {
                   View{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     our pricing plans
                   </Link>{' '}

@@ -9,26 +9,25 @@ const footerLinks = {
   product: [
     { label: 'Features', href: '/#features' },
     { label: 'Solutions', href: '/solutions' },
-    { label: 'Industries', href: '/industries' },
     { label: 'Pricing', href: '/pricing' },
-    { label: 'SDK', href: '/sdk' },
+    { label: 'Integrations', href: '/solutions' },
   ],
   resources: [
     { label: 'Documentation', href: '/wiki' },
+    { label: 'SDK', href: '/sdk' },
+    { label: 'Changelog', href: '/changelog' },
+    { label: 'Blog', href: '/blog' },
+  ],
+  support: [
     { label: 'Help Center', href: '/help' },
     { label: 'FAQ', href: '/faq' },
-    { label: 'Changelog', href: '/changelog' },
+    { label: 'Contact', href: '/contact' },
   ],
   company: [
     { label: 'About', href: '/about' },
-    { label: 'Contact', href: '/contact' },
-    { label: 'Blog', href: '/blog' },
     { label: 'Security', href: '/security' },
-  ],
-  legal: [
     { label: 'Privacy Policy', href: '/privacy' },
     { label: 'Terms of Service', href: '/terms' },
-    { label: 'Sitemap', href: '/sitemap' },
   ],
 };
 
@@ -113,7 +112,7 @@ export function Footer() {
     >
       <div className="container mx-auto px-4 py-12">
         {/* Main footer content */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
           {/* Brand section */}
           <div className="col-span-2">
             <Link
@@ -127,7 +126,7 @@ export function Footer() {
               <span className="text-xs font-normal text-secondary-500 dark:text-secondary-400 ml-1.5">Voice User Interface</span>
             </Link>
             <p className="text-sm text-secondary-600 dark:text-secondary-400 mb-4 max-w-xs">
-              Build custom AI chatbots trained on your content. Deploy on your website, Slack, or Telegram.
+              AI chatbots that learn from your content and work where your customers are.
             </p>
             {/* Social links */}
             <div className="flex gap-4">
@@ -184,13 +183,13 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Company links */}
+          {/* Support links */}
           <div>
             <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-3">
-              Company
+              Support
             </h3>
             <ul className="space-y-2">
-              {footerLinks.company.map((link) => (
+              {footerLinks.support.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -203,13 +202,13 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Legal links */}
+          {/* Company links */}
           <div>
             <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-3">
-              Legal
+              Company
             </h3>
             <ul className="space-y-2">
-              {footerLinks.legal.map((link) => (
+              {footerLinks.company.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -232,9 +231,24 @@ export function Footer() {
             <p className="text-sm text-secondary-500 dark:text-secondary-400">
               &copy; {currentYear} VocUI. All rights reserved.
             </p>
-            <p className="text-sm text-secondary-400 dark:text-secondary-500">
-              Built with Next.js, Tailwind CSS, and AI
-            </p>
+            <div className="flex items-center gap-3 text-sm text-secondary-400 dark:text-secondary-500">
+              <Link
+                href="/sitemap.xml"
+                className="hover:text-secondary-600 dark:hover:text-secondary-300 transition-colors"
+              >
+                Sitemap
+              </Link>
+              <span aria-hidden="true">&middot;</span>
+              <Link
+                href="/status"
+                className="hover:text-secondary-600 dark:hover:text-secondary-300 transition-colors"
+                aria-label="VocUI system status and uptime"
+              >
+                Status
+              </Link>
+              <span aria-hidden="true">&middot;</span>
+              <span>Turn your content into conversations.</span>
+            </div>
           </div>
         </div>
       </div>

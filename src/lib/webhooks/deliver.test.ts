@@ -1,7 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { signPayload, deliverWebhook } from './deliver';
 import { createHmac } from 'crypto';
 import type { WebhookEvent } from './types';
+
+// Mock URL validation to skip DNS resolution in unit tests
+vi.mock('./url-validation', () => ({
+  validateWebhookURL: vi.fn().mockResolvedValue({ valid: true }),
+}));
 
 // Mock fetch globally
 const mockFetch = vi.fn();
@@ -17,9 +22,12 @@ vi.mock('crypto', async (importOriginal) => {
 });
 
 beforeEach(() => {
-  vi.restoreAllMocks();
   vi.useFakeTimers();
   mockFetch.mockReset();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 // ── signPayload ───────────────────────────────────────────────────
@@ -229,7 +237,8 @@ describe('deliverWebhook', () => {
 
     const promise = deliverWebhook(subscription, event, chatbotId, data);
 
-    // First attempt fires immediately
+    // Flush microtasks so the async validateWebhookURL resolves and first fetch fires
+    await vi.advanceTimersByTimeAsync(0);
     expect(mockFetch).toHaveBeenCalledTimes(1);
 
     // After 1s: second attempt (2^0 * 1000)

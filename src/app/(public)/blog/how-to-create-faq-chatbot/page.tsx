@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { DashboardPath } from '@/components/blog/dashboard-path';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -128,7 +129,7 @@ export default function HowToCreateFaqChatbotPage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -215,7 +216,7 @@ export default function HowToCreateFaqChatbotPage() {
                   any coding skills, API integrations, or machine learning expertise. Here&apos;s
                   what you&apos;ll need:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-2 mt-4">
                   <li>
                     <strong>Your FAQ content</strong> — This can be an existing FAQ page, a
                     spreadsheet of questions and answers, a PDF document, or even a help center
@@ -241,7 +242,7 @@ export default function HowToCreateFaqChatbotPage() {
                   Here&apos;s the process from start to finish. No coding, no complex
                   configuration — just straightforward steps.
                 </p>
-                <ol className="list-decimal list-inside space-y-4 mt-4 ml-4">
+                <ol className="list-decimal pl-5 space-y-4 mt-4">
                   <li>
                     <strong>Create a new chatbot.</strong> Log in to your VocUI dashboard and click
                     &quot;Create Chatbot.&quot; Give it a name that reflects its purpose — something
@@ -253,6 +254,7 @@ export default function HowToCreateFaqChatbotPage() {
                     content automatically, upload a PDF or DOCX file containing your Q&amp;As, or
                     enter question-and-answer pairs directly. Most users start by pointing the bot
                     at their existing FAQ or help center URL.
+                    <DashboardPath steps={['Chatbots', 'Create New', 'Knowledge Sources', 'Add']} tip="Choose URL, PDF, or manual Q&A to add your content." />
                   </li>
                   <li>
                     <strong>Customize the system prompt.</strong> The default prompt works well for
@@ -262,7 +264,7 @@ export default function HowToCreateFaqChatbotPage() {
                     on{' '}
                     <Link
                       href="/blog/how-to-write-chatbot-system-prompt"
-                      className="text-primary-500 hover:text-primary-600 underline"
+                      className="text-primary-600 dark:text-primary-400 hover:underline"
                     >
                       writing effective system prompts
                     </Link>{' '}
@@ -279,7 +281,7 @@ export default function HowToCreateFaqChatbotPage() {
                     on{' '}
                     <Link
                       href="/blog/how-to-add-chatbot-to-website"
-                      className="text-primary-500 hover:text-primary-600 underline"
+                      className="text-primary-600 dark:text-primary-400 hover:underline"
                     >
                       adding a chatbot to your website
                     </Link>{' '}
@@ -302,7 +304,7 @@ export default function HowToCreateFaqChatbotPage() {
                   you feed it. Here are some best practices for writing FAQ content that produces
                   accurate, helpful chatbot responses:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 ml-4">
+                <ul className="list-disc pl-5 space-y-2 mt-4">
                   <li>
                     <strong>Write answers in complete sentences.</strong> Instead of bullet-point
                     fragments, write full, conversational answers. The chatbot will echo this tone
@@ -343,7 +345,7 @@ export default function HowToCreateFaqChatbotPage() {
                   upgrade to a{' '}
                   <Link
                     href="/blog/what-is-a-knowledge-base-chatbot"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     full knowledge base chatbot
                   </Link>
@@ -362,7 +364,7 @@ export default function HowToCreateFaqChatbotPage() {
                   Check out{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     our pricing plans
                   </Link>{' '}

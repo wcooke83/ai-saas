@@ -919,7 +919,7 @@ export interface KnowledgeChunkMatch {
 // CONVERSATIONS
 // ============================================
 
-export type ConversationChannel = 'widget' | 'api' | 'slack' | 'telegram' | 'whatsapp' | 'discord' | 'teams';
+export type ConversationChannel = 'widget' | 'api' | 'slack' | 'telegram' | 'whatsapp' | 'discord' | 'teams' | 'zapier';
 export type ConversationStatus = 'active' | 'closed' | 'archived';
 
 export interface ConversationMemory {

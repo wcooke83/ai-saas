@@ -106,7 +106,7 @@ export default function ChatbotForInsurancePage() {
       />
       <Header />
       <main id="main-content">
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="container mx-auto px-4 py-10 md:py-16 max-w-3xl">
           {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-secondary-500 dark:text-secondary-400 flex-wrap">
@@ -175,9 +175,12 @@ export default function ChatbotForInsurancePage() {
                 <p className="mt-4">
                   Every five minutes an agent spends explaining what a deductible is or how to
                   submit proof of loss is five minutes not spent on policy reviews, cross-selling,
-                  or closing new business. During peak seasons — open enrollment periods, storm
-                  seasons, renewal cycles — the volume spikes and response times suffer, directly
-                  impacting client satisfaction and retention.
+                  or closing new business. According to{' '}
+                  <a href="https://www.deloitte.com/us/en/services/consulting/articles/insurance-technology-trends.html" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Deloitte&apos;s Insurance Technology Trends 2025 report</a>,
+                  67% of insurers are testing generative AI but only 7% have scaled it — early
+                  adoption creates a real competitive advantage. During peak seasons — open enrollment
+                  periods, storm seasons, renewal cycles — the volume spikes and response times
+                  suffer, directly impacting client satisfaction and retention.
                 </p>
               </section>
 
@@ -361,7 +364,7 @@ export default function ChatbotForInsurancePage() {
                 <p className="mt-4">
                   Key regulatory bodies to be aware of:
                 </p>
-                <ul className="list-disc list-inside space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
+                <ul className="list-disc pl-5 space-y-2 mt-4 text-secondary-600 dark:text-secondary-400">
                   <li>
                     <strong>California Department of Insurance (CDI)</strong> — strict advertising
                     standards; all marketing materials must be filed and approved.
@@ -387,7 +390,7 @@ export default function ChatbotForInsurancePage() {
                   deployment. For detailed guidance on system prompts, see our post on{' '}
                   <Link
                     href="/blog/how-to-write-chatbot-system-prompt"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     writing a chatbot system prompt
                   </Link>
@@ -464,7 +467,7 @@ export default function ChatbotForInsurancePage() {
                   Check our{' '}
                   <Link
                     href="/pricing"
-                    className="text-primary-500 hover:text-primary-600 underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     pricing page
                   </Link>
