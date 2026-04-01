@@ -133,6 +133,31 @@ const faqLd = {
     }
   ]
 };
+const breadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://vocui.com"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Industries",
+      "item": "https://vocui.com/industries"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "AI Chatbot for Travel Agencies",
+      "item": "https://vocui.com/chatbot-for-travel-agencies"
+    }
+  ]
+};
+
 
 
 // ─── Data ──────────────────────────────────────────────────────────────────────
@@ -258,6 +283,7 @@ export default function ChatbotForTravelAgenciesPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
 
       <Header />
 

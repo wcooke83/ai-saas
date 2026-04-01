@@ -20,6 +20,7 @@ export interface NavItem {
 
 const defaultNavItems: NavItem[] = [
   { label: 'Solutions', href: '/solutions' },
+  { label: 'Industries', href: '/industries' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Docs', href: '/wiki' },
   { label: 'Blog', href: '/blog' },
@@ -28,6 +29,7 @@ const defaultNavItems: NavItem[] = [
 const menuLinks = {
   product: [
     { label: 'Solutions', href: '/solutions' },
+    { label: 'Industries', href: '/industries' },
     { label: 'Pricing', href: '/pricing' },
     { label: 'Features', href: '/#features' },
     { label: 'Integrations', href: '/solutions#integrations' },
