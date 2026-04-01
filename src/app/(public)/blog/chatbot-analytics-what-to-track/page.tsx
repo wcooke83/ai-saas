@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { StatInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -417,6 +418,16 @@ export default function ChatbotAnalyticsWhatToTrackPage() {
                   without requiring them to dig into a dashboard.
                 </p>
               </section>
+
+              <StatInfographic
+                title="Key Chatbot Metrics to Track"
+                stats={[
+                  { value: '60-80%', label: 'Target Resolution Rate', highlight: true },
+                  { value: '5-15%', label: 'Typical Engagement Rate', highlight: false },
+                  { value: '10-20%', label: 'Healthy Fallback Rate', highlight: false },
+                  { value: '30 min', label: 'Monthly Review Time', highlight: true },
+                ]}
+              />
 
               {/* FAQ section */}
               <section id="faq">

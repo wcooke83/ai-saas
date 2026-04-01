@@ -8,6 +8,7 @@ import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { MidArticleCta } from '@/components/blog/mid-article-cta';
+import { TimelineInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -449,6 +450,19 @@ export default function SmallBusinessAiAutomationGuidePage() {
                   {' '}to see the plan options, or sign up free and start building today.
                 </p>
               </section>
+
+              <TimelineInfographic
+                title="Your AI Automation Roadmap"
+                steps={[
+                  { time: 'Day 1', title: 'Deploy a customer support chatbot', description: 'Sign up, add your website as a knowledge source, and go live.' },
+                  { time: 'Day 2-3', title: 'Configure and test', description: 'Write your system prompt, add FAQ docs, and test with your top 10 questions.' },
+                  { time: 'Week 1', title: 'Monitor and fill gaps', description: 'Review conversation logs. Add content for unanswered questions.' },
+                  { time: 'Week 2', title: 'Add lead capture', description: 'Deploy the chatbot on sales pages to engage visitors and collect contacts.' },
+                  { time: 'Month 1', title: 'Measure ROI', description: 'Track tickets deflected, time saved, and cost reduction.' },
+                  { time: 'Month 2', title: 'Expand to internal knowledge', description: 'Build a Slack bot for your team trained on processes and policies.' },
+                  { time: 'Month 3+', title: 'Optimize and scale', description: 'Refine knowledge base, improve resolution rate, add new channels.' },
+                ]}
+              />
 
               {/* FAQ section */}
               <section id="faq">

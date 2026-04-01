@@ -8,6 +8,7 @@ import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { MidArticleCta } from '@/components/blog/mid-article-cta';
+import { NumberedListInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -343,6 +344,18 @@ export default function ChatbotBestPracticesForSmallBusinessPage() {
                   Both scenarios need attention.
                 </p>
               </section>
+
+              <NumberedListInfographic
+                title="5 Chatbot Best Practices for Small Business"
+                subtitle="Get more value from your chatbot with these essentials"
+                items={[
+                  { title: 'Start with your top 20 questions', description: 'Focus on high-frequency questions first — they drive 60-70% of your support volume.' },
+                  { title: 'Write a specific system prompt', description: 'Define role, tone, knowledge boundaries, and fallback behavior in 100-300 words.' },
+                  { title: 'Test before you launch', description: 'Spend 30 minutes asking real questions, edge cases, and off-topic queries.' },
+                  { title: 'Review conversations weekly', description: 'Spot unanswered questions, poor answers, and new topics every week for the first month.' },
+                  { title: 'Keep humans in the loop', description: 'Use your chatbot as the first line of support — escalate complaints and complex issues to your team.' },
+                ]}
+              />
 
               <MidArticleCta message="Following along? Create your chatbot now and try each step live." />
 

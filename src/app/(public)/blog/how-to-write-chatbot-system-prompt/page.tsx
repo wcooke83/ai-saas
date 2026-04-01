@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { DashboardPath } from '@/components/blog/dashboard-path';
+import { NumberedListInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -302,6 +303,18 @@ export default function HowToWriteChatbotSystemPromptPage() {
                   </li>
                 </ol>
               </section>
+
+              <NumberedListInfographic
+                title="System Prompt Best Practices"
+                subtitle="The 5 essentials every chatbot system prompt needs"
+                items={[
+                  { title: 'Define the role clearly', description: 'Tell the bot exactly who it is: "You are a customer support assistant for [Company]."' },
+                  { title: 'Set the tone and personality', description: 'Specify how it communicates: friendly, professional, concise. Match your brand voice.' },
+                  { title: 'Enforce knowledge boundaries', description: '"Only answer from the provided content. Do not use your general knowledge."' },
+                  { title: 'Define fallback behavior', description: '"If the answer is not in the content, say: I don\'t have that information."' },
+                  { title: 'Add explicit guardrails', description: '"Never discuss competitors. Never provide legal or medical advice. Never guess."' },
+                ]}
+              />
 
               {/* Section 3 */}
               <section>
