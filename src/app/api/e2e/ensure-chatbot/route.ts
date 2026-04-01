@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
       is_published: body.is_published ?? true,
       monthly_message_limit: body.monthly_message_limit ?? 1000,
       messages_this_month: 0,
+      widget_config: body.widget_config ?? { primaryColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
     }, { onConflict: 'id' })
     .select('id, name, is_published, status')
     .single();

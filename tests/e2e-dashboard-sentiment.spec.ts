@@ -135,8 +135,8 @@ test.describe('Section 19: Sentiment Analysis', () => {
       const nextButton = page.getByRole('button', { name: 'Next' }).first();
       if (await nextButton.isEnabled()) {
         await nextButton.click();
-        // Page number should update
-        await expect(page.getByText(/Page 2 of/)).toBeVisible();
+        // Page number should update (allow time for re-fetch)
+        await expect(page.getByText(/Page 2 of/)).toBeVisible({ timeout: 15000 });
       }
     }
   });

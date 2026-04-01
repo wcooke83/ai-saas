@@ -14,10 +14,10 @@ test.describe('Data Integrity — Create → Verify', () => {
 
     // Step 1: Basic Info
     await page.locator('#name').fill(botName);
-    await page.getByRole('button', { name: 'Next' }).click();
+    await page.getByRole('button', { name: 'Next', exact: true }).first().click();
 
     // Step 2: System Prompt — keep default
-    await page.getByRole('button', { name: 'Next' }).click();
+    await page.getByRole('button', { name: 'Next', exact: true }).first().click();
 
     // Step 3: Review — create
     const createPromise = page.waitForResponse(
@@ -40,15 +40,18 @@ test.describe('Data Integrity — Create → Verify', () => {
   test('updated settings persist on page reload', async ({ page }) => {
     // Update name via settings page
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/settings`);
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
 
     const nameInput = page.locator('#name');
-    await expect(nameInput).toBeVisible({ timeout: 10000 });
+    await expect(nameInput).toBeVisible({ timeout: 15000 });
     await nameInput.clear();
     await nameInput.fill('Integrity Verify Name');
 
+    // Navigate to Chatbot Instructions section to access system_prompt
+    await page.getByRole('button', { name: 'Chatbot Instructions' }).click();
+
     const promptTextarea = page.locator('#system_prompt');
-    await expect(promptTextarea).toBeVisible();
+    await expect(promptTextarea).toBeVisible({ timeout: 10000 });
     await promptTextarea.clear();
     await promptTextarea.fill('Integrity verify prompt');
 
@@ -60,16 +63,27 @@ test.describe('Data Integrity — Create → Verify', () => {
 
     // Reload and verify settings persisted
     await page.reload();
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
 
-    await expect(page.locator('#name')).toHaveValue('Integrity Verify Name', { timeout: 10000 });
-    await expect(page.locator('#system_prompt')).toHaveValue('Integrity verify prompt');
+    await expect(page.locator('#name')).toHaveValue('Integrity Verify Name', { timeout: 15000 });
 
-    // Restore original values
-    await page.locator('#name').clear();
-    await page.locator('#name').fill('E2E Test Bot');
+    // Navigate to prompt section to verify system_prompt
+    await page.getByRole('button', { name: 'Chatbot Instructions' }).click();
+    await expect(page.locator('#system_prompt')).toHaveValue('Integrity verify prompt', { timeout: 10000 });
+
+    // Restore original values in prompt section
     await page.locator('#system_prompt').clear();
     await page.locator('#system_prompt').fill('You are a helpful test assistant.');
+    await page.getByRole('button', { name: 'Save Changes' }).first().click();
+    await page.waitForResponse(
+      (res) => res.url().includes(`/api/chatbots/${CHATBOT_ID}`) && res.request().method() === 'PATCH'
+    );
+
+    // Restore name in general section
+    await page.getByRole('button', { name: 'General' }).first().click();
+    await expect(page.locator('#name')).toBeVisible({ timeout: 5000 });
+    await page.locator('#name').clear();
+    await page.locator('#name').fill('E2E Test Bot');
     await page.getByRole('button', { name: 'Save Changes' }).first().click();
     await page.waitForResponse(
       (res) => res.url().includes(`/api/chatbots/${CHATBOT_ID}`) && res.request().method() === 'PATCH'

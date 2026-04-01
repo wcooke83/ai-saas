@@ -5,9 +5,14 @@ const BASE = `/dashboard/chatbots/${CHATBOT_ID}`;
 const DEPLOY_URL = `${BASE}/deploy`;
 
 async function gotoDeploy(page: import('@playwright/test').Page) {
-  await page.goto(DEPLOY_URL, { waitUntil: 'commit' });
+  await page.goto(DEPLOY_URL);
   await page.waitForLoadState('domcontentloaded');
-  await expect(page.getByText('Deploy Chatbot')).toBeVisible({ timeout: 15000 });
+  // Deploy page requires the chatbot to load via client-side fetch
+  await page.waitForResponse(
+    (res) => res.url().includes(`/api/chatbots/${CHATBOT_ID}`) && res.status() === 200,
+    { timeout: 15000 }
+  ).catch(() => {});
+  await expect(page.getByText('Deploy Chatbot')).toBeVisible({ timeout: 20000 });
 }
 
 test.describe('Deploy Page – Page Load', () => {
@@ -147,10 +152,12 @@ test.describe('Deploy Page – Agent Console Tab', () => {
     await page.getByRole('button', { name: /Agent Console/i }).click();
 
     // Should show either the "handoff not enabled" state or the embed options
-    const handoffDisabled = page.getByText('Live handoff is not enabled');
-    const agentEmbed = page.getByText('Agent Console Embed');
+    const handoffDisabled = page.locator('p.text-lg').filter({ hasText: 'Live handoff is not enabled' }).first();
+    const agentEmbed = page.locator('h2, h3').filter({ hasText: 'Agent Console Embed' }).first();
 
-    await expect(handoffDisabled.or(agentEmbed)).toBeVisible({ timeout: 10000 });
+    const handoffVisible = await handoffDisabled.isVisible({ timeout: 5000 }).catch(() => false);
+    const agentVisible = await agentEmbed.isVisible({ timeout: 5000 }).catch(() => false);
+    expect(handoffVisible || agentVisible).toBeTruthy();
   });
 
   test('DEPLOY-021: handoff disabled state shows settings link', async ({ page }) => {
@@ -174,8 +181,10 @@ test.describe('Deploy Page – Agent Console Tab', () => {
     await gotoDeploy(page);
     await page.getByRole('button', { name: /Agent Console/i }).click();
 
-    const agentEmbed = page.getByText('Agent Console Embed');
-    const isEnabledState = await agentEmbed.isVisible({ timeout: 5000 }).catch(() => false);
+    // Agent Console Embed CardTitle only appears when handoff is enabled
+    const agentEmbed = page.locator('.group, [data-slot="card-title"]').filter({ hasText: 'Agent Console Embed' }).first();
+    const quickEmbedBtn = page.getByRole('button', { name: /Quick Embed/i });
+    const isEnabledState = await quickEmbedBtn.isVisible({ timeout: 5000 }).catch(() => false);
 
     if (isEnabledState) {
       // Method selector buttons

@@ -358,7 +358,7 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
   // Low credit warning state
   const [lowCreditDismissed, setLowCreditDismissed] = useState(false);
   const [showPurchaseOverlay, setShowPurchaseOverlay] = useState(false);
-  const showLowCreditBanner = creditLow && creditExhaustionMode === 'purchase_credits' && !lowCreditDismissed && !creditExhausted;
+  const showLowCreditBanner = creditLow && !lowCreditDismissed && !creditExhausted;
 
   // Feedback follow-up state
   const feedbackFollowUpEnabled = feedbackConfig?.follow_up_enabled === true;
@@ -2558,12 +2558,14 @@ export function ChatWidget({ chatbotId, chatbot, config, preChatFormConfig, post
                 }}>
                   <span>
                     You&apos;re running low on credits ({creditRemaining ?? 0} remaining).{' '}
-                    <button
-                      onClick={() => setShowPurchaseOverlay(true)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d97706', fontWeight: 600, fontSize: '13px', padding: 0, textDecoration: 'underline' }}
-                    >
-                      Purchase more &rarr;
-                    </button>
+                    {creditExhaustionMode === 'purchase_credits' && (
+                      <button
+                        onClick={() => setShowPurchaseOverlay(true)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d97706', fontWeight: 600, fontSize: '13px', padding: 0, textDecoration: 'underline' }}
+                      >
+                        Purchase more &rarr;
+                      </button>
+                    )}
                   </span>
                   <button
                     onClick={() => setLowCreditDismissed(true)}

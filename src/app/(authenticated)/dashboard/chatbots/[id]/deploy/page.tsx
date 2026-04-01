@@ -2,7 +2,6 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import Script from 'next/script';
 import { toast } from 'sonner';
 import {
   Code, Copy, Check, ExternalLink, Globe, Terminal,
@@ -591,6 +590,24 @@ export default function DeployPage({ params }: DeployPageProps) {
       setDiscordAiSaving(false);
     }
   };
+
+  // Initialize the chatbot widget on the deploy page using the already-loaded global SDK
+  useEffect(() => {
+    let attempts = 0;
+    const tryInit = () => {
+      if (typeof window !== 'undefined' && (window as Window & { ChatWidget?: { init: (c: { chatbotId: string }) => void } }).ChatWidget) {
+        (window as Window & { ChatWidget?: { init: (c: { chatbotId: string }) => void } }).ChatWidget!.init({ chatbotId: id });
+      } else if (attempts < 50) {
+        attempts++;
+        setTimeout(tryInit, 100);
+      }
+    };
+    tryInit();
+    return () => {
+      const el = document.getElementById(`chatbot-widget-${id}`);
+      if (el) el.remove();
+    };
+  }, [id]);
 
   // Handle expand/shrink messages from the widget iframe
   useEffect(() => {
@@ -2059,7 +2076,6 @@ const data = await res.json();`;
           </div>
         </TabsContent>
       </Tabs>
-      <Script src="/widget/sdk.js" data-chatbot-id={id} strategy="afterInteractive" />
     </div>
   );
 }

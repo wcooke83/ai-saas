@@ -112,7 +112,7 @@ export function Footer() {
     >
       <div className="container mx-auto px-4 py-12">
         {/* Main footer content */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-8">
           {/* Brand section */}
           <div className="col-span-2">
             <Link

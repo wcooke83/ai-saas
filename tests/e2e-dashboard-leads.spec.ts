@@ -246,8 +246,8 @@ test.describe('Section 32: Leads Dashboard Details', () => {
     await page.goto(`${BASE_URL}/leads`);
     await waitForLeads(page);
 
-    // Each stat card has a Tooltip with Info icon (cursor-help)
-    const tooltipTriggers = page.locator('.cursor-help');
+    // Each stat card has an InfoTooltip with aria-label="More information"
+    const tooltipTriggers = page.locator('[aria-label="More information"]');
     const count = await tooltipTriggers.count();
     expect(count).toBeGreaterThanOrEqual(4);
   });

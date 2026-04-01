@@ -41,21 +41,21 @@
 | 34 | e2e-credit-exhaustion-ux-fixes | ❌ Failed | 11 passed, 33 failed | Most widget interaction tests timeout (1m). Widget iframe not loading fallback views. | 2026-04-01 |
 | 35 | e2e-credit-meter-alerts | ✅ Passed | 11 passed | — | 2026-04-01 |
 | 36 | e2e-credit-purchase | ❌ Failed | 3 passed, 3 failed, 4 skipped | Custom amount purchase UI tests fail. | 2026-04-01 |
-| 37 | e2e-cross-feature-integration | 🔄 Running | — | Re-running (was interrupted) | 2026-04-01 |
-| 38 | e2e-dashboard-analytics | ⏳ Queued | — | — | — |
-| 39 | e2e-dashboard-escalations | ⏳ Queued | — | — | — |
-| 40 | e2e-dashboard-leads | ⏳ Queued | — | — | — |
-| 41 | e2e-dashboard-pages | ⏳ Queued | — | — | — |
-| 42 | e2e-dashboard-performance | ⏳ Queued | — | — | — |
-| 43 | e2e-dashboard-sentiment | ⏳ Queued | — | — | — |
-| 44 | e2e-dashboard-smoke | ⏳ Queued | — | — | — |
-| 45 | e2e-dashboard-surveys | ⏳ Queued | — | — | — |
-| 46 | e2e-data-integrity | ⏳ Queued | — | — | — |
-| 47 | e2e-debug-widget | ⏳ Queued | — | — | — |
-| 48 | e2e-deploy-publish-flow | ⏳ Queued | — | — | — |
-| 49 | e2e-deployment-page | ⏳ Queued | — | — | — |
-| 50 | e2e-escalation-management | ⏳ Queued | — | — | — |
-| 51 | e2e-fallback-articles | ⏳ Queued | — | — | — |
+| 37 | e2e-cross-feature-integration | ❌ Failed | 16 passed, 8 failed, 1 flaky | CREDIT-002 to CREDIT-008 all timeout (2m). Widget iframe credit exhaustion fallback not loading. | 2026-04-01 |
+| 38 | e2e-dashboard-analytics | ✅ Passed | 9 passed | — | 2026-04-01 |
+| 39 | e2e-dashboard-escalations | ✅ Passed | 9 passed | — | 2026-04-01 |
+| 40 | e2e-dashboard-leads | ✅ Passed (fixed) | 18 passed, 1 fixed | DASH-010: cursor-help selector → aria-label="More information" | 2026-04-01 |
+| 41 | e2e-dashboard-pages | ✅ Passed | 8 passed | — | 2026-04-01 |
+| 42 | e2e-dashboard-performance | ✅ Passed | 8 passed, 2 skipped | — | 2026-04-01 |
+| 43 | e2e-dashboard-sentiment | ✅ Passed (fixed) | 12 passed, 1 flaky→fixed | SENTIMENT-006: increased timeout 5s→15s for pagination update | 2026-04-01 |
+| 44 | e2e-dashboard-smoke | ✅ Passed | 3 passed | — | 2026-04-01 |
+| 45 | e2e-dashboard-surveys | ✅ Passed | 14 passed | — | 2026-04-01 |
+| 46 | e2e-data-integrity | ✅ Passed (fixed) | 5 passed, 2 fixed | "Next" button strict mode (added .first()), settings tabs navigation, networkidle wait | 2026-04-01 |
+| 47 | e2e-debug-widget | ✅ Passed | 2 passed | — | 2026-04-01 |
+| 48 | e2e-deploy-publish-flow | ✅ Passed (fixed) | 3 passed, 1 flaky→pass, 18 skipped | FLOW-001: "System Prompt" heading → "Chatbot Instructions" | 2026-04-01 |
+| 49 | e2e-deployment-page | ✅ Passed (fixed) | 20 passed, 2 fixed, 1 skipped | gotoDeploy: wait for API response; DEPLOY-020: strict mode for .or() locator; DEPLOY-022: isEnabledState check | 2026-04-01 |
+| 50 | e2e-escalation-management | ✅ Passed | 6 passed | — | 2026-04-01 |
+| 51 | e2e-fallback-articles | 🔄 Running | — | — | 2026-04-01 |
 | 52 | e2e-fallback-contact | ⏳ Queued | — | — | — |
 | 53 | e2e-fallback-purchase | ⏳ Queued | — | — | — |
 | 54 | e2e-fallback-settings | ⏳ Queued | — | — | — |

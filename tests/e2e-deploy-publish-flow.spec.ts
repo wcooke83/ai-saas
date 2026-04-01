@@ -65,8 +65,8 @@ test.describe('Deploy & Publish Flow', () => {
     await welcomeInput.fill(WELCOME_MESSAGE);
     await clickWizardNext(page);
 
-    // Step 2: System Prompt — keep defaults
-    await expect(page.getByRole('heading', { name: 'System Prompt' })).toBeVisible({ timeout: 10_000 });
+    // Step 2: Chatbot Instructions — keep defaults
+    await expect(page.getByRole('heading', { name: 'Chatbot Instructions' })).toBeVisible({ timeout: 10_000 });
     await clickWizardNext(page);
 
     // Step 3: Review — click Create Chatbot
