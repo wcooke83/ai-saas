@@ -403,6 +403,21 @@ export default function KnowledgeBaseContentBestPracticesPage() {
                 </p>
               </section>
 
+              <ChecklistInfographic
+                title="Knowledge Base Content Checklist"
+                items={[
+                  'FAQ document uploaded with top 20 questions',
+                  'Product and service pages scraped as URLs',
+                  'Pricing information added and verified',
+                  'Return, refund, and cancellation policies included',
+                  'Each document covers one topic (300-1,500 words)',
+                  'Duplicates and contradictions removed',
+                  'Q&A pairs added for quick-hit questions',
+                  'Content tested with real customer questions',
+                ]}
+                completedCount={0}
+              />
+
               {/* FAQ section */}
               <section id="faq">
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-6">

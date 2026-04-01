@@ -149,8 +149,9 @@ export default function ChatbotForFinancialServicesPage() {
             {/* Featured snippet — stat-first opening */}
             <div className="bg-primary-50 dark:bg-primary-900/20 border-l-4 border-primary-500 rounded-r-xl px-6 py-5 mb-10">
               <p className="text-secondary-800 dark:text-secondary-200 text-lg leading-relaxed">
-                The average financial advisor spends 20+ hours per month answering the same
-                prospect questions: fee structures, account minimums, service offerings, and
+                According to <a href="https://www.kitces.com/blog/how-do-financial-advisors-spend-time-research-study-productivity-capacity-efficiency/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Kitces Research</a>,
+                the average financial advisor spends 6.6 hours per week fielding client
+                questions — fee structures, account minimums, service offerings, and
                 &quot;how does your process work?&quot; An AI chatbot handles these
                 conversations instantly — on your website, at 9 PM, when that prospect is
                 comparing three advisory firms from their couch.
@@ -161,9 +162,15 @@ export default function ChatbotForFinancialServicesPage() {
               stats={[
                 { value: '92%', label: 'of banks use AI chatbots' },
                 { value: '$7.3B', label: 'projected chatbot cost savings' },
-                { value: '20+hrs', label: 'per month on repeat questions' },
+                { value: '6.6hrs', label: 'per week answering client questions' },
               ]}
             />
+            <p className="text-xs text-secondary-400 dark:text-secondary-500 -mt-4 mb-8">
+              Sources:{' '}
+              <a href="https://coinlaw.io/banking-chatbot-adoption-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">CoinLaw</a>,{' '}
+              <a href="https://www.juniperresearch.com/press/bank-cost-savings-via-chatbots-reach-7-3bn-2023/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Juniper Research</a>,{' '}
+              <a href="https://www.kitces.com/blog/how-do-financial-advisors-spend-time-research-study-productivity-capacity-efficiency/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Kitces Research</a>
+            </p>
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 */}

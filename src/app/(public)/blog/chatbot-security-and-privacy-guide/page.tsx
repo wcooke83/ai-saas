@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ChecklistInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -373,6 +374,23 @@ export default function ChatbotSecurityAndPrivacyGuidePage() {
                   visitors shared despite the disclaimer, and delete those records promptly.
                 </p>
               </section>
+
+              <ChecklistInfographic
+                title="Chatbot Security Checklist"
+                items={[
+                  'Data encrypted in transit (TLS/HTTPS)',
+                  'Data encrypted at rest (AES-256)',
+                  'Provider does not use your data for model training',
+                  'Row-level data isolation between customers',
+                  'Granular team access controls configured',
+                  'Privacy policy updated to mention chatbot data collection',
+                  'System prompt instructs bot not to request sensitive info',
+                  'Data retention policy reviewed and configured',
+                  'Visitor disclaimer added to chatbot greeting',
+                  'Monthly audit of conversation logs for PII',
+                ]}
+                completedCount={0}
+              />
 
               {/* Section 7 */}
               <section>

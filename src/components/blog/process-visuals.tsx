@@ -446,17 +446,25 @@ export function ComparisonScorecard({ items, caption }: ComparisonScorecardProps
       <div className="rounded-xl border border-secondary-200 dark:border-secondary-700 overflow-hidden">
         {/* Header row */}
         <div className="grid grid-cols-[1fr_1fr] sm:grid-cols-[1fr_1fr] bg-secondary-50 dark:bg-secondary-800/60 px-4 py-3 border-b border-secondary-200 dark:border-secondary-700">
-          <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">
+          <span className="text-sm font-semibold text-secondary-700 dark:text-secondary-300">
             {items[0]?.label1 ?? 'Option A'}
           </span>
-          <span className="text-sm font-semibold text-secondary-600 dark:text-secondary-400 text-right sm:text-left">
+          <span className="text-sm font-semibold text-secondary-700 dark:text-secondary-300 text-right sm:text-left">
             {items[0]?.label2 ?? 'Option B'}
           </span>
         </div>
 
         {/* Rows */}
         <div className="divide-y divide-secondary-100 dark:divide-secondary-800">
-          {items.map((item) => (
+          {items.map((item) => {
+            const score1Wins = item.score1 >= item.score2;
+            const score2Wins = item.score2 > item.score1;
+            const score1Color = score1Wins ? 'bg-primary-500 dark:bg-primary-400' : 'bg-secondary-400 dark:bg-secondary-500';
+            const score2Color = score2Wins ? 'bg-primary-500 dark:bg-primary-400' : 'bg-secondary-400 dark:bg-secondary-500';
+            const score1TextColor = score1Wins ? 'text-primary-600 dark:text-primary-400' : 'text-secondary-500 dark:text-secondary-400';
+            const score2TextColor = score2Wins ? 'text-primary-600 dark:text-primary-400' : 'text-secondary-500 dark:text-secondary-400';
+
+            return (
             <div key={item.feature} className="px-4 py-4">
               {/* Feature label */}
               <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 mb-2 uppercase tracking-wide">
@@ -469,11 +477,11 @@ export function ComparisonScorecard({ items, caption }: ComparisonScorecardProps
                   <div className="flex items-center gap-2 mb-1">
                     <div className="flex-1 h-2.5 rounded-full bg-secondary-200 dark:bg-secondary-700 overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-primary-500 dark:bg-primary-400 transition-all"
+                        className={`h-full rounded-full ${score1Color} transition-all`}
                         style={{ width: `${(item.score1 / 10) * 100}%` }}
                       />
                     </div>
-                    <span className="text-xs font-semibold text-primary-600 dark:text-primary-400 tabular-nums w-10 text-right">
+                    <span className={`text-xs font-semibold ${score1TextColor} tabular-nums w-10 text-right`}>
                       {item.score1}/10
                     </span>
                   </div>
@@ -484,18 +492,19 @@ export function ComparisonScorecard({ items, caption }: ComparisonScorecardProps
                   <div className="flex items-center gap-2 mb-1">
                     <div className="flex-1 h-2.5 rounded-full bg-secondary-200 dark:bg-secondary-700 overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-secondary-400 dark:bg-secondary-500 transition-all"
+                        className={`h-full rounded-full ${score2Color} transition-all`}
                         style={{ width: `${(item.score2 / 10) * 100}%` }}
                       />
                     </div>
-                    <span className="text-xs font-semibold text-secondary-500 dark:text-secondary-400 tabular-nums w-10 text-right">
+                    <span className={`text-xs font-semibold ${score2TextColor} tabular-nums w-10 text-right`}>
                       {item.score2}/10
                     </span>
                   </div>
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       {caption && (

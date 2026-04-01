@@ -164,6 +164,12 @@ export default function ChatbotForFitnessStudiosPage() {
                 { value: '12%', label: 'of all memberships start in January' },
               ]}
             />
+            <p className="text-xs text-secondary-400 dark:text-secondary-500 -mt-4 mb-8">
+              Sources:{' '}
+              <a href="https://www.keepme.ai/case-studies/north-america-fitness-industry-study/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Keepme North America Fitness Industry Study</a>,{' '}
+              <a href="https://wod.guru/blog/gym-membership-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Wod.guru Gym Membership Statistics</a>,{' '}
+              <a href="https://smarthealthclubs.com/blog/100-gym-membership-retention-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Smart Health Clubs</a>
+            </p>
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 — the conversion gap */}

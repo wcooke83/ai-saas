@@ -81,10 +81,11 @@ interface StatItem {
 
 interface StatHighlightGridProps {
   stats: StatItem[];
+  caption?: string;
 }
 
 /** A responsive grid of large stat cards. Accepts 4-6 items. */
-export function StatHighlightGrid({ stats }: StatHighlightGridProps) {
+export function StatHighlightGrid({ stats, caption }: StatHighlightGridProps) {
   return (
     <figure
       className={chartWrapper}
@@ -92,7 +93,7 @@ export function StatHighlightGrid({ stats }: StatHighlightGridProps) {
       aria-label={`Key statistics: ${stats.map((s) => `${s.value} ${s.label}`).join(', ')}.`}
     >
       <figcaption className="text-sm font-semibold text-secondary-900 dark:text-secondary-100 mb-5">
-        Key AI Customer Service Statistics
+        {caption ?? 'Key AI Customer Service Statistics'}
       </figcaption>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -180,10 +181,10 @@ export function ROICalculatorVisual() {
 
 const funnelSteps = [
   { label: 'Website Visitors', pct: 100, color: 'bg-primary-200 dark:bg-primary-800' },
-  { label: 'Widget Engaged', pct: 60, color: 'bg-primary-300 dark:bg-primary-700' },
-  { label: 'Conversation Started', pct: 40, color: 'bg-primary-400 dark:bg-primary-600' },
-  { label: 'Lead Captured', pct: 20, color: 'bg-primary-500 dark:bg-primary-500' },
-  { label: 'Converted', pct: 10, color: 'bg-primary-700 dark:bg-primary-400' },
+  { label: 'Widget Seen', pct: 40, color: 'bg-primary-300 dark:bg-primary-700' },
+  { label: 'Conversation Started', pct: 12, color: 'bg-primary-400 dark:bg-primary-600' },
+  { label: 'Lead Captured', pct: 5, color: 'bg-primary-500 dark:bg-primary-500' },
+  { label: 'Converted', pct: 2, color: 'bg-primary-700 dark:bg-primary-400' },
 ] as const;
 
 /** A horizontal funnel chart showing the chatbot conversion funnel. */
@@ -192,7 +193,7 @@ export function ConversionFunnelChart() {
     <figure
       className={chartWrapper}
       role="img"
-      aria-label="Chatbot conversion funnel: 100% website visitors, 60% widget engaged, 40% conversation started, 20% lead captured, 10% converted."
+      aria-label="Chatbot conversion funnel: 100% website visitors, 40% widget seen, 12% conversation started, 5% lead captured, 2% converted."
     >
       <figcaption className="text-sm font-semibold text-secondary-900 dark:text-secondary-100 mb-5">
         Chatbot Conversion Funnel
@@ -218,8 +219,8 @@ export function ConversionFunnelChart() {
         ))}
       </div>
 
-      <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-3">
-        Illustrative funnel ratios. Actual percentages vary by industry and implementation.
+      <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-3 italic">
+        Example funnel — actual rates vary by industry, traffic source, and implementation.
       </p>
     </figure>
   );
@@ -255,7 +256,7 @@ export function LeadResponseTimeChart() {
             <div className="flex-1 h-7 rounded bg-secondary-100 dark:bg-secondary-700 overflow-hidden">
               <div
                 className={`h-full rounded ${row.color} flex items-center px-2.5 transition-all`}
-                style={{ width: `${row.pct}%`, minWidth: '2.5rem' }}
+                style={{ width: `${row.pct}%`, minWidth: '1rem' }}
               >
                 <span className="text-xs font-bold text-white drop-shadow-sm">{row.multiplier}</span>
               </div>

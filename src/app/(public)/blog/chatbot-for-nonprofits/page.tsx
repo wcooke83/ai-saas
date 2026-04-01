@@ -197,6 +197,12 @@ export default function ChatbotForNonprofitsPage() {
                 { value: '44%', label: 'of public donated online recently' },
               ]}
             />
+            <p className="text-xs text-secondary-400 dark:text-secondary-500 -mt-4 mb-8">
+              Sources:{' '}
+              <a href="https://snowballfundraising.com/donor-abandonment-causes-solutions/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Snowball Fundraising</a>,{' '}
+              <a href="https://afpglobal.org/FundraisingEffectivenessProject" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">AFP Fundraising Effectiveness Project</a>,{' '}
+              <a href="https://www.nptechforgood.com/101-best-practices/online-fundraising-statistics-for-nonprofits/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Nonprofit Tech for Good</a>
+            </p>
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 — the missed moment */}
