@@ -1,1 +1,3 @@
 - [audit_2026-03-24.md](audit_2026-03-24.md) - Key security patterns and findings from the full application audit on 2026-03-24 (2 critical, 5 high, 5 medium, 5 low)
+- [audit_webhooks_2026-04-01.md](audit_webhooks_2026-04-01.md) - Webhook/Zapier integration audit: SSRF, missing RLS, secret exposure (2 critical, 3 high, 4 medium)
+- [audit_integrations_2026-04-01.md](audit_integrations_2026-04-01.md) - WhatsApp/Teams/Discord channel audit: missing HMAC, SSRF, JWT ordering (2 critical, 5 high, 5 medium, 3 low)

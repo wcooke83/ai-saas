@@ -4,74 +4,72 @@ description: Landing pages created, keywords targeted, content gaps remaining fo
 type: project
 ---
 
-## Pages created
+## Pages created (with full metadata)
 
 ### /chatbot-booking
 - File: `src/app/(public)/chatbot-booking/page.tsx`
-- Title: "AI Chatbot for Appointment Booking | VocUI"
-- Primary keywords: "AI chatbot appointment booking", "chatbot scheduling", "AI booking chatbot for small business"
-- Target persona: Service businesses (clinics, law firms, salons, coaches, consultants)
+- Primary keywords: "AI chatbot appointment booking", "chatbot scheduling"
 - Schema: `SoftwareApplication`
-- Sections: Hero → Trust bar → Problem → How It Works → Features → Who It's For → CTA
-- Added to Header Product menu as "Appointment Booking"
+
+### /slack-chatbot
+- File: `src/app/(public)/slack-chatbot/page.tsx`
+- Primary keywords: "AI chatbot for Slack", "Slack bot trained on documents"
+- Schema: `SoftwareApplication` with `featureList` and `offers`
+- Note: title too long (69 chars), needs shortening
+
+### /vs-intercom
+- File: `src/app/(public)/vs-intercom/page.tsx`
+- Primary keywords: "VocUI vs Intercom", "Intercom alternative"
+- Schema: `WebPage` + `BreadcrumbList`
+- Note: title too long (69 chars), no FAQ section, no cross-link to /vs-tidio
+
+### /vs-tidio
+- File: `src/app/(public)/vs-tidio/page.tsx`
+- Primary keywords: "VocUI vs Tidio", "Tidio alternative"
+- Schema: `WebPage` + `BreadcrumbList`
+- Note: description too long (168 chars), no FAQ section, no cross-link to /vs-intercom
+
+### /solutions
+- File: `src/app/(public)/solutions/page.tsx`
+- Hub page linking to use-case and industry pages
+- Note: card titles use `<p>` not `<h3>`; "Website Widget" card links to /chatbot-booking incorrectly
+
+### /about, /contact, /security, /changelog, /sitemap
+- All exist under `src/app/(public)/`
+- `/about` and `/contact` have incomplete metadata (see audit in project_seo_patterns.md)
 
 ## Homepage keywords already targeted
 
-The homepage (`src/app/(public)/page.tsx`) targets: AI customer support, knowledge base chatbot, chatbot builder, embeddable widget, Slack chatbot, lead capture, support ticketing.
+The homepage targets: AI customer support, knowledge base chatbot, chatbot builder, embeddable widget, Slack chatbot, lead capture, support ticketing.
 
-The homepage mentions booking in the hero subheadline and in the differentiators section (first card) but does not rank for booking keywords — no dedicated SEO treatment.
+## Missing FAQ sections (high-value schema opportunity)
 
-## Keyword gaps / recommended pages to create
+These pages should add FAQ sections with `FAQPage` JSON-LD:
+- `/vs-intercom`: "Is VocUI better than Intercom?", "Does Intercom have a free plan?", etc.
+- `/vs-tidio`: "Is VocUI better than Tidio?", "Can Tidio train on documents?", etc.
+- `/slack-chatbot`: "Does VocUI work with free Slack plans?", "How is this different from Slack AI?", etc.
 
-High priority (commercial intent, clear differentiator):
-- `/chatbot-for-slack` — "Slack chatbot builder", "custom Slack bot" — Slack integration is a real feature
-- `/knowledge-base-chatbot` — "train chatbot on documents", "PDF chatbot" — core use case not isolated
-- `/embeddable-chat-widget` — "website chat widget", "embed chatbot on website" — deployment use case
+## Missing internal link opportunities
 
-Medium priority (vertical targeting):
+1. `/vs-intercom` <-> `/vs-tidio` cross-links
+2. `/slack-chatbot` -> `/solutions`
+3. `/changelog` entries -> respective feature landing pages
+4. `/about` -> `/pricing`, `/solutions`
+5. `/security` -> `/privacy`, `/terms`
+
+## Keyword gaps / recommended pages still to create
+
+High priority:
+- `/knowledge-base-chatbot` — may already exist (in sitemap.xml), verify
+- `/embeddable-chat-widget` — "website chat widget", "embed chatbot on website"
+
+Medium priority:
 - `/chatbot-for-saas` — B2B SaaS support deflection
-- `/chatbot-for-ecommerce` — e-commerce Q&A + support
 
-Lower priority (informational, top-of-funnel):
-- Blog: "How to reduce support tickets with AI chatbots"
-- Blog: "AI appointment scheduling: what it is and how it works"
-
-## Blog post strategy (fully specced 2026-03-31, not yet built)
-
-Five posts. Specs cover: target keyword, secondary keywords, intent, difficulty, slug, title, meta description, H1, H2 outline, word count, internal links, JSON-LD schema type.
+## Blog posts (specced, created 2026-03-31)
 
 1. `/blog/how-to-add-chatbot-to-website`
-   - Primary: "how to add a chatbot to your website"
-   - Schema: HowTo + FAQPage
-   - Word count: 1,400–1,800
-   - Internal links: /knowledge-base-chatbot, /chatbot-for-customer-support, /chatbot-for-lead-capture, /pricing
-
 2. `/blog/how-to-train-chatbot-on-your-own-data`
-   - Primary: "how to train a chatbot on your own data"
-   - Schema: HowTo + FAQPage
-   - Word count: 1,600–2,000
-   - Internal links: /knowledge-base-chatbot, post 5, /chatbot-for-lawyers, /pricing
-
 3. `/blog/chatbase-alternatives`
-   - Primary: "Chatbase alternatives"
-   - Schema: Article + ItemList
-   - Word count: 2,000–2,400
-   - Internal links: /vs-tidio, /vs-intercom, /slack-chatbot, /knowledge-base-chatbot, /pricing
-
 4. `/blog/how-to-reduce-customer-support-tickets`
-   - Primary: "how to reduce customer support tickets"
-   - Schema: Article + FAQPage
-   - Word count: 1,800–2,200
-   - Internal links: /chatbot-for-customer-support (×2), /knowledge-base-chatbot, post 1, /pricing
-   - Note: highest-conversion post in the set
-
 5. `/blog/what-is-a-knowledge-base-chatbot`
-   - Primary: "what is a knowledge base chatbot"
-   - Schema: FAQPage + Article
-   - Word count: 1,400–1,700
-   - Internal links: /knowledge-base-chatbot, post 2, /chatbot-for-lawyers, /chatbot-for-healthcare, /chatbot-for-real-estate
-   - Note: featured-snippet optimized; direct-answer paragraph immediately after H1
-
-Posts 2 and 5 cross-link to each other and both funnel to /knowledge-base-chatbot.
-Post 3 funnels to /vs-tidio and /vs-intercom to reinforce comparison cluster.
-Post 4 is the strongest conversion post; primary CTA to /chatbot-for-customer-support (appears twice).

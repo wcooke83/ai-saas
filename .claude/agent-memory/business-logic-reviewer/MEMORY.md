@@ -1,2 +1,3 @@
 - [Billing architecture](billing_architecture.md) — file map for billing code, upgrade/downgrade flow audit with 2 critical + 3 warning issues (2026-03-29)
 - [Auto top-up dual system audit](auto_topup_dual_system_audit.md) — two separate auto-topup systems with critical settings disconnect (2026-03-29)
+- [Integration channel metering audit](integration_channel_metering_audit.md) — WhatsApp missing plan gate, Zapier error handling gap, no webhook sub limits (2026-04-01)
