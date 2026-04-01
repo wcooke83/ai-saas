@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ChatPreview, IndustryStatBar } from '@/components/blog/industry-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -155,6 +156,14 @@ export default function ChatbotForFitnessStudiosPage() {
                 interactive front desk that works at midnight.
               </p>
             </div>
+
+            <IndustryStatBar
+              stats={[
+                { value: '50%', label: 'of gym inquiries go unanswered' },
+                { value: '50%', label: 'of members quit within 6 months' },
+                { value: '12%', label: 'of all memberships start in January' },
+              ]}
+            />
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 — the conversion gap */}
@@ -395,6 +404,17 @@ export default function ChatbotForFitnessStudiosPage() {
                   .
                 </p>
               </section>
+
+              <ChatPreview
+                botName="Fitness Bot"
+                industry="Gym & Studio"
+                messages={[
+                  { role: 'user', text: 'What classes are available today?' },
+                  { role: 'bot', text: "Today's schedule includes Vinyasa Flow at 6 AM, HIIT Circuit at 7:30 AM, Spin at noon, Yoga Sculpt at 5:30 PM, and Boxing Basics at 7 PM. All classes are included with any membership level. Would you like to book a free trial class?" },
+                  { role: 'user', text: 'How do I freeze my membership?' },
+                  { role: 'bot', text: 'You can freeze your membership for up to 3 months per year at no charge. Just visit the front desk or call us at (555) 456-7890. Freezes take effect on the first of the following month. You can also unfreeze at any time by contacting us.' },
+                ]}
+              />
 
               {/* FAQ section */}
               <section id="faq">

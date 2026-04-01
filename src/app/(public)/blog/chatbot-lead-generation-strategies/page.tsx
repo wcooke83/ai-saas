@@ -8,6 +8,7 @@ import { ArrowRight, ExternalLink } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { MidArticleCta } from '@/components/blog/mid-article-cta';
+import { LeadResponseTimeChart } from '@/components/blog/charts';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -439,6 +440,7 @@ export default function ChatbotLeadGenerationStrategiesPage() {
                   Low-intent leads get added to your newsletter. The chatbot does the initial
                   sorting so your team spends time on the prospects most likely to convert.
                 </p>
+                <LeadResponseTimeChart />
               </section>
 
               {/* Strategy 7 */}

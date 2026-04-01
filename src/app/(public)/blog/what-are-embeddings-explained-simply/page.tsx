@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { EmbeddingVisualizationDiagram } from '@/components/blog/diagrams';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -224,6 +225,8 @@ export default function WhatAreEmbeddingsExplainedSimplyPage() {
                   not a limitation — it&apos;s why &quot;refund policy&quot; and &quot;how to get my money back&quot;
                   produce similar embeddings even though the words are entirely different.
                 </p>
+
+                <EmbeddingVisualizationDiagram />
               </section>
 
               <section>

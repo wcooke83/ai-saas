@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { DashboardPath } from '@/components/blog/dashboard-path';
+import { StepFlow } from '@/components/blog/process-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -242,6 +243,18 @@ export default function HowToCreateFaqChatbotPage() {
                   Here&apos;s the process from start to finish. No coding, no complex
                   configuration — just straightforward steps.
                 </p>
+
+                <StepFlow
+                  steps={[
+                    { number: 1, title: 'Create Chatbot', description: 'Name it and set its purpose' },
+                    { number: 2, title: 'Add FAQ Content', description: 'URL, PDF, or manual Q&A' },
+                    { number: 3, title: 'Set System Prompt', description: 'Define tone and scope' },
+                    { number: 4, title: 'Style Widget', description: 'Match your brand colors' },
+                    { number: 5, title: 'Deploy', description: 'One-line embed code' },
+                  ]}
+                  caption="Five steps from signup to live FAQ chatbot"
+                />
+
                 <ol className="list-decimal pl-5 space-y-4 mt-4">
                   <li>
                     <strong>Create a new chatbot.</strong> Log in to your VocUI dashboard and click

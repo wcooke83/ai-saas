@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { DashboardPath } from '@/components/blog/dashboard-path';
+import { StepFlow } from '@/components/blog/process-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -243,6 +244,19 @@ export default function HowToSetUpSlackChatbotForTeamPage() {
                   The full setup takes about 20-30 minutes, with most of that time spent
                   uploading your knowledge sources. The Slack connection itself is a few clicks.
                 </p>
+
+                <StepFlow
+                  steps={[
+                    { number: 1, title: 'Create Chatbot', description: 'Name it for your team' },
+                    { number: 2, title: 'Add Knowledge', description: 'Upload internal docs' },
+                    { number: 3, title: 'System Prompt', description: 'Set role and scope' },
+                    { number: 4, title: 'Connect Slack', description: 'Authorize in one click' },
+                    { number: 5, title: 'Invite to Channels', description: 'Add bot where needed' },
+                    { number: 6, title: 'Test', description: 'Mention and verify' },
+                  ]}
+                  caption="Six steps to a working Slack chatbot"
+                />
+
                 <ol className="list-decimal pl-5 space-y-4 mt-4">
                   <li>
                     <strong>Create a chatbot in VocUI.</strong> Log in to your dashboard and

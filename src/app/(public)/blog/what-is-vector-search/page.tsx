@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { VectorSearchComparisonDiagram } from '@/components/blog/diagrams';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -214,6 +215,8 @@ export default function WhatIsVectorSearchPage() {
                   my plan&quot; end up close together because they mean the same thing, even though they
                   share almost no words.
                 </p>
+                <VectorSearchComparisonDiagram />
+
                 <p className="mt-4">
                   For chatbots, this difference is critical. One case study from{' '}
                   <a href="https://dev.to/klement_gunndu_e16216829c/vector-databases-guide-rag-applications-2025-55oj" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">Zendesk</a>{' '}

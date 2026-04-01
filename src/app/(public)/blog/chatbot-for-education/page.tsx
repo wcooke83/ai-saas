@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ChatPreview, WorkflowDiagram } from '@/components/blog/industry-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -188,6 +189,17 @@ export default function ChatbotForEducationPage() {
               </p>
             </div>
 
+            <WorkflowDiagram
+              title="Student Support Flow"
+              steps={[
+                { label: 'Student visits institution website with a question', highlight: false },
+                { label: 'Chatbot answers enrollment, deadline, and policy questions instantly', highlight: true },
+                { label: 'Student is directed to LMS login or self-service portal', highlight: true },
+                { label: 'Complex advising needs are routed to a staff member', highlight: false },
+                { label: 'Student completes enrollment or resolves issue', highlight: false },
+              ]}
+            />
+
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 — problem-first */}
               <section>
@@ -269,6 +281,17 @@ export default function ChatbotForEducationPage() {
                   .
                 </p>
               </section>
+
+              <ChatPreview
+                botName="Campus Bot"
+                industry="Education"
+                messages={[
+                  { role: 'user', text: 'When is the assignment for HIST 201 due?' },
+                  { role: 'bot', text: 'According to the Fall 2026 academic calendar, most HIST 201 midterm assignments are due by October 18. Check your syllabus on Canvas for the exact date, or ask your instructor for confirmation.' },
+                  { role: 'user', text: 'Where do I find the syllabus?' },
+                  { role: 'bot', text: 'Log into Canvas at canvas.yourschool.edu, select HIST 201 from your dashboard, and click "Syllabus" in the left sidebar. If you need help logging in, I can walk you through the password reset process.' },
+                ]}
+              />
 
               {/* Section 3 — FERPA compliance deep dive — unique to education */}
               <section>

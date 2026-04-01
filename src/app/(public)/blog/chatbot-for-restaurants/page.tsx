@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ChatPreview, IndustryStatBar } from '@/components/blog/industry-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -181,6 +182,14 @@ export default function ChatbotForRestaurantsPage() {
               </p>
             </div>
 
+            <IndustryStatBar
+              stats={[
+                { value: '90%', label: 'of customers expect instant service' },
+                { value: '24/7', label: 'coverage including peak hours' },
+                { value: '30%', label: 'of restaurants use chatbots' },
+              ]}
+            />
+
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 — unique angle: the phone call problem */}
               <section>
@@ -213,6 +222,17 @@ export default function ChatbotForRestaurantsPage() {
                   Here&apos;s a real example of how a chatbot trained on a restaurant&apos;s
                   menu and policies handles a visitor with dietary concerns:
                 </p>
+
+                <ChatPreview
+                  botName="Trattoria Bot"
+                  industry="Restaurant"
+                  messages={[
+                    { role: 'user', text: "What's today's special?" },
+                    { role: 'bot', text: "Today's special is pan-seared Chilean sea bass with roasted fennel and a lemon beurre blanc. We also have a house-made butternut squash ravioli. Both are available until we sell out!" },
+                    { role: 'user', text: 'Do you take reservations for Saturday night?' },
+                    { role: 'bot', text: "Yes! Saturday evenings are popular, so I'd recommend booking soon. You can reserve a table through our OpenTable page. Parties of 8 or more should call us directly at (555) 123-4567." },
+                  ]}
+                />
 
                 {/* Example conversation — unique to restaurant post */}
                 <div className="mt-6 mb-6 space-y-3">

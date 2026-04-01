@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { DashboardPath } from '@/components/blog/dashboard-path';
+import { StepFlow, KnowledgeSourceCards } from '@/components/blog/process-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -239,6 +240,8 @@ export default function HowToBuildInternalKnowledgeBotPage() {
                   most-asked questions and expand from there based on what employees are searching
                   for.
                 </p>
+
+                <KnowledgeSourceCards caption="Upload internal docs in any of these formats" />
               </section>
 
               {/* Section 3 */}
@@ -250,6 +253,17 @@ export default function HowToBuildInternalKnowledgeBotPage() {
                   Building an internal knowledge bot with VocUI takes about 15 minutes. Here&apos;s
                   the process:
                 </p>
+
+                <StepFlow
+                  steps={[
+                    { number: 1, title: 'Create Bot', description: 'Name it for your team' },
+                    { number: 2, title: 'Upload Docs', description: 'PDFs, URLs, or DOCX files' },
+                    { number: 3, title: 'System Prompt', description: 'Set role and boundaries' },
+                    { number: 4, title: 'Test', description: 'Verify answers are accurate' },
+                    { number: 5, title: 'Deploy', description: 'Slack, intranet, or both' },
+                  ]}
+                  caption="Five steps to a working internal knowledge bot"
+                />
                 <ol className="list-decimal pl-5 space-y-4 mt-4">
                   <li>
                     <strong>Create a new chatbot.</strong> Log in to VocUI and click &quot;Create

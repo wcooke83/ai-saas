@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ChatPreview, WorkflowDiagram } from '@/components/blog/industry-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -170,6 +171,18 @@ export default function ChatbotForSaasOnboardingPage() {
                 a support agent to respond.
               </p>
             </div>
+
+            <WorkflowDiagram
+              title="SaaS Onboarding Flow"
+              steps={[
+                { label: 'New user signs up and lands on the dashboard', highlight: false },
+                { label: 'Chatbot guides through initial configuration and API setup', highlight: true },
+                { label: 'Chatbot answers setup questions and troubleshoots errors', highlight: true },
+                { label: 'User completes first integration or workflow', highlight: false },
+                { label: 'Chatbot suggests next steps to reach full product value', highlight: true },
+                { label: 'Customer success takes over for advanced needs (human-led)', highlight: false },
+              ]}
+            />
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 */}
@@ -520,6 +533,17 @@ export default function ChatbotForSaasOnboardingPage() {
                   user never comes back to complete setup.
                 </p>
               </section>
+
+              <ChatPreview
+                botName="Setup Bot"
+                industry="SaaS Onboarding"
+                messages={[
+                  { role: 'user', text: 'How do I connect my API key?' },
+                  { role: 'bot', text: "Go to Settings > Integrations > API Keys. Click 'Generate New Key', give it a name, and copy the key. You'll need to add it as an environment variable in your project: VOCUI_API_KEY=your_key_here. The key activates immediately." },
+                  { role: 'user', text: 'Where are the docs?' },
+                  { role: 'bot', text: 'Our full documentation is at docs.vocui.com. For getting started, I recommend the Quickstart Guide which walks you through your first integration in under 10 minutes. Is there a specific topic you need help with?' },
+                ]}
+              />
 
               {/* FAQ section */}
               <section id="faq">

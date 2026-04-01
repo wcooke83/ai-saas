@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ConversionFunnelChart } from '@/components/blog/charts';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -202,6 +203,7 @@ export default function ChatbotConversionRateOptimizationPage() {
                   documentation, read through a lengthy FAQ, or send an email and wait days for a
                   response. They type their question and get an answer in seconds.
                 </p>
+                <ConversionFunnelChart />
               </section>
 
               {/* Section 2 */}

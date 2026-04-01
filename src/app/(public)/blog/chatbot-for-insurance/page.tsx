@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ChatPreview, WorkflowDiagram } from '@/components/blog/industry-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -156,6 +157,18 @@ export default function ChatbotForInsurancePage() {
                 consultative selling and complex client needs.
               </p>
             </div>
+
+            <WorkflowDiagram
+              title="Insurance Claims Process"
+              steps={[
+                { label: 'Policyholder reports an incident on your website', highlight: false },
+                { label: 'Chatbot provides immediate next steps and what to document', highlight: true },
+                { label: 'Chatbot explains the claims filing process and required paperwork', highlight: true },
+                { label: 'Chatbot answers timeline, deductible, and process questions', highlight: true },
+                { label: 'Policyholder is directed to claims department to file', highlight: false },
+                { label: 'Claims adjuster handles assessment and settlement (human-led)', highlight: false },
+              ]}
+            />
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 */}
@@ -474,6 +487,17 @@ export default function ChatbotForInsurancePage() {
                   {' '}to find the right plan.
                 </p>
               </section>
+
+              <ChatPreview
+                botName="Policy Bot"
+                industry="Insurance"
+                messages={[
+                  { role: 'user', text: 'How do I file a claim?' },
+                  { role: 'bot', text: "First, make sure everyone is safe and document the damage with photos. Then call our claims department at (555) 987-6543 with your policy number ready. You'll need photos, a police report number (if applicable), and a description of what happened. Most claims are assigned to an adjuster within 48 hours." },
+                  { role: 'user', text: 'What does my homeowners policy cover?' },
+                  { role: 'bot', text: 'A standard HO-3 policy covers your home\'s structure against all perils except specific exclusions like floods and earthquakes. Personal property is covered against named perils including fire, theft, and windstorm. For a detailed review of your specific coverage limits, I\'d recommend speaking with one of our licensed agents.' },
+                ]}
+              />
 
               {/* FAQ section */}
               <section id="faq">

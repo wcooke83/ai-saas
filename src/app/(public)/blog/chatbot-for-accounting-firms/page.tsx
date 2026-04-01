@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ChatPreview, WorkflowDiagram } from '@/components/blog/industry-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -187,6 +188,18 @@ export default function ChatbotForAccountingFirmsPage() {
                 hours that translate directly to billable capacity.
               </p>
             </div>
+
+            <WorkflowDiagram
+              title="Tax Season Chatbot Flow"
+              steps={[
+                { label: 'Client visits firm website with a tax question', highlight: false },
+                { label: 'Chatbot answers deadline, document, and process questions', highlight: true },
+                { label: 'Chatbot provides document checklists and portal login help', highlight: true },
+                { label: 'Client uploads documents through secure portal', highlight: false },
+                { label: 'CPA reviews financials and prepares return (human-led)', highlight: false },
+                { label: 'Client reviews and signs return through portal', highlight: false },
+              ]}
+            />
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 — billable hours problem */}
@@ -446,6 +459,17 @@ export default function ChatbotForAccountingFirmsPage() {
                   {' '}to find the right plan for your firm.
                 </p>
               </section>
+
+              <ChatPreview
+                botName="Tax Bot"
+                industry="Accounting"
+                messages={[
+                  { role: 'user', text: 'When are quarterly taxes due?' },
+                  { role: 'bot', text: 'Quarterly estimated tax payments for 2026 are due: April 15, June 15, September 15, and January 15 of the following year. If a due date falls on a weekend or holiday, the deadline moves to the next business day.' },
+                  { role: 'user', text: 'What documents do I need for my business tax return?' },
+                  { role: 'bot', text: "For a business return, you'll need: profit & loss statement, balance sheet, bank and credit card statements, payroll reports, 1099s issued and received, asset purchase records, vehicle mileage logs (if applicable), and prior year tax returns. I can send you our full document checklist -- would you like the link?" },
+                ]}
+              />
 
               {/* FAQ section */}
               <section id="faq">

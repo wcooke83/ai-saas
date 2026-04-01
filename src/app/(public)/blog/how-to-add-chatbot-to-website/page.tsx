@@ -8,6 +8,8 @@ import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { MidArticleCta } from '@/components/blog/mid-article-cta';
+import { StepFlow, KnowledgeSourceCards, EmbedCodeVisual } from '@/components/blog/process-visuals';
+import { TimelineInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -210,6 +212,16 @@ export default function HowToAddChatbotPage() {
               { id: 'faq', label: 'FAQ' },
             ]} />
 
+            <StepFlow
+              steps={[
+                { number: 1, title: 'Create Chatbot', description: 'Sign up and name your bot' },
+                { number: 2, title: 'Add Knowledge', description: 'Upload URLs, PDFs, or Q&A' },
+                { number: 3, title: 'Configure Widget', description: 'Set colors and welcome message' },
+                { number: 4, title: 'Embed & Go Live', description: 'Paste one script tag' },
+              ]}
+              caption="The full process from signup to live chatbot"
+            />
+
             <div className="prose prose-secondary dark:prose-invert max-w-none space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
 
               <section>
@@ -271,6 +283,8 @@ export default function HowToAddChatbotPage() {
                     Google Doc or spreadsheet.
                   </li>
                 </ul>
+                <KnowledgeSourceCards caption="VocUI supports three knowledge source types" />
+
                 <p className="mt-4">
                   Once you add a source, VocUI processes it in the background — chunking the text,
                   creating embeddings, and storing them in a vector database. For a typical help
@@ -333,6 +347,8 @@ export default function HowToAddChatbotPage() {
                   Copy this snippet. That&apos;s the entire integration. One tag, one attribute with
                   your chatbot ID, and you&apos;re done on the VocUI side.
                 </p>
+
+                <EmbedCodeVisual caption="Copy from VocUI, paste into your site" />
               </section>
 
               <section>
@@ -372,6 +388,19 @@ export default function HowToAddChatbotPage() {
               </section>
 
               <MidArticleCta message="Following along? Create your chatbot now and try each step live." />
+
+              <TimelineInfographic
+                title="Add a Chatbot to Your Website in 15 Minutes"
+                steps={[
+                  { time: '0 min', title: 'Sign up and create your chatbot', description: 'Name it and choose your purpose (support, leads, internal).' },
+                  { time: '2 min', title: 'Add knowledge sources', description: 'Paste URLs, upload PDFs, or type Q&A pairs directly.' },
+                  { time: '5 min', title: 'Configure the widget', description: 'Set display name, welcome message, brand color, and position.' },
+                  { time: '8 min', title: 'Write your system prompt', description: 'Define personality, boundaries, and fallback behavior.' },
+                  { time: '10 min', title: 'Copy and paste the embed code', description: 'One script tag before </body> — works on any platform.' },
+                  { time: '12 min', title: 'Test the live widget', description: 'Ask it your top 10 customer questions and verify answers.' },
+                  { time: '15 min', title: 'You are live!', description: 'Your chatbot is answering visitor questions 24/7.' },
+                ]}
+              />
 
               <section>
                 <h2 id="step-5-test-the-live-widget" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">

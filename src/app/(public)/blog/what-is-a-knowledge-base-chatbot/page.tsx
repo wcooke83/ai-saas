@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ChatbotArchitectureDiagram } from '@/components/blog/diagrams';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -210,6 +211,8 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
                     The model synthesizes an answer from that content.
                   </li>
                 </ol>
+                <ChatbotArchitectureDiagram />
+
                 <p className="mt-4">
                   The key difference from a standard AI assistant: the model is constrained to
                   answer from your content. If the answer isn&apos;t in your knowledge base, the

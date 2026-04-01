@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { EmbedCodeVisual } from '@/components/blog/process-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -246,6 +247,8 @@ export default function HowToEmbedChatbotInShopifyPage() {
                   Follow these steps to add the VocUI chatbot to your Shopify store. The entire
                   process takes about three minutes.
                 </p>
+
+                <EmbedCodeVisual caption="Copy from VocUI Dashboard, paste into theme.liquid" />
                 <ol className="list-decimal pl-5 space-y-4 mt-4">
                   <li>
                     <strong>Copy your embed code.</strong> Log in to your VocUI dashboard, open

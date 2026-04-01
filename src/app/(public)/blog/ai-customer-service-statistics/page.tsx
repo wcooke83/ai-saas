@@ -8,6 +8,8 @@ import { ArrowRight, ExternalLink } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { MidArticleCta } from '@/components/blog/mid-article-cta';
+import { StatHighlightGrid } from '@/components/blog/charts';
+import { StatInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -182,6 +184,17 @@ export default function AiCustomerServiceStatisticsPage() {
               { id: 'faq', label: 'FAQ' },
             ]} />
 
+            <StatHighlightGrid
+              stats={[
+                { value: '30%', label: 'Cost Reduction', color: 'text-emerald-600 dark:text-emerald-400' },
+                { value: '80%', label: 'Routine Queries Automated', color: 'text-primary-600 dark:text-primary-400' },
+                { value: '62%', label: 'Prefer Chat Over Waiting', color: 'text-blue-600 dark:text-blue-400' },
+                { value: '24/7', label: 'Availability at No Extra Cost', color: 'text-violet-600 dark:text-violet-400' },
+                { value: '90%', label: 'Want Immediate Response', color: 'text-amber-600 dark:text-amber-400' },
+                { value: '$3.50', label: 'Return Per $1 Invested', color: 'text-emerald-600 dark:text-emerald-400' },
+              ]}
+            />
+
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 */}
               <section>
@@ -334,6 +347,18 @@ export default function AiCustomerServiceStatisticsPage() {
                   </li>
                 </ol>
               </section>
+
+              <StatInfographic
+                title="AI Customer Service by the Numbers"
+                stats={[
+                  { value: '30%', label: 'Cost Reduction', highlight: true },
+                  { value: '80%', label: 'Routine Queries Automated', highlight: false },
+                  { value: '62%', label: 'Prefer Chatbot Over Waiting', highlight: false },
+                  { value: '$3.50', label: 'Return Per $1 Invested', highlight: true },
+                  { value: '90%', label: 'Want Immediate Response', highlight: false },
+                  { value: '24/7', label: 'Availability at No Extra Cost', highlight: false },
+                ]}
+              />
 
               <MidArticleCta message="Ready to see these numbers for yourself? Build a chatbot and track the impact." />
 

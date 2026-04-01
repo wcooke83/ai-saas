@@ -8,6 +8,7 @@ import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { MidArticleCta } from '@/components/blog/mid-article-cta';
+import { RagPipelineDiagram } from '@/components/blog/diagrams';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -245,6 +246,8 @@ export default function WhatIsRagRetrievalAugmentedGenerationPage() {
                   and a real-time query phase (done every time someone asks a question). Understanding
                   both phases helps you see why the system is both fast and accurate.
                 </p>
+
+                <RagPipelineDiagram />
 
                 <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mt-6 mb-3">
                   Phase 1: Indexing

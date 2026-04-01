@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ChatPreview, IndustryStatBar } from '@/components/blog/industry-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -188,6 +189,14 @@ export default function ChatbotForTravelAgenciesPage() {
                 have booked with a competitor who answered faster.
               </p>
             </div>
+
+            <IndustryStatBar
+              stats={[
+                { value: '38', label: 'websites visited before booking' },
+                { value: '60%', label: 'of travelers open to chatbots' },
+                { value: '$13.9B', label: 'projected AI in tourism by 2030' },
+              ]}
+            />
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 — the timing problem */}
@@ -431,6 +440,17 @@ export default function ChatbotForTravelAgenciesPage() {
                   {' '}for plan options.
                 </p>
               </section>
+
+              <ChatPreview
+                botName="Travel Bot"
+                industry="Travel Agency"
+                messages={[
+                  { role: 'user', text: 'What packages do you have for Bali?' },
+                  { role: 'bot', text: 'We offer three Bali packages: a 7-night beach resort stay in Seminyak, a 10-day cultural tour covering Ubud and the temples, and a 14-day island-hopping adventure that includes Bali, Lombok, and the Gili Islands. All include flights, hotels, and airport transfers. Would you like details on any of these?' },
+                  { role: 'user', text: 'Do I need a visa for Bali?' },
+                  { role: 'bot', text: 'US passport holders receive a free 30-day visa on arrival in Indonesia. Your passport must be valid for at least 6 months from your travel date. For stays longer than 30 days, you can purchase a visa on arrival for $35 USD which is extendable to 60 days.' },
+                ]}
+              />
 
               {/* FAQ section */}
               <section id="faq">

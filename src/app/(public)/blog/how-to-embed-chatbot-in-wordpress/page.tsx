@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { EmbedCodeVisual } from '@/components/blog/process-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -242,6 +243,8 @@ export default function HowToEmbedChatbotInWordpressPage() {
                   There are three methods to add the VocUI script to WordPress. Choose the one
                   that fits your setup.
                 </p>
+
+                <EmbedCodeVisual caption="Copy from VocUI Dashboard, paste into WordPress" />
 
                 <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mt-6 mb-3">
                   Method 1: Using a Header/Footer Plugin (Easiest)

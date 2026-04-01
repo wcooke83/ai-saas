@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { NlpPipelineDiagram } from '@/components/blog/diagrams';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -226,6 +227,8 @@ export default function HowAiChatbotsUnderstandQuestionsPage() {
                   This is a direct result of training on billions of examples of real human
                   communication, including informal text.
                 </p>
+
+                <NlpPipelineDiagram />
               </section>
 
               <section>

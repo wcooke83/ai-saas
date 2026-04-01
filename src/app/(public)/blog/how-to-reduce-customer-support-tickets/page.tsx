@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { NumberedListInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -465,6 +466,20 @@ export default function ReduceSupportTicketsPage() {
                   slowly because the remaining questions are genuinely complex or unique.
                 </p>
               </section>
+
+              <NumberedListInfographic
+                title="7 Ways to Reduce Support Tickets with AI"
+                subtitle="Strategies that cut ticket volume by 40-70%"
+                items={[
+                  { title: 'Automate FAQ responses', description: 'Deploy a chatbot trained on your knowledge base to answer the same 20 questions instantly.' },
+                  { title: 'Deflect how-to questions', description: 'If your docs explain it, a chatbot can explain it too — at 2am, in any language.' },
+                  { title: 'Cover pricing and plan questions', description: 'Fully answerable from your pricing page. No agent needed.' },
+                  { title: 'Handle policy inquiries', description: 'Return policy, cancellation, shipping — answers that rarely change are easiest to deflect.' },
+                  { title: 'Resolve common errors', description: 'Add error codes, causes, and fixes to your knowledge base for instant troubleshooting.' },
+                  { title: 'Enable 24/7 coverage', description: 'Visitors at 11pm still get answers. No overnight shifts required.' },
+                  { title: 'Build a continuous improvement loop', description: 'Review unanswered questions weekly and add them to your knowledge base.' },
+                ]}
+              />
 
               <section id="faq">
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-6">

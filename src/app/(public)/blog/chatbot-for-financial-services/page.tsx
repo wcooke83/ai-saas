@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ChatPreview, IndustryStatBar } from '@/components/blog/industry-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -155,6 +156,14 @@ export default function ChatbotForFinancialServicesPage() {
                 comparing three advisory firms from their couch.
               </p>
             </div>
+
+            <IndustryStatBar
+              stats={[
+                { value: '92%', label: 'of banks use AI chatbots' },
+                { value: '$7.3B', label: 'projected chatbot cost savings' },
+                { value: '20+hrs', label: 'per month on repeat questions' },
+              ]}
+            />
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 */}
@@ -424,6 +433,17 @@ export default function ChatbotForFinancialServicesPage() {
                   approach that protects both the firm and the client.
                 </p>
               </section>
+
+              <ChatPreview
+                botName="Advisor Bot"
+                industry="Financial Services"
+                messages={[
+                  { role: 'user', text: "What's the minimum investment to work with your firm?" },
+                  { role: 'bot', text: 'Our minimum account size is $250,000 for comprehensive wealth management. We also offer financial planning engagements starting at $5,000 for a one-time plan. Would you like to schedule a free consultation to discuss which service fits your needs?' },
+                  { role: 'user', text: 'How do I open an account?' },
+                  { role: 'bot', text: "The process starts with a complimentary discovery meeting where we learn about your goals. After that, we'll present a proposal and, if you'd like to proceed, handle all the paperwork for account opening and transfers. Most clients are fully onboarded within two weeks. Here's our booking link to schedule your first meeting." },
+                ]}
+              />
 
               {/* FAQ section */}
               <section id="faq">

@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ChatPreview, WorkflowDiagram } from '@/components/blog/industry-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -156,6 +157,18 @@ export default function ChatbotForRecruitmentPage() {
                 team can focus on evaluating talent and closing offers.
               </p>
             </div>
+
+            <WorkflowDiagram
+              title="Hiring Funnel with Chatbot"
+              steps={[
+                { label: 'Candidate discovers your careers page', highlight: false },
+                { label: 'Chatbot answers role, salary, and benefit questions', highlight: true },
+                { label: 'Candidate self-qualifies against requirements', highlight: true },
+                { label: 'Chatbot directs qualified candidates to apply', highlight: true },
+                { label: 'Recruiter reviews informed, pre-screened applications', highlight: false },
+                { label: 'Interview and offer (human-led)', highlight: false },
+              ]}
+            />
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 — the bottleneck */}
@@ -400,6 +413,17 @@ export default function ChatbotForRecruitmentPage() {
                   {' '}to get started with a plan that fits your hiring volume.
                 </p>
               </section>
+
+              <ChatPreview
+                botName="Careers Bot"
+                industry="Recruitment"
+                messages={[
+                  { role: 'user', text: "What's the salary range for the Senior PM role?" },
+                  { role: 'bot', text: 'The Senior Product Manager position has a salary range of $145,000-$175,000 plus equity, depending on experience. The role is remote-first with quarterly onsites in San Francisco.' },
+                  { role: 'user', text: 'How do I apply?' },
+                  { role: 'bot', text: "You can apply directly through our application page. You'll need your resume and a brief cover letter. Our team reviews applications weekly, and you'll hear back within 5 business days." },
+                ]}
+              />
 
               {/* FAQ section */}
               <section id="faq">

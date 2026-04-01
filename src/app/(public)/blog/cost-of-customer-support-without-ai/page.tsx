@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { CostComparisonBar } from '@/components/blog/charts';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -272,6 +273,7 @@ export default function CostOfCustomerSupportWithoutAiPage() {
                   didn&apos;t get done because your agent was busy typing the same answer for the
                   200th time.
                 </p>
+                <CostComparisonBar />
               </section>
 
               {/* Section 4 */}

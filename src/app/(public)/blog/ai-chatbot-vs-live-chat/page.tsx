@@ -6,6 +6,8 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ComparisonScorecard } from '@/components/blog/process-visuals';
+import { ComparisonInfographic } from '@/components/blog/infographics';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -319,6 +321,19 @@ export default function AiChatbotVsLiveChatPage() {
                   </table>
                 </div>
 
+                <ComparisonScorecard
+                  items={[
+                    { feature: 'Availability (24/7)', score1: 10, score2: 5, label1: 'AI Chatbot', label2: 'Live Chat' },
+                    { feature: 'Cost Efficiency', score1: 9, score2: 4, label1: 'AI Chatbot', label2: 'Live Chat' },
+                    { feature: 'Scalability', score1: 10, score2: 4, label1: 'AI Chatbot', label2: 'Live Chat' },
+                    { feature: 'Personalization', score1: 6, score2: 9, label1: 'AI Chatbot', label2: 'Live Chat' },
+                    { feature: 'Complex Issues', score1: 4, score2: 9, label1: 'AI Chatbot', label2: 'Live Chat' },
+                    { feature: 'Setup Speed', score1: 9, score2: 3, label1: 'AI Chatbot', label2: 'Live Chat' },
+                    { feature: 'Consistency', score1: 9, score2: 6, label1: 'AI Chatbot', label2: 'Live Chat' },
+                  ]}
+                  caption="Visual scorecard: AI chatbot vs live chat across key factors"
+                />
+
                 <p className="mt-4">
                   The pattern is clear: AI chatbots win on cost, availability, and scalability.
                   Live chat wins on personalization and complex problem-solving. The right choice
@@ -326,6 +341,20 @@ export default function AiChatbotVsLiveChatPage() {
                   customers typically ask.
                 </p>
               </section>
+
+              <ComparisonInfographic
+                title="AI Chatbot vs Live Chat"
+                leftLabel="AI Chatbot"
+                rightLabel="Live Agent"
+                items={[
+                  { left: '24/7/365 availability', right: 'Business hours only' },
+                  { left: '$0-$99/mo fixed cost', right: '$3,000-$10,000+/mo in staffing' },
+                  { left: 'Instant response (<5 sec)', right: '1-5 min avg. wait time' },
+                  { left: 'Unlimited concurrent chats', right: 'Limited by headcount' },
+                  { left: 'Consistent, accurate answers', right: 'Varies by agent and mood' },
+                  { left: 'Setup in under 1 hour', right: 'Weeks of hiring and training' },
+                ]}
+              />
 
               {/* Section 5 */}
               <section>

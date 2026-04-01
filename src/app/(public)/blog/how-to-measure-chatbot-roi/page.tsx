@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ROICalculatorVisual } from '@/components/blog/charts';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -254,14 +255,7 @@ export default function HowToMeasureChatbotRoiPage() {
                   The simplest ROI calculation focuses on support cost reduction. Here is the
                   formula:
                 </p>
-                <div className="bg-secondary-50 dark:bg-secondary-800/50 rounded-xl p-6 mt-4 mb-4">
-                  <p className="font-mono text-sm text-secondary-800 dark:text-secondary-200">
-                    Monthly savings = Tickets deflected x Cost per ticket
-                  </p>
-                  <p className="font-mono text-sm text-secondary-800 dark:text-secondary-200 mt-2">
-                    ROI = (Monthly savings - Chatbot cost) / Chatbot cost x 100
-                  </p>
-                </div>
+                <ROICalculatorVisual />
                 <p>
                   To find your cost per ticket, divide your monthly support team costs (salaries,
                   tools, overhead) by the number of tickets handled. According to <a href="https://www.demandsage.com/chatbot-statistics/" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-0.5">DemandSage<ExternalLink className="w-3 h-3 opacity-60 inline-block" /></a>, human-agent interactions typically cost $6&ndash;$15 each. Enterprise support

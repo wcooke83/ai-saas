@@ -8,6 +8,7 @@ import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { MidArticleCta } from '@/components/blog/mid-article-cta';
+import { KnowledgeSourceCards, ChatbotSetupTimeline } from '@/components/blog/process-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -283,6 +284,8 @@ export default function HowToTrainChatbotPage() {
                     that doesn&apos;t fit neatly into a file or URL.
                   </li>
                 </ul>
+                <KnowledgeSourceCards caption="The three main ways to add content to your chatbot" />
+
                 <p className="mt-4">
                   There&apos;s no need to format your content in any special way before uploading. VocUI
                   processes whatever you give it. The only thing that matters is that the content
@@ -374,6 +377,8 @@ export default function HowToTrainChatbotPage() {
                   to add that information as a Q&amp;A pair or plain text source instead.
                 </p>
               </section>
+
+              <ChatbotSetupTimeline caption="Most users finish the entire setup in under 15 minutes" />
 
               <section>
                 <h2 id="step-4-refine-with-a-system-prompt" className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mt-10 mb-4">

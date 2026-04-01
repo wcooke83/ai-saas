@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { ChatPreview, IndustryStatBar } from '@/components/blog/industry-visuals';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -188,6 +189,14 @@ export default function ChatbotForNonprofitsPage() {
                 ten seconds and kept that donor on the page.
               </p>
             </div>
+
+            <IndustryStatBar
+              stats={[
+                { value: '83%', label: 'donation form abandonment rate' },
+                { value: '19%', label: 'of first-time donors return' },
+                { value: '44%', label: 'of public donated online recently' },
+              ]}
+            />
 
             <div className="space-y-8 text-secondary-700 dark:text-secondary-300 leading-relaxed">
               {/* Section 1 — the missed moment */}
@@ -419,6 +428,17 @@ export default function ChatbotForNonprofitsPage() {
                   {' '}to find the right plan for your organization.
                 </p>
               </section>
+
+              <ChatPreview
+                botName="Mission Bot"
+                industry="Nonprofit"
+                messages={[
+                  { role: 'user', text: 'How can I donate?' },
+                  { role: 'bot', text: 'Thank you for your interest in supporting our mission! You can make a one-time or recurring donation through our secure donation page. We accept credit cards, PayPal, and bank transfers. Every dollar goes directly to our programs.' },
+                  { role: 'user', text: 'Is my donation tax-deductible?' },
+                  { role: 'bot', text: "Yes! We are a registered 501(c)(3) nonprofit organization. All donations are tax-deductible to the extent allowed by law. You'll receive a receipt via email within 24 hours of your gift for your tax records." },
+                ]}
+              />
 
               {/* FAQ section */}
               <section id="faq">

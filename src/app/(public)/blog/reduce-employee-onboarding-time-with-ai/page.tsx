@@ -6,6 +6,7 @@ import { PageBackground } from '@/components/ui/page-background';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { AuthorByline } from '@/components/blog/author-byline';
+import { OnboardingTimeComparison } from '@/components/blog/charts';
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
@@ -202,6 +203,7 @@ export default function ReduceEmployeeOnboardingTimeWithAiPage() {
                   this cycle by giving every new hire instant access to the answers they need,
                   in a format they can use immediately.
                 </p>
+                <OnboardingTimeComparison />
               </section>
 
               {/* Section 2 */}
