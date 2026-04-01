@@ -7,6 +7,7 @@ import { HomeFeatures } from './home-features';
 import { HomeTestimonials } from './home-testimonials';
 import { HomeHowItWorks } from './home-how-it-works';
 import { HomeAllFeatures } from './home-all-features';
+import { HomeIndustries } from './home-industries';
 import { HomeCta } from './home-cta';
 
 export default function HomePage() {
@@ -21,6 +22,7 @@ export default function HomePage() {
         <HomeTestimonials />
         <HomeHowItWorks />
         <HomeAllFeatures />
+        <HomeIndustries />
         <HomeCta />
       </main>
 
