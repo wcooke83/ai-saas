@@ -82,46 +82,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Web Design Agencies?",
+      "name": "Can the chatbot answer questions about your agency's web design packages and pricing?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle project scoping, quote lead capture, and portfolio FAQ for your web design agency \u2014 24/7. Stop wasting time on unqualified enquiries."
+        "text": "Yes. Upload your service packages, pricing tiers, and what's included at each level — and the chatbot answers these questions automatically, qualifying budget-fit prospects before they reach your sales team."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Web Design Agencies?",
+      "name": "Will VocUI help prospective clients understand the website design process?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Web Design Agencies get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes. Upload your process overview — discovery, wireframes, design, development, testing, launch — and the chatbot explains what to expect, how long it takes, and what the client needs to provide."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot handle questions about CMS platforms, technologies, and integrations?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes, if you upload your tech stack FAQ. It explains which platforms you build on (WordPress, Webflow, Shopify, custom), what that means for the client, and when each is appropriate."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "Will VocUI book discovery calls with prospective clients?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Web Design Agencies?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Web Design Agencies business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Yes, via Easy!Appointments. Prospects can schedule a scoping call directly from the chat — reducing the email exchange that delays new project starts."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -349,7 +342,7 @@ export default function ChatbotForWebDesignAgenciesPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next project discovery call. No developers needed.
               </h2>
             </div>
             <div className="grid gap-10 md:grid-cols-3 max-w-5xl mx-auto relative">
@@ -399,18 +392,28 @@ export default function ChatbotForWebDesignAgenciesPage() {
           </div>
         </section>
 
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a web design agency using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;We used to spend half our Mondays on discovery calls that went nowhere. VocUI asks
-                the budget question for us — now every call we take is with someone who can actually afford
-                what we build.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                L.H. &mdash; Director, Pixel & Stone Studio
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How web design agencies use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: "Account managers fielding the same 'how long does a website take' and 'what\u2019s included' questions from every new prospect" },
+                  { step: 'Setup', text: 'Uploaded service packages, process overview, typical timelines, and case study summaries' },
+                  { step: 'After', text: 'Discovery calls now start with pre-qualified prospects who already understand scope and pricing. Fewer dead-end enquiries.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

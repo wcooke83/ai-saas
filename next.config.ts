@@ -29,6 +29,15 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
+  async redirects() {
+    return [
+      {
+        source: '/chatbot-for-accountants',
+        destination: '/chatbot-for-accountancy-firms',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

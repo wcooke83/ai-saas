@@ -92,46 +92,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Auto Repair Shops?",
+      "name": "Can the chatbot answer questions about MOT, service intervals, and what's included?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle service booking, repair cost questions, and job status updates for your auto repair shop \u2014 24/7, so your mechanics can stay under the bonnet."
+        "text": "Yes. Upload your service menu — interim service, full service, MOT — with what each includes and typical pricing, and the chatbot answers customer questions automatically."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Auto Repair Shops?",
+      "name": "Will VocUI book car service and repair appointments?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Auto Repair Shops get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes, via Easy!Appointments. Customers can book MOTs, services, tyre changes, and diagnostic appointments directly from the chat, including evenings and weekends."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot handle questions about specific makes or models you service?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes, if you upload a list of the makes you work on and any specialisms. Customers asking whether you service their vehicle get an instant answer."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle warranty and post-repair questions?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Auto Repair Shops?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Auto Repair Shops business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Upload your warranty terms and what's covered post-repair, and the chatbot answers these questions automatically — reducing the calls your service desk fields after completed jobs."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -281,8 +274,8 @@ export default function ChatbotForAutoRepairPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
       <Header />
 
@@ -381,7 +374,7 @@ export default function ChatbotForAutoRepairPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next vehicle drop-off. No developers needed.
               </h2>
             </div>
 
@@ -449,19 +442,28 @@ export default function ChatbotForAutoRepairPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a repair shop using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;Our front desk was spending half the day on the phone answering &lsquo;how
-                much is an MOT&rsquo;. VocUI handles all of that now — my team actually gets
-                time to focus on the cars, and we&apos;re booking more jobs than ever.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                D.P. &mdash; Owner, Independent Auto Repair Centre
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How auto repair shops use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Front desk staff interrupted repeatedly throughout the day with pricing questions — MOT costs, service estimates, and wait times — while cars were waiting to be worked on.' },
+                  { step: 'Setup', text: 'Uploaded their service menu, pricing guide, booking policy, and common repair FAQ — configured in an afternoon without touching any code.' },
+                  { step: 'After', text: 'Pricing and availability questions handled automatically. Technicians no longer pulled off jobs to answer the phone. More bookings completed without adding staff.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

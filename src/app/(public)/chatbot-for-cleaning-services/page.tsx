@@ -93,46 +93,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Cleaning Services?",
+      "name": "Can the chatbot explain the difference between your cleaning service packages?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Stop losing bookings to slow responses. An AI chatbot for your cleaning business answers pricing questions instantly and captures quote requests 24/7."
+        "text": "Yes. Upload your service tiers — regular domestic, deep clean, end-of-tenancy, commercial — with what each includes and how pricing works, and the chatbot answers comparison questions automatically."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Cleaning Services?",
+      "name": "Will VocUI provide cleaning quotes or book cleans?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Cleaning Services get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "It can explain your pricing structure and, for standard jobs, give a pricing indication based on property size. For bespoke commercial or end-of-tenancy jobs, it captures the details and routes to your team for a quote. Bookings go via Easy!Appointments."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot answer questions about products used and allergy/pet safety?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes. Upload your product list and any allergy or pet-safe alternatives you offer, and the chatbot answers these common questions before they become a barrier to booking."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "Does VocUI handle recurring booking enquiries from regular clients?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Cleaning Services?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Cleaning Services business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Yes. It answers questions about your regular clean schedule, what's included each visit, how to adjust frequency, and how to manage a temporary pause."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -282,8 +275,8 @@ export default function ChatbotForCleaningServicesPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
       <Header />
 
@@ -382,7 +375,7 @@ export default function ChatbotForCleaningServicesPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next booking request. No developers needed.
               </h2>
             </div>
 
@@ -450,18 +443,28 @@ export default function ChatbotForCleaningServicesPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a cleaning company using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;We were missing enquiries every evening. VocUI now captures them all and
-                tells people our pricing before we even call them back. Bookings have picked up noticeably.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                T.H. &mdash; Owner, Domestic &amp; Commercial Cleaning Company
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How cleaning companies use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Evening and weekend website enquiries going unanswered until the next working day — potential customers calling competitors while waiting for a callback.' },
+                  { step: 'Setup', text: 'Uploaded their service list, pricing guide, coverage area FAQ, and booking process — live within an hour, no technical knowledge needed.' },
+                  { step: 'After', text: 'Pricing and availability questions answered instantly, any time. Callback requests captured with full context. More quotes sent without extra admin time.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

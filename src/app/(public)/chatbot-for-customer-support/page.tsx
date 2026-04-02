@@ -57,6 +57,7 @@ export function generateMetadata(): Metadata {
     alternates: {
       canonical: 'https://vocui.com/chatbot-for-customer-support',
     },
+    robots: { index: true, follow: true },
   };
 }
 
@@ -84,46 +85,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Customer Support?",
+      "name": "What types of customer support questions can VocUI handle automatically?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Deflect repetitive support tickets with an AI chatbot trained on your own knowledge base. Cut response time from hours to seconds. Free plan available."
+        "text": "VocUI handles any repeatable support question your team currently answers manually — product FAQs, returns and refunds, account access, shipping queries, troubleshooting guides. It deflects these from your queue so agents handle only the complex cases."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Customer Support?",
+      "name": "How does VocUI decide when to escalate to a human agent?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Customer Support get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "You configure the escalation rules. The chatbot attempts to resolve from your approved knowledge base first. When it cannot answer — or when a customer requests a human — it escalates immediately with the full conversation transcript included."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can VocUI reduce support ticket volume without a large technical implementation?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes. Setup takes under an hour with no developer required. You upload your support documentation, configure escalation rules, and embed the widget with a single snippet. Most teams see ticket deflection from day one."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "Does VocUI integrate with existing helpdesk tools like Zendesk or Intercom?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Customer Support?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Customer Support business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "VocUI operates as an intelligent first-response layer. Escalated conversations can be routed to your existing helpdesk via your team's standard process. Your team should review VocUI's API documentation for custom helpdesk connections."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -273,8 +267,8 @@ export default function ChatbotForCustomerSupportPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
       <Header />
 

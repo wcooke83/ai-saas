@@ -94,46 +94,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Law Firms?",
+      "name": "Will VocUI's chatbot give legal advice to prospective clients?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle client intake questions, eligibility FAQs, and appointment booking \u2014 24/7. Free your attorneys to focus on casework, not admin."
+        "text": "No. VocUI answers only from content you approve and upload — typically your practice area descriptions, intake process, and general FAQs. It never gives legal advice, opines on case outcomes, or creates a solicitor-client relationship. Legal questions are escalated to your team."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Law Firms?",
+      "name": "Can the chatbot handle new client intake for a law firm?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Law Firms get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes. It answers questions about your practice areas, what an initial consultation involves, your fees, and how to get in touch — qualifying prospects before they reach your fee earners."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "What areas of law does VocUI work best for?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Any practice area with recurring client enquiries — family law, personal injury, employment, immigration, conveyancing, wills and probate. The chatbot answers from your specific practice content, so it's as relevant as what you train it on."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "Can VocUI book legal consultations?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Law Firms?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Law Firms business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Yes, via Easy!Appointments. Prospective clients can book an initial consultation directly from the chat — reducing the back-and-forth of phone and email scheduling."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -383,7 +376,7 @@ export default function ChatbotForLawyersPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Set up between cases. Takes under an hour.
               </h2>
             </div>
 
@@ -452,18 +445,28 @@ export default function ChatbotForLawyersPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a law firm using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;Clients ask us the same eligibility questions every week. VocUI handles that
-                now. My team spends more time actually practicing law.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                S.C. &mdash; Managing Partner, Immigration Law Practice
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How law firms use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Solicitors and admin staff fielding repeated enquiries about practice areas, eligibility, fees, and what to bring to a first consultation — before any billable work could start.' },
+                  { step: 'Setup', text: 'Uploaded their practice area guide, client eligibility FAQ, fees overview, and consultation preparation document — configured without developer involvement.' },
+                  { step: 'After', text: 'Prospective clients self-qualify and arrive at consultations better prepared. Admin team handling fewer pre-screening calls. Lawyers focused on casework.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -512,7 +515,7 @@ export default function ChatbotForLawyersPage() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 { label: 'Chatbot for Immigration Lawyers', href: '/chatbot-for-immigration-lawyers', description: 'Visa category FAQ and consultation booking — no legal advice given.' },
-                { label: 'Chatbot for Accountants', href: '/chatbot-for-accountants', description: 'Tax FAQ and client intake automation.' },
+                { label: 'Chatbot for Accountancy Firms', href: '/chatbot-for-accountancy-firms', description: 'Tax FAQ and client intake automation for accounting practices.' },
                 { label: 'Chatbot for Financial Advisors', href: '/chatbot-for-financial-advisors', description: 'Service FAQ and consultation booking for financial advisers.' },
                 { label: 'Chatbot for Insurance Agents', href: '/chatbot-for-insurance-agents', description: 'Policy FAQ and quote lead capture for insurance professionals.' },
               ].map((item) => (
@@ -562,6 +565,15 @@ export default function ChatbotForLawyersPage() {
           </div>
         </section>
 
+        {/* ── Author Attribution ──────────────────────────────────────────── */}
+        <div className="container mx-auto px-4 pb-8">
+          <p className="text-xs text-secondary-400 dark:text-secondary-500 text-center">
+            Written by the VocUI team &middot; Last reviewed April 2026 &middot;{' '}
+            <Link href="/about" className="underline decoration-dotted hover:text-primary-500 transition-colors">
+              About VocUI
+            </Link>
+          </p>
+        </div>
       </main>
 
       <Footer />

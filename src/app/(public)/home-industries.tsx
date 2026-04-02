@@ -30,7 +30,7 @@ const featured: Industry[] = [
   { icon: UtensilsCrossed,label: 'Restaurants',         href: '/chatbot-for-restaurants' },
   { icon: Hotel,          label: 'Hotels',              href: '/chatbot-for-hotels' },
   { icon: Scale,          label: 'Law Firms',           href: '/chatbot-for-lawyers' },
-  { icon: Calculator,     label: 'Accountants',         href: '/chatbot-for-accountants' },
+  { icon: Calculator,     label: 'Accountancy Firms',   href: '/chatbot-for-accountancy-firms' },
   { icon: Dumbbell,       label: 'Gyms',                href: '/chatbot-for-gyms' },
   { icon: UserCheck,      label: 'HR Departments',      href: '/chatbot-for-hr' },
   { icon: Activity,       label: 'Healthcare',          href: '/chatbot-for-healthcare' },

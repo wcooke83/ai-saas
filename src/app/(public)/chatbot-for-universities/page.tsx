@@ -34,46 +34,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Universities?",
+      "name": "Can the chatbot answer questions about specific degree programmes and entry requirements?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle admissions FAQs, course enquiries, and application guidance for your university \u2014 24/7. Support prospective students across every time zone."
+        "text": "Yes. Upload your course catalogue, entry requirement guides, and programme FAQs — and the chatbot answers prospective student questions 24/7, including during peak UCAS application periods when enquiry volume spikes."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Universities?",
+      "name": "Will VocUI help with open day booking and campus visit enquiries?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Universities get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes, via Easy!Appointments. Prospective students can register for open days, book campus tours, and schedule department visits directly from the chat."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot answer questions about student accommodation and fees?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes. Upload your accommodation options, fee schedules, and bursary/scholarship FAQ — and the chatbot answers these high-volume questions automatically."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle international student enquiries about visas and English language requirements?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Universities?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Universities business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Upload your international entry requirements, English language thresholds, and visa guidance FAQ — and the chatbot answers these questions for prospective students in different time zones who can't call during UK office hours."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -163,7 +156,7 @@ export default function ChatbotForUniversitiesPage() {
         </section>
         <section id="how-it-works" className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">How it works</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">Set up in under an hour. No developers needed.</h2></div>
+            <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">How it works</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">Live before your next admissions enquiry. No developers needed.</h2></div>
             <div className="grid gap-10 md:grid-cols-3 max-w-5xl mx-auto relative">
               <div className="hidden md:block absolute top-8 left-[calc(16.67%+1.5rem)] right-[calc(16.67%+1.5rem)] h-px bg-secondary-200 dark:bg-secondary-700" aria-hidden="true" />
               {steps.map((s) => (<div key={s.step} className="relative text-center flex flex-col items-center"><div className="w-16 h-16 rounded-full bg-primary-500 text-white font-bold text-lg flex items-center justify-center mb-6 z-10 shadow-lg shadow-primary-500/25">{s.step}</div><h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-3">{s.title}</h3><p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed max-w-xs">{s.description}</p></div>))}
@@ -175,8 +168,30 @@ export default function ChatbotForUniversitiesPage() {
           <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">Features</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">Everything a university admissions chatbot actually needs</h2><p className="text-secondary-600 dark:text-secondary-400">Built for higher education — not a generic FAQ page. Every feature is aimed at guiding more prospects to application and supporting your admissions team with relevant context.</p></div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">{features.map((f) => { const Icon = f.icon; return (<div key={f.name} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-6 hover:border-primary-200 dark:hover:border-primary-700 transition-colors"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/50 mb-4"><Icon className="h-4 w-4 text-primary-500" aria-hidden="true" /></div><h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">{f.name}</h3><p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{f.description}</p></div>); })}</div>
         </section>
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
-          <div className="container mx-auto px-4"><div className="max-w-3xl mx-auto text-center"><Badge variant="outline" className="mb-8">From a university admissions team using VocUI</Badge><blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">&ldquo;Our admissions team was spending hours on the same entry requirement questions. VocUI now handles those automatically — our officers spend their time on the students who genuinely need one-to-one guidance, and our application numbers have improved.&rdquo;</blockquote><p className="text-secondary-500 dark:text-secondary-400 text-sm">D.R. &mdash; Head of Admissions, Northfield University</p></div></div>
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How university admissions teams use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Admissions officers spending hours each week answering repeated questions about entry requirements, application deadlines, and course content — at the expense of meaningful one-to-one student support.' },
+                  { step: 'Setup', text: 'Uploaded their prospectus, entry requirement guide, application deadline FAQ, and student support overview — configured by the admissions team without IT involvement.' },
+                  { step: 'After', text: 'Entry and deadline questions answered automatically, any time. Officers focused on students who need personal guidance. Application enquiry volume handled at scale.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </section>
         <section className="container mx-auto px-4 py-24">
           <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">Who it&apos;s for</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">For universities that want their admissions team focused on high-value student interactions</h2><p className="text-secondary-600 dark:text-secondary-400">If your admissions officers are handling FAQ a chatbot could answer, VocUI pays for itself the moment your team gets their first day free of repetitive enquiries.</p></div>

@@ -94,46 +94,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Wedding Venues?",
+      "name": "Can the chatbot answer questions about venue capacity, layouts, and exclusive use?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle booking enquiries, package comparisons, and date availability checks for your wedding venue \u2014 24/7, trained on your own content."
+        "text": "Yes. Upload your venue specifications — indoor and outdoor capacities, layout options, exclusive use terms — and the chatbot answers these initial questions automatically, before enquiries reach your events team."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Wedding Venues?",
+      "name": "Will VocUI handle wedding enquiry and show-round booking?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Wedding Venues get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes, via Easy!Appointments. Prospective couples can book show-round appointments directly from the chat — capturing interest at the moment it's highest, including evenings when couples are planning together."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot answer questions about preferred suppliers, catering, and packages?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes. Upload your packages, what's included, preferred supplier list, and catering FAQ — and the chatbot answers the questions that currently arrive by email and take days to respond to."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle pricing and availability enquiries?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Wedding Venues?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Wedding Venues business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Upload your pricing guide and availability calendar process. The chatbot explains your pricing structure and routes date-specific availability queries to your team with the couple's key requirements already captured."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -383,7 +376,7 @@ export default function ChatbotForWeddingVenuesPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next venue enquiry. No developers needed.
               </h2>
             </div>
 
@@ -451,19 +444,28 @@ export default function ChatbotForWeddingVenuesPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a wedding venue using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;We were losing weekend enquiries because everyone on the team was at events. VocUI
-                now answers date questions, explains our packages, and books viewings overnight. Monday
-                mornings have completely changed.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                C.H. &mdash; Venue Manager, Country House Wedding Venue
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How wedding venues use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Events team spending hours each week answering capacity, catering, and availability questions by email and phone' },
+                  { step: 'Setup', text: 'Uploaded venue capacity details, catering packages, availability calendar info, and pricing guide' },
+                  { step: 'After', text: 'Couples get answers at 10pm when they\u2019re actually planning. Show round bookings increased from warmer, better-informed enquiries.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

@@ -38,6 +38,8 @@ export function generateMetadata(): Metadata {
       'client intake automation',
       'accountant FAQ chatbot',
       'tax season chatbot',
+      'tax FAQ chatbot',
+      'tax FAQ automation',
     ],
     openGraph: {
       title: 'AI Chatbot for Accountancy Firms | Services FAQ & New Client Intake | VocUI',
@@ -80,6 +82,7 @@ const jsonLd = {
   featureList: [
     'Knowledge base trained on your firm content',
     'Automated new client intake screening',
+    'Tax season FAQ automation',
     'Appointment booking via Easy!Appointments',
     '24/7 after-hours availability',
     'Live accountant handoff',
@@ -93,46 +96,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Accountancy Firms?",
+      "name": "Can the chatbot answer questions about tax deadlines and self-assessment?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Automate services FAQ and new client intake with an AI chatbot trained on your firm. Answer pricing questions 24/7 and qualify prospects before the first call."
+        "text": "Yes. Upload your tax calendar, key deadlines (January 31, July 31, corporation tax due dates), and self-assessment FAQ and the chatbot answers these questions automatically — especially useful during peak January enquiry volume."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Accountancy Firms?",
+      "name": "Will VocUI handle new client intake for an accountancy firm?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Accountancy Firms get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes. It answers questions about your services, which business sizes you work with, your fee structure, and what a new client onboarding looks like — qualifying enquiries before they reach your accountants."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot explain the difference between bookkeeping, management accounts, and year-end accounts?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes, if you upload service descriptions for each. The chatbot explains what each service involves and who it's for, helping prospective clients understand what they need before they call."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "Will VocUI book initial consultations with our accountants?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Accountancy Firms?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Accountancy Firms business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Yes, via Easy!Appointments. Business owners can schedule a new client meeting directly from the chat — reducing the email back-and-forth that delays new client conversion."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -228,9 +224,9 @@ const features = [
   },
   {
     icon: Clock,
-    name: '24/7 availability during tax season',
+    name: 'Tax season FAQ on autopilot',
     description:
-      'January self-assessment rush or year-end crunch — your chatbot handles the enquiry spike without extra headcount.',
+      'Load your deadline calendar, document checklists, and self-assessment FAQs once. Same questions every January and April — handled automatically, without extra headcount.',
   },
   {
     icon: UserCheck,
@@ -282,8 +278,8 @@ export default function ChatbotForAccountancyFirmsPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
       <Header />
 
@@ -382,7 +378,7 @@ export default function ChatbotForAccountancyFirmsPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next client meeting. No developers needed.
               </h2>
             </div>
 
@@ -450,18 +446,28 @@ export default function ChatbotForAccountancyFirmsPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From an accountancy firm using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;We were answering the same pricing questions on repeat. VocUI handles those
-                now and qualifies new clients before they reach us. January was far less chaotic.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                R.P. &mdash; Director, Small Business Accountancy Practice
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How accountancy firms use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'During tax season, staff fielding the same questions about self-assessment deadlines, document checklists, and fees every day — interrupting client work to answer enquiries that could have been self-served.' },
+                  { step: 'Setup', text: 'Uploaded their services brochure, fee guide, onboarding checklist, and a FAQ covering common tax questions — configured in under an hour.' },
+                  { step: 'After', text: 'Prospective clients get fee and scope answers instantly. New client onboarding queries handled automatically. Accountants start client calls better prepared.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -509,7 +515,7 @@ export default function ChatbotForAccountancyFirmsPage() {
             <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-6">Related industries</h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { label: 'Chatbot for Accountants', href: '/chatbot-for-accountants', description: 'Tax FAQ and client intake automation.' },
+                { label: 'Chatbot for Law Firms', href: '/chatbot-for-lawyers', description: 'Client intake, practice area FAQ, and consultation booking.' },
                 { label: 'Chatbot for Financial Advisors', href: '/chatbot-for-financial-advisors', description: 'Service FAQ and consultation booking for financial advisers.' },
                 { label: 'Chatbot for Insurance Agents', href: '/chatbot-for-insurance-agents', description: 'Policy FAQ and quote lead capture for insurance professionals.' },
                 { label: 'Chatbot for Mortgage Brokers', href: '/chatbot-for-mortgage-brokers', description: 'Rate FAQ and application lead capture for mortgage brokers.' },

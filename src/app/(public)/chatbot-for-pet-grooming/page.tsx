@@ -34,46 +34,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Pet Grooming?",
+      "name": "Can the chatbot explain grooming packages and what's included for different breeds?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle appointment bookings, services FAQ, and breed-specific pricing for your pet grooming salon \u2014 24/7. Keep groomers focused on pets, not the phone."
+        "text": "Yes. Upload your service menu with breed-specific notes — coat types, typical groom duration, what's included in a full groom vs a bath and brush — and the chatbot answers the pre-booking questions you field every day."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Pet Grooming?",
+      "name": "Will VocUI book pet grooming appointments?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Pet Grooming get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes, via Easy!Appointments. Pet owners can book their next appointment directly from the chat, at any hour — reducing the phone calls you take before and after opening."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot answer questions about first-time groom preparation?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes. Upload your first-time groom guide — what to expect, how to prepare your dog, what the process involves — and the chatbot shares it automatically with new clients who ask."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle questions about pet health conditions that affect grooming?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Pet Grooming?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Pet Grooming business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "It can share your general health and grooming policy. For specific conditions — skin problems, anxiety, post-surgery restrictions — the chatbot escalates to you rather than attempting to advise."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -163,7 +156,7 @@ export default function ChatbotForPetGroomingPage() {
         </section>
         <section id="how-it-works" className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">How it works</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">Set up in under an hour. No developers needed.</h2></div>
+            <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">How it works</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">Live before your next grooming appointment. No developers needed.</h2></div>
             <div className="grid gap-10 md:grid-cols-3 max-w-5xl mx-auto relative">
               <div className="hidden md:block absolute top-8 left-[calc(16.67%+1.5rem)] right-[calc(16.67%+1.5rem)] h-px bg-secondary-200 dark:bg-secondary-700" aria-hidden="true" />
               {steps.map((s) => (<div key={s.step} className="relative text-center flex flex-col items-center"><div className="w-16 h-16 rounded-full bg-primary-500 text-white font-bold text-lg flex items-center justify-center mb-6 z-10 shadow-lg shadow-primary-500/25">{s.step}</div><h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-3">{s.title}</h3><p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed max-w-xs">{s.description}</p></div>))}
@@ -175,8 +168,30 @@ export default function ChatbotForPetGroomingPage() {
           <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">Features</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">Everything a pet grooming chatbot actually needs</h2><p className="text-secondary-600 dark:text-secondary-400">Built for grooming salons — not a generic booking form. Every feature keeps your diary full and your groomers focused on the pets in front of them.</p></div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">{features.map((f) => { const Icon = f.icon; return (<div key={f.name} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-6 hover:border-primary-200 dark:hover:border-primary-700 transition-colors"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/50 mb-4"><Icon className="h-4 w-4 text-primary-500" aria-hidden="true" /></div><h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">{f.name}</h3><p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{f.description}</p></div>); })}</div>
         </section>
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
-          <div className="container mx-auto px-4"><div className="max-w-3xl mx-auto text-center"><Badge variant="outline" className="mb-8">From a pet grooming salon using VocUI</Badge><blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">&ldquo;I was putting down my scissors ten times a day to answer pricing questions. VocUI handles all of that now — my phone barely rings during working hours and my diary is fuller than it&apos;s ever been.&rdquo;</blockquote><p className="text-secondary-500 dark:text-secondary-400 text-sm">T.F. &mdash; Owner, Pawfect Grooming Studio</p></div></div>
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How pet grooming salons use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Groomers interrupted repeatedly throughout the day to answer calls about pricing, availability, breed-specific services, and what to bring — while dogs were waiting to be groomed.' },
+                  { step: 'Setup', text: 'Uploaded their services and pricing guide, breed FAQ, booking policy, and preparation instructions — configured in an afternoon.' },
+                  { step: 'After', text: 'Pricing and availability questions handled automatically. Phone interruptions during sessions significantly reduced. Appointments booked online with the right information already collected.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </section>
         <section className="container mx-auto px-4 py-24">
           <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">Who it&apos;s for</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">For grooming salons that want their groomers focused on pets, not phones</h2><p className="text-secondary-600 dark:text-secondary-400">If your groomers are fielding booking and pricing questions a chatbot could handle, VocUI pays for itself the moment your salon gets through a full day without a single phone interruption.</p></div>

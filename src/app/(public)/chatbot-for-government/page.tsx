@@ -92,46 +92,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Government & Public Services?",
+      "name": "Can the chatbot answer questions about the services your department provides?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle eligibility questions, document guidance, and services FAQs for government and public sector organisations \u2014 24/7. Reduce call centre volume."
+        "text": "Yes. Upload your service descriptions, eligibility criteria, and process guides — and the chatbot answers citizen enquiries 24/7, including outside council or department office hours."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Government & Public Services?",
+      "name": "Will VocUI handle form submission and application process questions?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Government & Public Services get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes. Upload your step-by-step application guides and the chatbot walks citizens through what's required — reducing the volume of phone calls from people who are confused about the process."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can VocUI meet public sector data handling and accessibility requirements?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "VocUI is GDPR-compliant and the chat widget is designed to meet WCAG 2.1 AA accessibility standards. A Data Processing Agreement is available for procurement teams. The chatbot answers only from content you approve — it never invents information about government services or eligibility criteria."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle citizens who need urgent assistance or escalation?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Government & Public Services?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Government & Public Services business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "You configure escalation rules. For urgent matters, the chatbot surfaces emergency contact information immediately. For complex casework, it captures the citizen's details and routes to the appropriate team with context included."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -281,8 +274,8 @@ export default function ChatbotForGovernmentPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
       <Header />
 
@@ -382,7 +375,7 @@ export default function ChatbotForGovernmentPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next citizen enquiry. No developers needed.
               </h2>
             </div>
 
@@ -450,17 +443,56 @@ export default function ChatbotForGovernmentPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── Public Sector Compliance ──────────────────────────────────────────── */}
+        <section className="container mx-auto px-4 py-24">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <Badge variant="outline" className="mb-4">Public sector ready</Badge>
+            <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
+              Built for public sector data handling requirements
+            </h2>
+            <p className="text-secondary-600 dark:text-secondary-400">
+              Government and local authority deployments require more than functionality — they require confidence in data handling, accessibility, and procurement compatibility.
+            </p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
+            {[
+              { title: 'GDPR-compliant data handling', body: 'Conversation data is stored securely and in compliance with UK GDPR. Citizen data is never used to train third-party AI models. Data can be deleted on request.' },
+              { title: 'WCAG accessibility', body: 'The VocUI chat widget is designed to meet WCAG 2.1 AA accessibility standards, supporting keyboard navigation, screen readers, and sufficient colour contrast.' },
+              { title: 'No citizen data hallucination', body: 'VocUI answers only from content you approve and upload. It never invents information about services, eligibility criteria, or processes — reducing misinformation risk.' },
+              { title: 'Audit trail and conversation logs', body: 'All citizen conversations are logged and accessible to your team. Full conversation context is available for review and compliance purposes.' },
+              { title: 'Configurable escalation', body: 'Sensitive enquiries — safeguarding, benefits disputes, urgent housing — route immediately to the appropriate team with full conversation context included.' },
+              { title: 'Data processing agreement available', body: 'A Data Processing Agreement (DPA) is available for public sector procurement teams on request. Contact the VocUI team for procurement documentation.' },
+            ].map((item) => (
+              <div key={item.title} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-6 hover:border-primary-200 dark:hover:border-primary-700 transition-colors">
+                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-2">{item.title}</h3>
+                <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a public sector organisation using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;Our contact centre was spending a third of its call volume on basic eligibility questions. VocUI handles those instantly now — our advisers are free for the cases that actually need them.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                R.T. &mdash; Digital Services Lead, Local Authority
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How public sector organisations use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Contact centre advisers handling a large share of inbound calls on routine eligibility, opening hours, and application status questions — pulling them away from cases that needed specialist support.' },
+                  { step: 'Setup', text: 'Uploaded their service directory, eligibility criteria, application guides, and FAQ document — configured by the digital team without external development work.' },
+                  { step: 'After', text: 'Routine enquiries handled automatically around the clock. Advisers focused on complex cases. Call volume and average wait time both reduced.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -559,6 +591,15 @@ export default function ChatbotForGovernmentPage() {
           </div>
         </section>
 
+        {/* ── Author Attribution ──────────────────────────────────────────── */}
+        <div className="container mx-auto px-4 pb-8">
+          <p className="text-xs text-secondary-400 dark:text-secondary-500 text-center">
+            Written by the VocUI team &middot; Last reviewed April 2026 &middot;{' '}
+            <Link href="/about" className="underline decoration-dotted hover:text-primary-500 transition-colors">
+              About VocUI
+            </Link>
+          </p>
+        </div>
       </main>
 
       <Footer />

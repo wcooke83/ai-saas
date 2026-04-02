@@ -92,46 +92,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Churches?",
+      "name": "Can the chatbot answer questions about service times, location, and what to expect at a first visit?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle service times, event registration, and congregation FAQs for your church \u2014 24/7. Free up volunteers and welcome visitors any hour."
+        "text": "Yes. Upload your service schedule, address, parking information, and first-time visitor guide — and the chatbot answers these questions 24/7 for people exploring faith communities in your area."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Churches?",
+      "name": "Will VocUI handle enquiries about community groups, events, and volunteering?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Churches get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes. Upload your groups and events calendar, volunteer opportunities, and how to get involved — and the chatbot answers questions from people looking to connect with the wider church community."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot answer questions about pastoral support and care?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "It can explain what pastoral care your church offers and how to get in touch with your pastoral team. Sensitive personal matters are always directed to a pastor or church leader rather than handled by the chatbot."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle enquiries about weddings, baptisms, and funerals at the church?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Churches?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Churches business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Upload your ceremonies FAQ — who is eligible, what the process involves, fees, how to book a meeting with a minister — and the chatbot answers initial enquiries and routes booking requests appropriately."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -170,18 +163,18 @@ const trustSignals = [
 const painPoints: Array<{ icon: ElementType; title: string; body: ReactNode }> = [
   {
     icon: Phone,
-    title: 'Volunteers fielding the same service times and events questions every week',
-    body: 'What time is the Sunday service? Is there parking? How do I register for the Christmas event? Your volunteers answer the same questions week after week — time they could spend on pastoral care and real community needs.',
+    title: 'Volunteers fielding the same newcomer questions before every service',
+    body: 'What time is the Sunday service? Is there parking? What should I expect on my first visit? Your volunteers answer the same questions week after week — time that could go toward genuine pastoral care and community building.',
   },
   {
     icon: MoonStar,
-    title: 'New visitors researching your community late at night with no one to answer',
-    body: <span>Someone considering attending for the first time opens your website at 10pm. Without instant, welcoming answers, they move on. <a href="https://www.salesloft.com/resources/guides/conversational-ai-marketing-trends-report" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-primary-500 transition-colors">41% of all meetings are booked outside standard business hours</a> — your chatbot can greet every visitor with the same warmth your team would, around the clock.</span>,
+    title: 'People exploring faith going unanswered after hours',
+    body: <span>Someone considering attending for the first time opens your website at 10pm. Without instant, welcoming answers, they move on. A chatbot can greet every curious visitor with warmth and accurate information at any hour — making sure no newcomer goes unanswered.</span>,
   },
   {
     icon: Clock,
-    title: 'Event registrations handled manually, creating admin burden',
-    body: 'Each event brings a wave of emails and calls asking about registration, capacity, and logistics. Manual handling eats volunteer hours and leaves people waiting for confirmation they need to plan their week.',
+    title: 'Event and community group enquiries lost in the inbox',
+    body: 'Each event brings a wave of emails asking about registration, capacity, and logistics. Community group enquiries sit unanswered until the right volunteer checks their inbox — and people lose interest in the meantime.',
   },
 ];
 
@@ -281,8 +274,8 @@ export default function ChatbotForChurchesPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
       <Header />
 
@@ -303,19 +296,19 @@ export default function ChatbotForChurchesPage() {
           <Badge className="mb-6">AI Chatbot for Churches & Places of Worship</Badge>
 
           <H1 className="max-w-4xl mb-6">
-            Your volunteers answer the same questions every week.{' '}
-            <span className="text-primary-500">Your chatbot can handle that.</span>
+            Your congregation has questions.{' '}
+            <span className="text-primary-500">Your volunteers shouldn&apos;t have to answer the same ones every week.</span>
           </H1>
 
           <p className="mx-auto max-w-2xl text-lg text-secondary-600 dark:text-secondary-400 mb-10">
-            VocUI trains on your service schedule, event listings, and ministry FAQs — so your
-            volunteers spend less time on repeat enquiries and more time on genuine community care.
+            VocUI trains on your service schedule, event listings, and community guides — so newcomers
+            can find service times, connect with groups, and feel welcomed any time they visit your website.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Button size="xl" asChild>
               <Link href="/signup">
-                Build Your Church Chatbot Free
+                Set Up Your Church Chatbot Free
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
@@ -381,7 +374,7 @@ export default function ChatbotForChurchesPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next service. No developers needed.
               </h2>
             </div>
 
@@ -426,7 +419,8 @@ export default function ChatbotForChurchesPage() {
             </h2>
             <p className="text-secondary-600 dark:text-secondary-400">
               Built for communities of faith — not a generic widget bolted onto your website.
-              Every feature is designed to welcome visitors and free your volunteers for meaningful work.
+              Every feature is designed to welcome newcomers, serve your congregation, and free
+              your volunteers for the pastoral and community work that matters most.
             </p>
           </div>
 
@@ -449,17 +443,28 @@ export default function ChatbotForChurchesPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a church using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;We used to spend Sunday mornings answering the same parking and service time questions. VocUI handles all of that now — our welcome team can actually focus on making people feel at home.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                P.A. &mdash; Communications Director, Community Church
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How churches and faith communities use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Volunteers and office staff fielding the same questions about service times, parking, children\'s programmes, and how to get involved — especially around holidays and special events.' },
+                  { step: 'Setup', text: 'Uploaded their weekly bulletin, event calendar, ministries guide, and visitor FAQ — configured in an afternoon without technical help.' },
+                  { step: 'After', text: 'First-time visitors get location and schedule answers any time. Staff focused on in-person welcome. Event enquiries handled automatically before they reach the office inbox.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -472,8 +477,8 @@ export default function ChatbotForChurchesPage() {
               For churches that want their volunteers focused on people, not admin
             </h2>
             <p className="text-secondary-600 dark:text-secondary-400">
-              If your team is fielding the same FAQs before every service and event, VocUI pays for
-              itself the first week your volunteers get back hours for genuine pastoral care.
+              If your volunteers are spending Sunday mornings answering the same questions by email and
+              phone, VocUI gives them that time back — and makes sure no newcomer goes unanswered.
             </p>
           </div>
 
@@ -542,7 +547,7 @@ export default function ChatbotForChurchesPage() {
                   asChild
                 >
                   <Link href="/signup">
-                    Build Your Church Chatbot Free
+                    Set Up Your Church Chatbot Free
                     <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                   </Link>
                 </Button>

@@ -93,46 +93,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Travel Agencies?",
+      "name": "Can the chatbot answer questions about specific destinations, resorts, and travel packages?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot answer destination, visa, and package questions for your travel agency 24/7 \u2014 capture after-hours leads and free consultants for high-value bookings."
+        "text": "Yes. Upload your destination guides, featured packages, and travel FAQ — and the chatbot answers questions about where to go, what's included, and what to expect, 24/7."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Travel Agencies?",
+      "name": "Will VocUI help with travel enquiry and booking consultation scheduling?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Travel Agencies get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes. It captures the traveller's requirements — destination, dates, group size, budget — and routes qualified enquiries to your consultants with context, or books a consultation via Easy!Appointments."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot answer questions about travel insurance, visa requirements, and health advice?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "It can provide general information from your uploaded travel guides. For specific medical advice or visa decisions, it directs travellers to official sources and your specialist consultants."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle complaints and post-travel support enquiries?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Travel Agencies?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Travel Agencies business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Upload your complaints process and post-travel support FAQ. The chatbot answers process questions and routes specific complaints to the appropriate team with the full conversation context included."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -383,7 +376,7 @@ export default function ChatbotForTravelAgenciesPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next holiday enquiry. No developers needed.
               </h2>
             </div>
 
@@ -451,19 +444,28 @@ export default function ChatbotForTravelAgenciesPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a travel agency using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;We were losing Sunday evening leads because no-one was available to answer
-                visa questions. VocUI captures those now — we come in Monday with qualified
-                consultation bookings already in the calendar.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                S.K. &mdash; Director, Boutique Travel Agency
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How travel agencies use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Weekend and evening enquiries about destinations, visa requirements, and package options going unanswered — prospective travellers booking direct online while waiting for a response.' },
+                  { step: 'Setup', text: 'Uploaded their destination guides, package overview, visa information FAQ, and consultation booking process — live without technical support.' },
+                  { step: 'After', text: 'Destination and visa questions answered 24/7. Consultation bookings captured over the weekend. Travel consultants start each week with a warmer, better-informed pipeline.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

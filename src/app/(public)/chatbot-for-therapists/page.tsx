@@ -94,46 +94,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Therapists & Counsellors?",
+      "name": "Can the chatbot discuss mental health concerns or provide therapeutic support?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Give prospective clients immediate, compassionate answers about your therapy services \u2014 any hour of the day. Handle appointment scheduling and FAQs without adding admin load."
+        "text": "No. VocUI answers questions about your practice, services, and booking — it does not provide therapy, crisis support, or clinical assessments. It always directs clinical questions to your team and includes signposting to emergency services where appropriate."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Therapists & Counsellors?",
+      "name": "Will VocUI help new clients understand what therapy involves?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Therapists & Counsellors get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes. Upload your 'what to expect' guide, the modalities you use (CBT, EMDR, psychodynamic, etc.), and FAQ about your process — and the chatbot explains them clearly to prospective clients researching their options."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot book therapy appointments?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes, via Easy!Appointments. New and returning clients can schedule initial consultations and ongoing sessions directly from the chat."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "Is VocUI suitable for a private therapy practice handling sensitive client enquiries?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Therapists & Counsellors?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Therapists & Counsellors business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Yes. The chatbot answers only from your approved content, never stores sensitive disclosures, and all data is handled GDPR-compliantly. It handles admin questions — not clinical ones."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -283,7 +276,6 @@ export default function ChatbotForTherapistsPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
 
       <Header />
@@ -451,19 +443,28 @@ export default function ChatbotForTherapistsPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a therapy practice using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;I used to come back from sessions to three unread messages asking the same
-                questions about my fees and availability. Now my chatbot handles all of that, and
-                new clients arrive already knowing how I work.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                S.M. &mdash; Integrative Therapist, Private Practice
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How therapy practices use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Coming out of back-to-back sessions to multiple messages asking about fees, session structure, and availability — admin encroaching on time needed for case notes and self-care.' },
+                  { step: 'Setup', text: 'Uploaded their practice information, therapy approach, fees and session FAQ, and new client process — live without any technical setup.' },
+                  { step: 'After', text: 'New client questions answered automatically. Enquiries arrive pre-informed about approach and fees. Therapist focused entirely on client work and their own wellbeing.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -563,6 +564,15 @@ export default function ChatbotForTherapistsPage() {
           </div>
         </section>
 
+        {/* ── Author Attribution ──────────────────────────────────────────── */}
+        <div className="container mx-auto px-4 pb-8">
+          <p className="text-xs text-secondary-400 dark:text-secondary-500 text-center">
+            Written by the VocUI team &middot; Last reviewed April 2026 &middot;{' '}
+            <Link href="/about" className="underline decoration-dotted hover:text-primary-500 transition-colors">
+              About VocUI
+            </Link>
+          </p>
+        </div>
       </main>
 
       <Footer />

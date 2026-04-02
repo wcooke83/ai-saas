@@ -85,46 +85,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for E-commerce?",
+      "name": "Can the chatbot answer questions about orders, shipping, and returns?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Handle order FAQs, returns, product questions, and shipping inquiries automatically. Reduce support volume and increase conversions with an AI chatbot trained on your store."
+        "text": "Yes. Upload your shipping policy, returns process, and order FAQ — and the chatbot handles these post-purchase enquiries automatically, deflecting the support tickets your team currently handles manually."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for E-commerce?",
+      "name": "Will VocUI handle product questions and pre-purchase enquiries?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most E-commerce get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes. Upload your product FAQs, sizing guides, and compatibility information — and the chatbot answers the questions that currently prevent visitors from adding to cart."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot handle complaints and escalations?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "You configure escalation rules. The chatbot handles standard queries; complaints and situations requiring human judgement route immediately to your support team with the full conversation context — so your team starts with context, not a blank ticket."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "Is VocUI suitable for Shopify or WooCommerce stores?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for E-commerce?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your E-commerce business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Yes. The VocUI widget embeds on any website with a single code snippet, including Shopify, WooCommerce, and custom storefronts. Setup takes under an hour with no developer required."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -286,8 +279,8 @@ export default function ChatbotForEcommercePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
       <Header />
 
@@ -583,6 +576,14 @@ export default function ChatbotForEcommercePage() {
           </div>
         </section>
 
+
+          {/* Related Blog Post */}
+          <div className="mt-6 mb-2 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-800/50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">Related reading</p>
+            <Link href="/blog/chatbot-for-ecommerce" className="font-semibold text-secondary-900 dark:text-secondary-100 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+              AI Chatbot for Ecommerce: Deflecting Support Tickets and Answering Pre-Purchase Questions →
+            </Link>
+          </div>
       </main>
 
       <Footer />

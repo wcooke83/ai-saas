@@ -93,46 +93,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Plastic Surgeons & Cosmetic Clinics?",
+      "name": "Can the chatbot answer questions about specific surgical procedures?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Stop answering the same pre-consultation questions. VocUI trains on your procedures, recovery guides, and pricing FAQs \u2014 so qualified prospects book consultations, not just ask questions."
+        "text": "Yes, based on the procedure descriptions and FAQs you upload. It explains what's involved, recovery time, and what a consultation covers — without making clinical recommendations."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Plastic Surgeons & Cosmetic Clinics?",
+      "name": "Will VocUI book consultation appointments for aesthetic procedures?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Plastic Surgeons & Cosmetic Clinics get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes, via Easy!Appointments. Prospective patients can request a consultation directly from the chat, any time — including evenings when they're researching options."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Does the chatbot provide before and after results or medical guarantees?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "No. VocUI answers only from content you approve. It never makes clinical claims, quotes specific outcomes, or provides guarantees — it guides patients toward a consultation where those conversations happen appropriately."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle pricing enquiries for cosmetic surgery?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Plastic Surgeons & Cosmetic Clinics?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Plastic Surgeons & Cosmetic Clinics business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "If you upload your pricing guide or consultation fee schedule, the chatbot answers those questions. For procedures where pricing is bespoke, it explains that a consultation is required and routes the patient to book one."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -282,7 +275,6 @@ export default function ChatbotForPlasticSurgeonsPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
 
       <Header />
@@ -450,19 +442,28 @@ export default function ChatbotForPlasticSurgeonsPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a cosmetic clinic using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;Our coordinators used to spend the first 20 minutes of every consultation
-                re-explaining things the patient could have read on our site. Now they arrive
-                informed and ready to make a decision.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                L.V. &mdash; Patient Coordinator, Boutique Cosmetic Surgery Clinic
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How cosmetic surgery clinics use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Patient coordinators spending the first 20 minutes of every consultation re-explaining procedure basics, recovery timelines, and pricing — information the patient could have absorbed before arriving.' },
+                  { step: 'Setup', text: 'Uploaded their procedure guides, recovery FAQs, consultation process, and pricing overview — configured to answer patient questions sensitively and accurately.' },
+                  { step: 'After', text: 'Patients arrive at consultations already informed. Coordinators focused on individual care and decision support. Consultation time spent on questions that genuinely need expert input.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -562,6 +563,15 @@ export default function ChatbotForPlasticSurgeonsPage() {
           </div>
         </section>
 
+        {/* ── Author Attribution ──────────────────────────────────────────── */}
+        <div className="container mx-auto px-4 pb-8">
+          <p className="text-xs text-secondary-400 dark:text-secondary-500 text-center">
+            Written by the VocUI team &middot; Last reviewed April 2026 &middot;{' '}
+            <Link href="/about" className="underline decoration-dotted hover:text-primary-500 transition-colors">
+              About VocUI
+            </Link>
+          </p>
+        </div>
       </main>
 
       <Footer />

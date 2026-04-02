@@ -94,46 +94,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Event Planners?",
+      "name": "Can the chatbot answer questions about your event planning services and what's included?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle availability enquiries, package FAQs, and consultation booking for your event planning business \u2014 24/7, trained on your own content."
+        "text": "Yes. Upload your service descriptions — full event management, day-of coordination, venue sourcing — and the chatbot explains what each service covers and who it's for."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Event Planners?",
+      "name": "Will VocUI handle initial client enquiry and discovery call booking?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Event Planners get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes, via Easy!Appointments. Prospective clients can book an initial discovery call directly from the chat — reducing the email exchange that delays new client onboarding."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot answer questions about your event planning process and timelines?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes. Upload your planning timeline overview and process guide — and the chatbot explains what clients can expect at each stage, building confidence before the first meeting."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle corporate vs private event enquiries?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Event Planners?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Event Planners business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "You train it on both service types. The chatbot qualifies the enquiry — event type, size, budget range, date — and routes corporate and private enquiries to the right person on your team."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -283,8 +276,8 @@ export default function ChatbotForEventPlannersPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
       <Header />
 
@@ -384,7 +377,7 @@ export default function ChatbotForEventPlannersPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next event enquiry. No developers needed.
               </h2>
             </div>
 
@@ -452,19 +445,28 @@ export default function ChatbotForEventPlannersPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From an event planning company using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;I used to spend an hour every morning responding to enquiries that had no budget
-                or date attached. VocUI captures all of that upfront now — my consultations are
-                shorter, more focused, and actually convert.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                S.R. &mdash; Owner, Boutique Event Planning Company
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How event planning companies use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Hours each week spent in back-and-forth emails with enquiries that had no date, guest count, or budget — often leading nowhere after multiple exchanges.' },
+                  { step: 'Setup', text: 'Uploaded their services guide, pricing overview, venue capacity FAQ, and event planning process — configured in an afternoon.' },
+                  { step: 'After', text: 'Enquiries arrive pre-qualified with date, guest count, and budget context. Initial consultations shorter and better focused. More proposals sent per week.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

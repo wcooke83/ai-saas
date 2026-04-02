@@ -93,46 +93,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Photography Studios?",
+      "name": "Can the chatbot explain your photography packages and what's included?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle package FAQs, session booking, and shoot preparation questions for your photography studio \u2014 24/7, trained on your own content."
+        "text": "Yes. Upload your package descriptions — shoot duration, number of edited images, turnaround time, what's included in a premium package vs standard — and the chatbot answers these questions before clients book."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Photography Studios?",
+      "name": "Will VocUI book photography sessions?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Photography Studios get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes, via Easy!Appointments. Clients can book portrait sessions, family shoots, headshot days, and studio hire directly from the chat at any time."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot answer questions about what to wear, bring, and expect at a shoot?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes. Upload your shoot preparation guide and it's shared automatically with new clients — reducing the pre-shoot emails and calls you handle for every booking."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle licensing and usage rights questions?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Photography Studios?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Photography Studios business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Upload your licensing terms and the chatbot explains what's included in standard personal use, what commercial licensing involves, and when clients need to speak to you about extended rights."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -383,7 +376,7 @@ export default function ChatbotForPhotographyStudiosPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next shoot enquiry. No developers needed.
               </h2>
             </div>
 
@@ -451,19 +444,28 @@ export default function ChatbotForPhotographyStudiosPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a photography studio using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;I was spending two hours a day answering the same pricing and prep questions.
-                VocUI handles all of that now. Serious clients book directly, and they arrive at their
-                session already knowing what to expect — which makes the shoot so much smoother.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                L.K. &mdash; Owner, Portrait & Wedding Photography Studio
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How photography studios use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Hours each week spent responding to enquiries about packages, pricing, outfit guidance, and what to expect on the day — before any booking was confirmed.' },
+                  { step: 'Setup', text: 'Uploaded their session guide, package pricing, shoot preparation FAQ, and booking policy — live on their website in under an hour.' },
+                  { step: 'After', text: 'Pricing and preparation questions answered automatically. Clients arrive at shoots better prepared. Photographer spending time shooting, not managing inboxes.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

@@ -93,46 +93,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for HR Departments?",
+      "name": "Can the chatbot answer employee questions about HR policies and procedures?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Give employees instant answers to policy and benefits questions \u2014 without pinging HR. VocUI trains on your HR docs and handles repeat queries 24/7."
+        "text": "Yes. Upload your staff handbook, leave policies, expense procedures, and HR FAQ — and the chatbot answers employee questions 24/7 without HR being on the phone for every query."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for HR Departments?",
+      "name": "Will VocUI replace an HR Business Partner or HR generalist?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most HR Departments get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "No. It handles informational queries — policy questions, process explanations, form locations — freeing your HR team for the conversations that require human judgement: disciplinaries, sensitive employee issues, strategic work."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot handle onboarding questions from new starters?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes. Upload your onboarding checklist, IT setup guide, first-week schedule, and new starter FAQ. New employees get answers instantly without HR or their manager being interrupted repeatedly."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "Is VocUI suitable for multi-site businesses with different regional HR policies?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for HR Departments?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your HR Departments business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Yes. You can build separate knowledge bases for different sites or regions, each with their own specific policies — so employees always get the right answer for their location."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -282,8 +275,8 @@ export default function ChatbotForHRPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
       <Header />
 
@@ -384,7 +377,7 @@ export default function ChatbotForHRPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Up and running before your next onboarding cycle. No developers needed.
               </h2>
             </div>
 
@@ -452,19 +445,28 @@ export default function ChatbotForHRPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From an HR team using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;We were spending the first two hours of every Monday clearing a weekend backlog
-                of policy questions. VocUI handles those now. Our HR team finally has the headspace
-                to work on things that actually need human judgement.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                S.K. &mdash; HR Manager, Mid-Size Technology Company
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How HR teams use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'HR team spending hours each week answering the same employee questions about leave policy, benefits, onboarding steps, and payroll schedules — a weekend backlog waiting every Monday morning.' },
+                  { step: 'Setup', text: 'Uploaded their employee handbook, benefits guide, leave policy, and onboarding FAQ — configured internally without IT involvement.' },
+                  { step: 'After', text: 'Policy and benefits questions answered automatically, any time. HR team focused on complex cases that genuinely need human judgement. Monday mornings noticeably clearer.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -563,6 +565,14 @@ export default function ChatbotForHRPage() {
           </div>
         </section>
 
+
+          {/* Related Blog Post */}
+          <div className="mt-6 mb-2 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-800/50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">Related reading</p>
+            <Link href="/blog/chatbot-for-hr" className="font-semibold text-secondary-900 dark:text-secondary-100 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+              AI Chatbot for HR Teams: Answering Policy Questions and Onboarding New Starters at Scale →
+            </Link>
+          </div>
       </main>
 
       <Footer />

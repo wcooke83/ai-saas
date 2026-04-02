@@ -34,46 +34,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Immigration Lawyers?",
+      "name": "Will the chatbot give immigration advice or assess visa eligibility?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle visa category FAQs, consultation booking, and document checklists for your immigration law firm \u2014 24/7. Let your attorneys focus on cases, not intake."
+        "text": "No. VocUI answers only from your approved content. It explains your services, the types of applications you handle, and what the process involves — but never assesses individual eligibility or gives advice that could be mistaken for legal counsel."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Immigration Lawyers?",
+      "name": "Can the chatbot explain the difference between visa types your firm handles?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Immigration Lawyers get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes, if you upload descriptions of the visa categories you work with. It explains each route, who it's for, and how your firm approaches it — answering the questions prospective clients ask before they commit to a consultation."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "How does VocUI handle time-sensitive immigration enquiries?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "You can configure escalation rules so urgent enquiries — appeals, deportation concerns, expiring leave — are routed immediately to your team with the full conversation context included."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "Can the chatbot book immigration law consultations?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Immigration Lawyers?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Immigration Lawyers business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Yes, via Easy!Appointments. Prospective clients can schedule an initial consultation directly from the chat, at any hour — particularly important for clients in different time zones."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -169,7 +162,7 @@ export default function ChatbotForImmigrationLawyersPage() {
         </section>
         <section id="how-it-works" className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">How it works</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">Set up in under an hour. No developers needed.</h2></div>
+            <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">How it works</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">Set up between cases. Takes under an hour.</h2></div>
             <div className="grid gap-10 md:grid-cols-3 max-w-5xl mx-auto relative">
               <div className="hidden md:block absolute top-8 left-[calc(16.67%+1.5rem)] right-[calc(16.67%+1.5rem)] h-px bg-secondary-200 dark:bg-secondary-700" aria-hidden="true" />
               {steps.map((s) => (<div key={s.step} className="relative text-center flex flex-col items-center"><div className="w-16 h-16 rounded-full bg-primary-500 text-white font-bold text-lg flex items-center justify-center mb-6 z-10 shadow-lg shadow-primary-500/25">{s.step}</div><h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-3">{s.title}</h3><p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed max-w-xs">{s.description}</p></div>))}
@@ -181,8 +174,30 @@ export default function ChatbotForImmigrationLawyersPage() {
           <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">Features</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">Everything an immigration law chatbot actually needs</h2><p className="text-secondary-600 dark:text-secondary-400">Built for immigration practices — not a generic FAQ page. Every feature guides prospects to the right pathway and prepares them for their first consultation without overstepping legal boundaries.</p></div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">{features.map((f) => { const Icon = f.icon; return (<div key={f.name} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-6 hover:border-primary-200 dark:hover:border-primary-700 transition-colors"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/50 mb-4"><Icon className="h-4 w-4 text-primary-500" aria-hidden="true" /></div><h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">{f.name}</h3><p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{f.description}</p></div>); })}</div>
         </section>
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
-          <div className="container mx-auto px-4"><div className="max-w-3xl mx-auto text-center"><Badge variant="outline" className="mb-8">From an immigration law firm using VocUI</Badge><blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">&ldquo;Our intake team was spending hours on the same visa category questions. VocUI now handles the initial guidance and books the consultation — by the time our attorneys sit down with a new client, the basics are already covered and we can focus on strategy.&rdquo;</blockquote><p className="text-secondary-500 dark:text-secondary-400 text-sm">C.N. &mdash; Managing Partner, Atlas Immigration Law</p></div></div>
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How immigration law firms use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Intake team spending hours each week fielding the same visa category, eligibility, and document requirement questions before any billable consultation could begin.' },
+                  { step: 'Setup', text: 'Uploaded their visa pathway guide, eligibility FAQ, document checklist, and consultation booking policy — live without touching code.' },
+                  { step: 'After', text: 'Initial eligibility guidance handled automatically. Consultations booked with pre-qualified clients. Attorneys start each meeting with the basics already covered.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </section>
         <section className="container mx-auto px-4 py-24">
           <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">Who it&apos;s for</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">For immigration law firms that want their attorneys focused on casework, not intake FAQ</h2><p className="text-secondary-600 dark:text-secondary-400">If your intake team is fielding questions a chatbot could guide, VocUI pays for itself the moment your attorneys arrive at their first consultation with a client who already understands their own situation.</p></div>
@@ -194,7 +209,7 @@ export default function ChatbotForImmigrationLawyersPage() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 { label: 'Chatbot for Law Firms', href: '/chatbot-for-lawyers', description: 'Client intake, practice area FAQ, and consultation booking.' },
-                { label: 'Chatbot for Accountants', href: '/chatbot-for-accountants', description: 'Tax FAQ and client intake automation.' },
+                { label: 'Chatbot for Accountancy Firms', href: '/chatbot-for-accountancy-firms', description: 'Tax FAQ and client intake automation for accounting practices.' },
                 { label: 'Chatbot for Financial Advisors', href: '/chatbot-for-financial-advisors', description: 'Service FAQ and consultation booking for financial advisers.' },
                 { label: 'Chatbot for HR Departments', href: '/chatbot-for-hr', description: 'Employee policy FAQ and onboarding support for HR teams.' },
               ].map((item) => (
@@ -219,6 +234,16 @@ export default function ChatbotForImmigrationLawyersPage() {
             </div>
           </div>
         </section>
+
+        {/* ── Author Attribution ──────────────────────────────────────────── */}
+        <div className="container mx-auto px-4 pb-8">
+          <p className="text-xs text-secondary-400 dark:text-secondary-500 text-center">
+            Written by the VocUI team &middot; Last reviewed April 2026 &middot;{' '}
+            <Link href="/about" className="underline decoration-dotted hover:text-primary-500 transition-colors">
+              About VocUI
+            </Link>
+          </p>
+        </div>
       </main>
       <Footer />
     </PageBackground>

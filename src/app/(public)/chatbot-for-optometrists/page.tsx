@@ -93,46 +93,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Optometrists & Optical Practices?",
+      "name": "Can VocUI answer questions about glasses, frames, and lens options?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Automate eyewear stock questions, eye exam booking, and insurance coverage FAQs with an AI chatbot trained on your optical practice. Available 24/7, no staff required."
+        "text": "Yes. Upload your frame brands, lens types (single vision, varifocal, blue light), and pricing tiers and the chatbot answers product questions automatically."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Optometrists & Optical Practices?",
+      "name": "Will the chatbot book eye exam appointments?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Optometrists & Optical Practices get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes, via Easy!Appointments. Patients can schedule routine eye tests, contact lens checks, and children's exams directly from the chat."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot answer questions about contact lens fitting and aftercare?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes, if you upload your contact lens fitting guide and aftercare instructions. It shares the right information automatically when patients ask."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "Does VocUI handle insurance and optical benefit questions?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Optometrists & Optical Practices?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Optometrists & Optical Practices business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Yes. Train it on your accepted insurers and optical benefit plans and it answers coverage questions without tying up your reception team."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -282,7 +275,6 @@ export default function ChatbotForOptometristsPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
 
       <Header />
@@ -450,18 +442,28 @@ export default function ChatbotForOptometristsPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From an optical practice using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;We used to lose after-hours exam bookings every single week. Now the chatbot
-                captures them overnight and we start each morning with a full appointment schedule.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                P.N. &mdash; Practice Owner, Independent Optical Clinic
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How optometry practices use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'After-hours exam booking requests going unanswered until the next morning — patients booking with a competitor clinic by the time the practice opened.' },
+                  { step: 'Setup', text: 'Uploaded their exam types guide, insurance FAQ, lens and frame FAQ, and appointment booking policy — configured without developer involvement.' },
+                  { step: 'After', text: 'Eye exam and lens enquiries answered 24/7. After-hours appointment requests captured automatically. Practice opens each morning with a fuller schedule.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

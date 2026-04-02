@@ -82,46 +82,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Recruiters?",
+      "name": "Can the chatbot answer candidate questions about specific job roles?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle job FAQs, candidate intake, and interview scheduling for your recruitment firm \u2014 24/7. Reduce manual screening time and focus on the best candidates."
+        "text": "Yes. Upload active job descriptions and the chatbot answers questions about the role, the client, the skills required, and the application process — fielding candidate enquiries without a consultant's involvement."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Recruiters?",
+      "name": "Will VocUI help screen candidates before they reach a recruiter?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Recruiters get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes. It captures key candidate details — experience level, location, availability, salary expectations — giving consultants context before the first conversation and filtering out poor-fit applications early."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot answer employer questions about recruitment fees and processes?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes, if you upload your service model, fee structure, and how your process works. It handles initial employer enquiries and routes qualified briefs to the right consultant."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle confidential executive search enquiries?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Recruiters?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Recruiters business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "You control exactly what the chatbot answers. For sensitive senior roles, you can configure it to capture enquiry details and escalate immediately rather than discussing role specifics — protecting confidentiality while ensuring no lead goes unhandled."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -349,7 +342,7 @@ export default function ChatbotForRecruitersPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next candidate screening. No developers needed.
               </h2>
             </div>
             <div className="grid gap-10 md:grid-cols-3 max-w-5xl mx-auto relative">
@@ -399,18 +392,28 @@ export default function ChatbotForRecruitersPage() {
           </div>
         </section>
 
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a recruitment firm using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;Our consultants used to spend the first two hours of each day answering questions about
-                open roles. VocUI handles all of that now — by the time our team arrives, the candidates in
-                their inbox are already pre-qualified.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                A.K. &mdash; Director, Meridian Talent Group
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How recruitment firms use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Consultants spending the first two hours of each day fielding candidate questions about open roles, salary ranges, and application steps — before any actual placement work began.' },
+                  { step: 'Setup', text: 'Uploaded their active roles overview, salary band guide, application FAQ, and candidate process document — configured by the team in an afternoon.' },
+                  { step: 'After', text: 'Candidates pre-qualify themselves against role requirements before making contact. Consultants focus on matching and placing. Morning inbox dominated by warm, informed candidates.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

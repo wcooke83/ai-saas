@@ -93,46 +93,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Dentists?",
+      "name": "Can VocUI's chatbot answer questions about dental insurance and accepted plans?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle appointment booking, insurance questions, and patient FAQs for your dental practice \u2014 24/7. Reduce phone volume and fill your chair."
+        "text": "Yes, you train it on your accepted insurers list and payment FAQ. It answers insurance queries 24/7 so your front desk isn't on the phone before the first patient arrives."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Dentists?",
+      "name": "Will the chatbot book dental appointments directly?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Dentists get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes, via Easy!Appointments integration. New and returning patients can book check-ups, hygiene appointments, and consultations directly from the chat at any time."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot explain what to expect before a dental procedure?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes. Upload your pre-appointment guides — what to eat, what to bring, what the procedure involves — and the chatbot shares them automatically when patients ask."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "Does VocUI give clinical advice or diagnose dental conditions?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Dentists?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Dentists business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "No. VocUI only answers from content you approve and upload. It never invents clinical information, diagnoses conditions, or recommends treatments — it directs clinical questions to your team."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -382,7 +375,7 @@ export default function ChatbotForDentistsPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next patient check-in. No developers needed.
               </h2>
             </div>
 
@@ -450,19 +443,28 @@ export default function ChatbotForDentistsPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a dental practice using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;Our front desk was spending half the morning on insurance calls. VocUI handles
-                that now — new patients get answers instantly, and my team actually has time to
-                focus on the patients in the waiting room.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                J.M. &mdash; Owner, Downtown Dental Practice
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How dental practices use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Receptionist fielding the same 20 insurance and pre-appointment questions every morning by phone — patients waiting at the desk while calls ran long.' },
+                  { step: 'Setup', text: 'Uploaded their practice FAQ, accepted insurance list, and pre-appointment instructions PDF — configured in 45 minutes.' },
+                  { step: 'After', text: 'New patients get insurance answers at 10pm. Phone enquiries noticeably down. Front desk focused on check-ins and in-person care.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -562,6 +564,15 @@ export default function ChatbotForDentistsPage() {
           </div>
         </section>
 
+        {/* ── Author Attribution ──────────────────────────────────────────── */}
+        <div className="container mx-auto px-4 pb-8">
+          <p className="text-xs text-secondary-400 dark:text-secondary-500 text-center">
+            Written by the VocUI team &middot; Last reviewed April 2026 &middot;{' '}
+            <Link href="/about" className="underline decoration-dotted hover:text-primary-500 transition-colors">
+              About VocUI
+            </Link>
+          </p>
+        </div>
       </main>
 
       <Footer />

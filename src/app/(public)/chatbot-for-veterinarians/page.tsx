@@ -82,46 +82,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Veterinarians?",
+      "name": "Can the chatbot answer questions about pet health, symptoms, or medications?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle appointment booking, pet care FAQs, and after-hours triage for your veterinary practice \u2014 24/7. Reduce phone volume and focus on the animals in your care."
+        "text": "No. VocUI answers from your approved practice content only — it never gives clinical advice, diagnoses conditions, or recommends medications. Health questions are escalated to your clinical team."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Veterinarians?",
+      "name": "What questions can a vet practice chatbot handle?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Veterinarians get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Appointment booking, vaccination schedules, what to expect at a first visit, fee information, opening hours, which species you treat, and pre- and post-procedure care instructions you've approved."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Will VocUI book vet appointments?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes, via Easy!Appointments. Pet owners can book routine check-ups, vaccination appointments, and consultations directly from the chat at any time — including evenings and weekends."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle emergency enquiries at a vet practice?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Veterinarians?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Veterinarians business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "You can configure the chatbot to recognise emergency keywords and immediately surface your emergency number and nearest out-of-hours service, rather than attempting to handle the situation itself."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -264,7 +257,6 @@ export default function ChatbotForVeterinariansPage() {
   return (
     <PageBackground>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <Header />
       <main id="main-content">
@@ -349,7 +341,7 @@ export default function ChatbotForVeterinariansPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next pet consultation. No developers needed.
               </h2>
             </div>
             <div className="grid gap-10 md:grid-cols-3 max-w-5xl mx-auto relative">
@@ -399,18 +391,28 @@ export default function ChatbotForVeterinariansPage() {
           </div>
         </section>
 
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a vet practice using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;We used to spend the first hour of every morning returning calls about vaccinations and
-                pricing. VocUI handles all of that now — our team walks in and focuses on the animals, not
-                the phone queue.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                S.B. &mdash; Owner, Westside Veterinary Clinic
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How veterinary businesses use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Reception team answering the same pet health, vaccination schedule, and pricing questions by phone all morning' },
+                  { step: 'Setup', text: 'Uploaded service menu, vaccination FAQ, breed-specific care guides, and appointment policy in under an hour' },
+                  { step: 'After', text: 'After-hours pet health enquiries now handled automatically. Reception focused on animals already in the clinic.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

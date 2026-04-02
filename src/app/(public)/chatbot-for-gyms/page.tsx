@@ -93,46 +93,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Gyms?",
+      "name": "Can the chatbot explain the difference between membership tiers at a gym?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle membership pricing, class booking, and schedule questions for your gym \u2014 24/7. Stop losing leads to voicemail and fill your classes."
+        "text": "Yes. Upload your membership plans with their specific inclusions — classes, PT sessions, peak/off-peak access — and the chatbot explains each option clearly to prospective members."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Gyms?",
+      "name": "Will VocUI help with class bookings at a gym?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Gyms get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes. It answers questions about the class schedule, who the instructors are, what each class format involves, and guides members to your booking system."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot answer questions about gym equipment and facilities?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes, if you upload your equipment list, facility amenities, and any relevant rules (e.g. gym etiquette, locker policy). It answers prospective member questions automatically."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle membership cancellation queries?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Gyms?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Gyms business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "You train it on your cancellation policy. It explains the terms clearly and, for cases requiring staff involvement, escalates with the full conversation context included."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -282,7 +275,6 @@ export default function ChatbotForGymsPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
 
       <Header />
@@ -382,7 +374,7 @@ export default function ChatbotForGymsPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next membership enquiry. No developers needed.
               </h2>
             </div>
 
@@ -450,19 +442,28 @@ export default function ChatbotForGymsPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a gym using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;We were losing weekend sign-ups because nobody was available to answer pricing
-                questions after 6pm. VocUI changed that overnight — our Monday morning membership
-                numbers went up within the first week.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                R.T. &mdash; Owner, Ironside Fitness
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How gyms use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Staff spending the first hour of every shift answering membership pricing and class schedule questions — weekend sign-up enquiries going unanswered until Monday.' },
+                  { step: 'Setup', text: 'Uploaded their membership plans, class timetable, facility FAQ, and joining process — live within the hour.' },
+                  { step: 'After', text: 'Weekend sign-up enquiries handled automatically. Monday morning membership numbers improved. Front desk focused on members already through the door.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

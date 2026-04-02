@@ -94,46 +94,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for HVAC Companies?",
+      "name": "Can the chatbot handle heating or cooling emergency calls?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle maintenance booking, emergency triage, and service FAQs for your HVAC business \u2014 24/7. Stop missing calls during peak season."
+        "text": "You configure escalation rules. For no-heat emergencies in winter or AC failures in summer, the chatbot surfaces your emergency line immediately rather than routing customers through a standard booking flow."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for HVAC Companies?",
+      "name": "What HVAC questions can VocUI answer automatically?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most HVAC Companies get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Service areas, annual maintenance pricing, what an HVAC service visit includes, typical lifespan of units, filter replacement schedules, and how to book an installation survey."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Will VocUI book HVAC maintenance and installation appointments?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes, via Easy!Appointments. Customers can book annual service visits, installation surveys, and diagnostic call-outs directly from the chat at any time."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "Can the chatbot answer questions about energy efficiency and system upgrades?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for HVAC Companies?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your HVAC Companies business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Yes, if you upload your efficiency guides and system comparison content. It explains the difference between heat pumps, gas boilers, and split systems — helping customers understand their options before the sales conversation."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -283,7 +276,6 @@ export default function ChatbotForHvacPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
 
       <Header />
@@ -385,7 +377,7 @@ export default function ChatbotForHvacPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next service call request. No developers needed.
               </h2>
             </div>
 
@@ -453,19 +445,28 @@ export default function ChatbotForHvacPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From an HVAC company using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;Last summer we were losing calls during the heatwave because we simply couldn&apos;t
-                keep up. VocUI now handles the triage and books maintenance visits automatically —
-                my office manager actually has time to breathe.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                R.T. &mdash; Owner, Regional HVAC Company
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How HVAC companies use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Office staff overwhelmed during peak season — calls about service availability, maintenance pricing, and emergency callouts stacking up faster than they could respond.' },
+                  { step: 'Setup', text: 'Uploaded their service list, maintenance package guide, callout pricing, and service area FAQ — configured before the busy season started.' },
+                  { step: 'After', text: 'Routine service enquiries triaged automatically. Emergency callout requests captured with job details. Office team focused on dispatching technicians, not answering the same pricing questions.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

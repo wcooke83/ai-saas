@@ -57,6 +57,7 @@ export function generateMetadata(): Metadata {
     alternates: {
       canonical: 'https://vocui.com/chatbot-for-lead-capture',
     },
+    robots: { index: true, follow: true },
   };
 }
 
@@ -84,46 +85,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Lead Capture?",
+      "name": "What types of leads can VocUI capture from a website?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Capture and qualify leads automatically with an AI chatbot. Engage visitors 24/7, collect contact info, and route hot leads to your sales team instantly."
+        "text": "VocUI captures any visitor who engages with the chat — product enquiries, service pricing requests, booking intent, demo requests. It collects contact details, qualifies intent, and routes hot leads to your sales team in real time."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Lead Capture?",
+      "name": "How does VocUI qualify leads before passing them to a sales team?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Lead Capture get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "You configure qualification criteria in your knowledge base and escalation rules. The chatbot captures key intent signals — budget, timeline, use case — so your team receives a pre-qualified lead profile rather than a cold enquiry."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can VocUI engage visitors proactively rather than waiting for them to ask a question?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "The widget can be configured to trigger based on time-on-page or specific page visits. This allows you to engage high-intent visitors — pricing page, comparison page — before they leave without making contact."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle leads captured outside business hours?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Lead Capture?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Lead Capture business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "The chatbot captures full lead details and contact information 24/7. Your sales team receives these when they're back online — with the full conversation context — so no lead goes cold from a delayed response."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -288,8 +282,8 @@ export default function ChatbotForLeadCapturePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
       <Header />
 

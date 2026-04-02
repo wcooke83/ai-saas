@@ -93,46 +93,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Property Managers?",
+      "name": "Can the chatbot answer tenant maintenance and repair enquiries?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle tenant FAQs, maintenance request intake, and viewing bookings for your property portfolio \u2014 24/7. Reduce call volume and capture every enquiry."
+        "text": "Yes. Upload your maintenance request process, typical response times, and emergency contact information — and the chatbot answers tenant questions and directs them to the right channel without your team being on the phone."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Property Managers?",
+      "name": "Will VocUI handle prospective tenant enquiries about available properties?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Property Managers get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes. Upload your current listings and the chatbot answers questions about availability, rent, what's included, and how to apply — reducing the volume of repetitive calls to your lettings team."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot handle out-of-hours tenant emergencies?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "You configure the escalation rules. For genuine emergencies (no heating, flooding), the chatbot surfaces your emergency contractor contact immediately rather than asking tenants to wait."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "Will VocUI book property viewings for new lets?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Property Managers?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Property Managers business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Yes, via Easy!Appointments. Prospective tenants can schedule viewings directly from the chat, any time."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -382,7 +375,7 @@ export default function ChatbotForPropertyManagersPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next tenant enquiry. No developers needed.
               </h2>
             </div>
 
@@ -450,19 +443,28 @@ export default function ChatbotForPropertyManagersPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a property management company using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;Our managers were spending the first hour of every morning returning calls about
-                lease renewals and pet policies. VocUI handles all of that now — tenants get answers
-                instantly, and my team focuses on properties that genuinely need their attention.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                R.P. &mdash; Owner, Residential Property Management Company
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How property management companies use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Property managers starting every morning returning calls from tenants asking about lease renewal terms, pet policies, maintenance procedures, and move-out requirements.' },
+                  { step: 'Setup', text: 'Uploaded their lease FAQ, maintenance request process, pet policy, and tenant handbook — configured for both prospective and existing tenants.' },
+                  { step: 'After', text: 'Tenants get lease and policy answers around the clock. Managers spend their time on properties that genuinely need attention. Morning call backlog eliminated.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

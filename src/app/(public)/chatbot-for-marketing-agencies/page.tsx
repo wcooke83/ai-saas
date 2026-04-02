@@ -82,46 +82,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Marketing Agencies?",
+      "name": "Can the chatbot answer prospective client questions about your agency's services and specialisms?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle service FAQs, proposal lead capture, and new business intake for your marketing agency \u2014 24/7. Turn website visitors into qualified prospects."
+        "text": "Yes. Upload your service descriptions, case study summaries, and agency FAQ — and the chatbot handles initial prospect enquiries, explains what you do, and qualifies interest before it reaches your new business team."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Marketing Agencies?",
+      "name": "Will VocUI handle inbound enquiries about pricing and project timelines?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Marketing Agencies get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes. If you have a pricing guide or day rate information you're willing to share, the chatbot answers those questions. For bespoke project scoping, it captures the brief and routes it to the right person."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot qualify new business leads before they reach a director?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes. It captures the prospect's industry, budget range, timeline, and what they need — so your new business conversations start with context rather than discovery."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle existing client questions about project status?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Marketing Agencies?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Marketing Agencies business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "You can upload process documentation and client-facing FAQs. For specific project queries, the chatbot escalates to the relevant account manager with the full conversation context."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -264,8 +257,8 @@ export default function ChatbotForMarketingAgenciesPage() {
   return (
     <PageBackground>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <Header />
       <main id="main-content">
         <nav aria-label="Breadcrumb" className="container mx-auto px-4 pt-6 pb-2">
@@ -350,7 +343,7 @@ export default function ChatbotForMarketingAgenciesPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next new business pitch. No developers needed.
               </h2>
             </div>
             <div className="grid gap-10 md:grid-cols-3 max-w-5xl mx-auto relative">
@@ -400,18 +393,28 @@ export default function ChatbotForMarketingAgenciesPage() {
           </div>
         </section>
 
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a marketing agency using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;We used to lose leads every weekend because no one was available to respond. VocUI now
-                answers the initial questions, qualifies the prospect, and books the discovery call — our
-                team arrives Monday with a pipeline already warming.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                R.P. &mdash; Founder, Northbrook Digital
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How marketing agencies use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Weekend website enquiries sitting unanswered — potential clients asking about services, pricing, and availability with no one available to respond until Monday.' },
+                  { step: 'Setup', text: 'Uploaded their services guide, case study summaries, pricing FAQ, and discovery call booking process — live before the weekend.' },
+                  { step: 'After', text: 'Initial service and pricing questions handled automatically. Discovery calls booked directly. Monday morning pipeline already includes qualified weekend leads.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

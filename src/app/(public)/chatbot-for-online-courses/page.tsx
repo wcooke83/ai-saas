@@ -34,46 +34,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Online Course Creators?",
+      "name": "Can the chatbot answer questions about course content, prerequisites, and outcomes?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle course FAQs, enrollment lead capture, and student support for your online courses \u2014 24/7. Turn visitors into students while you sleep."
+        "text": "Yes. Upload your course descriptions, learning objectives, and prerequisite FAQ — and the chatbot answers prospective student questions before they decide whether to enrol."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Online Course Creators?",
+      "name": "Will VocUI handle payment, refund, and access questions?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Online Course Creators get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes. Upload your pricing, payment options, refund policy, and access duration FAQ — and the chatbot answers these purchase-decision questions automatically, reducing pre-sale drop-off."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot explain the difference between course formats — self-paced, cohort, live?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes, if you explain your formats in your uploaded content. The chatbot helps prospective students understand which format suits their learning style and schedule."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle technical support questions from students?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Online Course Creators?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Online Course Creators business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Upload your platform FAQ and common technical issues guide — and the chatbot resolves the most common access and playback questions automatically, escalating genuine technical issues to your support team."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -163,7 +156,7 @@ export default function ChatbotForOnlineCoursesPage() {
         </section>
         <section id="how-it-works" className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">How it works</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">Set up in under an hour. No developers needed.</h2></div>
+            <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">How it works</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">Live before your next course launch. No developers needed.</h2></div>
             <div className="grid gap-10 md:grid-cols-3 max-w-5xl mx-auto relative">
               <div className="hidden md:block absolute top-8 left-[calc(16.67%+1.5rem)] right-[calc(16.67%+1.5rem)] h-px bg-secondary-200 dark:bg-secondary-700" aria-hidden="true" />
               {steps.map((s) => (<div key={s.step} className="relative text-center flex flex-col items-center"><div className="w-16 h-16 rounded-full bg-primary-500 text-white font-bold text-lg flex items-center justify-center mb-6 z-10 shadow-lg shadow-primary-500/25">{s.step}</div><h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-3">{s.title}</h3><p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed max-w-xs">{s.description}</p></div>))}
@@ -175,8 +168,30 @@ export default function ChatbotForOnlineCoursesPage() {
           <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">Features</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">Everything an online course chatbot actually needs</h2><p className="text-secondary-600 dark:text-secondary-400">Built for course creators — not a generic contact form. Every feature is aimed at converting more visitors into enrolled students and reducing support load.</p></div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">{features.map((f) => { const Icon = f.icon; return (<div key={f.name} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-6 hover:border-primary-200 dark:hover:border-primary-700 transition-colors"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/50 mb-4"><Icon className="h-4 w-4 text-primary-500" aria-hidden="true" /></div><h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">{f.name}</h3><p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{f.description}</p></div>); })}</div>
         </section>
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
-          <div className="container mx-auto px-4"><div className="max-w-3xl mx-auto text-center"><Badge variant="outline" className="mb-8">From an online course creator using VocUI</Badge><blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">&ldquo;I was losing potential students because I couldn&apos;t respond to every pre-purchase question fast enough. VocUI handles all of that now — my course page converts significantly better and I spend my days creating content instead of answering emails.&rdquo;</blockquote><p className="text-secondary-500 dark:text-secondary-400 text-sm">P.N. &mdash; Online Course Creator, Digital Skills Academy</p></div></div>
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How online course creators use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Hours each week answering the same pre-purchase questions about course content, prerequisites, and access duration — plus ongoing student support questions that repeated across every cohort.' },
+                  { step: 'Setup', text: 'Uploaded their course overview, syllabus, student FAQ, and support guide — live on the sales page and student portal within an hour.' },
+                  { step: 'After', text: 'Pre-purchase questions answered instantly. Enrolled students get support around the clock. Creator spends more time building new content, not in their inbox.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </section>
         <section className="container mx-auto px-4 py-24">
           <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">Who it&apos;s for</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">For course creators who want to spend more time creating and less time on support</h2><p className="text-secondary-600 dark:text-secondary-400">If you&apos;re fielding the same pre-purchase questions and student support queries a chatbot could handle, VocUI pays for itself the moment your first automated enrollment comes through overnight.</p></div>

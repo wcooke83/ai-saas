@@ -10,23 +10,23 @@ import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
 import {
   ArrowRight, CheckCircle2, Phone, MoonStar, AlertCircle,
-  BookOpen, CalendarCheck, Clock, UserCheck, Home,
-  RefreshCw, Building, TrendingDown, FileText,
+  BookOpen, Clock, UserCheck, Home,
+  Building, ShieldCheck, BarChart2, FileText, Layers, ClipboardList,
 } from 'lucide-react';
 
 export function generateMetadata(): Metadata {
   return {
-    title: 'AI Chatbot for Mortgage Lenders | Loan FAQ & Pre-Qualification Lead Capture | VocUI',
-    description: 'Let an AI chatbot handle loan FAQs, pre-qualification lead capture, and rate enquiries for your mortgage lending business — 24/7. Qualify more borrowers without adding headcount.',
-    keywords: ['AI chatbot for mortgage lenders', 'mortgage lending chatbot', 'loan FAQ automation', 'mortgage pre-qualification chatbot'],
-    openGraph: { title: 'AI Chatbot for Mortgage Lenders | Loan FAQ & Pre-Qualification Lead Capture | VocUI', description: 'Let an AI chatbot handle loan FAQs, pre-qualification lead capture, and rate enquiries — 24/7.', url: 'https://vocui.com/chatbot-for-mortgage-lenders', siteName: 'VocUI', type: 'website' },
-    twitter: { card: 'summary_large_image', title: 'AI Chatbot for Mortgage Lenders | Loan FAQ & Pre-Qualification Lead Capture | VocUI', description: 'Let an AI chatbot handle loan FAQs, pre-qualification lead capture, and rate enquiries — 24/7.' },
+    title: 'AI Chatbot for Mortgage Lenders | Underwriting FAQ & Borrower Pre-Qualification | VocUI',
+    description: 'Let an AI chatbot handle underwriting FAQs, loan product questions, and borrower pre-qualification for your mortgage lending business — 24/7. Qualify more borrowers without adding headcount.',
+    keywords: ['AI chatbot for mortgage lenders', 'mortgage lender chatbot', 'underwriting FAQ automation', 'borrower pre-qualification chatbot', 'loan product FAQ chatbot'],
+    openGraph: { title: 'AI Chatbot for Mortgage Lenders | Underwriting FAQ & Borrower Pre-Qualification | VocUI', description: 'Let an AI chatbot handle underwriting FAQs, loan product questions, and borrower pre-qualification for your mortgage lending business — 24/7. Qualify more borrowers without adding headcount.', url: 'https://vocui.com/chatbot-for-mortgage-lenders', siteName: 'VocUI', type: 'website' },
+    twitter: { card: 'summary_large_image', title: 'AI Chatbot for Mortgage Lenders | Underwriting FAQ & Borrower Pre-Qualification | VocUI', description: 'Let an AI chatbot handle underwriting FAQs, loan product questions, and borrower pre-qualification for your mortgage lending business — 24/7. Qualify more borrowers without adding headcount.' },
     alternates: { canonical: 'https://vocui.com/chatbot-for-mortgage-lenders' },
     robots: { index: true, follow: true },
   };
 }
 
-const jsonLd = { '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: 'VocUI — AI Chatbot for Mortgage Lenders', applicationCategory: 'FinanceApplication', operatingSystem: 'Web', description: 'AI chatbot handling loan FAQs, pre-qualification lead capture, and rate enquiries for mortgage lenders — 24/7.', url: 'https://vocui.com/chatbot-for-mortgage-lenders', offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD', description: 'Free plan available' }, featureList: ['Loan FAQ', 'Pre-qualification lead capture', 'Rate FAQ', '24/7 availability', 'Officer escalation', 'GDPR-compliant data handling'] };
+const jsonLd = { '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: 'VocUI — AI Chatbot for Mortgage Lenders', applicationCategory: 'FinanceApplication', operatingSystem: 'Web', description: 'AI chatbot handling underwriting FAQs, loan product questions, and borrower pre-qualification for mortgage lenders — 24/7.', url: 'https://vocui.com/chatbot-for-mortgage-lenders', offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD', description: 'Free plan available' }, featureList: ['Underwriting FAQ (LTV, DTI, credit score)', 'Loan product FAQ (fixed, ARM, jumbo, buy-to-let)', 'Borrower pre-qualification lead capture', '24/7 after-hours availability', 'Loan officer handoff with full context', 'GDPR-compliant data handling'] };
 
 const faqLd = {
   "@context": "https://schema.org",
@@ -34,46 +34,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Mortgage Lenders?",
+      "name": "Can the chatbot explain your specific loan products — fixed rate, tracker, and offset mortgages?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle loan FAQs, pre-qualification lead capture, and rate enquiries for your mortgage lending business \u2014 24/7. Qualify more borrowers without adding headcount."
+        "text": "Yes. Upload your product range descriptions and the chatbot explains each option, who it suits, and how it works — without advising on which product a specific borrower should choose."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Mortgage Lenders?",
+      "name": "Will VocUI pre-qualify borrowers before they reach a loan officer?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Mortgage Lenders get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes. It can capture key details — purchase price, deposit, income type — to give your officers context before the first call, reducing time spent on enquiries that cannot proceed."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot explain LTV limits and minimum deposit requirements?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes, based on your lending criteria. It answers the threshold questions borrowers ask most — minimum deposit, maximum LTV, credit score requirements — so officers focus on qualified conversations."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle complex income scenarios — self-employed, portfolio landlords, contractors?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Mortgage Lenders?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Mortgage Lenders business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "It captures the enquiry and escalates it to a loan officer with full context. Complex income scenarios require human assessment; the chatbot does not attempt to underwrite them."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -100,30 +93,30 @@ const breadcrumbLd = {
 };
 
 
-const trustSignals = ['Qualifies borrowers 24/7', 'Trained only on your lending content', 'GDPR-compliant data handling'];
+const trustSignals = ['Pre-qualifies borrowers 24/7', 'Trained only on your lending products', 'GDPR-compliant data handling'];
 const painPoints: Array<{ icon: ElementType; title: string; body: ReactNode }> = [
-  { icon: Phone, title: 'Loan officers spending time on enquiries that won\'t qualify', body: 'What are your current rates? What\'s the minimum deposit? Can I borrow with a complex income? These questions arrive constantly — and without a pre-qualification layer, your officers talk to everyone before knowing who can actually proceed.' },
-  { icon: MoonStar, title: 'Rate and product enquiries after hours with no follow-up', body: <span>Buyers research mortgages in the evening, especially after viewing a property. Without instant responses, they contact multiple lenders and go with whoever follows up fastest in the morning. <a href="https://www.salesloft.com/resources/guides/conversational-ai-marketing-trends-report" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-primary-500 transition-colors">41% of meetings are booked outside standard business hours.</a></span> },
-  { icon: AlertCircle, title: 'Complex product range confusing applicants before they even call', body: 'A borrower who can\'t identify the right product for their situation often doesn\'t enquire at all. A chatbot that guides them to the right product type reduces drop-off and improves lead quality.' },
+  { icon: Phone, title: 'Loan officers spending time on borrowers who can\'t qualify', body: 'What\'s the minimum credit score? Can I borrow with a 10% deposit? Without a pre-qualification layer, officers field enquiries from everyone before knowing who can actually proceed. The cost is time — and the opportunity cost of cases that could have closed.' },
+  { icon: MoonStar, title: 'Loan product confusion at 9pm with no one available', body: 'Borrowers compare fixed vs ARM, try to understand LTV requirements, and ask about jumbo thresholds — in the evening, when no officer is available. Without instant responses, they move to a lender that answered faster.' },
+  { icon: AlertCircle, title: 'Complex income enquiries that bottleneck the pipeline', body: 'Self-employed borrowers, multiple income sources, DSCR questions — these take 20 minutes each and your team fields them before knowing if the deal can even be done. A chatbot surfaces the complexity early and routes only viable cases forward.' },
 ];
 const steps = [
-  { step: '01', title: 'Train on your products', description: 'Upload your product range, eligibility criteria, rate FAQs, and application process guides. Your chatbot becomes a knowledgeable first point of contact.' },
-  { step: '02', title: 'Configure pre-qualification flows', description: 'Define the questions that identify serious, qualified borrowers — income type, deposit size, credit history. Collect this before your officers engage.' },
-  { step: '03', title: 'Deploy and qualify more efficiently', description: 'Embed on your website. Enquirers get instant guidance; qualified borrowers enter your pipeline with their details already documented.' },
+  { step: '01', title: 'Train on your products', description: 'Upload your loan products, underwriting criteria, LTV/DTI tables, and application FAQ. Your chatbot becomes a knowledgeable first point of contact trained on your lending standards.' },
+  { step: '02', title: 'Configure pre-qualification flows', description: 'Set up borrower profile capture — income type, deposit amount, purchase price — and define escalation rules for complex income scenarios like self-employment or portfolio landlords.' },
+  { step: '03', title: 'Deploy and grow your pipeline', description: 'Embed on your website. Borrowers get product clarity and underwriting guidance. Qualified leads reach your officers pre-screened, with their profile already documented.' },
 ];
 const features = [
-  { icon: BookOpen, name: 'Loan and product FAQ', description: 'Answer questions about your mortgage products, eligibility criteria, and application process automatically.' },
-  { icon: FileText, name: 'Pre-qualification lead capture', description: 'Collect key borrower details — employment type, income range, deposit — before any officer time is spent on the enquiry.' },
-  { icon: CalendarCheck, name: 'Appointment booking', description: 'Connect to your calendar via Easy!Appointments. Qualified borrowers book mortgage consultations directly from the chat.' },
-  { icon: Clock, name: 'After-hours availability', description: 'Your chatbot captures enquiries at midnight as well as midday. Never lose a motivated buyer because they researched outside office hours.' },
-  { icon: UserCheck, name: 'Officer escalation', description: 'Complex cases and pre-qualified borrowers escalate to the right officer with full intake context — no wasted introduction calls.' },
-  { icon: TrendingDown, name: 'Rate FAQ', description: 'Explain your rate types, fixed vs. variable options, and fee structures clearly — helping borrowers understand their options before the call.' },
+  { icon: ShieldCheck, name: 'Underwriting FAQ', description: 'Answer LTV limits, DTI thresholds, minimum credit score requirements, and deposit questions automatically — so officers talk to qualified borrowers, not browsers.' },
+  { icon: Layers, name: 'Loan product FAQ', description: 'Explain fixed vs ARM rates, jumbo loan thresholds, FHA and buy-to-let criteria clearly — reducing product confusion that stalls the pipeline.' },
+  { icon: FileText, name: 'Borrower pre-qualification', description: 'Capture borrower profile details before an officer is involved — income type, deposit amount, purchase price — so every lead arrives partially qualified.' },
+  { icon: Clock, name: 'After-hours availability', description: 'Your chatbot handles rate and product enquiries at 10pm when borrowers are actively researching. Every captured lead arrives in your pipeline by morning.' },
+  { icon: UserCheck, name: 'Loan officer handoff', description: 'Complex scenarios — self-employed income, multiple properties, unusual credit histories — escalate immediately with the full borrower conversation context.' },
+  { icon: ClipboardList, name: 'Application FAQ', description: 'Walk borrowers through what documents they need, how long it takes, and what happens after they apply — reducing drop-off between enquiry and application.' },
 ];
 const verticals = [
-  { icon: Home, title: 'Residential Mortgages', description: 'Pre-qualify residential purchase and first-time buyer enquiries before your officers spend time on unqualified leads.' },
-  { icon: Building, title: 'Commercial Lending', description: 'Handle commercial property finance enquiries and route qualified commercial borrowers to specialist officers.' },
-  { icon: RefreshCw, title: 'Remortgage', description: 'Capture remortgage intent from borrowers nearing the end of their fixed term and guide them to the right product.' },
-  { icon: Home, title: 'Buy-to-Let', description: 'Answer buy-to-let product FAQ, rental yield requirements, and portfolio landlord enquiries automatically.' },
+  { icon: Home, title: 'Residential Mortgages', description: 'Pre-qualify residential purchase and first-time buyer enquiries on LTV, credit, and deposit requirements before your officers spend time on unqualified leads.' },
+  { icon: BarChart2, title: 'Buy-to-Let', description: 'Answer buy-to-let LTV requirements, rental yield thresholds, and portfolio landlord criteria — a high-FAQ segment that benefits most from a chatbot first layer.' },
+  { icon: Building, title: 'Commercial Lending', description: 'Handle commercial property finance enquiries, DSCR requirements, and loan sizing questions, routing viable cases to specialist officers with context.' },
+  { icon: BookOpen, title: 'Specialist & Bridging Finance', description: 'Explain bridging loan criteria, exit strategy requirements, and short-term lending options — complex products where upfront FAQ reduces wasted officer time most.' },
 ];
 
 export default function ChatbotForMortgageLendersPage() {
@@ -146,13 +139,13 @@ export default function ChatbotForMortgageLendersPage() {
 
         <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center container mx-auto px-4 py-16 text-center">
           <Badge className="mb-6">AI Chatbot for Mortgage Lenders</Badge>
-          <H1 className="max-w-4xl mb-6">Borrowers research at all hours. <span className="text-primary-500">Your chatbot can qualify them before your officers pick up the phone.</span></H1>
-          <p className="mx-auto max-w-2xl text-lg text-secondary-600 dark:text-secondary-400 mb-10">VocUI trains on your products, eligibility criteria, and rate FAQs — so your officers talk to pre-qualified borrowers, not every enquiry that comes through the door.</p>
+          <H1 className="max-w-4xl mb-6">Your loan officers should be closing deals, <span className="text-primary-500">not explaining LTV to the wrong borrowers.</span></H1>
+          <p className="mx-auto max-w-2xl text-lg text-secondary-600 dark:text-secondary-400 mb-10">VocUI handles borrower pre-qualification, loan product FAQ, and underwriting questions — so your team only talks to borrowers who can actually proceed.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Button size="xl" asChild><Link href="/signup">Build Your Lending Chatbot Free<ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></Link></Button>
             <Button size="xl" variant="outline" asChild><Link href="/pricing">See Pricing</Link></Button>
           </div>
-          <p className="text-sm text-secondary-500 dark:text-secondary-400">Qualifies borrowers 24/7 &middot; Trained only on your lending content &middot; GDPR-compliant</p>
+          <p className="text-sm text-secondary-500 dark:text-secondary-400">Pre-qualifies borrowers 24/7 &middot; Trained only on your lending products &middot; GDPR-compliant</p>
         </section>
         <section className="border-y border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-800/50 py-6">
           <div className="container mx-auto px-4"><div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">{trustSignals.map((signal) => (<div key={signal} className="flex items-center gap-2 text-sm text-secondary-600 dark:text-secondary-400"><CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" aria-hidden="true" /><span>{signal}</span></div>))}</div></div>
@@ -163,7 +156,7 @@ export default function ChatbotForMortgageLendersPage() {
         </section>
         <section id="how-it-works" className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">How it works</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">Set up in under an hour. No developers needed.</h2></div>
+            <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">How it works</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">Live before your next loan application. No developers needed.</h2></div>
             <div className="grid gap-10 md:grid-cols-3 max-w-5xl mx-auto relative">
               <div className="hidden md:block absolute top-8 left-[calc(16.67%+1.5rem)] right-[calc(16.67%+1.5rem)] h-px bg-secondary-200 dark:bg-secondary-700" aria-hidden="true" />
               {steps.map((s) => (<div key={s.step} className="relative text-center flex flex-col items-center"><div className="w-16 h-16 rounded-full bg-primary-500 text-white font-bold text-lg flex items-center justify-center mb-6 z-10 shadow-lg shadow-primary-500/25">{s.step}</div><h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-3">{s.title}</h3><p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed max-w-xs">{s.description}</p></div>))}
@@ -172,14 +165,36 @@ export default function ChatbotForMortgageLendersPage() {
           </div>
         </section>
         <section className="container mx-auto px-4 py-24">
-          <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">Features</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">Everything a mortgage lending chatbot actually needs</h2><p className="text-secondary-600 dark:text-secondary-400">Built for lenders — not a generic contact form. Every feature is aimed at improving lead quality and reducing time spent on unqualified enquiries.</p></div>
+          <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">Features</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">Everything a mortgage lending chatbot actually needs</h2><p className="text-secondary-600 dark:text-secondary-400">Built for direct lenders — not a generic contact form. Every feature is aimed at surfacing qualified borrowers and reducing time your officers spend on enquiries that can&apos;t proceed.</p></div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">{features.map((f) => { const Icon = f.icon; return (<div key={f.name} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-6 hover:border-primary-200 dark:hover:border-primary-700 transition-colors"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/50 mb-4"><Icon className="h-4 w-4 text-primary-500" aria-hidden="true" /></div><h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">{f.name}</h3><p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{f.description}</p></div>); })}</div>
         </section>
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
-          <div className="container mx-auto px-4"><div className="max-w-3xl mx-auto text-center"><Badge variant="outline" className="mb-8">From a mortgage lender using VocUI</Badge><blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">&ldquo;Our officers were spending the first half of every call on eligibility basics. VocUI collects all of that before the call — now our conversations start at the right point and close faster.&rdquo;</blockquote><p className="text-secondary-500 dark:text-secondary-400 text-sm">G.F. &mdash; Head of Sales, Cornerstone Mortgage Finance</p></div></div>
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How mortgage lenders use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Loan officers spending the first half of every sales call on underwriting basics — LTV limits, credit score thresholds, deposit requirements — before reaching any substantive conversation about a deal that could close.' },
+                  { step: 'Setup', text: 'Uploaded their loan product guide, underwriting criteria tables, LTV/DTI FAQ, and application checklist — configured without external development in a single afternoon.' },
+                  { step: 'After', text: 'Underwriting basics handled before the first call. Officers receive pre-screened leads with borrower profiles already documented. Pipeline better qualified and faster to close.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </section>
         <section className="container mx-auto px-4 py-24">
-          <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">Who it&apos;s for</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">For mortgage lenders who want their officers focused on qualified borrowers</h2><p className="text-secondary-600 dark:text-secondary-400">If your team is spending time on enquiries a chatbot could pre-qualify, VocUI pays for itself the moment your officers start their day with a pre-qualified pipeline.</p></div>
+          <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">Who it&apos;s for</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">For mortgage lenders who want their officers focused on qualified borrowers</h2><p className="text-secondary-600 dark:text-secondary-400">If your team is spending time on enquiries a chatbot could pre-qualify, VocUI pays for itself the moment your officers start their day with a pre-screened pipeline.</p></div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">{verticals.map((v) => { const Icon = v.icon; return (<Card key={v.title} className="border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 hover:shadow-lg hover:border-primary-200 dark:hover:border-primary-700 transition-all duration-200 text-center"><CardHeader className="pb-2"><div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-50 dark:bg-primary-900/50 mx-auto mb-3"><Icon className="h-6 w-6 text-primary-500" aria-hidden="true" /></div><CardTitle className="text-base leading-snug">{v.title}</CardTitle></CardHeader><CardContent><p className="text-xs text-secondary-500 dark:text-secondary-400 leading-relaxed">{v.description}</p></CardContent></Card>); })}</div>
         </section>
         <section className="container mx-auto px-4 py-16">
@@ -187,7 +202,7 @@ export default function ChatbotForMortgageLendersPage() {
             <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-6">Related industries</h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { label: 'Chatbot for Mortgage Brokers', href: '/chatbot-for-mortgage-brokers', description: 'Rate FAQ and application lead capture for mortgage brokers.' },
+                { label: 'Chatbot for Mortgage Brokers', href: '/chatbot-for-mortgage-brokers', description: 'Rate comparison FAQ and application lead capture for mortgage brokers.' },
                 { label: 'Chatbot for Real Estate', href: '/chatbot-for-real-estate', description: '24/7 lead capture and viewing bookings for estate agents.' },
                 { label: 'Chatbot for Financial Advisors', href: '/chatbot-for-financial-advisors', description: 'Service FAQ and consultation booking for financial advisers.' },
                 { label: 'Chatbot for Insurance Agents', href: '/chatbot-for-insurance-agents', description: 'Policy FAQ and quote lead capture for insurance professionals.' },

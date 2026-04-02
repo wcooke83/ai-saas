@@ -34,46 +34,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Logistics Companies?",
+      "name": "Can the chatbot answer questions about shipping rates and transit times?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle shipment tracking FAQs, quote requests, and customer service enquiries for your logistics business \u2014 24/7. Reduce call volume and focus on moving cargo."
+        "text": "Yes. Upload your rate card, transit time guides, and service level options — and the chatbot answers the pricing and timing questions your operations team fields every day."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Logistics Companies?",
+      "name": "Will VocUI handle shipment tracking enquiries?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Logistics Companies get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "It can explain how to use your tracking system and where to find shipment status. For specific escalations — lost shipments, delays, damage claims — it routes to your operations team with full context."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot answer questions about customs, duties, and international shipping?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes, if you upload your international shipping FAQ. It explains the documents required, typical duty considerations, and prohibited items — reducing the pre-shipment calls from customers unfamiliar with cross-border logistics."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle high-volume B2B shipper enquiries?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Logistics Companies?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Logistics Companies business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "It qualifies the enquiry — volumes, lanes, service requirements — and routes it to your commercial team with context. Your team starts the conversation with a pre-qualified prospect rather than a cold enquiry."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -130,8 +123,8 @@ export default function ChatbotForLogisticsPage() {
   return (
     <PageBackground>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <Header />
       <main id="main-content">
         <nav aria-label="Breadcrumb" className="container mx-auto px-4 pt-6 pb-2">
@@ -163,7 +156,7 @@ export default function ChatbotForLogisticsPage() {
         </section>
         <section id="how-it-works" className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">How it works</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">Set up in under an hour. No developers needed.</h2></div>
+            <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">How it works</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">Live before your next shipment enquiry. No developers needed.</h2></div>
             <div className="grid gap-10 md:grid-cols-3 max-w-5xl mx-auto relative">
               <div className="hidden md:block absolute top-8 left-[calc(16.67%+1.5rem)] right-[calc(16.67%+1.5rem)] h-px bg-secondary-200 dark:bg-secondary-700" aria-hidden="true" />
               {steps.map((s) => (<div key={s.step} className="relative text-center flex flex-col items-center"><div className="w-16 h-16 rounded-full bg-primary-500 text-white font-bold text-lg flex items-center justify-center mb-6 z-10 shadow-lg shadow-primary-500/25">{s.step}</div><h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-3">{s.title}</h3><p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed max-w-xs">{s.description}</p></div>))}
@@ -175,8 +168,30 @@ export default function ChatbotForLogisticsPage() {
           <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">Features</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">Everything a logistics chatbot actually needs</h2><p className="text-secondary-600 dark:text-secondary-400">Built for logistics operations — not a generic FAQ page. Every feature reduces routine customer service volume so your team handles what matters.</p></div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">{features.map((f) => { const Icon = f.icon; return (<div key={f.name} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-6 hover:border-primary-200 dark:hover:border-primary-700 transition-colors"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/50 mb-4"><Icon className="h-4 w-4 text-primary-500" aria-hidden="true" /></div><h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">{f.name}</h3><p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{f.description}</p></div>); })}</div>
         </section>
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
-          <div className="container mx-auto px-4"><div className="max-w-3xl mx-auto text-center"><Badge variant="outline" className="mb-8">From a logistics company using VocUI</Badge><blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">&ldquo;Our customer service team was spending half their day on tracking questions that could easily be self-served. VocUI handles those automatically — our team now focuses on the exceptions that actually need human judgement.&rdquo;</blockquote><p className="text-secondary-500 dark:text-secondary-400 text-sm">B.O. &mdash; Operations Director, Meridian Freight Services</p></div></div>
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How logistics companies use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Customer service team spending the majority of each day on shipment tracking questions, delivery window estimates, and documentation queries — pulling them away from exceptions that needed real attention.' },
+                  { step: 'Setup', text: 'Uploaded their tracking FAQ, delivery policy, customs documentation guide, and service area overview — configured by the ops team in a single session.' },
+                  { step: 'After', text: 'Tracking and policy questions handled automatically around the clock. Team focused entirely on exceptions, delays, and issues that genuinely require human judgement.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </section>
         <section className="container mx-auto px-4 py-24">
           <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">Who it&apos;s for</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">For logistics companies that want their team focused on moving cargo, not answering phones</h2><p className="text-secondary-600 dark:text-secondary-400">If your customer service team is fielding questions a chatbot could answer, VocUI pays for itself the moment your team handles their first exception-only workday.</p></div>

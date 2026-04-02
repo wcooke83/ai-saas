@@ -93,46 +93,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for SaaS Companies?",
+      "name": "Can the chatbot handle product onboarding questions for new SaaS customers?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Stop losing trial users to unanswered questions. VocUI gives SaaS products an AI chatbot that answers product FAQs, guides onboarding, and captures sales-ready leads 24/7."
+        "text": "Yes. Upload your onboarding documentation, feature guides, and getting started FAQ — and the chatbot answers product questions 24/7, reducing support ticket volume during the critical first 30 days."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for SaaS Companies?",
+      "name": "Will VocUI replace our in-app help centre or documentation?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most SaaS Companies get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "It complements your docs rather than replacing them. The chatbot answers questions conversationally — in the context of what the user is trying to do — rather than requiring them to search documentation themselves."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot handle trial-to-paid conversion questions?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes. Upload your pricing page FAQ, feature comparison, and upgrade process — and the chatbot answers the objections and questions that prevent trial users from converting."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle technical support questions that need an engineer?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for SaaS Companies?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your SaaS Companies business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "You configure escalation rules. Questions the chatbot cannot answer from your approved content are routed to your support team with the full conversation context included — so the engineer starts with context, not a blank ticket."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -384,7 +377,7 @@ export default function ChatbotForSaaSPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next trial sign-up. No developers needed.
               </h2>
             </div>
 
@@ -452,19 +445,28 @@ export default function ChatbotForSaaSPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a SaaS team using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;We were losing trial users at the integration step because no one was around
-                to answer questions in the evening. VocUI fixed that overnight. Our trial-to-paid
-                rate improved within the first month.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                A.P. &mdash; Head of Growth, B2B SaaS Company
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How SaaS teams use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Trial users hitting integration and setup questions in the evening with no one available to respond — dropping off before converting to paid because the friction was never resolved.' },
+                  { step: 'Setup', text: 'Uploaded their documentation, integration guides, feature FAQ, and onboarding walkthrough — live in the app and on the marketing site.' },
+                  { step: 'After', text: 'Setup and integration questions answered instantly, any time. Trial users unblocked without waiting for support. Fewer drop-offs at the activation step.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

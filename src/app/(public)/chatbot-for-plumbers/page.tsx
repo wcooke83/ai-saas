@@ -93,46 +93,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Plumbers?",
+      "name": "Can the chatbot handle emergency plumbing enquiries after hours?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Capture emergency call-outs and answer pricing FAQ automatically. An AI chatbot for plumbers that works 24/7 \u2014 even when you\\\\'re mid-job and can\\\\'t pick up the phone."
+        "text": "You configure the escalation rules. For emergencies — burst pipes, no hot water, flooding — the chatbot surfaces your emergency call-out number immediately rather than asking customers to wait until morning."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Plumbers?",
+      "name": "What plumbing questions can VocUI answer automatically?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Plumbers get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Opening hours, call-out fees, what's included in a standard visit, areas you cover, typical job pricing for common jobs like boiler services and tap replacements, and how to book."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Will VocUI book plumbing appointments?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes, via Easy!Appointments. Customers can book routine jobs — boiler services, leak repairs, installation consultations — directly from the chat at any time."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "Can the chatbot provide plumbing repair estimates?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Plumbers?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Plumbers business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "It can share your standard pricing for common jobs if you upload a pricing guide. For complex or bespoke work, it captures the job details and routes the enquiry to your team for a proper quote."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -382,7 +375,7 @@ export default function ChatbotForPlumbersPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next emergency call-out. No developers needed.
               </h2>
             </div>
 
@@ -450,19 +443,28 @@ export default function ChatbotForPlumbersPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a plumbing company using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;I was losing jobs because I couldn&apos;t answer my phone on site. VocUI captures
-                the details while I&apos;m working and I call them back straight after. Genuinely a game-changer
-                for a one-man operation.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                D.M. &mdash; Owner, Residential Plumbing &amp; Heating
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How plumbing companies use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Jobs lost to missed calls while on site — prospective customers needing same-day help calling the next plumber on the list when nobody answered.' },
+                  { step: 'Setup', text: 'Uploaded their services list, coverage area, callout policy, and typical pricing guide — configured without leaving a job to set up.' },
+                  { step: 'After', text: 'Enquiry details captured while on site, including job type and urgency. Callbacks more informed and faster to book. Fewer lost jobs to missed calls.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -561,6 +563,14 @@ export default function ChatbotForPlumbersPage() {
           </div>
         </section>
 
+
+          {/* Related Blog Post */}
+          <div className="mt-6 mb-2 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-800/50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">Related reading</p>
+            <Link href="/blog/chatbot-for-plumbers" className="font-semibold text-secondary-900 dark:text-secondary-100 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+              AI Chatbot for Plumbers: Handling Emergency Calls, Booking Jobs, and Quoting Common Work →
+            </Link>
+          </div>
       </main>
 
       <Footer />

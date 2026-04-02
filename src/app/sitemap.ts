@@ -15,7 +15,6 @@ const industryPages = [
   // Legal & Finance
   '/chatbot-for-lawyers',
   '/chatbot-for-immigration-lawyers',
-  '/chatbot-for-accountants',
   '/chatbot-for-accountancy-firms',
   '/chatbot-for-financial-advisors',
   '/chatbot-for-insurance-agents',

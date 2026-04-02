@@ -84,46 +84,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Real Estate?",
+      "name": "Can the chatbot answer questions about specific properties for sale or rent?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Capture and qualify buyer and seller leads 24/7 with an AI chatbot. Answer property questions, book viewings, and route hot leads to your agents automatically."
+        "text": "Yes, if you upload property details, area guides, and listing FAQs. It answers questions about specific properties, the neighbourhoods you cover, and your agency's process — 24/7."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Real Estate?",
+      "name": "Will VocUI book property viewings?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Real Estate get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes, via Easy!Appointments. Prospective buyers and tenants can schedule viewings directly from the chat, including evenings and weekends when motivation is highest."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot help qualify buyer and tenant enquiries before they reach an agent?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes. It captures key information — budget, timeline, requirements — and routes qualified leads to the right agent with context, so your team focuses on prospects who can actually proceed."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle valuation enquiries?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Real Estate?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Real Estate business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "It can explain your valuation process, what's involved in a market appraisal, and book a valuation appointment via Easy!Appointments — turning inbound vendor interest into booked valuations."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -587,6 +580,14 @@ export default function ChatbotForRealEstatePage() {
           </div>
         </section>
 
+
+          {/* Related Blog Post */}
+          <div className="mt-6 mb-2 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-800/50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">Related reading</p>
+            <Link href="/blog/chatbot-for-real-estate" className="font-semibold text-secondary-900 dark:text-secondary-100 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+              AI Chatbot for Real Estate: Qualifying Buyers, Booking Viewings, and Capturing Vendor Leads →
+            </Link>
+          </div>
       </main>
 
       <Footer />

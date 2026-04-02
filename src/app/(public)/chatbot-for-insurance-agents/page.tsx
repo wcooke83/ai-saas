@@ -93,46 +93,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Insurance Agents?",
+      "name": "Can the chatbot explain insurance products and help clients choose cover?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle policy questions, quote lead capture, and coverage FAQs for your insurance agency \u2014 24/7. Stop losing after-hours prospects to competitors."
+        "text": "Yes, based on the product descriptions you upload. It explains policy types, what they cover, and typical use cases — guiding prospects toward the right conversation with your team rather than leaving them confused."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Insurance Agents?",
+      "name": "Will VocUI provide insurance quotes or bind coverage?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Insurance Agents get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "No. VocUI handles information, FAQ, and lead capture only — it does not quote, bind, or issue policies. Those actions require your team or your quoting system."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot answer questions about claims processes?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes, if you upload your claims handling guide. It walks clients through the first notification of loss process, what documentation they need, and who to contact — reducing inbound calls after an incident."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "Will VocUI book review appointments for existing clients?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Insurance Agents?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Insurance Agents business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Yes, via Easy!Appointments. Clients can schedule annual reviews, coverage upgrade conversations, and new policy discussions directly from the chat."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -382,7 +375,7 @@ export default function ChatbotForInsuranceAgentsPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next policy enquiry. No developers needed.
               </h2>
             </div>
 
@@ -450,19 +443,28 @@ export default function ChatbotForInsuranceAgentsPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From an insurance agency using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;My agents were spending two hours a day on calls that were really just policy
-                explainers. VocUI handles that first layer now — the calls we do take are from
-                people who are genuinely ready to buy.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                P.H. &mdash; Principal, Harbour Insurance Group
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How insurance agencies use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Agents handling hours of daily calls that were really just policy explainers — cover types, claim processes, and renewal questions — before ever reaching a sales conversation.' },
+                  { step: 'Setup', text: 'Uploaded their product guides, coverage comparison, claims process FAQ, and quote request form — configured in an afternoon.' },
+                  { step: 'After', text: 'Coverage questions handled automatically. Agents spend their time on clients ready to buy. Inbound calls shorter and more productive.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -511,7 +513,7 @@ export default function ChatbotForInsuranceAgentsPage() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 { label: 'Chatbot for Financial Advisors', href: '/chatbot-for-financial-advisors', description: 'Service FAQ and consultation booking for financial advisers.' },
-                { label: 'Chatbot for Accountants', href: '/chatbot-for-accountants', description: 'Tax FAQ and client intake automation.' },
+                { label: 'Chatbot for Real Estate Agents', href: '/chatbot-for-real-estate', description: 'Lead capture and property FAQ automation for real estate agencies.' },
                 { label: 'Chatbot for Mortgage Brokers', href: '/chatbot-for-mortgage-brokers', description: 'Rate FAQ and application lead capture for mortgage brokers.' },
                 { label: 'Chatbot for Law Firms', href: '/chatbot-for-lawyers', description: 'Client intake, practice area FAQ, and consultation booking.' },
               ].map((item) => (
@@ -569,6 +571,16 @@ export default function ChatbotForInsuranceAgentsPage() {
               AI Chatbots for Insurance: Automate Policy Questions →
             </Link>
           </div>
+
+        {/* ── Author Attribution ──────────────────────────────────────────── */}
+        <div className="container mx-auto px-4 pb-8">
+          <p className="text-xs text-secondary-400 dark:text-secondary-500 text-center">
+            Written by the VocUI team &middot; Last reviewed April 2026 &middot;{' '}
+            <Link href="/about" className="underline decoration-dotted hover:text-primary-500 transition-colors">
+              About VocUI
+            </Link>
+          </p>
+        </div>
       </main>
 
       <Footer />

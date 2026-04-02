@@ -94,46 +94,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Healthcare?",
+      "name": "What types of healthcare providers use VocUI?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Automate patient FAQ responses, appointment booking, and after-hours inquiries with an AI chatbot trained on your clinic\\'s own content. GDPR-compliant."
+        "text": "GP practices, specialist clinics, allied health providers, and multi-disciplinary health centres. Any healthcare setting with recurring patient enquiries and appointment booking needs benefits from VocUI."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Healthcare?",
+      "name": "Can the chatbot handle patient triage or symptom checking?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Healthcare get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "No. VocUI answers only from your approved clinical content — it does not perform triage, assess symptoms, or give medical advice. Urgent or clinical questions are escalated immediately to your team."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Will VocUI integrate with our existing appointment booking system?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes, via Easy!Appointments. The chatbot guides patients to book the right appointment type without your admin team being involved."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle sensitive patient information?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Healthcare?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Healthcare business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Conversation data is stored securely and GDPR-compliantly. Patient data is never used to train third-party AI models, and you can delete conversation records at any time."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -283,7 +276,6 @@ export default function ChatbotForHealthcarePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
 
       <Header />
@@ -452,18 +444,28 @@ export default function ChatbotForHealthcarePage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a clinic using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;The booking feature alone paid for the subscription. We went from 12 missed
-                after-hours calls per week to zero.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                J.D. &mdash; Practice Manager, Dental Clinic
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How healthcare clinics use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Admin staff managing a high volume of calls about appointment availability, accepted insurance, referral requirements, and after-hours care — pulling attention from patients at the desk.' },
+                  { step: 'Setup', text: 'Uploaded their patient FAQ, insurance list, appointment guide, and after-hours procedure — configured without IT support in under an hour.' },
+                  { step: 'After', text: 'After-hours enquiries captured and answered automatically. In-hours call volume reduced. Admin team focused on patients who need hands-on help.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -562,6 +564,23 @@ export default function ChatbotForHealthcarePage() {
           </div>
         </section>
 
+        {/* ── Author Attribution ──────────────────────────────────────────── */}
+        <div className="container mx-auto px-4 pb-8">
+          <p className="text-xs text-secondary-400 dark:text-secondary-500 text-center">
+            Written by the VocUI team &middot; Last reviewed April 2026 &middot;{' '}
+            <Link href="/about" className="underline decoration-dotted hover:text-primary-500 transition-colors">
+              About VocUI
+            </Link>
+          </p>
+        </div>
+
+          {/* Related Blog Post */}
+          <div className="mt-6 mb-2 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-800/50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">Related reading</p>
+            <Link href="/blog/chatbot-for-healthcare" className="font-semibold text-secondary-900 dark:text-secondary-100 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+              AI Chatbot for Healthcare: Answering Patient Questions Without Giving Medical Advice →
+            </Link>
+          </div>
       </main>
 
       <Footer />

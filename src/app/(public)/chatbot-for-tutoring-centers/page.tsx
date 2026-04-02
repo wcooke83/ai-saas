@@ -34,46 +34,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Tutoring Centers?",
+      "name": "Can the chatbot answer questions about subjects, age groups, and tutoring formats?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle subject FAQs, enrollment enquiries, and session booking for your tutoring center \u2014 24/7. Keep tutors focused on teaching, not answering the phone."
+        "text": "Yes. Upload your subject list, age range FAQ, and session format descriptions — online vs in-person, one-to-one vs group — and the chatbot answers these questions before a parent calls."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Tutoring Centers?",
+      "name": "Will VocUI book tutoring sessions or assessment appointments?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Tutoring Centers get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes, via Easy!Appointments. Parents can book initial assessments, trial sessions, and ongoing tutoring directly from the chat."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot explain your approach to exam preparation and curriculum alignment?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes. Upload your methodology overview, exam board alignment, and results FAQ — and the chatbot communicates your approach to parents researching tutoring options at any hour."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle progress and reporting enquiries from parents?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Tutoring Centers?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Tutoring Centers business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Upload your reporting schedule and progress review process. For specific student progress questions, the chatbot escalates to the relevant tutor — ensuring parents get the right information without the admin burden falling on your team."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -163,7 +156,7 @@ export default function ChatbotForTutoringCentersPage() {
         </section>
         <section id="how-it-works" className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">How it works</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">Set up in under an hour. No developers needed.</h2></div>
+            <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">How it works</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">Live before your next enrolment enquiry. No developers needed.</h2></div>
             <div className="grid gap-10 md:grid-cols-3 max-w-5xl mx-auto relative">
               <div className="hidden md:block absolute top-8 left-[calc(16.67%+1.5rem)] right-[calc(16.67%+1.5rem)] h-px bg-secondary-200 dark:bg-secondary-700" aria-hidden="true" />
               {steps.map((s) => (<div key={s.step} className="relative text-center flex flex-col items-center"><div className="w-16 h-16 rounded-full bg-primary-500 text-white font-bold text-lg flex items-center justify-center mb-6 z-10 shadow-lg shadow-primary-500/25">{s.step}</div><h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-3">{s.title}</h3><p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed max-w-xs">{s.description}</p></div>))}
@@ -175,8 +168,30 @@ export default function ChatbotForTutoringCentersPage() {
           <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">Features</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">Everything a tutoring center chatbot actually needs</h2><p className="text-secondary-600 dark:text-secondary-400">Built for tutoring centers — not a generic FAQ page. Every feature is aimed at converting parent enquiries into enrolled students.</p></div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">{features.map((f) => { const Icon = f.icon; return (<div key={f.name} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-6 hover:border-primary-200 dark:hover:border-primary-700 transition-colors"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/50 mb-4"><Icon className="h-4 w-4 text-primary-500" aria-hidden="true" /></div><h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">{f.name}</h3><p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{f.description}</p></div>); })}</div>
         </section>
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
-          <div className="container mx-auto px-4"><div className="max-w-3xl mx-auto text-center"><Badge variant="outline" className="mb-8">From a tutoring center using VocUI</Badge><blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">&ldquo;Parents were emailing us in the evening and not getting a reply until the next afternoon. By then they&apos;d already enrolled somewhere else. VocUI answers those evening enquiries instantly — our enrollment numbers have been consistently up since we added it.&rdquo;</blockquote><p className="text-secondary-500 dark:text-secondary-400 text-sm">H.T. &mdash; Principal, Achieve Tutoring Centre</p></div></div>
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How tutoring centers use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Parents emailing in the evening about subject availability, tutor qualifications, and pricing — and enrolling with a competitor centre by the time the team replied the next day.' },
+                  { step: 'Setup', text: 'Uploaded their subject and tutor guide, pricing FAQ, enrolment process, and timetable overview — live on their website that evening.' },
+                  { step: 'After', text: 'Evening and weekend enquiries answered automatically. Parents get the information they need to enrol without waiting. Tutors start each week with a fuller timetable.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </section>
         <section className="container mx-auto px-4 py-24">
           <div className="text-center max-w-2xl mx-auto mb-16"><Badge variant="outline" className="mb-4">Who it&apos;s for</Badge><h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">For tutoring centers that want their tutors focused on teaching</h2><p className="text-secondary-600 dark:text-secondary-400">If your tutors and admin team are handling enquiries a chatbot could answer, VocUI pays for itself the moment your first evening enrollment comes in without anyone being there to take the call.</p></div>

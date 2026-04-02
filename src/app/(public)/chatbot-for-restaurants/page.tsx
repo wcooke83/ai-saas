@@ -93,46 +93,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Restaurants?",
+      "name": "Can the chatbot answer allergy and dietary requirement questions?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot handle reservations, menu questions, allergen info, and opening hours for your restaurant \u2014 24/7. Stop answering the same calls during service."
+        "text": "Yes. Upload your menu with allergen information and dietary labels — vegetarian, vegan, gluten-free, nut-free — and the chatbot answers these questions accurately 24/7, without a member of your floor team being interrupted mid-service."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Restaurants?",
+      "name": "Will VocUI book restaurant reservations?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Restaurants get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Yes, via Easy!Appointments. Diners can book tables for standard covers and group reservations directly from the chat, at any hour — including late at night when they're planning ahead."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot handle private dining and event enquiries?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes. Upload your private dining room capacity, minimum spend, and event FAQ — and the chatbot answers initial enquiries and captures contact details for your events team to follow up."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "How does VocUI handle group booking and pre-order questions?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Restaurants?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Restaurants business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "It answers your group booking policy, minimum party sizes for set menus, and pre-order requirements automatically — reducing the back-and-forth emails that precede every large group reservation."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -383,7 +376,7 @@ export default function ChatbotForRestaurantsPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next dinner service. No developers needed.
               </h2>
             </div>
 
@@ -451,19 +444,28 @@ export default function ChatbotForRestaurantsPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a restaurant using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;We used to miss five or six reservation requests every weekend because we
-                couldn&apos;t answer the phone during service. VocUI captures them now — guests
-                book themselves and we just see the confirmed reservation.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                A.V. &mdash; Owner, Rosetta Kitchen & Bar
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How restaurants use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Host team fielding reservation calls, allergy questions, and group booking enquiries all evening — while trying to seat and serve guests already at the table.' },
+                  { step: 'Setup', text: 'Uploaded their menu, allergy information, booking policy, and private dining FAQ — live before the Friday evening rush.' },
+                  { step: 'After', text: 'Group booking enquiries handled 24/7. Allergy questions answered before arrival. Front-of-house focused on guests in the room, not the phone.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

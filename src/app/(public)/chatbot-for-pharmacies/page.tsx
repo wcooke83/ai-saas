@@ -93,46 +93,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Pharmacies?",
+      "name": "Will VocUI's chatbot give medication advice or recommend drugs?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Handle opening hours, prescription queries, and service questions automatically. VocUI trains on your pharmacy content so customers get instant answers \u2014 even during your busiest dispensing periods."
+        "text": "No. VocUI answers only from content you approve and upload. It never recommends medications, advises on dosages, flags drug interactions, or substitutes for a pharmacist consultation. Any question requiring clinical judgement routes immediately to your pharmacist team with full conversation context included."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Pharmacies?",
+      "name": "What questions can the chatbot answer for a pharmacy?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Pharmacies get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Opening hours, prescription collection times, over-the-counter product availability, services offered (e.g. flu jabs, blood pressure checks), NHS vs private prescription fees, and general FAQs about your pharmacy."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Can the chatbot handle prescription enquiry calls?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "It can answer questions about how to submit prescriptions, collection times, and repeat prescription processes. Questions requiring pharmacist review are escalated with full context."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "Is VocUI suitable for regulated healthcare settings like pharmacies?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Pharmacies?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Pharmacies business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Yes. You control all content the chatbot uses. It never invents information, never gives clinical advice, and all data handling is GDPR-compliant. Many healthcare settings use VocUI specifically because of this content boundary."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -282,8 +275,8 @@ export default function ChatbotForPharmaciesPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
       <Header />
 
@@ -450,19 +443,51 @@ export default function ChatbotForPharmaciesPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── Safety Disclaimer ───────────────────────────────────────────────── */}
+        <section className="container mx-auto px-4 py-12">
+          <div className="max-w-3xl mx-auto">
+            <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-6">
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 mt-0.5">
+                  <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-amber-900 dark:text-amber-100 mb-2">
+                    VocUI does not provide medication advice
+                  </h3>
+                  <p className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
+                    The VocUI chatbot answers only from content you approve and upload. It never recommends medications, advises on dosages, suggests drug interactions, or substitutes for pharmacist consultation. Any question requiring clinical judgement is escalated immediately to your pharmacist team. VocUI is a practice information tool — not a clinical decision support system.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From a pharmacy using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;We cut our inbound phone volume by about a third in the first two weeks.
-                Opening hours, script queries, vaccination availability — the chatbot handles all of it
-                now. My team noticed the difference immediately.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                T.O. &mdash; Pharmacy Manager, Community Pharmacy Group
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How pharmacies use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Counter staff fielding a constant stream of calls about opening hours, prescription collection, vaccination availability, and repeat prescription processes — while serving patients in person.' },
+                  { step: 'Setup', text: 'Uploaded their services guide, opening hours FAQ, prescription process, and vaccination schedule — live in under an hour.' },
+                  { step: 'After', text: 'Routine enquiries handled automatically around the clock. In-person counter time freed up for patients who need direct help. Inbound call volume noticeably reduced.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -562,6 +587,15 @@ export default function ChatbotForPharmaciesPage() {
           </div>
         </section>
 
+        {/* ── Author Attribution ──────────────────────────────────────────── */}
+        <div className="container mx-auto px-4 pb-8">
+          <p className="text-xs text-secondary-400 dark:text-secondary-500 text-center">
+            Written by the VocUI team &middot; Last reviewed April 2026 &middot;{' '}
+            <Link href="/about" className="underline decoration-dotted hover:text-primary-500 transition-colors">
+              About VocUI
+            </Link>
+          </p>
+        </div>
       </main>
 
       <Footer />

@@ -94,46 +94,39 @@ const faqLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What can VocUI's AI chatbot do for Electricians?",
+      "name": "Can the chatbot handle urgent electrical fault enquiries?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Let an AI chatbot capture quote requests, answer service FAQs, and triage emergency calls for your electrical business \u2014 24/7. Stop losing leads to phone tag."
+        "text": "You configure escalation rules. For urgent faults — power outages, sparking sockets, tripped boards that won't reset — the chatbot surfaces your emergency number immediately."
       }
     },
     {
       "@type": "Question",
-      "name": "How long does it take to set up VocUI for Electricians?",
+      "name": "What electrical questions can VocUI answer automatically?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most Electricians get set up in under an hour. Upload your existing content -- service descriptions, FAQs, pricing pages, or PDFs -- and VocUI trains the chatbot automatically. Embed it on your website with a single snippet."
+        "text": "Your service areas, call-out fees, what EICR certificates cover, how long different jobs take, PAT testing pricing, and how to book a rewire quotation."
       }
     },
     {
       "@type": "Question",
-      "name": "Does VocUI work outside business hours?",
+      "name": "Will VocUI book electrical inspection and installation appointments?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI runs 24/7 with no human involvement. Visitors who arrive at night, on weekends, or during holidays get instant, accurate answers and can book, enquire, or leave their contact details without waiting until you open."
+        "text": "Yes, via Easy!Appointments. Customers can book consumer unit upgrades, EICR inspections, EV charger installations, and general electrical work directly from the chat."
       }
     },
     {
       "@type": "Question",
-      "name": "Is VocUI GDPR compliant?",
+      "name": "Can the chatbot answer questions about Part P compliance and certification?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VocUI is GDPR compliant. Conversation data is stored securely, you control what the chatbot knows, and visitor data is never used to train third-party AI models. You can delete data at any time."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "How is VocUI different from a generic chatbot for Electricians?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Unlike generic chatbots, VocUI is trained exclusively on your own content -- your service descriptions, policies, FAQs, and documents. It only answers questions relevant to your Electricians business and escalates to your team when it cannot help, with full conversation context included."
+        "text": "Yes, if you upload your certification FAQ. It explains what work requires a Part P-registered electrician, what documentation you provide, and why compliance matters — building trust before a customer picks up the phone."
       }
     }
   ]
 };
+
 const breadcrumbLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -283,7 +276,6 @@ export default function ChatbotForElectriciansPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
 
       <Header />
@@ -385,7 +377,7 @@ export default function ChatbotForElectriciansPage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">How it works</Badge>
               <h2 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                Set up in under an hour. No developers needed.
+                Live before your next job enquiry. No developers needed.
               </h2>
             </div>
 
@@ -453,19 +445,28 @@ export default function ChatbotForElectriciansPage() {
           </div>
         </section>
 
-        {/* ── Testimonial ─────────────────────────────────────────────────────── */}
+        {/* ── How Businesses Use VocUI ────────────────────────────────────────── */}
         <section className="bg-secondary-50 dark:bg-secondary-800/30 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge variant="outline" className="mb-8">From an electrical business using VocUI</Badge>
-              <blockquote className="text-2xl font-semibold text-secondary-900 dark:text-secondary-100 leading-snug mb-6">
-                &ldquo;We were losing at least three quote requests a week to voicemail. VocUI captures
-                them overnight now — I check my inbox in the morning and the leads are already there,
-                with the job details filled in.&rdquo;
-              </blockquote>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm">
-                D.H. &mdash; Owner, Independent Electrical Contractor
-              </p>
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4">How electrical contractors use VocUI</Badge>
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  A typical week, before and after VocUI
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { step: 'Before', text: 'Quote requests going to voicemail after hours, with no way to capture job details until the next morning — leads cooling off or calling a competitor overnight.' },
+                  { step: 'Setup', text: 'Uploaded their services list, coverage area, typical pricing guide, and callout policy — live the same day without writing a line of code.' },
+                  { step: 'After', text: 'After-hours enquiries captured with job type and location details. Morning inbox includes qualified leads. Fewer wasted callbacks to unfit requests.' },
+                ].map((item) => (
+                  <div key={item.step} className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl p-5">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2">{item.step}</p>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
