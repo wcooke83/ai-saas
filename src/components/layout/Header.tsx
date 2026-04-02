@@ -32,7 +32,7 @@ const menuLinks = {
     { label: 'Industries', href: '/industries' },
     { label: 'Pricing', href: '/pricing' },
     { label: 'Features', href: '/#features' },
-    { label: 'Integrations', href: '/solutions#integrations' },
+    { label: 'Integrations', href: '/integrations' },
   ],
   resources: [
     { label: 'Documentation', href: '/wiki' },

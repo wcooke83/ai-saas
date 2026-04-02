@@ -42,9 +42,9 @@ export function HomeHero() {
               variants={fadeUp}
               className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-secondary-900 dark:text-secondary-100 leading-[1.08] mb-8"
             >
-              Stop answering the same questions twice.{' '}
+              Stop answering the same questions.{' '}
               <span className="text-primary-500">Your knowledge base</span>{' '}
-              becomes a chatbot that handles it.
+              becomes the chatbot.
             </motion.h1>
 
             {/* Supporting text */}

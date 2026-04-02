@@ -3,11 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Header } from '@/components/layout';
-import { ToolsHero } from '@/components/ui/tools-hero';
 import { Footer } from '@/components/ui/footer';
 import { PageBackground } from '@/components/ui/page-background';
 import {
@@ -18,85 +17,111 @@ import {
   Crown,
   HelpCircle,
   ChevronDown,
-  Shield,
-  Star,
   Building2,
-  Rocket,
-  Bot,
+  ArrowRight,
+  MessageSquareQuote,
 } from 'lucide-react';
 import type { SubscriptionPlan } from '@/types/billing';
 import { isCustomPricingPlan, sortPlansByDisplayOrder } from '@/lib/billing/utils';
-import { StyledBulletList } from '@/components/blog/styled-lists';
 
-// Tool display configuration
-const toolConfig: Record<string, { name: string; icon: typeof Bot }> = {
-  custom_chatbots: { name: 'Custom Chatbots', icon: Bot },
+// ────────────────────────────────────────────────────────────────────────────
+// Animation variants
+// ────────────────────────────────────────────────────────────────────────────
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
 };
 
-// Plan styling configuration based on slug
+const fadeUpDramatic = {
+  hidden: { opacity: 0, y: 32 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: 'easeOut' } },
+};
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1 } },
+};
+
+const staggerCards = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08 } },
+};
+
+// ────────────────────────────────────────────────────────────────────────────
+// Plan styling configuration
+// ────────────────────────────────────────────────────────────────────────────
+
 const planStyles: Record<string, {
   icon: typeof Sparkles | typeof Zap | typeof Crown;
-  iconBg: string;
-  iconColor: string;
-  cardClass: string;
+  accentColor: string;
+  accentBg: string;
+  accentBorder: string;
+  checkColor: string;
   cta: string;
   ctaSubtext?: string;
-  ctaVariant: 'ghost' | 'default' | 'outline';
-  popular: boolean;
+  featured: boolean;
 }> = {
   free: {
     icon: Sparkles,
-    iconBg: 'bg-secondary-100 dark:bg-secondary-700',
-    iconColor: 'text-secondary-600 dark:text-secondary-200',
-    cardClass: 'border-secondary-200 dark:border-secondary-600 bg-white dark:bg-secondary-800',
+    accentColor: 'text-secondary-500 dark:text-secondary-400',
+    accentBg: 'bg-secondary-100 dark:bg-secondary-700',
+    accentBorder: 'border-secondary-200 dark:border-secondary-700',
+    checkColor: 'text-secondary-400 dark:text-secondary-500',
     cta: 'Create Free Chatbot',
-    ctaVariant: 'outline',
-    popular: false,
+    featured: false,
   },
   base: {
     icon: Sparkles,
-    iconBg: 'bg-emerald-100 dark:bg-emerald-800/60',
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
-    cardClass: 'border-emerald-200 dark:border-emerald-600 bg-white dark:bg-secondary-800',
+    accentColor: 'text-emerald-600 dark:text-emerald-400',
+    accentBg: 'bg-emerald-100 dark:bg-emerald-800/60',
+    accentBorder: 'border-emerald-200 dark:border-emerald-600',
+    checkColor: 'text-emerald-500 dark:text-emerald-400',
     cta: 'Get Base Plan',
-    ctaVariant: 'default',
-    popular: false,
+    featured: false,
   },
   pro: {
     icon: Zap,
-    iconBg: 'bg-primary-100 dark:bg-primary-800/60',
-    iconColor: 'text-primary-600 dark:text-primary-400',
-    cardClass: 'border-2 border-primary-400 dark:border-primary-400 shadow-xl shadow-primary-500/20 dark:shadow-primary-400/40 bg-gradient-to-b from-primary-50/50 to-white dark:from-primary-900/40 dark:to-secondary-800 ring-1 ring-primary-500/20 dark:ring-primary-400/50',
+    accentColor: 'text-primary-600 dark:text-primary-400',
+    accentBg: 'bg-primary-100 dark:bg-primary-800/60',
+    accentBorder: 'border-primary-400 dark:border-primary-400',
+    checkColor: 'text-primary-500 dark:text-primary-400',
     cta: 'Start Free Trial',
     ctaSubtext: 'No credit card required',
-    ctaVariant: 'default',
-    popular: true,
+    featured: true,
   },
   enterprise: {
     icon: Crown,
-    iconBg: 'bg-amber-100 dark:bg-amber-800/50',
-    iconColor: 'text-amber-600 dark:text-amber-400',
-    cardClass: 'border-amber-300 dark:border-amber-500/70 bg-gradient-to-br from-white to-amber-50/30 dark:from-secondary-800 dark:to-amber-900/20 ring-1 ring-amber-200/50 dark:ring-amber-500/30',
+    accentColor: 'text-amber-600 dark:text-amber-400',
+    accentBg: 'bg-amber-100 dark:bg-amber-800/50',
+    accentBorder: 'border-amber-300 dark:border-amber-500/70',
+    checkColor: 'text-amber-500 dark:text-amber-400',
     cta: 'Talk to Sales',
-    ctaVariant: 'outline',
-    popular: false,
+    featured: false,
   },
 };
 
-// Default styling for plans not in the map
 const defaultPlanStyle = {
   icon: Zap,
-  iconBg: 'bg-primary-100 dark:bg-primary-800/60',
-  iconColor: 'text-primary-600 dark:text-primary-400',
-  cardClass: 'border-secondary-200 dark:border-secondary-600 bg-white dark:bg-secondary-800',
+  accentColor: 'text-primary-600 dark:text-primary-400',
+  accentBg: 'bg-primary-100 dark:bg-primary-800/60',
+  accentBorder: 'border-secondary-200 dark:border-secondary-600',
+  checkColor: 'text-secondary-400 dark:text-secondary-500',
   cta: 'Get Started',
-  ctaVariant: 'default' as const,
-  popular: false,
+  featured: false,
+};
+
+// ────────────────────────────────────────────────────────────────────────────
+// Data
+// ────────────────────────────────────────────────────────────────────────────
+
+const toolConfig: Record<string, { name: string }> = {
+  custom_chatbots: { name: 'Custom Chatbots' },
 };
 
 const testimonials = [
   {
-    quote: "We deployed a chatbot trained on our knowledge base in under an hour. It now handles about 70% of support inquiries on its own — without us touching it.",
+    quote: "We deployed a chatbot trained on our knowledge base in under an hour. It now handles about 70% of support inquiries on its own \u2014 without us touching it.",
     author: "J.D.",
     role: "Marketing Director",
     company: "E-commerce brand",
@@ -121,7 +146,6 @@ const testimonials = [
   },
 ];
 
-// Feature display names for non-tool features
 const featureDisplayNames: Record<string, string> = {
   priority_support: 'Priority Support',
   dedicated_support: 'Dedicated Account Manager',
@@ -133,13 +157,46 @@ const featureDisplayNames: Record<string, string> = {
   custom_branding: 'Custom Branding',
 };
 
-// Helper to build comparison features from plans
+const faqs = [
+  {
+    question: 'What are credits?',
+    answer: 'Credits are used each time your chatbot answers a question. A short answer uses about 1 credit. A detailed, multi-paragraph response uses 2\u20133. A 10-message conversation typically uses 5\u201315 credits total. Adding knowledge sources does not consume credits.',
+  },
+  {
+    question: 'Can I change plans anytime?',
+    answer: 'Yes. Upgrade or downgrade anytime \u2014 changes take effect immediately, and we prorate the difference.',
+  },
+  {
+    question: 'What happens if I run out of credits?',
+    answer: 'Your chatbot pauses until credits are available. You can buy more credits instantly, turn on auto-topup so you never run out, or upgrade to a plan with a higher monthly allocation.',
+  },
+  {
+    question: 'Does Pro have a free trial?',
+    answer: 'Yes \u2014 14 days, full access, no credit card required.',
+  },
+  {
+    question: 'What payment methods do you accept?',
+    answer: 'All major credit cards (Visa, Mastercard, Amex) and PayPal. Enterprise customers can also pay by invoice.',
+  },
+  {
+    question: 'Can I get a refund?',
+    answer: 'Yes. If you\u2019re not satisfied within 14 days of your purchase, contact support for a full refund.',
+  },
+  {
+    question: 'What counts as a knowledge source?',
+    answer: 'Anything your chatbot learns from: web pages, PDFs, Word documents, or plain text. You add the source, and VocUI reads and organizes the content so your chatbot can answer questions about it.',
+  },
+];
+
+// ────────────────────────────────────────────────────────────────────────────
+// Helper: build comparison features from plans
+// ────────────────────────────────────────────────────────────────────────────
+
 function buildComparisonFeatures(plans: SubscriptionPlan[]) {
   if (!plans.length) return [];
 
   const sortedPlans = sortPlansByDisplayOrder(plans);
 
-  // Start with credits and API keys
   const features: { name: string; values: Record<string, boolean | string> }[] = [
     {
       name: 'Monthly Credits',
@@ -161,7 +218,6 @@ function buildComparisonFeatures(plans: SubscriptionPlan[]) {
     },
   ];
 
-  // Collect all unique feature keys across all plans
   const allFeatureKeys = new Set<string>();
   sortedPlans.forEach(plan => {
     if (plan.features && typeof plan.features === 'object') {
@@ -169,14 +225,13 @@ function buildComparisonFeatures(plans: SubscriptionPlan[]) {
     }
   });
 
-  // Add tool features first
   const toolKeys = Array.from(allFeatureKeys).filter(key => toolConfig[key]);
   toolKeys.forEach(key => {
     features.push({
       name: toolConfig[key].name,
       values: Object.fromEntries(
         sortedPlans.map(plan => {
-          const featureValue = (plan.features as Record<string, any>)?.[key];
+          const featureValue = (plan.features as Record<string, unknown>)?.[key];
           if (featureValue === true) return [plan.slug, true];
           if (typeof featureValue === 'string') return [plan.slug, featureValue];
           return [plan.slug, false];
@@ -185,14 +240,13 @@ function buildComparisonFeatures(plans: SubscriptionPlan[]) {
     });
   });
 
-  // Add non-tool features
   const nonToolKeys = Array.from(allFeatureKeys).filter(key => !toolConfig[key]);
   nonToolKeys.forEach(key => {
     features.push({
       name: featureDisplayNames[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
       values: Object.fromEntries(
         sortedPlans.map(plan => {
-          const featureValue = (plan.features as Record<string, any>)?.[key];
+          const featureValue = (plan.features as Record<string, unknown>)?.[key];
           if (featureValue === true) return [plan.slug, true];
           if (typeof featureValue === 'string') return [plan.slug, featureValue];
           return [plan.slug, false];
@@ -204,48 +258,27 @@ function buildComparisonFeatures(plans: SubscriptionPlan[]) {
   return features;
 }
 
-const faqs = [
-  {
-    question: 'What are credits?',
-    answer: 'Credits are consumed each time your chatbot answers a question or processes a knowledge source. A simple one-line answer uses ~1 credit. A detailed multi-paragraph response uses 2–3 credits. A back-and-forth conversation of 10 messages typically uses 5–15 credits total.',
-  },
-  {
-    question: 'Can I change plans anytime?',
-    answer: 'Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we\'ll prorate any differences.',
-  },
-  {
-    question: 'What happens if I run out of credits?',
-    answer: 'You can purchase additional credits anytime, enable auto-topup to never run out, or upgrade for a higher monthly allocation.',
-  },
-  {
-    question: 'Is there a free trial for Pro?',
-    answer: 'Yes! Start a 14-day free trial of Pro with no credit card required. You\'ll have full access to all Pro features.',
-  },
-  {
-    question: 'What payment methods do you accept?',
-    answer: 'We accept all major credit cards (Visa, Mastercard, American Express) and PayPal. Enterprise customers can also pay by invoice.',
-  },
-  {
-    question: 'Can I get a refund?',
-    answer: 'Yes! We offer a 14-day money-back guarantee. If you\'re not satisfied, contact support within 14 days of your initial purchase for a full refund.',
-  },
-];
+// ────────────────────────────────────────────────────────────────────────────
+// Sub-components
+// ────────────────────────────────────────────────────────────────────────────
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const id = `faq-${question.replace(/\s+/g, '-').toLowerCase()}`;
 
   return (
-    <div className="border border-secondary-200 dark:border-secondary-600 rounded-lg overflow-hidden">
+    <div className="border-b border-secondary-200 dark:border-secondary-700">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full p-6 text-left bg-white dark:bg-secondary-800 hover:bg-secondary-50 dark:hover:bg-secondary-700/50 transition-colors flex items-center justify-between gap-4"
+        className="w-full py-5 text-left flex items-start justify-between gap-4 group"
         aria-expanded={isOpen}
         aria-controls={id}
       >
-        <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">{question}</h3>
+        <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+          {question}
+        </h3>
         <ChevronDown
-          className={`w-5 h-5 text-secondary-500 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-5 h-5 text-secondary-400 flex-shrink-0 mt-0.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
           aria-hidden="true"
         />
       </button>
@@ -253,9 +286,12 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         id={id}
         className={`grid transition-all duration-200 ${isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
         aria-hidden={!isOpen}
+        role="region"
       >
         <div className="overflow-hidden">
-          <p className="px-6 pb-6 text-secondary-600 dark:text-secondary-300">{answer}</p>
+          <p className="pb-5 text-secondary-600 dark:text-secondary-300 leading-relaxed">
+            {answer}
+          </p>
         </div>
       </div>
     </div>
@@ -269,12 +305,193 @@ function FeatureValue({ value }: { value: boolean | string }) {
   if (value === false) {
     return <X className="w-5 h-5 text-secondary-300 dark:text-secondary-600 mx-auto" aria-label="Not included" />;
   }
-  return <span className="text-sm text-secondary-700 dark:text-secondary-300">{value}</span>;
+  return <span className="text-sm font-medium text-secondary-700 dark:text-secondary-300">{value}</span>;
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// Pricing card component — compact variant for hero integration
+// ────────────────────────────────────────────────────────────────────────────
+
+const MAX_HERO_BULLETS = 4;
+
+function PricingCard({
+  plan,
+  isYearly,
+}: {
+  plan: SubscriptionPlan;
+  isYearly: boolean;
+}) {
+  const style = planStyles[plan.slug] || defaultPlanStyle;
+  const Icon = style.icon;
+  const isFeatured = plan.is_featured || style.featured;
+  const isCustom = isCustomPricingPlan(plan);
+
+  const monthlyPrice = plan.price_monthly_cents / 100;
+  const yearlyPrice = plan.price_yearly_cents ? plan.price_yearly_cents / 100 : null;
+  const price = isCustom
+    ? null
+    : isYearly && yearlyPrice && yearlyPrice > 0
+      ? Math.round(yearlyPrice / 12)
+      : monthlyPrice;
+  const displayPrice = isCustom ? 'Custom' : price === 0 ? '$0' : `$${price}`;
+  const periodText = isCustom
+    ? 'tailored to you'
+    : monthlyPrice === 0
+      ? 'free forever'
+      : isYearly
+        ? '/mo, billed yearly'
+        : '/month';
+
+  const creditsText = plan.credits_monthly === -1 ? 'Unlimited' : plan.credits_monthly.toLocaleString();
+  const apiKeysText = plan.api_keys_limit === -1 ? 'Unlimited' : plan.api_keys_limit.toString();
+
+  // Build feature list
+  const planFeatures = plan.features && typeof plan.features === 'object'
+    ? Object.entries(plan.features).filter(([, value]) => value === true || (typeof value === 'string' && value))
+    : [];
+
+  const includedTools = planFeatures
+    .filter(([key]) => toolConfig[key])
+    .map(([key, value]) => ({
+      key,
+      name: typeof value === 'string' ? `${toolConfig[key].name} (${value})` : toolConfig[key].name,
+    }));
+
+  const otherFeatures = planFeatures
+    .filter(([key]) => !toolConfig[key])
+    .map(([key]) => featureDisplayNames[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
+
+  // Enterprise gets a curated feature list; others get the data-driven bullets
+  const bullets: string[] = [];
+  if (isCustom) {
+    bullets.push('Custom credit allocation');
+    bullets.push('Dedicated account manager');
+    bullets.push('Priority support (SLA)');
+    bullets.push('Custom integrations');
+  } else {
+    bullets.push(`${creditsText} credits/mo`);
+    bullets.push(`${apiKeysText} API key${plan.api_keys_limit === 1 ? '' : 's'}`);
+    includedTools.forEach(t => bullets.push(t.name));
+    otherFeatures.forEach(f => bullets.push(f));
+  }
+
+  // Cap bullets for compact hero display
+  const displayBullets = bullets.slice(0, MAX_HERO_BULLETS);
+
+  const cardHref = isCustom
+    ? '/help?subject=enterprise'
+    : `/signup?plan=${plan.slug}${isYearly ? '&interval=yearly' : ''}`;
+
+  return (
+    <motion.div
+      variants={fadeUp}
+      className={`relative flex flex-col rounded-xl border transition-shadow duration-200 ${
+        isFeatured
+          ? `border-2 ${style.accentBorder} shadow-xl shadow-primary-500/10 dark:shadow-primary-400/20 bg-gradient-to-b from-primary-50/60 to-white dark:from-primary-900/30 dark:to-secondary-800 z-10 p-5`
+          : `${style.accentBorder} bg-white dark:bg-secondary-800 hover:shadow-lg p-5`
+      }`}
+    >
+      {/* Featured badge */}
+      {isFeatured && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+          <Badge className="bg-gradient-to-r from-primary-600 to-primary-500 dark:from-primary-500 dark:to-primary-400 text-white shadow-md shadow-primary-500/30 px-3 py-0.5 text-[10px] font-semibold">
+            Most Popular
+          </Badge>
+        </div>
+      )}
+
+      {/* Plan name + icon */}
+      <div className="flex items-center gap-2 mb-3">
+        <div className={`p-1.5 rounded-md ${style.accentBg}`}>
+          <Icon className={`w-3.5 h-3.5 ${style.accentColor}`} aria-hidden="true" />
+        </div>
+        <h3 className="text-sm font-semibold text-secondary-900 dark:text-secondary-100">
+          {plan.name}
+        </h3>
+      </div>
+
+      {/* Price display */}
+      <div className="mb-3">
+        <div className="flex items-baseline gap-1">
+          <data
+            value={price ?? 0}
+            className="text-3xl font-bold tracking-tight text-secondary-900 dark:text-secondary-100"
+          >
+            {displayPrice}
+          </data>
+          <span className="text-secondary-500 dark:text-secondary-400 text-xs">
+            {periodText}
+          </span>
+        </div>
+        {!isCustom && isYearly && yearlyPrice && yearlyPrice > 0 && (
+          <p className="mt-0.5 text-xs text-green-600 dark:text-green-400 font-medium">
+            Save ${(monthlyPrice ?? 0) * 12 - yearlyPrice}/yr
+          </p>
+        )}
+      </div>
+
+      {/* Features list */}
+      <div className="flex-1 mb-4" aria-label={`${plan.name} plan features`}>
+        {isCustom && (
+          <p className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-2">
+            Everything in Pro, plus:
+          </p>
+        )}
+        <ul className="space-y-1.5" role="list">
+          {displayBullets.map(bullet => (
+            <li key={bullet} className="flex items-start gap-2">
+              <Check className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${style.checkColor}`} aria-hidden="true" />
+              <span className="text-xs text-secondary-600 dark:text-secondary-400 leading-snug">{bullet}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* CTA — pinned to bottom */}
+      <div className="mt-auto">
+        <Button
+          variant={isFeatured ? 'default' : 'outline'}
+          className={`w-full ${
+            isFeatured
+              ? 'bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 dark:from-primary-500 dark:to-primary-400 dark:hover:from-primary-600 dark:hover:to-primary-500 shadow-lg shadow-primary-500/25 dark:shadow-primary-400/40 text-white font-semibold'
+              : plan.slug === 'enterprise'
+                ? 'border-amber-400 dark:border-amber-500 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30 font-medium'
+                : plan.slug === 'base'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-medium border-0'
+                  : ''
+          }`}
+          size="default"
+          asChild
+        >
+          <Link href={cardHref}>
+            {style.cta}
+            {isFeatured && <ArrowRight className="w-3.5 h-3.5 ml-1.5" aria-hidden="true" />}
+          </Link>
+        </Button>
+        {style.ctaSubtext && (
+          <p className="text-center text-[10px] text-secondary-500 dark:text-secondary-400 mt-1.5">
+            {style.ctaSubtext}
+          </p>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Enterprise card — separate component, horizontal layout at lg
+// ────────────────────────────────────────────────────────────────────────────
+
+
+// ────────────────────────────────────────────────────────────────────────────
+// Main component
+// ────────────────────────────────────────────────────────────────────────────
 
 export default function PricingClient({ plans }: { plans: SubscriptionPlan[] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const prefersReducedMotion = useReducedMotion();
+
   const [isYearly, setIsYearly] = useState(() => {
     const billing = searchParams.get('billing');
     return billing ? billing === 'annual' : true;
@@ -287,436 +504,425 @@ export default function PricingClient({ plans }: { plans: SubscriptionPlan[] }) 
     params.set('billing', next ? 'annual' : 'monthly');
     router.replace(`?${params.toString()}`, { scroll: false });
   }
-  const [showComparison, setShowComparison] = useState(true);
+
+  const sortedPlans = sortPlansByDisplayOrder(plans);
+  const allPlans = sortedPlans;
+
+  // Average savings for annual billing
+  const paidPlans = plans.filter(p => p.price_monthly_cents > 0 && p.price_yearly_cents && p.price_yearly_cents > 0);
+  const avgSavings = paidPlans.length > 0
+    ? Math.round(
+        paidPlans.reduce((sum, p) => {
+          const monthlyTotal = p.price_monthly_cents * 12;
+          const yearly = p.price_yearly_cents!;
+          return sum + ((monthlyTotal - yearly) / monthlyTotal) * 100;
+        }, 0) / paidPlans.length
+      )
+    : 0;
+
+  const comparisonFeatures = buildComparisonFeatures(plans);
 
   return (
     <PageBackground>
       <Header secondaryCta={{ label: 'Sign In', href: '/login' }} />
 
       <main id="main-content">
-        {/* Hero */}
-        <ToolsHero
-          badge="Pricing"
-          title="Simple, transparent pricing"
-          description="Choose the plan that fits your needs. All plans include chatbot building and deployment. Upgrade or downgrade anytime."
-          breadcrumbs={[
-            { label: 'Pricing' },
-          ]}
-          compact
-        />
 
-        {/* Billing Toggle */}
-        <section className="container mx-auto px-4 pb-8">
-          <div className="flex items-center justify-center gap-4">
-            <span className={`text-sm font-medium ${!isYearly ? 'text-secondary-900 dark:text-secondary-100' : 'text-secondary-500 dark:text-secondary-400'}`}>
-              Monthly
-            </span>
-            <button
-              onClick={toggleBilling}
-              className={`relative w-16 h-11 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                isYearly ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600'
-              }`}
-              role="switch"
-              aria-checked={isYearly}
-              aria-label="Toggle annual billing"
-            >
-              <span
-                className={`absolute top-2 left-2 w-7 h-7 bg-white rounded-full shadow transition-transform ${
-                  isYearly ? 'translate-x-5' : ''
-                }`}
-              />
-            </button>
-            <span className={`text-sm font-medium ${isYearly ? 'text-secondary-900 dark:text-secondary-100' : 'text-secondary-500 dark:text-secondary-400'}`}>
-              Annual
-            </span>
-            {(() => {
-              const paidPlans = plans.filter(p => p.price_monthly_cents > 0 && p.price_yearly_cents && p.price_yearly_cents > 0);
-              if (paidPlans.length === 0) return null;
-              const avgSavings = Math.round(
-                paidPlans.reduce((sum, p) => {
-                  const monthlyTotal = p.price_monthly_cents * 12;
-                  const yearly = p.price_yearly_cents!;
-                  return sum + ((monthlyTotal - yearly) / monthlyTotal) * 100;
-                }, 0) / paidPlans.length
-              );
-              if (avgSavings <= 0) return null;
-              return (
-                <Badge variant="outline" className="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-700">
-                  Save {avgSavings}%
-                </Badge>
-              );
-            })()}
-          </div>
-        </section>
+        {/* ──────────────────────────────────────────────────────────────── */}
+        {/* SECTION 1: Hero with integrated pricing cards                  */}
+        {/* Full-viewport height. Left col: copy + billing toggle + trust. */}
+        {/* Right col: 3 compact pricing cards in a tight grid.            */}
+        {/* ──────────────────────────────────────────────────────────────── */}
+        <section
+          id="pricing"
+          className="relative min-h-[calc(100dvh-4rem)] flex items-center overflow-hidden"
+        >
+          <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div className="grid lg:grid-cols-12 gap-10 xl:gap-16 items-center w-full">
 
-        {/* Trust Bar */}
-        <section className="container mx-auto px-4 pb-12">
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-secondary-600 dark:text-secondary-400">
-            <div className="flex items-center gap-2">
-              <Rocket className="w-4 h-4" aria-hidden="true" />
-              <span>Get started in minutes</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-500 dark:text-amber-400" aria-hidden="true" />
-              <span>No credit card required</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-green-600 dark:text-green-400" aria-hidden="true" />
-              <span>14-day money-back guarantee</span>
-            </div>
-          </div>
-        </section>
-
-        {/* Pricing Cards */}
-        <section id="pricing" className="container mx-auto px-4 pb-24">
-          <div className="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">
-                {sortPlansByDisplayOrder(plans).map((plan) => {
-                  const isCustom = isCustomPricingPlan(plan);
-                  const style = planStyles[plan.slug] || defaultPlanStyle;
-                  const Icon = style.icon;
-                  const monthlyPrice = plan.price_monthly_cents / 100;
-                  const yearlyPrice = plan.price_yearly_cents ? plan.price_yearly_cents / 100 : null;
-                  const price = isCustom
-                    ? null
-                    : isYearly && yearlyPrice && yearlyPrice > 0
-                      ? Math.round(yearlyPrice / 12)
-                      : monthlyPrice;
-                  const displayPrice = isCustom ? 'Custom' : price === 0 ? '$0' : `$${price}`;
-                  const periodText = isCustom
-                    ? 'tailored to your needs'
-                    : monthlyPrice === 0
-                      ? 'forever'
-                      : isYearly
-                        ? '/mo (billed yearly)'
-                        : '/month';
-                  const apiKeysText = plan.api_keys_limit === -1 ? 'Unlimited' : plan.api_keys_limit.toString();
-                  const creditsText = plan.credits_monthly === -1 ? 'Unlimited' : plan.credits_monthly.toLocaleString();
-                  
-                  // Separate tools and other features from plan data
-                  const planFeatures = plan.features && typeof plan.features === 'object'
-                    ? Object.entries(plan.features).filter(([_, value]) => value === true || (typeof value === 'string' && value))
-                    : [];
-
-                  const includedTools = planFeatures
-                    .filter(([key]) => toolConfig[key])
-                    .map(([key, value]) => ({
-                      key,
-                      name: typeof value === 'string' ? `${toolConfig[key].name} (${value})` : toolConfig[key].name,
-                      icon: toolConfig[key].icon,
-                    }));
-
-                  const otherFeatures = planFeatures
-                    .filter(([key]) => !toolConfig[key])
-                    .map(([key]) => key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
-
-                  return (
-                    <Card
-                      key={plan.name}
-                      className={`relative flex flex-col transition-all duration-200 ${style.cardClass} ${
-                        (plan.is_featured || style.popular)
-                          ? 'md:scale-105 order-first md:order-none'
-                          : 'hover:border-secondary-300 dark:hover:border-secondary-600'
-                      }`}
-                    >
-                      {(plan.is_featured || style.popular) && (
-                        <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                          <Badge className="bg-gradient-to-r from-primary-600 to-primary-500 dark:from-primary-500 dark:to-primary-400 text-white shadow-md shadow-primary-500/30 px-4 py-1 font-semibold">
-                            Most Popular
-                          </Badge>
-                        </div>
-                      )}
-                      {isCustom && (
-                        <div className="absolute -top-4 right-4">
-                          <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white border-0 shadow-md shadow-amber-500/20 px-4 py-1 font-semibold">
-                            Custom
-                          </Badge>
-                        </div>
-                      )}
-                      <CardHeader className="text-center pb-2">
-                        <div className={`mx-auto p-3 rounded-lg ${style.iconBg} w-fit mb-4`}>
-                          <Icon className={`w-6 h-6 ${style.iconColor}`} aria-hidden="true" />
-                        </div>
-                        <CardTitle className="text-xl">{plan.name}</CardTitle>
-                        <CardDescription>{plan.description || ''}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="flex-1 flex flex-col space-y-6">
-                        {/* Price with semantic markup */}
-                        <div className="text-center">
-                          <span className="sr-only">Price: </span>
-                          <data value={price ?? 'custom'} className="text-5xl font-bold text-secondary-900 dark:text-secondary-100">
-                            {displayPrice}
-                          </data>
-                          <span className="text-secondary-500 dark:text-secondary-300 block text-sm mt-1">
-                            {periodText}
-                          </span>
-                          {!isCustom && isYearly && yearlyPrice && yearlyPrice > 0 && (
-                            <span className="text-green-600 dark:text-green-400 text-sm font-medium">
-                              ${yearlyPrice}/year (save ${(monthlyPrice ?? 0) * 12 - yearlyPrice})
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Credit context */}
-                        {isCustom ? (
-                          <div className="text-center py-3 bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-800/20 rounded-lg border border-amber-200/50 dark:border-amber-700/30">
-                            <div className="font-semibold text-amber-700 dark:text-amber-300">
-                              Custom Allocation
-                            </div>
-                            <div className="text-xs text-amber-600/80 dark:text-amber-400/80">
-                              Tailored to your organization&apos;s needs
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-center py-3 bg-secondary-50 dark:bg-secondary-700/30 rounded-lg">
-                            <div className="font-semibold text-secondary-900 dark:text-secondary-100">
-                              {creditsText} credits/month
-                            </div>
-                            <div className="text-xs text-secondary-500 dark:text-secondary-400">
-                              ~{plan.credits_monthly === -1 ? 'Unlimited' : Math.round(plan.credits_monthly / 2).toLocaleString()} chatbot conversations/month
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="space-y-4 flex-1" aria-label={`${plan.name} plan features`}>
-                          {isCustom ? (
-                            <>
-                              {/* Enterprise features for custom pricing */}
-                              <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Everything in Pro, plus:</p>
-                              <StyledBulletList items={[
-                                'Custom credit allocation',
-                                'Dedicated account manager',
-                                'Priority support (SLA)',
-                                'Custom integrations',
-                                'SSO & advanced security',
-                                'Onboarding & training',
-                              ]} />
-                            </>
-                          ) : (
-                            <>
-                              {/* Credits and API keys */}
-                              <StyledBulletList items={[
-                                `${creditsText} credits/month`,
-                                `${apiKeysText} API keys`,
-                              ]} />
-
-                              {/* Included Tools */}
-                              {includedTools.length > 0 && (
-                                <div>
-                                  <p className="text-xs font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider mb-2">Included Tools</p>
-                                  <StyledBulletList items={includedTools.map((tool) => {
-                                    const ToolIcon = tool.icon;
-                                    return (
-                                      <><ToolIcon className="w-4 h-4 text-primary-500 dark:text-primary-400 flex-shrink-0 inline-block mr-1.5" aria-hidden="true" />{tool.name}</>
-                                    );
-                                  })} />
-                                </div>
-                              )}
-
-                              {/* Other features */}
-                              {otherFeatures.length > 0 && (
-                                <StyledBulletList items={otherFeatures} />
-                              )}
-                            </>
-                          )}
-                        </div>
-
-                        <div className="mt-auto space-y-2">
-                          <Button
-                            variant={style.ctaVariant}
-                            className={`w-full focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-secondary-800 ${
-                              (plan.is_featured || style.popular)
-                                ? 'bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 dark:from-primary-500 dark:to-primary-400 dark:hover:from-primary-600 dark:hover:to-primary-500 shadow-lg shadow-primary-500/25 dark:shadow-primary-400/40 text-white font-semibold'
-                                : plan.slug === 'enterprise'
-                                  ? 'border-amber-400 dark:border-amber-500 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30 font-medium'
-                                  : plan.slug === 'base'
-                                    ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-medium'
-                                    : 'text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-secondary-100'
-                            }`}
-                            size="lg"
-                            asChild
-                          >
-                            <Link href={plan.slug === 'enterprise' ? '/help?subject=enterprise' : `/signup?plan=${plan.slug}${isYearly ? '&interval=yearly' : ''}`}>{style.cta}</Link>
-                          </Button>
-                          {style.ctaSubtext && (
-                            <p className="text-center text-xs text-secondary-500 dark:text-secondary-400">
-                              {style.ctaSubtext}
-                            </p>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-
-              {/* Compare All Features */}
-              <div className="max-w-6xl mx-auto mt-12">
-                <button
-                  onClick={() => setShowComparison(!showComparison)}
-                  className="flex items-center gap-2 mx-auto text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded"
-                >
-                  <span>{showComparison ? 'Hide all' : 'Show all'} features</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${showComparison ? 'rotate-180' : ''}`} />
-                </button>
-
-                {showComparison && (
-                  <div className="mt-8 overflow-x-auto">
-                    {(() => {
-                      const sortedPlans = sortPlansByDisplayOrder(plans);
-                      const comparisonFeatures = buildComparisonFeatures(plans);
-
-                      return (
-                        <table className="w-full border-collapse">
-                          <thead>
-                            <tr className="border-b border-secondary-200 dark:border-secondary-700">
-                              <th className="text-left py-4 px-4 font-semibold text-secondary-900 dark:text-secondary-100">Feature</th>
-                              {sortedPlans.map(plan => {
-                                const style = planStyles[plan.slug] || defaultPlanStyle;
-                                const isFeatured = plan.is_featured || style.popular;
-                                return (
-                                  <th
-                                    key={plan.slug}
-                                    className={`text-center py-4 px-4 font-semibold ${
-                                      isFeatured
-                                        ? 'text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-900/20'
-                                        : plan.slug === 'enterprise'
-                                          ? 'text-amber-600 dark:text-amber-400'
-                                          : 'text-secondary-900 dark:text-secondary-100'
-                                    }`}
-                                  >
-                                    {plan.name}
-                                  </th>
-                                );
-                              })}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {comparisonFeatures.map((feature, i) => (
-                              <tr
-                                key={feature.name}
-                                className={`border-b border-secondary-100 dark:border-secondary-800 ${i % 2 === 0 ? 'bg-secondary-50/50 dark:bg-secondary-800/30' : ''}`}
-                              >
-                                <td className="py-3 px-4 text-sm text-secondary-700 dark:text-secondary-300">{feature.name}</td>
-                                {sortedPlans.map(plan => {
-                                  const style = planStyles[plan.slug] || defaultPlanStyle;
-                                  const isFeatured = plan.is_featured || style.popular;
-                                  return (
-                                    <td
-                                      key={plan.slug}
-                                      className={`py-3 px-4 text-center ${isFeatured ? 'bg-primary-50/30 dark:bg-primary-900/10' : ''}`}
-                                    >
-                                      <FeatureValue value={feature.values[plan.slug] ?? false} />
-                                    </td>
-                                  );
-                                })}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      );
-                    })()}
-                  </div>
-                )}
-              </div>
-        </section>
-
-        {/* Testimonials */}
-        <section className="container mx-auto px-4 pb-24">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">What early users are saying</h2>
-            <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-2">Illustrative feedback from early access users</p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-3 max-w-6xl mx-auto">
-            {testimonials.map((testimonial) => (
-              <div
-                key={testimonial.author}
-                className="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-600 rounded-xl p-6"
+              {/* Left column — copy, toggle, trust */}
+              <motion.div
+                className="lg:col-span-5 flex flex-col items-start text-left"
+                initial={prefersReducedMotion ? false : 'hidden'}
+                animate="visible"
+                variants={stagger}
               >
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" aria-hidden="true" />
+                {/* Eyebrow */}
+                <motion.p
+                  variants={fadeUp}
+                  className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-500 dark:text-primary-400 mb-5"
+                >
+                  Pricing
+                </motion.p>
+
+                {/* H1 */}
+                <motion.h1
+                  variants={fadeUp}
+                  className="text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-secondary-900 dark:text-secondary-100 leading-[1.08] mb-5"
+                >
+                  One chatbot.{' '}
+                  <span className="text-primary-500">Your entire knowledge base.</span>
+                </motion.h1>
+
+                {/* Subtitle */}
+                <motion.p
+                  variants={fadeUp}
+                  className="text-lg text-secondary-600 dark:text-secondary-400 leading-relaxed mb-8 max-w-md"
+                >
+                  Pick a plan that fits how many questions your chatbot handles.
+                </motion.p>
+
+                {/* Billing toggle */}
+                <motion.div variants={fadeUp} className="mb-8">
+                  <div className="inline-flex items-center gap-3 bg-secondary-100 dark:bg-secondary-800 rounded-full px-1.5 py-1.5">
+                    <button
+                      onClick={() => { if (isYearly) toggleBilling(); }}
+                      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                        !isYearly
+                          ? 'bg-white dark:bg-secondary-700 text-secondary-900 dark:text-secondary-100 shadow-sm'
+                          : 'text-secondary-500 dark:text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-300'
+                      }`}
+                      aria-pressed={!isYearly}
+                    >
+                      Monthly
+                    </button>
+                    <button
+                      onClick={() => { if (!isYearly) toggleBilling(); }}
+                      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+                        isYearly
+                          ? 'bg-white dark:bg-secondary-700 text-secondary-900 dark:text-secondary-100 shadow-sm'
+                          : 'text-secondary-500 dark:text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-300'
+                      }`}
+                      aria-pressed={isYearly}
+                    >
+                      Annual
+                      {avgSavings > 0 && (
+                        <span className="text-xs font-semibold text-green-600 dark:text-green-400">
+                          -{avgSavings}%
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
+
+                {/* Trust signals */}
+                <motion.div
+                  variants={fadeUp}
+                  className="flex flex-col gap-2 text-sm text-secondary-500 dark:text-secondary-400"
+                >
+                  <span>Free plan, no credit card required</span>
+                  <span>Switch or cancel anytime</span>
+                  <span>14-day money-back guarantee</span>
+                </motion.div>
+              </motion.div>
+
+              {/* Right column — 3 pricing cards */}
+              <motion.div
+                className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-4 items-start"
+                variants={staggerCards}
+                initial={prefersReducedMotion ? false : 'hidden'}
+                animate="visible"
+              >
+                {allPlans.map(plan => (
+                  <PricingCard
+                    key={plan.id}
+                    plan={plan}
+                    isYearly={isYearly}
+                  />
+                ))}
+              </motion.div>
+
+            </div>
+          </div>
+
+          {/* Scroll indicator */}
+          <motion.div
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden lg:flex flex-col items-center gap-2 text-secondary-400 dark:text-secondary-600"
+            initial={prefersReducedMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2, duration: 0.6 }}
+            aria-hidden="true"
+          >
+            <div className="w-px h-12 bg-gradient-to-b from-transparent to-secondary-300 dark:to-secondary-700" />
+          </motion.div>
+        </section>
+
+        {/* ──────────────────────────────────────────────────────────────── */}
+        {/* SECTION 3: Social proof / testimonials                         */}
+        {/* Full-bleed dark section. Featured pull quote on left,          */}
+        {/* two supporting quotes on right with border-left accent.        */}
+        {/* ──────────────────────────────────────────────────────────────── */}
+        <section className="w-full bg-primary-950 py-24 lg:py-32">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              variants={stagger}
+              initial={prefersReducedMotion ? false : 'hidden'}
+              whileInView="visible"
+              viewport={{ once: true, margin: '-80px' }}
+            >
+              <motion.p
+                variants={fadeUp}
+                className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-400 mb-10 lg:mb-14"
+              >
+                Teams using VocUI
+              </motion.p>
+
+              <div className="grid lg:grid-cols-12 gap-10 lg:gap-12">
+                {/* Featured testimonial */}
+                <motion.div variants={fadeUpDramatic} className="lg:col-span-7">
+                  <blockquote>
+                    <MessageSquareQuote
+                      className="w-10 h-10 text-primary-500/40 mb-4"
+                      aria-hidden="true"
+                    />
+                    <p className="text-2xl lg:text-3xl font-medium text-white leading-snug mb-8">
+                      {testimonials[0].quote}
+                    </p>
+                    <footer className="flex items-center gap-4">
+                      <div
+                        className={`w-12 h-12 rounded-full bg-gradient-to-br ${testimonials[0].gradient} flex items-center justify-center text-white font-bold text-sm`}
+                        aria-hidden="true"
+                      >
+                        {testimonials[0].initials}
+                      </div>
+                      <cite className="not-italic">
+                        <strong className="text-white block text-sm">{testimonials[0].author}</strong>
+                        <span className="text-primary-200/70 text-sm">
+                          {testimonials[0].role}, {testimonials[0].company}
+                        </span>
+                      </cite>
+                    </footer>
+                  </blockquote>
+                </motion.div>
+
+                {/* Supporting testimonials */}
+                <div className="lg:col-span-5 flex flex-col gap-8 lg:gap-10 lg:justify-center">
+                  {testimonials.slice(1).map((t) => (
+                    <motion.blockquote
+                      key={t.author}
+                      variants={fadeUp}
+                      className="border-l-2 border-primary-700 pl-6"
+                    >
+                      <p className="text-primary-100/80 leading-relaxed mb-4">
+                        &ldquo;{t.quote}&rdquo;
+                      </p>
+                      <footer className="flex items-center gap-3">
+                        <div
+                          className={`w-9 h-9 rounded-full bg-gradient-to-br ${t.gradient} flex items-center justify-center text-white font-bold text-xs`}
+                          aria-hidden="true"
+                        >
+                          {t.initials}
+                        </div>
+                        <cite className="not-italic">
+                          <strong className="text-white text-sm block">{t.author}</strong>
+                          <span className="text-primary-200/60 text-xs flex items-center gap-1">
+                            <Building2 className="w-3 h-3" aria-hidden="true" />
+                            {t.role}, {t.company}
+                          </span>
+                        </cite>
+                      </footer>
+                    </motion.blockquote>
                   ))}
                 </div>
-                <blockquote className="text-secondary-700 dark:text-secondary-300 mb-4 text-sm">
-                  &ldquo;{testimonial.quote}&rdquo;
-                </blockquote>
-                <div className="flex items-center gap-3">
-                  <div className={`flex-shrink-0 w-10 h-10 bg-gradient-to-br ${testimonial.gradient} rounded-full flex items-center justify-center text-white font-bold text-sm`}>
-                    {testimonial.initials}
-                  </div>
-                  <div>
-                    <cite className="not-italic">
-                      <strong className="text-sm text-secondary-900 dark:text-secondary-100 block">{testimonial.author}</strong>
-                      <span className="text-xs text-secondary-500 dark:text-secondary-400">{testimonial.role}</span>
-                    </cite>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <Building2 className="w-3 h-3 text-secondary-400" aria-hidden="true" />
-                      <span className="text-xs text-secondary-500 dark:text-secondary-400">{testimonial.company}</span>
-                    </div>
-                  </div>
-                </div>
               </div>
-            ))}
+            </motion.div>
           </div>
         </section>
 
-        {/* FAQ */}
-        <section className="container mx-auto px-4 pb-24">
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-12">
-              <Badge variant="outline" className="mb-4">
-                <HelpCircle className="w-3 h-3 mr-1" aria-hidden="true" />
-                FAQ
-              </Badge>
-              <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">Frequently Asked Questions</h2>
-            </div>
-
-            <div className="space-y-4" role="region" aria-label="Frequently Asked Questions">
-              {faqs.map((faq) => (
-                <FAQItem key={faq.question} question={faq.question} answer={faq.answer} />
-              ))}
-            </div>
-
-            <div className="text-center mt-12">
-              <p className="text-secondary-600 dark:text-secondary-300 mb-4">Still have questions?</p>
-              <Button variant="outline" asChild>
-                <Link href="/help">Contact Support</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="container mx-auto px-4 pb-16">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="rounded-3xl bg-gradient-to-br from-primary-700 to-primary-800 p-12 text-white shadow-xl">
-              <h2 className="text-3xl font-bold mb-4">Build your first chatbot today</h2>
-              <p className="text-lg text-white/80 mb-8 max-w-xl mx-auto">
-                Train it on your content and deploy it in minutes. Free plan available — no credit card required.
+        {/* ──────────────────────────────────────────────────────────────── */}
+        {/* SECTION 4: Feature comparison table                            */}
+        {/* Left-aligned header. All 4 plans as columns. Pro highlighted.  */}
+        {/* ──────────────────────────────────────────────────────────────── */}
+        <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+          <motion.div
+            variants={stagger}
+            initial={prefersReducedMotion ? false : 'hidden'}
+            whileInView="visible"
+            viewport={{ once: true, margin: '-80px' }}
+          >
+            <motion.div variants={fadeUp} className="mb-12 max-w-xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-500 dark:text-primary-400 mb-4">
+                Compare plans
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <h2 className="text-3xl font-bold tracking-tight text-secondary-900 dark:text-secondary-100">
+                See exactly what each plan includes
+              </h2>
+            </motion.div>
+
+            <motion.div variants={fadeUp} className="max-w-5xl overflow-x-auto">
+              <table className="w-full text-left" role="table">
+                <thead>
+                  <tr className="border-b-2 border-secondary-200 dark:border-secondary-700">
+                    <th
+                      className="py-4 pr-4 text-sm font-semibold text-secondary-900 dark:text-secondary-100 w-1/5"
+                      scope="col"
+                    >
+                      Feature
+                    </th>
+                    {sortedPlans.map(plan => {
+                      const pStyle = planStyles[plan.slug] || defaultPlanStyle;
+                      const isFeatured = plan.is_featured || pStyle.featured;
+                      return (
+                        <th
+                          key={plan.slug}
+                          scope="col"
+                          className={`py-4 px-4 text-center text-sm font-semibold ${
+                            isFeatured
+                              ? 'text-primary-600 dark:text-primary-400 bg-primary-50/60 dark:bg-primary-900/20 rounded-t-lg'
+                              : plan.slug === 'enterprise'
+                                ? 'text-amber-600 dark:text-amber-400'
+                                : 'text-secondary-900 dark:text-secondary-100'
+                          }`}
+                        >
+                          {plan.name}
+                          {isFeatured && (
+                            <Badge className="ml-2 text-[10px] bg-primary-500 text-white py-0 px-1.5">
+                              Popular
+                            </Badge>
+                          )}
+                        </th>
+                      );
+                    })}
+                  </tr>
+                </thead>
+                <tbody>
+                  {comparisonFeatures.map((feature, i) => (
+                    <tr
+                      key={feature.name}
+                      className={`border-b border-secondary-100 dark:border-secondary-800 ${
+                        i % 2 === 0 ? 'bg-secondary-50/40 dark:bg-secondary-800/20' : ''
+                      }`}
+                    >
+                      <td className="py-3.5 pr-4 text-sm text-secondary-700 dark:text-secondary-300">
+                        {feature.name}
+                      </td>
+                      {sortedPlans.map(plan => {
+                        const pStyle = planStyles[plan.slug] || defaultPlanStyle;
+                        const isFeatured = plan.is_featured || pStyle.featured;
+                        return (
+                          <td
+                            key={plan.slug}
+                            className={`py-3.5 px-4 text-center ${
+                              isFeatured ? 'bg-primary-50/30 dark:bg-primary-900/10' : ''
+                            }`}
+                          >
+                            <FeatureValue value={feature.values[plan.slug] ?? false} />
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </motion.div>
+          </motion.div>
+        </section>
+
+        {/* ──────────────────────────────────────────────────────────────── */}
+        {/* SECTION 5: FAQ                                                 */}
+        {/* Asymmetric 4/8 split. Sticky heading + CTA left, accordion    */}
+        {/* right. Updated copy.                                           */}
+        {/* ──────────────────────────────────────────────────────────────── */}
+        <section className="w-full bg-secondary-50 dark:bg-secondary-900 py-20 lg:py-28">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              className="grid lg:grid-cols-12 gap-10 lg:gap-16 max-w-5xl mx-auto"
+              variants={stagger}
+              initial={prefersReducedMotion ? false : 'hidden'}
+              whileInView="visible"
+              viewport={{ once: true, margin: '-80px' }}
+            >
+              {/* Left column: heading + support CTA */}
+              <motion.div variants={fadeUp} className="lg:col-span-4 lg:sticky lg:top-28 lg:self-start">
+                <div className="flex items-center gap-2 mb-4">
+                  <HelpCircle className="w-5 h-5 text-primary-500 dark:text-primary-400" aria-hidden="true" />
+                  <span className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-500 dark:text-primary-400">
+                    FAQ
+                  </span>
+                </div>
+                <h2 className="text-3xl font-bold tracking-tight text-secondary-900 dark:text-secondary-100 mb-4">
+                  Frequently asked questions
+                </h2>
+                <p className="text-secondary-600 dark:text-secondary-400 leading-relaxed mb-6">
+                  Can&apos;t find what you&apos;re looking for? Reach out and we&apos;ll help.
+                </p>
+                <Button variant="outline" asChild>
+                  <Link href="/help">Contact Support</Link>
+                </Button>
+              </motion.div>
+
+              {/* Right column: accordion */}
+              <motion.div
+                variants={fadeUp}
+                className="lg:col-span-8"
+                role="region"
+                aria-label="Frequently Asked Questions"
+              >
+                {faqs.map(faq => (
+                  <FAQItem key={faq.question} question={faq.question} answer={faq.answer} />
+                ))}
+              </motion.div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* ──────────────────────────────────────────────────────────────── */}
+        {/* SECTION 6: Bottom CTA                                          */}
+        {/* Full-bleed gradient. Acknowledges the user's journey.          */}
+        {/* ──────────────────────────────────────────────────────────────── */}
+        <section
+          className="w-full py-24 lg:py-32"
+          style={{
+            background: 'linear-gradient(135deg, rgb(2,132,199) 0%, rgb(8,47,73) 100%)',
+          }}
+        >
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              className="max-w-2xl mx-auto text-center"
+              variants={stagger}
+              initial={prefersReducedMotion ? false : 'hidden'}
+              whileInView="visible"
+              viewport={{ once: true, margin: '-80px' }}
+            >
+              <motion.h2
+                variants={fadeUpDramatic}
+                className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-6"
+              >
+                You&apos;ve seen the plans. Pick one and build.
+              </motion.h2>
+              <motion.p
+                variants={fadeUp}
+                className="text-lg text-primary-200/80 mb-10 leading-relaxed max-w-lg mx-auto"
+              >
+                Your first chatbot takes about 5 minutes. Start free &mdash; upgrade when your chatbot outgrows it.
+              </motion.p>
+              <motion.div
+                variants={fadeUp}
+                className="flex flex-col sm:flex-row gap-4 justify-center"
+              >
                 <Button
-                  size="lg"
-                  variant="secondary"
-                  className="bg-white text-primary-600 hover:bg-primary-50 px-8"
+                  size="xl"
+                  className="bg-white text-primary-700 hover:bg-primary-50 font-semibold shadow-lg shadow-black/10"
                   asChild
                 >
                   <Link href="/signup">
-                    Get Started Free
+                    Create Free Chatbot
+                    <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
                   </Link>
                 </Button>
                 <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-white text-white hover:bg-white/10"
+                  size="xl"
+                  variant="outline-light"
+                  className="font-medium"
                   asChild
                 >
-                  <Link href="/#features">See How It Works</Link>
+                  <Link href="#pricing">Compare Plans</Link>
                 </Button>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
         </section>
+
       </main>
 
       <Footer />
