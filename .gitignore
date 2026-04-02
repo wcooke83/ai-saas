@@ -42,6 +42,7 @@ screenshots/
 *.log
 *.tsbuildinfo
 .mcp.json
+.claude/worktrees/
 
 # Audit/planning docs (local reference only)
 docs/audits/
