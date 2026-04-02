@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.git/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.pdf
+*.zip
+*.tar.gz
