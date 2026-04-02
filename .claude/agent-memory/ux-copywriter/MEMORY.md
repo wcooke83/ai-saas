@@ -1,6 +1,6 @@
 - [Terminology Conventions](terminology_conventions.md) -- Terms to avoid in user-facing copy (RAG, chunks, embeddings, system prompt, etc.)
 - [Stale Content Issues](stale_content_issues.md) -- Resolved March 2026; tracks what was fixed and what still needs checking (footer /tools link)
 - [Tooltip Usage Conventions](feedback_tooltip_conventions.md) -- When to add/remove InfoTooltip in settings UI; remove when nearby description text already covers it
-- [Testimonial Conventions](testimonial_conventions.md) -- Use initials + role + industry type for placeholder testimonials; never fabricate company names
+- [Testimonial Conventions](testimonial_conventions.md) -- Placeholder testimonial format + Before/Setup/After pattern for industry landing pages
 - [Credit Alert Copy Conventions](credit_alert_copy.md) -- Tone and structure for 75%/90% credit alerts; escalate urgency via word choice, always name auto-topup and manual top-up as fixes
 - [Blog Author Profiles](project_blog_author_profiles.md) -- 3 pen names + Will Cooke for E-E-A-T blog attribution; lane assignments for all 55 posts

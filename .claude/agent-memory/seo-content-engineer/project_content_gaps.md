@@ -73,3 +73,26 @@ Medium priority:
 3. `/blog/chatbase-alternatives`
 4. `/blog/how-to-reduce-customer-support-tickets`
 5. `/blog/what-is-a-knowledge-base-chatbot`
+
+## Industry blog posts (created 2026-04-02)
+
+New posts targeting high-traffic industry verticals. Each includes full metadata, JSON-LD (Article + FAQPage + BreadcrumbList), `ChatPreview`, `IndustryStatBar`, `StyledBulletList` components, a Related industry guides block, and a CTA. Each also linked from the corresponding industry landing page via a "Related reading" block.
+
+1. `/blog/chatbot-for-restaurants` — already existed (old content: menus/hours/reservations)
+2. `/blog/chatbot-for-real-estate` — NEW: qualifying buyers, viewing bookings, vendor leads
+3. `/blog/chatbot-for-healthcare` — NEW: admin FAQ, clinical boundary, GDPR, appointment booking
+4. `/blog/chatbot-for-hr` — NEW: policy FAQ, onboarding, Slack deployment, multi-site policies
+5. `/blog/chatbot-for-plumbers` — NEW: emergency vs routine, after-hours lead capture, pricing FAQ
+6. `/blog/chatbot-for-ecommerce` — NEW: ticket deflection, pre-purchase questions, returns FAQ
+7. `/blog/chatbot-for-hotels` — NEW: pre-arrival FAQ, international guests, group bookings
+
+Industry pages updated with "Related reading" blocks:
+- `/chatbot-for-restaurants` — already had block (pointing to `/blog/chatbot-for-restaurants`)
+- `/chatbot-for-real-estate` — added
+- `/chatbot-for-healthcare` — added (inserted before author attribution block)
+- `/chatbot-for-hr` — added
+- `/chatbot-for-plumbers` — added
+- `/chatbot-for-ecommerce` — added
+- `/chatbot-for-hotels` — added
+
+Blog index (`/blog/page.tsx`) updated: 6 new posts added in "Batch 3b" section.
