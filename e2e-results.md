@@ -110,9 +110,9 @@
 | 101 | e2e-settings-save | ✅ Done | ✅ | | | | | | | mum | 7/7 passed | 2026-04-04 |
 | 102 | e2e-settings-survey | ✅ Done | ✅ | | | | | | | will | 7/7 passed (SET-SURVEY-006 flaky→retry) | 2026-04-04 |
 | 103 | e2e-settings-system-prompt | ✅ Done | ✅ | | | | | | | mum | 6/6 passed | 2026-04-04 |
-| 104 | e2e-settings-transcripts | 🔄 Running | | | | | | | will | | |
+| 104 | e2e-settings-transcripts | ✅ Done | ✅ | | | | | | | will | 7/7 passed | 2026-04-04 |
 | 105 | e2e-settings-uploads | 🔄 Running | | | | | | | | | mum |
-| 106 | e2e-slack-integration | ⏳ Queued | | | | | | | | | |
+| 106 | e2e-slack-integration | 🔄 Running | | | | | | | will | | |
 | 107 | e2e-survey | ⏳ Queued | | | | | | | | | |
 | 108 | e2e-telegram-integration | ⏳ Queued | | | | | | | | | |
 | 109 | e2e-ticketing-system | ⏳ Queued | | | | | | | | | |
