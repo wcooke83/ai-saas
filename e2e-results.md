@@ -94,7 +94,7 @@
 | 85 | e2e-publish | ✅ Done | | 🔧 | | | Selector | Test Code | 1/3 | mum | toast link selector: getByRole('button'→'link'), name /Go to Deploy/→/Get your embed codes/; 7/8 passed first run | 2026-04-04 |
 | 86 | e2e-quick-templates | 🔄 Running | | | | | | | | | mum |
 | 87 | e2e-rag-memory-edge-cases | ✅ Done | ✅ | | | | | | | will | 16/16 passed (RAG-002 flaky→retry; ensure-chatbot called before run) | 2026-04-04 |
-| 88 | e2e-recover-stuck-sources | 🔄 Running | | | | | | | will | | |
+| 88 | e2e-recover-stuck-sources | ✅ Done | ✅ | | | | | | | will | 6/6 passed | 2026-04-04 |
 | 89 | e2e-reembed-detection | ⏳ Queued | | | | | | | | | |
 | 90 | e2e-security | ⏳ Queued | | | | | | | | | |
 | 91 | e2e-sentiment | ⏳ Queued | | | | | | | | | |
