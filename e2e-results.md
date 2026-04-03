@@ -116,8 +116,8 @@
 | 107 | e2e-survey | ✅ Done | ✅ | | | | | | | mum | 4/4 passed | 2026-04-04 |
 | 108 | e2e-telegram-integration | ✅ Done | ✅ | | | | | | | mum | 19/19 passed | 2026-04-04 |
 | 109 | e2e-ticketing-system | 🔄 Running | | | | | | | | | mum |
-| 110 | e2e-tooltip | 🔄 Running | | | | | | | will | | |
-| 111 | e2e-untested-endpoints | ⏳ Queued | | | | | | | | | |
+| 110 | e2e-tooltip | ✅ Done | ✅ | | | | | | | will | 1/1 passed (flaky→retry, ERR_ABORTED on first load) | 2026-04-04 |
+| 111 | e2e-untested-endpoints | 🔄 Running | | | | | | | will | | |
 | 112 | e2e-upgrade-page | ⏳ Queued | | | | | | | | | |
 | 113 | e2e-webhooks | ⏳ Queued | | | | | | | | | |
 | 114 | e2e-widget-advanced | ⏳ Queued | | | | | | | | | |
