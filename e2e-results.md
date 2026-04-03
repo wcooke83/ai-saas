@@ -95,7 +95,7 @@
 | 86 | e2e-quick-templates | 🔄 Running | | | | | | | | | mum |
 | 87 | e2e-rag-memory-edge-cases | ✅ Done | ✅ | | | | | | | will | 16/16 passed (RAG-002 flaky→retry; ensure-chatbot called before run) | 2026-04-04 |
 | 88 | e2e-recover-stuck-sources | ✅ Done | ✅ | | | | | | | will | 6/6 passed | 2026-04-04 |
-| 89 | e2e-reembed-detection | ⏳ Queued | | | | | | | | | |
+| 89 | e2e-reembed-detection | 🔄 Running | | | | | | | will | | |
 | 90 | e2e-security | ⏳ Queued | | | | | | | | | |
 | 91 | e2e-sentiment | ⏳ Queued | | | | | | | | | |
 | 92 | e2e-settings-ai-model | ⏳ Queued | | | | | | | | | |
