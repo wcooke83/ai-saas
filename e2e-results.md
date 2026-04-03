@@ -112,11 +112,11 @@
 | 103 | e2e-settings-system-prompt | ✅ Done | ✅ | | | | | | | mum | 6/6 passed | 2026-04-04 |
 | 104 | e2e-settings-transcripts | ✅ Done | ✅ | | | | | | | will | 7/7 passed | 2026-04-04 |
 | 105 | e2e-settings-uploads | ✅ Done | ✅ | | | | | | | mum | 8/8 passed (SET-UPLOAD-002 flaky→retry; server restart) | 2026-04-04 |
-| 106 | e2e-slack-integration | 🔄 Running | | | | | | | will | | |
+| 106 | e2e-slack-integration | ✅ Done | ✅ | | | | | | | will | 11/11 passed | 2026-04-04 |
 | 107 | e2e-survey | ✅ Done | ✅ | | | | | | | mum | 4/4 passed | 2026-04-04 |
 | 108 | e2e-telegram-integration | ✅ Done | ✅ | | | | | | | mum | 19/19 passed | 2026-04-04 |
 | 109 | e2e-ticketing-system | 🔄 Running | | | | | | | | | mum |
-| 110 | e2e-tooltip | ⏳ Queued | | | | | | | | | |
+| 110 | e2e-tooltip | 🔄 Running | | | | | | | will | | |
 | 111 | e2e-untested-endpoints | ⏳ Queued | | | | | | | | | |
 | 112 | e2e-upgrade-page | ⏳ Queued | | | | | | | | | |
 | 113 | e2e-webhooks | ⏳ Queued | | | | | | | | | |
