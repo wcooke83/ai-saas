@@ -13,6 +13,29 @@ export interface ChangelogMonth {
 
 export const changelog: ChangelogMonth[] = [
   {
+    month: 'April 2026',
+    entries: [
+      {
+        badge: 'New',
+        title: 'Industry Landing Pages',
+        detail:
+          '56 industry-specific landing pages with tailored use cases, structured FAQs, and links to related guides — so visitors can see exactly how VocUI fits their business.',
+      },
+      {
+        badge: 'New',
+        title: 'Password Reset Flow',
+        detail:
+          'Reset your password from the login page with a secure email link. No more support tickets for locked-out accounts.',
+      },
+      {
+        badge: 'Improved',
+        title: 'Blog Visual Overhaul',
+        detail:
+          'Infographics, charts, and diagrams added across the blog. Key concepts are now easier to scan and understand at a glance.',
+      },
+    ],
+  },
+  {
     month: 'March 2026',
     entries: [
       {
@@ -130,6 +153,7 @@ export const changelog: ChangelogMonth[] = [
 ];
 
 export const entryLinks: Record<string, string> = {
+  'Industry Landing Pages': '/industries',
   'Slack Integration': '/slack-chatbot',
   'Proactive Messaging': '/chatbot-for-customer-support',
   'In-Chat Appointment Booking': '/chatbot-booking',

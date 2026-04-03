@@ -21,6 +21,20 @@ const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 // Track created conversation IDs for cleanup
 const createdConversationIds: string[] = [];
 
+/** Upsert a row via Supabase REST API */
+async function supabaseUpsert(table: string, data: Record<string, unknown>) {
+  await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SERVICE_KEY,
+      'Authorization': `Bearer ${SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates,return=minimal',
+    },
+    body: JSON.stringify(data),
+  });
+}
+
 /** Delete rows via Supabase REST API (cleanup only) */
 async function supabaseDelete(table: string, column: string, values: string[]) {
   if (values.length === 0) return;
@@ -173,13 +187,22 @@ async function enableEscalationViaUI(page: Page): Promise<void> {
 test.describe('14. Agent Console', () => {
   test.setTimeout(180_000);
 
-  test.beforeAll(async ({ browser }) => {
-    // Step 1: Enable escalation on the chatbot via the settings UI
-    const setupPage = await browser.newPage();
-    await enableEscalationViaUI(setupPage);
-    await setupPage.close();
+  test.beforeAll(async ({ browser }, testInfo) => {
+    testInfo.setTimeout(180_000);
 
-    // Step 2: Create 4 conversations via the widget UI
+    // Fixed UUIDs so rows are idempotent across reruns
+    const convIds = [
+      'e2e00000-0c00-0000-0000-000000000001', // pending (escalated)
+      'e2e00000-0c00-0000-0000-000000000002', // active
+      'e2e00000-0c00-0000-0000-000000000003', // active (for resolve/return tests)
+      'e2e00000-0c00-0000-0000-000000000004', // resolved
+    ];
+    const sessionIds = [
+      'e2e-core-session-001',
+      'e2e-core-session-002',
+      'e2e-core-session-003',
+      'e2e-core-session-004',
+    ];
     const messages = [
       'I need help with my subscription billing',
       'The product page is not loading correctly',
@@ -187,89 +210,74 @@ test.describe('14. Agent Console', () => {
       'I have a question about your return policy',
     ];
 
-    for (const msg of messages) {
-      const page = await browser.newPage();
-      await createConversationViaWidget(page, msg);
-      await page.close();
+    for (let i = 0; i < convIds.length; i++) {
+      await supabaseUpsert('conversations', {
+        id: convIds[i],
+        chatbot_id: DASHBOARD_CHATBOT_ID,
+        session_id: sessionIds[i],
+        message_count: 2,
+        created_at: new Date().toISOString(),
+        last_message_at: new Date().toISOString(),
+      });
+      await supabaseUpsert('messages', {
+        id: `e2e00000-0c00-0000-000${i + 1}-000000000001`,
+        chatbot_id: DASHBOARD_CHATBOT_ID,
+        conversation_id: convIds[i],
+        role: 'user',
+        content: messages[i],
+        created_at: new Date().toISOString(),
+      });
+      createdConversationIds.push(convIds[i]);
     }
 
-    if (createdConversationIds.length < 4) {
-      console.warn(`Only created ${createdConversationIds.length}/4 conversations via widget`);
-      return;
+    // Conv 0: pending escalation (wrong_answer)
+    const escalationId = 'e2e00000-0c01-0000-0000-000000000001';
+    await supabaseUpsert('conversation_escalations', {
+      id: escalationId,
+      chatbot_id: DASHBOARD_CHATBOT_ID,
+      session_id: sessionIds[0],
+      conversation_id: convIds[0],
+      reason: 'wrong_answer',
+      details: 'E2E test escalation — user needs billing support',
+      status: 'open',
+      created_at: new Date().toISOString(),
+    });
+    await supabaseUpsert('telegram_handoff_sessions', {
+      id: 'e2e00000-0c02-0000-0000-000000000001',
+      chatbot_id: DASHBOARD_CHATBOT_ID,
+      conversation_id: convIds[0],
+      session_id: sessionIds[0],
+      status: 'pending',
+      agent_source: 'platform',
+      escalation_id: escalationId,
+      created_at: new Date().toISOString(),
+    });
+
+    // Conv 1 & 2: active handoff sessions
+    for (let i = 1; i <= 2; i++) {
+      await supabaseUpsert('telegram_handoff_sessions', {
+        id: `e2e00000-0c02-0000-0000-00000000000${i + 1}`,
+        chatbot_id: DASHBOARD_CHATBOT_ID,
+        conversation_id: convIds[i],
+        session_id: sessionIds[i],
+        status: 'active',
+        agent_name: 'Agent',
+        agent_source: 'platform',
+        created_at: new Date().toISOString(),
+      });
     }
 
-    // Step 3: Escalate conv 0 via the widget report UI
-    // Open a new widget page for the same session as conv 0
-    const escalatePage = await browser.newPage();
-    await openWidget(escalatePage);
-    // Send a message to reconnect to the conversation (widget uses session persistence)
-    // Instead, we need to create escalation on the existing conversation.
-    // The simplest approach: open the widget, send a follow-up, then use report button.
-    // But we already have the conversation created. Let's open a fresh widget and
-    // send the same message to get an assistant reply, then escalate.
-    await sendWidgetMessage(escalatePage, 'I need help with my subscription billing - please escalate');
-    await escalateViaWidgetReport(escalatePage, 'wrong_answer', 'E2E test escalation — user needs billing support');
-    await escalatePage.close();
-
-    // Step 4: Use agent console UI to take over conv 1 and conv 2
-    const agentPage = await browser.newPage();
-    await gotoAgentConsole(agentPage);
-
-    // Filter to pending — find and take over conversations
-    await agentPage.getByTestId('filter-pending').click();
-    await expect(agentPage.getByTestId('conversation-list-body')).toBeVisible({ timeout: 15000 });
-    await agentPage.waitForTimeout(2000);
-
-    // Take over the first pending conversation (will be used as conv 1 - active)
-    let items = agentPage.locator('[data-testid^="conversation-item-"]');
-    let count = await items.count();
-    if (count > 0) {
-      await items.first().click();
-      await expect(agentPage.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
-      const takeOverBtn = agentPage.getByTestId('action-take-over');
-      if (await takeOverBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await takeOverBtn.click();
-        await agentPage.waitForTimeout(2000);
-      }
-    }
-
-    // Take over the next pending conversation (conv 2 - active for resolve/return tests)
-    await agentPage.getByTestId('filter-pending').click();
-    await agentPage.waitForTimeout(2000);
-    items = agentPage.locator('[data-testid^="conversation-item-"]');
-    count = await items.count();
-    if (count > 0) {
-      await items.first().click();
-      await expect(agentPage.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
-      const takeOverBtn = agentPage.getByTestId('action-take-over');
-      if (await takeOverBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await takeOverBtn.click();
-        await agentPage.waitForTimeout(2000);
-      }
-    }
-
-    // Take over another pending and then resolve it (conv 3 - resolved)
-    await agentPage.getByTestId('filter-pending').click();
-    await agentPage.waitForTimeout(2000);
-    items = agentPage.locator('[data-testid^="conversation-item-"]');
-    count = await items.count();
-    if (count > 0) {
-      await items.first().click();
-      await expect(agentPage.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
-      const takeOverBtn = agentPage.getByTestId('action-take-over');
-      if (await takeOverBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await takeOverBtn.click();
-        await agentPage.waitForTimeout(2000);
-        // Now resolve it
-        const resolveBtn = agentPage.getByTestId('action-resolve');
-        if (await resolveBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-          await resolveBtn.click();
-          await agentPage.waitForTimeout(2000);
-        }
-      }
-    }
-
-    await agentPage.close();
+    // Conv 3: resolved handoff session
+    await supabaseUpsert('telegram_handoff_sessions', {
+      id: 'e2e00000-0c02-0000-0000-000000000004',
+      chatbot_id: DASHBOARD_CHATBOT_ID,
+      conversation_id: convIds[3],
+      session_id: sessionIds[3],
+      status: 'resolved',
+      agent_name: 'Agent',
+      agent_source: 'platform',
+      created_at: new Date().toISOString(),
+    });
   });
 
   test.afterAll(async () => {

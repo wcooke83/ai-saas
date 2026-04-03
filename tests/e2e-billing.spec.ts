@@ -41,7 +41,7 @@ test.describe('Billing & Plan Limits', () => {
   });
 
   test('usage page shows credit info', async ({ page }) => {
-    await page.goto('/dashboard/usage');
+    await page.goto('/dashboard/usage', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
   });

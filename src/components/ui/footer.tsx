@@ -7,7 +7,7 @@ import { getFooterGradientEnabledFromCookie } from '@/lib/ui-settings-cookies';
 
 const footerLinks = {
   product: [
-    { label: 'Features', href: '/#features' },
+    { label: 'Features', href: '/features' },
     { label: 'Solutions', href: '/solutions' },
     { label: 'Integrations', href: '/integrations' },
     { label: 'Industries', href: '/industries' },
@@ -234,7 +234,7 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-3 text-sm text-secondary-400 dark:text-secondary-500">
               <Link
-                href="/sitemap.xml"
+                href="/sitemap"
                 className="hover:text-secondary-600 dark:hover:text-secondary-300 transition-colors"
               >
                 Sitemap

@@ -2,3 +2,4 @@
 - [Auth Setup Pattern](auth_setup_pattern.md) -- E2E auth via /api/auth/e2e-login, hardcoded project ref in cookie
 - [Route Rename Issue](route_rename_escalations_issues.md) -- /escalations was renamed to /issues, tests lag behind
 - [Business Audit Coverage Map](business_audit_coverage.md) -- 2026-03-30 audit: webhooks, credit alerts, nav changes, notif prefs, branding lock, zero-state
+- [Status Pages Coverage](status_pages_coverage.md) -- 26 tests written 2026-04-03; /admin/status + /status, ISR bypass pattern, cleanup helpers

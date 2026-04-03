@@ -14,11 +14,11 @@ import { StyledBulletList } from '@/components/blog/styled-lists';
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
-  title: '5 Chatbase Alternatives Worth Trying in 2026 | VocUI',
+  title: 'Top Chatbase Alternatives Worth Trying in 2026 | VocUI',
   description:
     'Looking for a Chatbase alternative? Compare the top AI chatbot builders on pricing, knowledge base support, Slack integration, and embed options.',
   openGraph: {
-    title: '5 Chatbase Alternatives Worth Trying in 2026 | VocUI',
+    title: 'Top Chatbase Alternatives Worth Trying in 2026 | VocUI',
     description:
       'Looking for a Chatbase alternative? Compare the top AI chatbot builders on pricing, knowledge base support, Slack integration, and embed options.',
     url: 'https://vocui.com/blog/chatbase-alternatives',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '5 Chatbase Alternatives Worth Trying in 2026 | VocUI',
+    title: 'Top Chatbase Alternatives Worth Trying in 2026 | VocUI',
     description:
       'Looking for a Chatbase alternative? Compare the top AI chatbot builders on pricing, knowledge base support, Slack integration, and embed options.',
   },
@@ -42,7 +42,7 @@ const jsonLd = {
   '@graph': [
     {
       '@type': 'Article',
-      headline: '5 Chatbase Alternatives Worth Trying in 2026',
+      headline: 'Top Chatbase Alternatives Worth Trying in 2026',
       description:
         'A comparison of the top AI chatbot builders for small businesses looking for a Chatbase alternative.',
       url: 'https://vocui.com/blog/chatbase-alternatives',
@@ -71,7 +71,7 @@ const jsonLd = {
     },
     {
       '@type': 'ItemList',
-      name: '5 Chatbase Alternatives',
+      name: 'Top Chatbase Alternatives',
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'VocUI', url: 'https://vocui.com' },
         { '@type': 'ListItem', position: 2, name: 'Botpress', url: 'https://botpress.com' },
@@ -125,7 +125,7 @@ const jsonLd = {
         {
           '@type': 'ListItem',
           position: 3,
-          name: '5 Chatbase Alternatives Worth Trying in 2026',
+          name: 'Top Chatbase Alternatives Worth Trying in 2026',
           item: 'https://vocui.com/blog/chatbase-alternatives',
         },
       ],
@@ -227,7 +227,7 @@ export default function ChatbaseAlternativesPage() {
               </li>
               <li aria-hidden="true">/</li>
               <li className="text-secondary-900 dark:text-secondary-100 font-medium">
-                5 Chatbase Alternatives
+                Top Chatbase Alternatives
               </li>
             </ol>
           </nav>
@@ -243,7 +243,7 @@ export default function ChatbaseAlternativesPage() {
               </div>
               <AuthorByline className="mb-4" />
               <h1 className="text-4xl font-bold text-secondary-900 dark:text-secondary-100 leading-tight mb-4">
-                5 Chatbase Alternatives Worth Trying in 2026
+                Top Chatbase Alternatives Worth Trying in 2026
               </h1>
               <p className="text-xl text-secondary-600 dark:text-secondary-400 leading-relaxed">
                 Chatbase was one of the first tools to make &quot;train a chatbot on your own data&quot;

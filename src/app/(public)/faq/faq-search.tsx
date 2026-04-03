@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Search, X, Command } from 'lucide-react';
+import { Search, X, Command, ChevronRight, ArrowRight, MessageCircle, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { LucideIcon } from 'lucide-react';
 import { faqCategories, type FaqQuestion, type FaqCategory } from './faq-data';
 
 interface SearchResult extends FaqQuestion {
   categoryId: string;
   categoryTitle: string;
+  categoryIcon: LucideIcon;
 }
 
 interface FaqSearchProps {
@@ -132,6 +134,7 @@ function filterFaqs(
           ...q,
           categoryId: category.id,
           categoryTitle: category.title,
+          categoryIcon: category.icon,
         });
       }
     });
@@ -187,66 +190,157 @@ export function SearchResults({ results, query, onSelectQuestion }: SearchResult
   const groupedResults = results.reduce(
     (acc, result) => {
       if (!acc[result.categoryId]) {
-        acc[result.categoryId] = { title: result.categoryTitle, questions: [] };
+        acc[result.categoryId] = {
+          title: result.categoryTitle,
+          icon: result.categoryIcon,
+          questions: [],
+        };
       }
       acc[result.categoryId].questions.push(result);
       return acc;
     },
-    {} as Record<string, { title: string; questions: SearchResult[] }>
+    {} as Record<string, { title: string; icon: LucideIcon; questions: SearchResult[] }>
   );
 
   let resultIndex = 0;
 
-  return (
-    <div className="space-y-8" role="region" aria-label="Search results">
-      <div
-        style={{
-          opacity: isVisible ? 1 : 0,
-          transition: 'opacity 0.2s ease-out',
-        }}
-      >
-        <p className="text-sm text-secondary-600 dark:text-secondary-400" aria-live="polite">
-          Found{' '}
-          <span className="font-medium text-secondary-900 dark:text-secondary-100">
-            {results.length}
-          </span>{' '}
-          {results.length === 1 ? 'result' : 'results'} for &quot;{query}&quot;
-        </p>
-      </div>
+  const categoryCount = Object.keys(groupedResults).length;
 
-      {Object.entries(groupedResults).map(([categoryId, { title, questions }]) => (
-        <div key={categoryId}>
-          <h3 className="text-xs font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-[0.15em] mb-4">
-            {title}
-          </h3>
-          <div className="space-y-3">
-            {questions.map((q) => {
-              const currentIndex = resultIndex++;
-              return (
-                <button
-                  key={q.id}
-                  onClick={() => onSelectQuestion(categoryId, q.id)}
-                  className="w-full text-left p-5 rounded-lg transition-colors group"
-                  style={{
-                    backgroundColor: 'rgb(var(--card-bg))',
-                    border: '1px solid rgb(var(--card-border))',
-                    opacity: isVisible ? 1 : 0,
-                    transform: isVisible ? 'translateY(0)' : 'translateY(8px)',
-                    transition: `opacity 0.3s ease-out ${100 + currentIndex * 50}ms, transform 0.3s ease-out ${100 + currentIndex * 50}ms, background-color 0.2s ease`,
-                  }}
-                >
-                  <p className="font-semibold text-secondary-900 dark:text-secondary-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                    {highlightMatch(q.question, query)}
-                  </p>
-                  <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-1.5 line-clamp-2">
-                    {highlightMatch(q.answer, query)}
-                  </p>
-                </button>
-              );
-            })}
+  return (
+    <div role="region" aria-label="Search results">
+
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
+      <div
+        className="border-b border-secondary-200 dark:border-secondary-700 pb-8 mb-10"
+        style={{ opacity: isVisible ? 1 : 0, transition: 'opacity 0.2s ease-out' }}
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-500 mb-3">
+          Search results
+        </p>
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+          <div>
+            <h2 className="text-3xl lg:text-4xl font-bold text-secondary-900 dark:text-secondary-100 leading-tight" aria-live="polite">
+              {results.length} {results.length === 1 ? 'result' : 'results'} for{' '}
+              <span className="text-primary-500">&quot;{query}&quot;</span>
+            </h2>
+            <p className="mt-2 text-sm text-secondary-500 dark:text-secondary-400">
+              Found across{' '}
+              <span className="font-medium text-secondary-700 dark:text-secondary-300">
+                {categoryCount} {categoryCount === 1 ? 'category' : 'categories'}
+              </span>
+              {' '}— click any result to jump directly to that answer.
+            </p>
           </div>
         </div>
-      ))}
+      </div>
+
+      {/* ── Category groups ──────────────────────────────────────────────────── */}
+      <div className="space-y-12">
+        {Object.entries(groupedResults).map(([categoryId, { title, icon: CategoryIcon, questions }]) => (
+          <div key={categoryId}>
+
+            {/* Category header */}
+            <div
+              className="flex items-center gap-3 mb-4"
+              style={{ opacity: isVisible ? 1 : 0, transition: 'opacity 0.2s ease-out' }}
+            >
+              <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex-shrink-0">
+                <CategoryIcon className="w-4 h-4 text-primary-600 dark:text-primary-400" aria-hidden="true" />
+              </div>
+              <h3 className="text-sm font-semibold text-secondary-700 dark:text-secondary-300 uppercase tracking-[0.15em]">
+                {title}
+              </h3>
+              <div className="flex-1 h-px bg-secondary-200 dark:bg-secondary-700" aria-hidden="true" />
+              <span className="text-xs font-medium text-secondary-400 dark:text-secondary-500 tabular-nums">
+                {questions.length} {questions.length === 1 ? 'result' : 'results'}
+              </span>
+            </div>
+
+            {/* Strip rows */}
+            <div className="divide-y divide-secondary-100 dark:divide-secondary-800" role="list">
+              {questions.map((q) => {
+                const currentIndex = resultIndex++;
+                return (
+                  <button
+                    key={q.id}
+                    role="listitem"
+                    onClick={() => onSelectQuestion(categoryId, q.id)}
+                    className={cn(
+                      'group w-full text-left flex items-start justify-between gap-6',
+                      'py-6',
+                      '-mx-4 px-4 sm:-mx-6 sm:px-6',
+                      'hover:bg-secondary-50/70 dark:hover:bg-secondary-800/25',
+                      'transition-colors duration-150',
+                    )}
+                    style={{
+                      opacity: isVisible ? 1 : 0,
+                      transform: isVisible ? 'translateY(0)' : 'translateY(6px)',
+                      transition: `opacity 0.3s ease-out ${80 + currentIndex * 45}ms, transform 0.3s ease-out ${80 + currentIndex * 45}ms`,
+                    }}
+                  >
+                    {/* Left: question + answer */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2.5 mb-2">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
+                          <CategoryIcon className="w-3 h-3" aria-hidden="true" />
+                          {q.categoryTitle}
+                        </span>
+                      </div>
+                      <p className="text-base font-semibold leading-snug text-secondary-900 dark:text-secondary-100 group-hover:text-primary-700 dark:group-hover:text-primary-300 transition-colors duration-150 mb-2">
+                        {highlightMatch(q.question, query)}
+                      </p>
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400 line-clamp-2 leading-relaxed">
+                        {highlightMatch(q.answer, query)}
+                      </p>
+                    </div>
+
+                    {/* Right: chevron */}
+                    <ChevronRight
+                      className="w-5 h-5 flex-shrink-0 mt-1 text-secondary-300 dark:text-secondary-600 group-hover:text-primary-500 dark:group-hover:text-primary-400 group-hover:translate-x-0.5 transition-all duration-150"
+                      aria-hidden="true"
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Footer ──────────────────────────────────────────────────────────── */}
+      <div
+        className="mt-16 pt-10 border-t border-secondary-200 dark:border-secondary-700"
+        style={{ opacity: isVisible ? 1 : 0, transition: 'opacity 0.4s ease-out 0.3s' }}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <div>
+            <p className="text-base font-semibold text-secondary-900 dark:text-secondary-100 mb-1">
+              Didn&apos;t find what you were looking for?
+            </p>
+            <p className="text-sm text-secondary-500 dark:text-secondary-400">
+              Try different keywords, or reach out and we&apos;ll help directly.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <a
+              href="/help"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-secondary-200 dark:border-secondary-700 text-sm font-medium text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-800 transition-colors"
+            >
+              <MessageCircle className="w-4 h-4" aria-hidden="true" />
+              Contact support
+            </a>
+            <a
+              href="/faq"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-sm font-medium text-white transition-colors"
+            >
+              <BookOpen className="w-4 h-4" aria-hidden="true" />
+              Browse all FAQs
+              <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+            </a>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

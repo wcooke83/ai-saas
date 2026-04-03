@@ -45,8 +45,8 @@ export default function TrialsAdminPage() {
       ]);
       const [trialsData, plansData] = await Promise.all([trialsRes.json(), plansRes.json()]);
 
-      if (trialsData.error) throw new Error(trialsData.error);
-      if (plansData.error) throw new Error(plansData.error);
+      if (trialsData.error) throw new Error(trialsData.error?.message || trialsData.error);
+      if (plansData.error) throw new Error(plansData.error?.message || plansData.error);
 
       setTrials(trialsData.data || []);
       setPlans(plansData.data || []);
@@ -77,7 +77,7 @@ export default function TrialsAdminPage() {
         }),
       });
       const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      if (data.error) throw new Error(data.error?.message || data.error);
 
       toast.success('Trial link created successfully');
       setShowCreateForm(false);
@@ -107,7 +107,7 @@ export default function TrialsAdminPage() {
         body: JSON.stringify({ isActive: !trial.is_active }),
       });
       const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      if (data.error) throw new Error(data.error?.message || data.error);
       toast.success(`Trial link ${!trial.is_active ? 'activated' : 'deactivated'}`);
       fetchData();
     } catch (err) {
@@ -125,7 +125,7 @@ export default function TrialsAdminPage() {
     try {
       const res = await fetch(`/api/admin/trials/${deleteConfirm.code}`, { method: 'DELETE' });
       const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      if (data.error) throw new Error(data.error?.message || data.error);
       toast.success('Trial link deleted successfully');
       setDeleteConfirm({ open: false, code: null });
       fetchData();

@@ -345,7 +345,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   // ─── Will Cooke (Founder) ───────────────────────────────────────────────────
   {
     slug: 'chatbase-alternatives',
-    title: '5 Chatbase Alternatives Worth Trying in 2025',
+    title: 'Top Chatbase Alternatives Worth Trying in 2026',
     description:
       'Looking for a Chatbase alternative? Compare the top AI chatbot builders on pricing, knowledge base support, and more.',
     tag: 'Comparison',
@@ -359,9 +359,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: 'intercom-alternatives',
-    title: "5 Intercom Alternatives That Won't Break the Budget",
+    title: "Intercom Alternatives That Won't Break the Budget",
     description:
-      'Intercom is powerful but expensive. Here are five affordable alternatives with AI chatbot features.',
+      'Intercom is powerful but expensive. Here are affordable alternatives with AI chatbot features.',
     tag: 'Comparison',
   },
   {

@@ -2,11 +2,11 @@ import { generateBlogOGImage, OG_IMAGE_SIZE, OG_IMAGE_CONTENT_TYPE } from '@/lib
 
 export const size = OG_IMAGE_SIZE;
 export const contentType = OG_IMAGE_CONTENT_TYPE;
-export const alt = '5 Intercom Alternatives That Won\u2019t Break the Budget';
+export const alt = 'Intercom Alternatives That Won\u2019t Break the Budget';
 
 export default function Image() {
   return generateBlogOGImage({
-    title: '5 Intercom Alternatives That Won\u2019t Break the Budget',
+    title: 'Intercom Alternatives That Won\u2019t Break the Budget',
     category: 'Comparison',
   });
 }

@@ -19,9 +19,11 @@ export const OG_IMAGE_CONTENT_TYPE = 'image/png' as const;
 export function generateBlogOGImage({
   title,
   category,
+  domain = 'vocui.com/blog',
 }: {
   title: string;
   category: string;
+  domain?: string;
 }): ImageResponse {
   // Brand colors: sky-600 (#0284c7), sky-800 (#075985), sky-950 (#082f49)
   return new ImageResponse(
@@ -115,7 +117,7 @@ export function generateBlogOGImage({
           }}
         >
           <span style={{ fontSize: '18px', color: 'rgba(186,230,253,0.8)', fontWeight: 500 }}>
-            vocui.com/blog
+            {domain}
           </span>
           <span style={{ fontSize: '18px', color: 'rgba(186,230,253,0.6)', fontWeight: 400 }}>
             AI Chatbot Platform

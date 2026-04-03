@@ -65,6 +65,62 @@ export async function POST(req: NextRequest) {
         { user_id: e2eUser.id, plan: 'pro', status: 'active' },
         { onConflict: 'user_id' }
       );
+
+      // Ensure E2E user has admin access for admin panel tests
+      await (db as any).from('profiles')
+        .update({ is_admin: true })
+        .eq('id', e2eUser.id);
+
+      // Ensure at least one subscription plan exists for trial link tests
+      const { data: existingPlans } = await (db as any)
+        .from('subscription_plans')
+        .select('id')
+        .eq('is_active', true)
+        .limit(1);
+      if (!existingPlans || existingPlans.length === 0) {
+        await (db as any).from('subscription_plans').insert({
+          slug: 'e2e-test-plan',
+          name: 'E2E Test Plan',
+          price_monthly_cents: 0,
+          credits_monthly: 1000,
+          is_active: true,
+          display_order: 0,
+        });
+      }
+
+      // Ensure the E2E user has a test payment method so billing/auto-topup tests work
+      try {
+        const { getStripeClient, isStripeConfigured } = await import('@/lib/stripe/client');
+        if (isStripeConfigured()) {
+          const stripe = getStripeClient();
+          const { data: credits } = await (db as any)
+            .from('user_credits')
+            .select('stripe_customer_id, default_payment_method_id')
+            .eq('user_id', e2eUser.id)
+            .single();
+
+          if (credits?.stripe_customer_id && !credits?.default_payment_method_id) {
+            // Create a test card payment method and attach it to the customer
+            const pm = await stripe.paymentMethods.create({
+              type: 'card',
+              card: { token: 'tok_visa' },
+            });
+            await stripe.paymentMethods.attach(pm.id, {
+              customer: credits.stripe_customer_id,
+            });
+            await stripe.customers.update(credits.stripe_customer_id, {
+              invoice_settings: { default_payment_method: pm.id },
+            });
+            await (db as any)
+              .from('user_credits')
+              .update({ default_payment_method_id: pm.id })
+              .eq('user_id', e2eUser.id);
+          }
+        }
+      } catch (pmErr) {
+        // Non-fatal: billing tests may skip but auth still works
+        console.warn('[E2E login] Could not attach test payment method:', pmErr);
+      }
     }
 
     if (linkResult.error || !linkResult.data) {

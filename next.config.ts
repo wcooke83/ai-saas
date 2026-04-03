@@ -32,8 +32,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: '/chatbot-for-accountants',
-        destination: '/chatbot-for-accountancy-firms',
+        source: '/blog/knowledge-base-chatbot-guide',
+        destination: '/guides/knowledge-base-chatbot',
         permanent: true,
       },
     ];

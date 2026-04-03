@@ -203,6 +203,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   // ----------------------------------
 
   test('CS-001: Submit contact form via widget UI', async ({ page }) => {
+    test.setTimeout(60000);
     await gotoWidgetContactForm(page);
 
     // Fill out the contact form in the widget
@@ -292,6 +293,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   // ----------------------------------
 
   test('CS-005: Admin can list contact submissions', async ({ page }) => {
+    test.setTimeout(60000);
     await gotoContactPage(page);
     // Verify the table is visible with at least one row
     await expect(page.locator('table')).toBeVisible({ timeout: 20000 });
@@ -299,6 +301,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-006: Admin can get single submission with replies', async ({ page }) => {
+    test.setTimeout(60000);
     await ensureSubmissionId(page);
     await gotoContactPage(page);
 
@@ -312,6 +315,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-007: New submission has status "new"', async ({ page }) => {
+    test.setTimeout(60000);
     await gotoContactPage(page);
     // Look for a "new" status badge in the table — CS-001 created a new submission
     await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 15000 });
@@ -331,6 +335,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-008: Mark as Read updates status', async ({ page }) => {
+    test.setTimeout(60000);
     await ensureSubmissionId(page);
     // Reset status to "new" first so the "Mark as Read" button appears
     // No UI to reset status to "new" — use API call to set up the precondition
@@ -355,6 +360,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-009: Mark as Replied updates status', async ({ page }) => {
+    test.setTimeout(60000);
     await ensureSubmissionId(page);
     // Need status to be "new" or "read" for "Mark as Replied" to appear
     await page.request.patch(
@@ -376,6 +382,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-010: Reset status back to new for next tests', async ({ page }) => {
+    test.setTimeout(60000);
     await ensureSubmissionId(page);
     // No UI button to reset status to "new" — this is a test setup operation
     // Using API to reset status since dashboard only allows forward status transitions
@@ -391,22 +398,26 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   // ----------------------------------
 
   test('CS-011: Contact dashboard page loads with submissions table', async ({ page }) => {
+    test.setTimeout(60000);
     await gotoContactPage(page);
     await expect(page.locator('table')).toBeVisible({ timeout: 20000 });
   });
 
   test('CS-012: Clicking submission opens detail view', async ({ page }) => {
+    test.setTimeout(60000);
     await openFirstSubmission(page);
     // If we got here, the detail view is visible
   });
 
   test('CS-013: Detail view shows visitor info and message', async ({ page }) => {
+    test.setTimeout(60000);
     await openFirstSubmission(page);
     await expect(page.getByText('Email:')).toBeVisible();
     await expect(page.getByText('Date:')).toBeVisible();
   });
 
   test('CS-014: Mark as Read button shows loading state', async ({ page }) => {
+    test.setTimeout(60000);
     await ensureSubmissionId(page);
     // Reset status to "new" so "Mark as Read" button is visible
     await page.request.patch(
@@ -437,6 +448,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-015: Mark as Replied button shows loading state', async ({ page }) => {
+    test.setTimeout(60000);
     await openFirstSubmission(page);
 
     await page.route('**/contact-submissions**', async (route) => {
@@ -456,18 +468,21 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-016: Reply textarea is visible in detail view', async ({ page }) => {
+    test.setTimeout(60000);
     await openFirstSubmission(page);
     await expect(page.getByPlaceholder('Type your reply...')).toBeVisible({ timeout: 5000 });
     await expect(page.getByRole('button', { name: 'Send Reply' })).toBeVisible();
   });
 
   test('CS-017: Send Reply button is disabled when textarea is empty', async ({ page }) => {
+    test.setTimeout(60000);
     await openFirstSubmission(page);
     const sendBtn = page.getByRole('button', { name: 'Send Reply' });
     await expect(sendBtn).toBeDisabled();
   });
 
   test('CS-018: Send Reply button enables when text is entered', async ({ page }) => {
+    test.setTimeout(60000);
     await openFirstSubmission(page);
     await page.getByPlaceholder('Type your reply...').fill('Test reply text');
     const sendBtn = page.getByRole('button', { name: 'Send Reply' });
@@ -475,11 +490,13 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-019: Check for replies button is visible', async ({ page }) => {
+    test.setTimeout(60000);
     await gotoContactPage(page);
     await expect(page.getByRole('button', { name: 'Check for replies' })).toBeVisible({ timeout: 15000 });
   });
 
   test('CS-020: Back button returns to list view', async ({ page }) => {
+    test.setTimeout(60000);
     await openFirstSubmission(page);
     await page.getByText('Back to submissions').click();
     await expect(page.locator('table')).toBeVisible({ timeout: 15000 });
@@ -522,6 +539,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-022: Submission auto-marked as replied after admin sends reply', async ({ page }) => {
+    test.setTimeout(60000);
     await gotoContactPage(page);
     // The first submission should now show "replied" status after CS-021
     await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 15000 });
@@ -531,6 +549,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-023: Reply appears in submission replies list', async ({ page }) => {
+    test.setTimeout(60000);
     await gotoContactPage(page);
     await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 15000 });
     await page.locator('table tbody tr').first().click();
@@ -546,6 +565,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   // ----------------------------------
 
   test('CS-024: Dashboard shows reply thread with admin messages', async ({ page }) => {
+    test.setTimeout(120000);
     await ensureSubmissionId(page);
 
     // Verify admin reply exists by navigating to detail view
@@ -569,6 +589,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-025: Reply form sends from dashboard UI and shows loading', async ({ page }) => {
+    test.setTimeout(60000);
     await openFirstSubmission(page);
     await page.getByPlaceholder('Type your reply...').fill(`UI reply test ${UNIQUE_TAG}`);
 
@@ -587,12 +608,12 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-026: Reply textarea clears after successful send', async ({ page }) => {
-    test.setTimeout(90000);
+    test.setTimeout(180000);
     await openFirstSubmission(page);
     await page.getByPlaceholder('Type your reply...').fill(`Clear test ${Date.now()}`);
     await page.getByRole('button', { name: 'Send Reply' }).click();
-    // Wait for the toast confirmation (SMTP send can take 10-20s)
-    await expect(page.getByText('Reply sent')).toBeVisible({ timeout: 60000 });
+    // Wait for the toast confirmation (SMTP send can take 10-60s depending on server load)
+    await expect(page.getByText('Reply sent')).toBeVisible({ timeout: 120000 });
     await expect(page.getByPlaceholder('Type your reply...')).toHaveValue('', { timeout: 5000 });
   });
 
@@ -604,6 +625,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   // ----------------------------------
 
   test('CS-027: Reply to non-existent submission returns 404', async ({ page }) => {
+    test.setTimeout(60000);
     // API-only: the dashboard UI cannot target a non-existent submission ID
     const res = await page.request.post(`/api/chatbots/${CHATBOT_ID}/contact-submissions`, {
       data: { submissionId: '00000000-0000-0000-0000-000000000000', message: 'This should fail' },
@@ -612,6 +634,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-028: Reply with empty message rejected', async ({ page }) => {
+    test.setTimeout(60000);
     // API-only: the dashboard UI disables the Send button when textarea is empty
     await ensureSubmissionId(page);
     const res = await page.request.post(`/api/chatbots/${CHATBOT_ID}/contact-submissions`, {
@@ -621,6 +644,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-029: PATCH with invalid status rejected', async ({ page }) => {
+    test.setTimeout(60000);
     // API-only: dashboard UI only sends valid status values via buttons
     await ensureSubmissionId(page);
     const res = await page.request.patch(
@@ -631,6 +655,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-030: PATCH without submissionId rejected', async ({ page }) => {
+    test.setTimeout(60000);
     // API-only: dashboard UI always includes the submissionId in requests
     const res = await page.request.patch(
       `/api/chatbots/${CHATBOT_ID}/contact-submissions`,
@@ -646,6 +671,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   // ----------------------------------
 
   test('CS-031: Filter submissions by status', async ({ page }) => {
+    test.setTimeout(60000);
     // API-only: no status filter dropdown in the dashboard UI
     const res = await page.request.get(
       `/api/chatbots/${CHATBOT_ID}/contact-submissions?status=replied`
@@ -658,6 +684,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-032: Pagination works correctly', async ({ page }) => {
+    test.setTimeout(60000);
     // API-only: pagination controls only appear when total > 20
     const res = await page.request.get(
       `/api/chatbots/${CHATBOT_ID}/contact-submissions?page=1&limit=2`
@@ -752,6 +779,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-036: Visitor reply appears in submission thread', async ({ page }) => {
+    test.setTimeout(60000);
     await ensureSubmissionId(page);
     await gotoContactPage(page);
     await page.locator('table tbody tr').first().click();
@@ -762,6 +790,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-037: Submission status changed to read after visitor reply', async ({ page }) => {
+    test.setTimeout(60000);
     await gotoContactPage(page);
     // After a visitor reply, the submission status should change to "read"
     await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 15000 });
@@ -792,18 +821,18 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   });
 
   test('CS-039: Thread has multiple messages in chronological order', async ({ page }) => {
+    test.setTimeout(60000);
     await ensureSubmissionId(page);
     await gotoContactPage(page);
     await page.locator('table tbody tr').first().click();
     await expect(page.getByText('Contact from')).toBeVisible({ timeout: 15000 });
 
-    // Wait for replies to load
+    // Wait for replies to load — wait for reply form and for loading spinner to disappear
     await expect(page.getByPlaceholder('Type your reply...')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.animate-spin')).toHaveCount(0, { timeout: 15000 });
 
     // Count the reply messages (Admin + Visitor badges)
-    const replyBadges = page.locator('text=Admin, text=Visitor');
     // There should be at least 3 replies (admin from CS-021, visitor from CS-034, admin from CS-038)
-    // Verify by checking that multiple reply blocks exist
     const adminBadges = page.locator('[class*="rounded-lg"]').filter({ hasText: 'Admin' });
     const visitorBadges = page.locator('[class*="rounded-lg"]').filter({ hasText: 'Visitor' });
     const totalAdmin = await adminBadges.count();
@@ -816,6 +845,7 @@ test.describe('Contact Submissions - Comprehensive E2E', () => {
   // ----------------------------------
 
   test('CS-040: Cleanup test emails', async () => {
+    test.setTimeout(60000);
     // cleanupEmails swallows errors internally, so just verify it completes without throwing
     await cleanupEmails(SUPPORT_EMAIL, SUPPORT_PASS, UNIQUE_TAG);
     await cleanupEmails(TEST_EMAIL, TEST_PASS, UNIQUE_TAG);

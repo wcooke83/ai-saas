@@ -19,13 +19,13 @@ test.describe('Section 18: Surveys Dashboard', () => {
     await waitForSurveys(page);
 
     // Page heading
-    await expect(page.getByText('Survey Results').first()).toBeVisible();
+    await expect(page.getByText('Survey Results').first()).toBeVisible({ timeout: 8000 });
 
     // Four stat cards
-    await expect(page.getByText('Total Responses')).toBeVisible();
-    await expect(page.getByText('Average Rating')).toBeVisible();
-    await expect(page.getByText('Recent (7 days)')).toBeVisible();
-    await expect(page.getByText('Survey Status')).toBeVisible();
+    await expect(page.getByText('Total Responses')).toBeVisible({ timeout: 8000 });
+    await expect(page.getByText('Average Rating')).toBeVisible({ timeout: 8000 });
+    await expect(page.getByText('Recent (7 days)')).toBeVisible({ timeout: 8000 });
+    await expect(page.getByText('Survey Status')).toBeVisible({ timeout: 8000 });
 
     // Responses table card (may take extra time to render)
     await expect(page.getByText('Survey Responses').first()).toBeVisible({ timeout: 10000 });

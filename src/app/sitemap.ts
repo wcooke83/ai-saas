@@ -153,17 +153,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.7,
     },
-    // ─── Blog Topic Guides (Hub Pages) ──────────────────────────────────────
+    // ─── Guides (Hub Pages) ────────────────────────────────────────────────
     ...[
-      'knowledge-base-chatbot-guide',
-      'embed-chatbot-guide',
-      'chatbot-for-business-guide',
-      'chatbot-alternatives-guide',
+      'knowledge-base-chatbot',
+      'embed-chatbot',
+      'chatbot-for-business',
+      'chatbot-alternatives',
     ].map((slug) => ({
-      url: `${BASE_URL}/blog/${slug}`,
+      url: `${BASE_URL}/guides/${slug}`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
-      priority: 0.7,
+      priority: 0.85,
     })),
     {
       url: `${BASE_URL}/blog/how-to-add-chatbot-to-website`,

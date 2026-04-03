@@ -5,31 +5,24 @@ const WIDGET_URL = `/widget/${CHATBOT_ID}`;
 
 test.describe('Chat Message Flow', () => {
   // Ensure chatbot is published and credits are reset before all widget tests
-  test.beforeAll(async ({ browser, request }) => {
+  test.beforeAll(async ({ browser }) => {
+    const ctx = await browser.newContext({ storageState: 'tests/auth/e2e-storage.json' });
+
     // Reset message count so a near-limit chatbot doesn't break unrelated widget tests
-    await request.patch(`/api/chatbots/${CHATBOT_ID}`, {
+    await ctx.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
       data: { messages_this_month: 0, monthly_message_limit: 1000 },
     }).catch(() => {});
 
-    const ctx = await browser.newContext({ storageState: 'tests/auth/e2e-storage.json' });
-    const page = await ctx.newPage();
-    await page.goto(`/dashboard/chatbots/${CHATBOT_ID}`);
-    await page.waitForLoadState('domcontentloaded');
-
-    const unpublishBtn = page.getByRole('button', { name: 'Unpublish' });
-    const publishBtn = page.getByRole('button', { name: 'Publish' });
-
-    // Wait for the page to finish loading (either button must appear)
-    await expect(unpublishBtn.or(publishBtn)).toBeVisible({ timeout: 15000 });
-
-    if (await publishBtn.isVisible().catch(() => false)) {
-      // Chatbot is not yet published — click Publish and wait for it to toggle to Unpublish
-      await publishBtn.click();
-      await expect(unpublishBtn).toBeVisible({ timeout: 15000 });
+    // Check publish state via API and publish if needed
+    const checkRes = await ctx.request.get(`/api/chatbots/${CHATBOT_ID}`);
+    if (checkRes.ok()) {
+      const body = await checkRes.json();
+      const isPublished = body?.data?.chatbot?.is_published;
+      if (!isPublished) {
+        await ctx.request.post(`/api/chatbots/${CHATBOT_ID}/publish`).catch(() => {});
+      }
     }
-    // else: Unpublish button visible → already published
 
-    await page.close();
     await ctx.close();
   });
 
@@ -109,9 +102,9 @@ test.describe('Chat Message Flow', () => {
   test('non-existent chatbot shows error', async ({ page }) => {
     await page.goto('/widget/00000000-0000-0000-0000-000000000000');
 
-    // Should show "not yet published" or an error message (config fetch returns 404)
+    // Should show an unavailable/error message (config fetch returns 404)
     await expect(
-      page.getByText(/not yet published|unable to load/i)
+      page.getByText(/not yet published|unable to load|isn't available yet|not available/i)
     ).toBeVisible({ timeout: 10_000 });
   });
 

@@ -438,6 +438,13 @@ export default function ReduceSupportTicketsPage() {
                   three months of active knowledge base maintenance. After that, gains come more
                   slowly because the remaining questions are genuinely complex or unique.
                 </p>
+                <p className="mt-4">
+                  For industry-specific implementation guides, see our{' '}
+                  <Link href="/guides/chatbot-for-business" className="text-primary-600 dark:text-primary-400 hover:underline">
+                    AI Chatbots for Business hub
+                  </Link>{' '}
+                  covering restaurants, education, finance, insurance, and more.
+                </p>
               </section>
 
               <NumberedListInfographic

@@ -743,6 +743,7 @@ test.describe('7. Admin UI — Navigation & Page', () => {
     await expect(link).toBeVisible({ timeout: 10000 });
     await link.click();
 
+    await page.waitForURL(/\/admin\/credit-packages/, { waitUntil: 'commit' });
     await expect(page).toHaveURL(/\/admin\/credit-packages/);
     await expect(page.getByRole('heading', { name: 'Credit Packages' })).toBeVisible({ timeout: 10000 });
   });

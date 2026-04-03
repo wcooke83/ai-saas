@@ -327,6 +327,13 @@ export default function WhatIsKnowledgeBaseChatbotPage() {
                   { title: 'E-commerce product questions', description: 'Answer questions about specifications, compatibility, shipping, and returns without live agent time.' },
                   { title: 'Lead qualification', description: 'A chatbot that answers prospect questions and captures contact information is a low-friction way to fill your pipeline.' },
                 ]} />
+                <p className="mt-4">
+                  For industry-specific implementation guides, see our{' '}
+                  <Link href="/guides/chatbot-for-business" className="text-primary-600 dark:text-primary-400 hover:underline">
+                    AI Chatbots for Business hub
+                  </Link>{' '}
+                  covering 10 industries from restaurants and education to insurance and SaaS.
+                </p>
               </section>
 
               <section>

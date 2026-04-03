@@ -29,7 +29,6 @@ const industryGroups: IndustryGroup[] = [
     industries: [
       { label: 'Law Firms', href: '/chatbot-for-lawyers' },
       { label: 'Immigration Lawyers', href: '/chatbot-for-immigration-lawyers' },
-      { label: 'Accountants', href: '/chatbot-for-accountants' },
       { label: 'Accountancy Firms', href: '/chatbot-for-accountancy-firms' },
       { label: 'Financial Advisors', href: '/chatbot-for-financial-advisors' },
       { label: 'Insurance Agents', href: '/chatbot-for-insurance-agents' },

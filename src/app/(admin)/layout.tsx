@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Menu, X, Home, Key, BarChart3, Settings, LogOut, CreditCard, Bot, Shield, ChevronDown, ChevronLeft, ChevronRight, Cpu, FileText, Package, Gift, Coins, ShoppingBag } from 'lucide-react';
+import { Menu, X, Home, Key, BarChart3, Settings, LogOut, CreditCard, Bot, Shield, ChevronDown, ChevronLeft, ChevronRight, Cpu, FileText, Package, Gift, Coins, ShoppingBag, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggleSimple } from '@/components/ui/theme-toggle';
 import { useFocusTrap } from '@/hooks/use-focus-trap';
@@ -39,6 +39,7 @@ const adminNavItem: NavItem = {
     { href: '/admin/credit-packages', label: 'Credit Packages', icon: ShoppingBag },
     { href: '/admin/trials', label: 'Trial Links', icon: Gift },
     { href: '/admin/logs', label: 'Logs', icon: FileText },
+    { href: '/admin/status', label: 'Status Page', icon: Activity },
   ],
 };
 

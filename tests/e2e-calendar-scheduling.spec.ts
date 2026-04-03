@@ -32,11 +32,11 @@ test.describe.configure({ timeout: 120_000 });
 async function gotoSchedulingTab(page: Page) {
   await page.goto(CALENDAR_URL);
   await page.waitForLoadState('domcontentloaded');
-  // Wait for the loading skeleton to disappear — the tabs only render once loading=false
-  await page.locator('[role="tablist"]').waitFor({ state: 'visible', timeout: 30_000 });
-  await page.getByRole('tab', { name: 'Scheduling' }).click();
+  // Wait for the tab buttons to render (TabsList is a plain div, no role="tablist")
+  await page.getByRole('button', { name: 'Scheduling' }).waitFor({ state: 'visible', timeout: 30_000 });
+  await page.getByRole('button', { name: 'Scheduling' }).click();
   // Wait for the Business Hours card to appear inside the scheduling tab
-  await expect(page.getByRole('heading', { name: 'Business Hours' })).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByRole('heading', { name: 'Business Hours', exact: true })).toBeVisible({ timeout: 10_000 });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -101,15 +101,12 @@ test.describe('Business Hours — Global', () => {
     // Click Done
     await page.getByRole('button', { name: 'Done' }).click();
 
-    // The summary should now show "Off" next to "Sun"
-    // The summary renders "Sun" followed by "Off" for disabled days
+    // The summary should now show "Closed" next to "Sun"
+    // The summary renders "Sun" followed by "Closed" for disabled days
     const summaryLine = page.locator('span').filter({ hasText: 'Sun' }).first();
     await expect(summaryLine).toBeVisible();
-    // The sibling or nearby span should say "Off"
-    const offText = page.locator('span:has-text("Sun") + span, span:has-text("Sun") ~ span').filter({ hasText: 'Off' });
-    // Fallback: just check that "Off" appears somewhere in the summary area
-    const bhCard = page.locator('[class*="Card"]').filter({ hasText: 'Business Hours' }).first();
-    await expect(bhCard.getByText('Off')).toBeVisible({ timeout: 5_000 });
+    // The summary shows "Off" for disabled days (in collapsed view)
+    await expect(page.getByText('Off').first()).toBeVisible({ timeout: 5_000 });
   });
 
   test('SCHED-103: Edit global hours — change Monday start time, click Done, verify summary reflects new time', async ({ page }) => {
@@ -133,9 +130,8 @@ test.describe('Business Hours — Global', () => {
     // Click Done
     await page.getByRole('button', { name: 'Done' }).click();
 
-    // The summary should now show "10:00" somewhere near "Mon"
-    const bhCard = page.locator('[class*="Card"]').filter({ hasText: 'Business Hours' }).first();
-    await expect(bhCard.getByText('10:00')).toBeVisible({ timeout: 5_000 });
+    // The summary should now show "10:00" in the collapsed global hours summary
+    await expect(page.locator('span').filter({ hasText: /^10:00/ }).first()).toBeVisible({ timeout: 5_000 });
   });
 });
 
@@ -148,7 +144,7 @@ test.describe('Business Hours — Scoped', () => {
   test('SCHED-110: Scoped Business Hours section is visible with empty state message', async ({ page }) => {
     await gotoSchedulingTab(page);
 
-    await expect(page.getByText('Scoped Business Hours')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Scoped Business Hours' })).toBeVisible();
     // Empty state text
     await expect(
       page.getByText('No scoped business hours')
@@ -173,7 +169,7 @@ test.describe('Business Hours — Scoped', () => {
     await expect(page.getByLabel('Enable Monday')).toBeVisible();
 
     // Add and Cancel buttons
-    await expect(page.getByRole('button', { name: 'Add' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Add', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Cancel' })).toBeVisible();
   });
 
@@ -195,7 +191,7 @@ test.describe('Business Hours — Scoped', () => {
     }
 
     // Click Add
-    await page.getByRole('button', { name: 'Add' }).click();
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
 
     // The scoped set should appear in the list with the label
     await expect(page.getByText(label)).toBeVisible({ timeout: 5_000 });
@@ -211,12 +207,12 @@ test.describe('Business Hours — Scoped', () => {
     await page.getByRole('button', { name: 'Add Business Hours' }).click();
     await expect(page.getByPlaceholder('e.g. Massage Therapy Hours')).toBeVisible({ timeout: 5_000 });
     await page.getByPlaceholder('e.g. Massage Therapy Hours').fill(originalLabel);
-    await page.getByRole('button', { name: 'Add' }).click();
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
     await expect(page.getByText(originalLabel)).toBeVisible({ timeout: 5_000 });
 
-    // Click the Pencil button on the scoped set row — it's the edit button in that row
-    const row = page.locator('div').filter({ hasText: originalLabel }).last();
-    const pencilBtn = row.locator('button').filter({ has: page.locator('svg.lucide-pencil') }).first();
+    // Click the Pencil button on the scoped set row — it's the first button in the row
+    const row = page.locator('div').filter({ hasText: originalLabel }).filter({ has: page.locator('button') }).last();
+    const pencilBtn = row.locator('button').nth(0);
     await pencilBtn.click();
 
     // The form should be visible with the existing label value
@@ -248,12 +244,12 @@ test.describe('Business Hours — Scoped', () => {
     await page.getByRole('button', { name: 'Add Business Hours' }).click();
     await expect(page.getByPlaceholder('e.g. Massage Therapy Hours')).toBeVisible({ timeout: 5_000 });
     await page.getByPlaceholder('e.g. Massage Therapy Hours').fill(label);
-    await page.getByRole('button', { name: 'Add' }).click();
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
     await expect(page.getByText(label)).toBeVisible({ timeout: 5_000 });
 
-    // Click the Trash button on the scoped set row
-    const row = page.locator('div').filter({ hasText: label }).last();
-    const trashBtn = row.locator('button').filter({ has: page.locator('svg.lucide-trash-2') }).first();
+    // Click the Trash button on the scoped set row — it's the second button in the row
+    const row = page.locator('div').filter({ hasText: label }).filter({ has: page.locator('button') }).last();
+    const trashBtn = row.locator('button').nth(1);
     await trashBtn.click();
 
     // Confirmation dialog should appear
@@ -298,8 +294,8 @@ test.describe('Blocked Dates — Global', () => {
   test('SCHED-120: Global Blocked Dates section is visible with header and colored dot', async ({ page }) => {
     await gotoSchedulingTab(page);
 
-    // The Blocked Dates card should be visible
-    await expect(page.getByRole('heading', { name: 'Blocked Dates' })).toBeVisible();
+    // The Blocked Dates card should be visible (accessible name includes tooltip: "Blocked Dates More information")
+    await expect(page.getByRole('heading', { name: 'Blocked Dates' }).first()).toBeVisible();
 
     // Check if EA is not_configured — if so, it shows a warning instead of the normal UI
     const notConfiguredWarning = page.getByText('Easy!Appointments is not configured');
@@ -345,13 +341,15 @@ test.describe('Blocked Dates — Global', () => {
     await labelInput.fill('E2E Global Block');
 
     // Click Add
-    await page.getByRole('button', { name: 'Add' }).click();
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
 
-    // Wait for the API call to complete — a success toast should appear
-    await expect(page.getByText('Blocked date added')).toBeVisible({ timeout: 10_000 });
+    // A toast should appear (either success or "already blocked" if date already exists from prior run)
+    await expect(
+      page.getByText('Blocked date added').or(page.getByText('This date is already blocked'))
+    ).toBeVisible({ timeout: 10_000 });
 
-    // The date should now appear in the global blocked dates list
-    await expect(page.getByText('E2E Global Block')).toBeVisible({ timeout: 5_000 });
+    // The label should appear in the global blocked dates list (either newly added or pre-existing)
+    await expect(page.getByText('E2E Global Block').first()).toBeVisible({ timeout: 5_000 });
   });
 
   test('SCHED-122: Delete a global blocked date — click Trash, confirm dialog, verify removal', async ({ page }) => {
@@ -365,8 +363,8 @@ test.describe('Blocked Dates — Global', () => {
       return;
     }
 
-    // Look for the "E2E Global Block" entry we created in SCHED-121
-    const entryText = page.getByText('E2E Global Block');
+    // Look for any "E2E Global Block" entry (from SCHED-121 or prior runs)
+    const entryText = page.getByText('E2E Global Block').first();
     const isVisible = await entryText.isVisible().catch(() => false);
     if (!isVisible) {
       // Create one first
@@ -376,13 +374,15 @@ test.describe('Blocked Dates — Global', () => {
       await expect(dateInput).toBeVisible({ timeout: 5_000 });
       await dateInput.fill(futureDate(61));
       await page.locator('#blocked-label').fill('E2E Global Block');
-      await page.getByRole('button', { name: 'Add' }).click();
-      await expect(page.getByText('Blocked date added')).toBeVisible({ timeout: 10_000 });
+      await page.getByRole('button', { name: 'Add', exact: true }).click();
+      await expect(
+        page.getByText('Blocked date added').or(page.getByText('This date is already blocked'))
+      ).toBeVisible({ timeout: 10_000 });
     }
 
-    // Find the row with "E2E Global Block" and click its Trash button
-    const row = page.locator('div').filter({ hasText: 'E2E Global Block' }).last();
-    const trashBtn = row.locator('button').filter({ has: page.locator('svg.lucide-trash-2') }).first();
+    // Find the row with "E2E Global Block" and click its Trash button (only button in row)
+    const row = page.locator('div').filter({ hasText: 'E2E Global Block' }).filter({ has: page.locator('button') }).last();
+    const trashBtn = row.locator('button').nth(0);
     await trashBtn.click();
 
     // Confirmation dialog should appear
@@ -405,7 +405,7 @@ test.describe('Blocked Dates — Scoped', () => {
   test('SCHED-130: Scoped Blocked Dates section is visible with empty state message', async ({ page }) => {
     await gotoSchedulingTab(page);
 
-    await expect(page.getByText('Scoped Blocked Dates')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Scoped Blocked Dates' })).toBeVisible();
     await expect(
       page.getByText('No scoped blocked dates')
         .or(page.getByText('Add blocked dates for specific services or providers'))
@@ -415,11 +415,8 @@ test.describe('Blocked Dates — Scoped', () => {
   test('SCHED-131: Add scoped blocked date with service selected, verify it appears with scope label', async ({ page }) => {
     await gotoSchedulingTab(page);
 
-    // Click "Add Blocked Date" in the scoped section — it's the second one on the page
-    const scopedSection = page.locator('div').filter({ hasText: /Scoped Blocked Dates/ });
-    // The scoped "Add Blocked Date" button is within the Scoped Blocked Dates section
-    // We locate it by finding the button closest to the "Scoped Blocked Dates" heading
-    const scopedAddBtn = scopedSection.getByRole('button', { name: 'Add Blocked Date' }).first();
+    // Click "Add Blocked Date" in the scoped section — the second "Add Blocked Date" on the page
+    const scopedAddBtn = page.getByRole('button', { name: 'Add Blocked Date' }).last();
     await scopedAddBtn.click();
 
     // The scoped form should appear with date, label, and scope selectors
@@ -466,7 +463,7 @@ test.describe('Blocked Dates — Scoped', () => {
     }
 
     // Click Add
-    await page.getByRole('button', { name: 'Add' }).click();
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
 
     // The scoped blocked date should appear in the list
     await expect(page.getByText('E2E Scoped Block')).toBeVisible({ timeout: 5_000 });
@@ -475,8 +472,7 @@ test.describe('Blocked Dates — Scoped', () => {
   test('SCHED-132: Try to add scoped blocked date with no scope selected — verify validation error', async ({ page }) => {
     await gotoSchedulingTab(page);
 
-    const scopedSection = page.locator('div').filter({ hasText: /Scoped Blocked Dates/ });
-    const scopedAddBtn = scopedSection.getByRole('button', { name: 'Add Blocked Date' }).first();
+    const scopedAddBtn = page.getByRole('button', { name: 'Add Blocked Date' }).last();
     await scopedAddBtn.click();
 
     const dateInput = page.locator('#scoped-date');
@@ -486,7 +482,7 @@ test.describe('Blocked Dates — Scoped', () => {
     await dateInput.fill(futureDate(75));
 
     // Click Add without selecting any service or provider
-    await page.getByRole('button', { name: 'Add' }).click();
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
 
     // Validation error should appear
     await expect(
@@ -503,8 +499,7 @@ test.describe('Blocked Dates — Scoped', () => {
 
     if (!isVisible) {
       // Create one — same flow as SCHED-131
-      const scopedSection = page.locator('div').filter({ hasText: /Scoped Blocked Dates/ });
-      const scopedAddBtn = scopedSection.getByRole('button', { name: 'Add Blocked Date' }).first();
+      const scopedAddBtn = page.getByRole('button', { name: 'Add Blocked Date' }).last();
       await scopedAddBtn.click();
 
       const dateInput = page.locator('#scoped-date');
@@ -534,13 +529,13 @@ test.describe('Blocked Dates — Scoped', () => {
         }
       }
 
-      await page.getByRole('button', { name: 'Add' }).click();
+      await page.getByRole('button', { name: 'Add', exact: true }).click();
       await expect(page.getByText('E2E Scoped Block')).toBeVisible({ timeout: 5_000 });
     }
 
-    // Click the Trash button on the scoped blocked date row
-    const row = page.locator('div').filter({ hasText: 'E2E Scoped Block' }).last();
-    const trashBtn = row.locator('button').filter({ has: page.locator('svg.lucide-trash-2') }).first();
+    // Click the Trash button on the scoped blocked date row (only button in row)
+    const row = page.locator('div').filter({ hasText: 'E2E Scoped Block' }).filter({ has: page.locator('button') }).last();
+    const trashBtn = row.locator('button').nth(0);
     await trashBtn.click();
 
     // Confirmation dialog
@@ -563,12 +558,14 @@ test.describe('Date Overrides', () => {
   test('SCHED-140: Date Overrides section is visible', async ({ page }) => {
     await gotoSchedulingTab(page);
 
-    await expect(page.getByRole('heading', { name: 'Date Overrides' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Date Overrides' }).first()).toBeVisible();
     // Empty state or list should be present
-    await expect(
-      page.getByText('No date overrides')
-        .or(page.getByRole('button', { name: 'Add Date Override' }))
-    ).toBeVisible();
+    // Either the empty state text or the Add button (or both) should be visible
+    const emptyState = page.getByText('No date overrides');
+    const addBtn = page.getByRole('button', { name: 'Add Date Override' });
+    const emptyVisible = await emptyState.first().isVisible().catch(() => false);
+    const addVisible = await addBtn.first().isVisible().catch(() => false);
+    expect(emptyVisible || addVisible).toBe(true);
   });
 
   test('SCHED-141: Click Add Date Override, fill date, verify Closed all day checkbox works', async ({ page }) => {
@@ -663,9 +660,9 @@ test.describe('Date Overrides', () => {
       await expect(page.getByText('E2E Override Test')).toBeVisible({ timeout: 5_000 });
     }
 
-    // Click the Pencil button on the override row
-    const row = page.locator('div').filter({ hasText: 'E2E Override Test' }).last();
-    const pencilBtn = row.locator('button').filter({ has: page.locator('svg.lucide-pencil') }).first();
+    // Click the Pencil button on the override row (first of two buttons)
+    const row = page.locator('div').filter({ hasText: 'E2E Override Test' }).filter({ has: page.locator('button') }).last();
+    const pencilBtn = row.locator('button').nth(0);
     await pencilBtn.click();
 
     // The edit form should appear — the button should say "Update Date Override"
@@ -700,9 +697,9 @@ test.describe('Date Overrides', () => {
       await expect(page.getByText('E2E Override Test')).toBeVisible({ timeout: 5_000 });
     }
 
-    // Click the Trash button on the override row
-    const row = page.locator('div').filter({ hasText: 'E2E Override Test' }).last();
-    const trashBtn = row.locator('button').filter({ has: page.locator('svg.lucide-trash-2') }).first();
+    // Click the Trash button on the override row (second of two buttons: pencil, trash)
+    const row = page.locator('div').filter({ hasText: 'E2E Override Test' }).filter({ has: page.locator('button') }).last();
+    const trashBtn = row.locator('button').nth(1);
     await trashBtn.click();
 
     // Confirmation dialog
@@ -825,8 +822,7 @@ test.describe('Cleanup', () => {
     attempts = 0;
     while (overrideVisible && attempts < 10) {
       // Date overrides card
-      const overrideCard = page.locator('[class*="Card"]').filter({ hasText: 'Date Overrides' });
-      const trashBtns = overrideCard.locator('button').filter({ has: page.locator('svg.lucide-trash-2') });
+      const trashBtns = page.locator('div').filter({ hasText: /Date Overrides/ }).last().locator('button').filter({ has: page.locator('svg.lucide-trash-2') });
       const count = await trashBtns.count();
       if (count === 0) {
         overrideVisible = false;

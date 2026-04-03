@@ -51,6 +51,7 @@ interface IndustryData {
   label: string;
   href: string;
   description: string;
+  keywords?: string[];
 }
 
 interface Industry {

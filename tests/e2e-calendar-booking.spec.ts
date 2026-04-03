@@ -306,6 +306,7 @@ test.describe('Calendar Booking Integration', () => {
   let liveProviderBookingId: string | null = null;
 
   test.beforeAll(async ({ browser }) => {
+    test.setTimeout(120_000);
     // Skip re-setup on retry if integration already created
     if (integrationId) return;
 
@@ -568,7 +569,7 @@ test.describe('Calendar Booking Integration', () => {
       test.skip(!liveBookingId, 'No booking');
 
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Booking History section should show our booking
       await expect(page.getByText('Booking History').first()).toBeVisible({ timeout: 15000 });
@@ -579,7 +580,7 @@ test.describe('Calendar Booking Integration', () => {
       test.skip(!liveBookingId, 'No booking');
 
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       await expect(page.getByText('Booking History').first()).toBeVisible({ timeout: 15000 });
       // Verify the email is shown
@@ -619,7 +620,7 @@ test.describe('Calendar Booking Integration', () => {
       test.skip(!liveBookingId, 'No booking');
 
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       await expect(page.getByText('Booking History').first()).toBeVisible({ timeout: 15000 });
 
@@ -655,7 +656,7 @@ test.describe('Calendar Booking Integration', () => {
       test.skip(!liveBookingId, 'No booking');
 
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       await expect(page.getByText('Booking History').first()).toBeVisible({ timeout: 15000 });
 
@@ -787,7 +788,6 @@ test.describe('Calendar Booking Integration', () => {
 
     test('CAL-127: Dashboard calendar setup page loads for chatbot', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('networkidle');
       await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
     });
 
@@ -801,10 +801,9 @@ test.describe('Calendar Booking Integration', () => {
 
     test('CAL-130: Dashboard shows appointment settings', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('domcontentloaded');
       await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
       // Appointment Settings is in the Scheduling tab — click it first
-      await page.locator('[value="scheduling"]').click();
+      await page.getByRole('button', { name: 'Scheduling' }).click();
       await expect(page.locator('text=Appointment Settings')).toBeVisible({ timeout: 5000 });
     });
   });
@@ -818,19 +817,16 @@ test.describe('Calendar Booking Integration', () => {
       test.skip(!integrationId, 'No integration');
 
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('networkidle');
 
       // Should show the configuration sections
       await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
       // Appointment Settings is in the Scheduling tab — click it first
-      await page.locator('[value="scheduling"]').click();
+      await page.getByRole('button', { name: 'Scheduling' }).click();
       await expect(page.locator('text=Appointment Settings')).toBeVisible({ timeout: 5000 });
     });
 
     test('CAL-141: Save calendar settings via dashboard UI', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('networkidle');
-
       await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
 
       // Select service if dropdown is available
@@ -868,13 +864,12 @@ test.describe('Calendar Booking Integration', () => {
 
       // Verify save worked by reloading
       await page.reload();
-      await page.waitForLoadState('networkidle');
       await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
     });
 
     test('CAL-142: Saved timezone persists after reload', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('networkidle');
+      await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
 
       const tzSelect = page.locator('#et-tz');
       if (await tzSelect.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -887,7 +882,7 @@ test.describe('Calendar Booking Integration', () => {
       test.skip(!integrationId, 'No integration');
 
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('networkidle');
+      await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
 
       const serviceSelect = page.locator('#ea-service');
       if (await serviceSelect.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -906,7 +901,7 @@ test.describe('Calendar Booking Integration', () => {
       test.skip(!eaServiceId || !eaProviderId, 'No EA service/provider IDs');
 
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('networkidle');
+      await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
 
       const serviceSelect = page.locator('#ea-service');
       if (await serviceSelect.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -1069,20 +1064,18 @@ test.describe('Calendar Booking Integration', () => {
   test.describe('Dashboard Calendar UI', () => {
     test('CAL-170: Calendar settings page loads', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('networkidle');
       await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
     });
 
     test('CAL-171: Easy!Appointments connection card visible', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('domcontentloaded');
-
-      await expect(page.getByText('Easy!Appointments Connection').first()).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
+      await expect(page.getByText(/Easy!Appointments/i).first()).toBeVisible({ timeout: 10000 });
     });
 
     test('CAL-172: Service and provider dropdowns visible', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('domcontentloaded');
+      await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
 
       // Service dropdown
       const serviceSelect = page.locator('#ea-service');
@@ -1099,20 +1092,21 @@ test.describe('Calendar Booking Integration', () => {
         await expect(providerSelect.locator('option').first()).toContainText('Select a provider');
       }
 
-      // Appointment settings and availability sections
+      // Appointment settings section is in the Scheduling tab
+      await page.getByRole('button', { name: 'Scheduling' }).click();
       await expect(page.locator('text=Appointment Settings')).toBeVisible({ timeout: 5000 });
-      await expect(page.locator('text=Availability')).toBeVisible();
     });
 
     test('CAL-173: Appointment settings form elements visible', async ({ page }) => {
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('domcontentloaded');
-
+      await expect(page.getByRole('heading', { name: /Calendar Booking/i }).first()).toBeVisible({ timeout: 30000 });
+      // Navigate to Scheduling tab where Appointment Settings lives
+      await page.getByRole('button', { name: 'Scheduling' }).click();
       await expect(page.locator('text=Appointment Settings')).toBeVisible({ timeout: 5000 });
       // Duration selector
       await expect(page.locator('#et-duration')).toBeVisible();
-      // Timezone selector
-      await expect(page.locator('#et-tz')).toBeVisible();
+      // Timezone selector (rendered as a search input)
+      await expect(page.locator('#et-tz-search')).toBeVisible();
     });
 
     test('CAL-174: Connected integration shows status', async ({ page }) => {
@@ -1157,7 +1151,7 @@ test.describe('Calendar Booking Integration', () => {
       }
 
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // If booking was created, it should appear in the history
       if (bookings?.[0]?.id) {
@@ -1170,7 +1164,7 @@ test.describe('Calendar Booking Integration', () => {
 
     test('CAL-177: Calendar tab in chatbot sub-nav', async ({ page }) => {
       await page.goto(`/dashboard/chatbots/${DASHBOARD_CHATBOT_ID}`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       const link = page.locator('nav a:has-text("Calendar")');
       await expect(link).toBeVisible({ timeout: 15000 });

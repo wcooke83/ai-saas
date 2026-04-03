@@ -12,22 +12,22 @@ import { VOCUI_AUTHOR } from '@/lib/seo/jsonld-utils';
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
-  title: '5 Intercom Alternatives That Won\'t Break the Budget | VocUI',
+  title: 'Intercom Alternatives That Won\'t Break the Budget | VocUI',
   description:
-    'Intercom is powerful but expensive. Here are five affordable alternatives with AI chatbot features, knowledge base support, and simple setup.',
+    'Intercom is powerful but expensive. Here are affordable alternatives with AI chatbot features, knowledge base support, and simple setup.',
   openGraph: {
-    title: '5 Intercom Alternatives That Won\'t Break the Budget | VocUI',
+    title: 'Intercom Alternatives That Won\'t Break the Budget | VocUI',
     description:
-      'Intercom is powerful but expensive. Here are five affordable alternatives with AI chatbot features, knowledge base support, and simple setup.',
+      'Intercom is powerful but expensive. Here are affordable alternatives with AI chatbot features, knowledge base support, and simple setup.',
     url: 'https://vocui.com/blog/intercom-alternatives',
     siteName: 'VocUI',
     type: 'article',
   },
   twitter: {
     card: 'summary_large_image',
-    title: '5 Intercom Alternatives That Won\'t Break the Budget | VocUI',
+    title: 'Intercom Alternatives That Won\'t Break the Budget | VocUI',
     description:
-      'Intercom is powerful but expensive. Here are five affordable alternatives with AI chatbot features, knowledge base support, and simple setup.',
+      'Intercom is powerful but expensive. Here are affordable alternatives with AI chatbot features, knowledge base support, and simple setup.',
   },
   alternates: { canonical: 'https://vocui.com/blog/intercom-alternatives' },
   robots: { index: true, follow: true },
@@ -40,9 +40,9 @@ const jsonLd = {
   '@graph': [
     {
       '@type': 'Article',
-      headline: '5 Intercom Alternatives That Won\u2019t Break the Budget',
+      headline: 'Intercom Alternatives That Won\u2019t Break the Budget',
       description:
-        'A comparison of five affordable Intercom alternatives with AI chatbot features and knowledge base support.',
+        'A comparison of affordable Intercom alternatives with AI chatbot features and knowledge base support.',
       url: 'https://vocui.com/blog/intercom-alternatives',
       mainEntityOfPage: {
         '@type': 'WebPage',
@@ -120,7 +120,7 @@ const jsonLd = {
         {
           '@type': 'ListItem',
           position: 3,
-          name: '5 Intercom Alternatives That Won\u2019t Break the Budget',
+          name: 'Intercom Alternatives That Won\u2019t Break the Budget',
           item: 'https://vocui.com/blog/intercom-alternatives',
         },
       ],
@@ -216,7 +216,7 @@ export default function IntercomAlternativesPage() {
               </li>
               <li aria-hidden="true">/</li>
               <li className="text-secondary-900 dark:text-secondary-100 font-medium">
-                5 Intercom Alternatives
+                Intercom Alternatives
               </li>
             </ol>
           </nav>
@@ -232,11 +232,11 @@ export default function IntercomAlternativesPage() {
               </div>
               <AuthorByline className="mb-4" />
               <h1 className="text-4xl font-bold text-secondary-900 dark:text-secondary-100 leading-tight mb-4">
-                5 Intercom Alternatives That Won&apos;t Break the Budget
+                Intercom Alternatives That Won&apos;t Break the Budget
               </h1>
               <p className="text-xl text-secondary-600 dark:text-secondary-400 leading-relaxed">
                 Intercom is the gold standard for customer messaging — and priced like it. If you
-                need AI chatbot features without the enterprise price tag, these five alternatives
+                need AI chatbot features without the enterprise price tag, these alternatives
                 deliver real value at a fraction of the cost.
               </p>
             </header>

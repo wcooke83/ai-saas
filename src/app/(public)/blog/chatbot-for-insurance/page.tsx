@@ -539,6 +539,12 @@ export default function ChatbotForInsurancePage() {
             <p className="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-3">Related industry guides</p>
             <ul className="space-y-3">
               <li>
+                <Link href="/guides/chatbot-for-business" className="font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
+                  AI Chatbots for Business: All 12 Industry Guides →
+                </Link>
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-0.5">The complete hub — strategy, best practices, and guides for 10 industries.</p>
+              </li>
+              <li>
                 <Link href="/chatbot-for-insurance-agents" className="font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
                   AI Chatbot for Insurance Agents →
                 </Link>

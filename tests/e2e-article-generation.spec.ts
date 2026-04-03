@@ -365,13 +365,6 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
 
     // Should show the "Add" input (always present when expanded, regardless of prompt count)
     const addInput = page.getByPlaceholder(/Add a custom extraction question/);
-    const isVisible = await addInput.isVisible({ timeout: 10000 }).catch(() => false);
-
-    if (!isVisible) {
-      // Maybe section didn't expand — try clicking again
-      await promptsHeader.click();
-    }
-
     await expect(addInput).toBeVisible({ timeout: 10000 });
   });
 
@@ -678,7 +671,7 @@ test.describe('Article Generation & Knowledge Pipeline', () => {
     await expect(page.getByText('Generate Articles from URL')).toBeVisible({ timeout: 10000 });
 
     // The descriptions should explain the difference
-    await expect(page.getByText(/raw content.*directly/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/Import content from any webpage/i)).toBeVisible({ timeout: 5000 });
     await expect(page.getByText(/one-time extraction/i)).toBeVisible({ timeout: 5000 });
   });
 

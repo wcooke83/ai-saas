@@ -31,7 +31,7 @@ const menuLinks = {
     { label: 'Solutions', href: '/solutions' },
     { label: 'Industries', href: '/industries' },
     { label: 'Pricing', href: '/pricing' },
-    { label: 'Features', href: '/#features' },
+    { label: 'Features', href: '/features' },
     { label: 'Integrations', href: '/integrations' },
   ],
   resources: [

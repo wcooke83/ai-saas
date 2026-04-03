@@ -30,3 +30,12 @@ For color-break sections (dark, tinted), always use `w-full` on the section elem
 
 ## Visual rhythm rule
 Never use same background two sections in a row. The about page sequence: transparent/hero → secondary-50 → primary-950 → gradient creates clear visual turns.
+
+## Blog index section rhythm
+Hero (grid overlay, left accent rule) → Topic Guides (full-bleed `bg-primary-950` dark break) → Articles (default bg, container-padded). The dark strip is the mid-page visual turn.
+
+## Blog: magazine layout pattern
+For the first filtered results, use `grid-cols-3 grid-rows-2` with the hero card spanning `row-span-2` (col 1) and two secondary cards stacked in cols 2–3. Remaining posts fall into a standard `grid-cols-3` compact grid below.
+
+## Full-bleed dark guide strip pattern (blog topics)
+Use `gap-px bg-primary-800/40` on the grid container — the gap color creates subtle dividers between dark panels without hard borders. Each panel is `bg-primary-950` with hover border via `group-hover:border-*`. Large numeric labels (`text-4xl font-black opacity-25`) signal navigation index, not content tiles.

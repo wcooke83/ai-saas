@@ -187,7 +187,7 @@ test.describe('Credit Purchase – Custom Amount', () => {
     // Should show 500 credits
     await expect(page.getByText('500')).toBeVisible();
     // Should show dollar amount ($5.00 for 500 credits at $0.01 each)
-    await expect(page.locator('[role="dialog"]').getByText('$5.00')).toBeVisible();
+    await expect(page.locator('[role="dialog"]').getByText('$5.00', { exact: true })).toBeVisible();
   });
 
   test('CREDIT-014: pricing info text is displayed', async ({ page }) => {
@@ -207,8 +207,8 @@ test.describe('Credit Purchase – Custom Amount', () => {
     await expect(page.getByText('Purchase Credits').first()).toBeVisible({ timeout: 15000 });
 
     // Balance grid labels
-    await expect(page.getByText('Plan Credits')).toBeVisible();
-    await expect(page.getByText('Purchased')).toBeVisible();
-    await expect(page.getByText('Bonus')).toBeVisible();
+    await expect(page.getByText('Plan Credits', { exact: true })).toBeVisible();
+    await expect(page.getByText('Purchased', { exact: true })).toBeVisible();
+    await expect(page.getByText('Bonus', { exact: true })).toBeVisible();
   });
 });

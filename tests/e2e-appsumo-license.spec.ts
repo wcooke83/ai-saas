@@ -6,11 +6,8 @@ const APPSUMO_URL = '/dashboard/appsumo';
 test.describe('License Key Redemption – Removed from Billing', () => {
   test('APPSUMO-001: billing page does NOT contain Redeem License Key text', async ({ page }) => {
     await page.goto(BILLING_URL);
-    await page.waitForLoadState('domcontentloaded');
-    // Wait for billing page to fully load
-    await expect(page.getByText('Billing').first()).toBeVisible({ timeout: 15000 });
-    // Wait for all sections to render (past skeleton loaders)
-    await expect(page.getByRole('heading', { name: 'Purchase Credits' })).toBeVisible({ timeout: 15000 });
+    // Wait for billing page to fully load (H1 and Current Plan render together after data loads)
+    await expect(page.getByRole('heading', { name: 'Billing' })).toBeVisible({ timeout: 15000 });
 
     // "Redeem License Key" should NOT be on the billing page
     await expect(page.getByRole('heading', { name: 'Redeem License Key' })).not.toBeVisible();
@@ -18,9 +15,7 @@ test.describe('License Key Redemption – Removed from Billing', () => {
 
   test('APPSUMO-002: billing page does NOT contain AppSumo text', async ({ page }) => {
     await page.goto(BILLING_URL);
-    await page.waitForLoadState('domcontentloaded');
-    await expect(page.getByText('Billing').first()).toBeVisible({ timeout: 15000 });
-    await expect(page.getByRole('heading', { name: 'Purchase Credits' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Billing' })).toBeVisible({ timeout: 15000 });
 
     // "AppSumo" text should NOT be visible on the billing page
     // (unless the user is on an AppSumo plan, in which case it shows an info banner)
@@ -97,7 +92,7 @@ test.describe('AppSumo Page – /dashboard/appsumo', () => {
     // Wait for the redemption API call to complete and error to display
     const errorToast = page.locator('[data-sonner-toast][data-type="error"]');
     const errorInline = page.getByText(/failed|invalid|error|not found/i);
-    await expect(errorToast.or(errorInline)).toBeVisible({ timeout: 10000 });
+    await expect(errorToast.or(errorInline).first()).toBeVisible({ timeout: 10000 });
   });
 
   test('APPSUMO-015: license key info text is displayed', async ({ page }) => {

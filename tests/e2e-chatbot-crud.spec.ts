@@ -3,6 +3,32 @@ import { test, expect } from '@playwright/test';
 let createdChatbotId: string | null = null;
 
 test.describe('Chatbot CRUD', () => {
+  test.beforeAll(async ({ browser }) => {
+    // Pre-warm Next.js route compilation in parallel so tests don't hit
+    // cold-compile latency. API calls are fulfilled with 404 immediately so
+    // pages render without waiting for real data.
+    const ctx = await browser.newContext({ storageState: 'tests/auth/e2e-storage.json' });
+
+    const routes = [
+      '/dashboard/chatbots/new',
+      '/dashboard/chatbots/00000000-0000-0000-0000-000000000000',
+      '/dashboard/chatbots/00000000-0000-0000-0000-000000000000/knowledge',
+      '/dashboard/chatbots/00000000-0000-0000-0000-000000000000/settings',
+    ];
+
+    await Promise.all(
+      routes.map(async (path) => {
+        const p = await ctx.newPage();
+        await p.route('**/api/chatbots/**', (route) => route.fulfill({ status: 404, body: '{}' }));
+        await p.goto(path);
+        await p.waitForLoadState('domcontentloaded');
+        await p.close();
+      })
+    );
+
+    await ctx.close();
+  });
+
   test('can navigate to chatbots list', async ({ page }) => {
     await page.goto('/dashboard/chatbots');
     await page.waitForLoadState('domcontentloaded');

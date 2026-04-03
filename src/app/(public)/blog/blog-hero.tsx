@@ -1,9 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Clock } from 'lucide-react';
+import { ArrowRight, Clock, CalendarDays } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Breadcrumbs } from '@/components/ui/breadcrumbs';
+import type { BlogPost } from '@/components/blog/blog-index';
+
+// ─── Animation variants ────────────────────────────────────────────────────────
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -15,18 +18,46 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.11 } },
 };
 
-const FEATURED_POST = {
-  slug: 'ai-hallucination-what-it-is-how-to-prevent-it',
-  title: 'AI Hallucination: What It Is and How to Prevent It',
-  description:
-    'AI hallucination is when a chatbot generates confident but incorrect answers. Learn why it happens and how to prevent it in your business chatbot.',
-  readTime: '8 min read',
-  tag: 'Explainer',
-  datePublished: 'Apr 1, 2026',
+// ─── Tag color map (subset needed for featured card) ──────────────────────────
+
+const TAG_BADGE: Record<string, string> = {
+  Guide:          'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
+  'Use Case':     'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
+  Strategy:       'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+  Explainer:      'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300',
+  Comparison:     'bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300',
+  'Best Practice':'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300',
+  'Topic Guide':  'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300',
 };
 
-export function BlogHero() {
+function formatDate(iso: string): string {
+  const [year, month, day] = iso.split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+// ─── Derive the most recent post by datePublished ─────────────────────────────
+
+function getLatestPost(posts: BlogPost[]): BlogPost | null {
+  const dated = posts.filter((p) => Boolean(p.datePublished));
+  if (dated.length === 0) return null;
+  return dated.reduce((latest, post) => {
+    return (post.datePublished ?? '') > (latest.datePublished ?? '') ? post : latest;
+  });
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+interface BlogHeroProps {
+  posts: BlogPost[];
+}
+
+export function BlogHero({ posts }: BlogHeroProps) {
   const prefersReducedMotion = useReducedMotion();
+  const featured = getLatestPost(posts);
 
   return (
     <section className="relative overflow-hidden">
@@ -91,46 +122,58 @@ export function BlogHero() {
             </motion.div>
           </div>
 
-          {/* Right: featured post spotlight */}
-          <motion.div variants={fadeUp} className="lg:col-span-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-400 dark:text-secondary-500 mb-3">
-              Latest Post
-            </p>
-            <Link
-              href={`/blog/${FEATURED_POST.slug}`}
-              className="group block bg-white/80 dark:bg-secondary-800/60 backdrop-blur-sm border border-secondary-200 dark:border-secondary-700 rounded-2xl p-6 hover:border-primary-300 dark:hover:border-primary-600 transition-all shadow-sm hover:shadow-md"
-            >
-              {/* Tag + read time */}
-              <div className="flex items-center gap-3 mb-4">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300">
-                  {FEATURED_POST.tag}
-                </span>
-                <span className="flex items-center gap-1 text-xs text-secondary-400 dark:text-secondary-500">
-                  <Clock className="w-3.5 h-3.5" aria-hidden="true" />
-                  {FEATURED_POST.readTime}
-                </span>
-                <span className="text-xs text-secondary-400 dark:text-secondary-500 ml-auto">
-                  {FEATURED_POST.datePublished}
-                </span>
-              </div>
-
-              {/* Title */}
-              <h2 className="text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-3 leading-snug group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                {FEATURED_POST.title}
-              </h2>
-
-              {/* Description */}
-              <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed mb-5">
-                {FEATURED_POST.description}
+          {/* Right: featured post spotlight — driven by most recent datePublished */}
+          {featured && (
+            <motion.div variants={fadeUp} className="lg:col-span-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-400 dark:text-secondary-500 mb-3">
+                Latest Post
               </p>
+              <Link
+                href={`/blog/${featured.slug}`}
+                className="group block bg-white/80 dark:bg-secondary-800/60 backdrop-blur-sm border border-secondary-200 dark:border-secondary-700 rounded-2xl p-6 hover:border-primary-300 dark:hover:border-primary-600 transition-all shadow-sm hover:shadow-md"
+              >
+                {/* Tag + meta */}
+                <div className="flex items-center gap-3 mb-4 flex-wrap">
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      TAG_BADGE[featured.tag] ??
+                      'bg-secondary-100 dark:bg-secondary-800 text-secondary-600 dark:text-secondary-300'
+                    }`}
+                  >
+                    {featured.tag}
+                  </span>
+                  {featured.datePublished && (
+                    <span className="flex items-center gap-1 text-xs text-secondary-400 dark:text-secondary-500">
+                      <CalendarDays className="w-3.5 h-3.5" aria-hidden="true" />
+                      <time dateTime={featured.datePublished}>
+                        {formatDate(featured.datePublished)}
+                      </time>
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1 text-xs text-secondary-400 dark:text-secondary-500 ml-auto">
+                    <Clock className="w-3.5 h-3.5" aria-hidden="true" />
+                    {featured.readTime}
+                  </span>
+                </div>
 
-              {/* Read link */}
-              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 dark:text-primary-400 group-hover:gap-2.5 transition-all">
-                Read article
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </span>
-            </Link>
-          </motion.div>
+                {/* Title */}
+                <h2 className="text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-3 leading-snug group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                  {featured.title}
+                </h2>
+
+                {/* Description */}
+                <p className="text-sm text-secondary-600 dark:text-secondary-400 leading-relaxed mb-5 line-clamp-3">
+                  {featured.description}
+                </p>
+
+                {/* Read link */}
+                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 dark:text-primary-400 group-hover:gap-2.5 transition-all">
+                  Read article
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </span>
+              </Link>
+            </motion.div>
+          )}
         </motion.div>
       </div>
     </section>

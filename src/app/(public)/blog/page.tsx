@@ -10,20 +10,28 @@ import { BlogHero } from './blog-hero';
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
-  title: 'AI Chatbot Guides & Strategies | VocUI Blog',
+  title: 'AI Chatbot Guides & Strategies for Business | VocUI Blog',
   description:
     'Practical guides to building AI chatbots for your business. Learn to embed chat widgets, train on your own data, automate support, and capture leads.',
   openGraph: {
-    title: 'AI Chatbot Guides & Strategies | VocUI Blog',
+    title: 'AI Chatbot Guides & Strategies for Business | VocUI Blog',
     description:
       'Practical guides to building AI chatbots for your business. Learn to embed chat widgets, train on your own data, automate support, and capture leads.',
     url: 'https://vocui.com/blog',
     siteName: 'VocUI',
     type: 'website',
+    images: [
+      {
+        url: 'https://vocui.com/opengraph-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'VocUI Blog — AI Chatbot Guides & Strategies',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AI Chatbot Guides & Strategies | VocUI Blog',
+    title: 'AI Chatbot Guides & Strategies for Business | VocUI Blog',
     description:
       'Practical guides to building AI chatbots for your business. Learn to embed chat widgets, train on your own data, automate support, and capture leads.',
   },
@@ -82,7 +90,7 @@ const posts: BlogPost[] = [
   },
   {
     slug: 'chatbase-alternatives',
-    title: '5 Chatbase Alternatives Worth Trying in 2025',
+    title: 'Top Chatbase Alternatives Worth Trying in 2026',
     description: 'Looking for a Chatbase alternative? Compare the top AI chatbot builders on pricing, knowledge base support, Slack integration, and embed options.',
     readTime: '11 min read',
     tag: 'Comparison',
@@ -468,8 +476,8 @@ const posts: BlogPost[] = [
   },
   {
     slug: 'intercom-alternatives',
-    title: "5 Intercom Alternatives That Won't Break the Budget",
-    description: 'Intercom is powerful but expensive. Here are five affordable alternatives with AI chatbot features, knowledge base support, and simple setup.',
+    title: "Intercom Alternatives That Won't Break the Budget",
+    description: 'Intercom is powerful but expensive. Here are affordable alternatives with AI chatbot features, knowledge base support, and simple setup.',
     readTime: '10 min read',
     tag: 'Comparison',
     datePublished: '2025-11-24',
@@ -543,28 +551,43 @@ const posts: BlogPost[] = [
 
 // ─── JSON-LD ───────────────────────────────────────────────────────────────────
 
+const mostRecentDate = posts
+  .map((p) => p.datePublished)
+  .filter(Boolean)
+  .sort()
+  .at(-1) ?? '2026-04-02';
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
     {
       '@type': 'CollectionPage',
       '@id': 'https://vocui.com/blog',
-      name: 'AI Chatbot Guides & Strategies | VocUI Blog',
+      name: 'AI Chatbot Guides & Strategies for Business | VocUI Blog',
       description:
         'Practical guides to building AI chatbots for your business. Learn to embed chat widgets, train on your own data, automate support, and capture leads.',
       url: 'https://vocui.com/blog',
+      inLanguage: 'en',
+      dateModified: mostRecentDate,
       isPartOf: {
         '@type': 'WebSite',
+        '@id': 'https://vocui.com/#website',
         name: 'VocUI',
         url: 'https://vocui.com',
       },
       publisher: {
         '@type': 'Organization',
+        '@id': 'https://vocui.com/#organization',
         name: 'VocUI',
         url: 'https://vocui.com',
+        logo: {
+          '@type': 'ImageObject',
+          url: 'https://vocui.com/logo.png',
+        },
       },
       mainEntity: {
         '@type': 'ItemList',
+        '@id': 'https://vocui.com/blog#article-list',
         name: 'VocUI Blog',
         description:
           'Practical guides to building AI chatbots for your business.',
@@ -572,8 +595,10 @@ const jsonLd = {
         itemListElement: posts.map((post, index) => ({
           '@type': 'ListItem',
           position: index + 1,
-          url: `https://vocui.com/blog/${post.slug}`,
-          name: post.title,
+          item: {
+            '@id': `https://vocui.com/blog/${post.slug}`,
+            name: post.title,
+          },
         })),
       },
     },
@@ -612,7 +637,7 @@ export default function BlogIndexPage() {
       <Header />
 
       <main id="main-content" className="relative z-[2]">
-        <BlogHero />
+        <BlogHero posts={posts} />
         <BlogIndex posts={posts} />
       </main>
 

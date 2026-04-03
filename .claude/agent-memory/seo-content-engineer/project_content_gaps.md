@@ -96,3 +96,14 @@ Industry pages updated with "Related reading" blocks:
 - `/chatbot-for-hotels` — added
 
 Blog index (`/blog/page.tsx`) updated: 6 new posts added in "Batch 3b" section.
+
+## Embed chatbot guide hub (audited & improved 2026-04-03)
+
+- File: `src/app/(public)/guides/embed-chatbot/page.tsx`
+- Route: `/guides/embed-chatbot` (moved from `/blog/embed-chatbot-guide`)
+- Primary keyword: "how to add a chatbot to a website"
+- Schema: `WebPage` (with `@id`) + `ItemList` (6 linked articles) + `BreadcrumbList`
+- Links to: 6 `/blog/` articles (WordPress, Shopify, Squarespace, Wix, + 2 general)
+- Internal link added: Step 1 "Build" links to `/dashboard/chatbots/new`
+- OG image: missing — no real asset path available; note for future
+- `/guides` parent route breadcrumb assumes `src/app/(public)/guides/page.tsx` exists — verify

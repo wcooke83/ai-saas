@@ -332,11 +332,16 @@ export default function AdminCreditPackagesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <H1 variant="dashboard">Credit Packages</H1>
-          <p className="text-secondary-500 dark:text-secondary-400 mt-1">
-            Manage global credit packages available to all chatbots. Chatbot owners can toggle which packages their visitors see.
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
+            <ShoppingBag className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+          </div>
+          <div>
+            <H1 variant="dashboard">Credit Packages</H1>
+            <p className="text-secondary-600 dark:text-secondary-400 mt-1">
+              Manage global credit packages available to all chatbots. Chatbot owners can toggle which packages their visitors see.
+            </p>
+          </div>
         </div>
         {!showCreateForm && !editingId && (
           <Button onClick={() => { setShowCreateForm(true); setForm(emptyForm); }}>

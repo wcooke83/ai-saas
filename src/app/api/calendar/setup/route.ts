@@ -22,7 +22,7 @@ const businessHoursSchema = z.array(z.object({
 const eventTypeSchema = z.object({
   title: z.string().min(1).max(100),
   slug: z.string().min(1).max(100).optional(),
-  description: z.string().max(500).optional(),
+  description: z.string().max(500).nullish(),
   durationMinutes: z.number().min(5).max(480),
   bufferBeforeMinutes: z.number().min(0).max(120),
   bufferAfterMinutes: z.number().min(0).max(120),

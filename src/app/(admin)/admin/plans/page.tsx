@@ -341,7 +341,7 @@ export default function PlansAdminPage() {
     try {
       const res = await fetch('/api/admin/plans?includeInactive=true');
       const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      if (data.error) throw new Error(data.error?.message || data.error);
       // Sort by display_order
       const sortedPlans = (data.data || []).sort(
         (a: SubscriptionPlan, b: SubscriptionPlan) => (a.display_order ?? 0) - (b.display_order ?? 0)
@@ -397,7 +397,7 @@ export default function PlansAdminPage() {
         body: JSON.stringify({ isActive: !plan.is_active }),
       });
       const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      if (data.error) throw new Error(data.error?.message || data.error);
       toast.success(`Plan ${!plan.is_active ? 'activated' : 'deactivated'}`);
       fetchPlans();
     } catch (err) {
@@ -415,7 +415,7 @@ export default function PlansAdminPage() {
     try {
       const res = await fetch(`/api/admin/plans/${deleteConfirm.plan.id}`, { method: 'DELETE' });
       const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      if (data.error) throw new Error(data.error?.message || data.error);
       toast.success('Plan deleted successfully');
       setDeleteConfirm({ open: false, plan: null });
       fetchPlans();
@@ -511,7 +511,7 @@ export default function PlansAdminPage() {
       });
 
       const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      if (data.error) throw new Error(data.error?.message || data.error);
 
       toast.success(editingId ? 'Plan updated successfully' : 'Plan created successfully');
       closeForm();

@@ -187,70 +187,78 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     await setupPage.close();
     await authCtx.close();
 
-    // Step 2: Create 3 conversations via the widget UI
-    const messages = [
-      'Advanced test: I have a complex billing question',
-      'Advanced test: Need help navigating your platform',
-      'Advanced test: Feature request discussion',
+    // Step 2: Create 3 conversations and handoff sessions directly via Supabase REST API.
+    // This avoids the slow widget UI flow (AI responses) that can exceed the beforeAll timeout,
+    // and ensures telegram_handoff_sessions rows exist so the Agent Console shows conversations.
+    const convIds = [
+      'e2e00000-0a00-0000-0000-000000000001',
+      'e2e00000-0a00-0000-0000-000000000002',
+      'e2e00000-0a00-0000-0000-000000000003',
+    ];
+    const sessionIds = [
+      'e2e-adv-session-001',
+      'e2e-adv-session-002',
+      'e2e-adv-session-003',
     ];
 
-    for (const msg of messages) {
-      const page = await browser.newPage();
-      await createConversationViaWidget(page, msg);
-      await page.close();
+    for (let i = 0; i < convIds.length; i++) {
+      // Upsert conversation row
+      await supabaseUpsert('conversations', {
+        id: convIds[i],
+        chatbot_id: DASHBOARD_CHATBOT_ID,
+        session_id: sessionIds[i],
+        message_count: 2,
+        created_at: new Date().toISOString(),
+        last_message_at: new Date().toISOString(),
+      });
+      // Insert a message so the list shows content
+      await supabaseUpsert('messages', {
+        id: `e2e00000-0a00-0000-000${i + 1}-000000000001`,
+        chatbot_id: DASHBOARD_CHATBOT_ID,
+        conversation_id: convIds[i],
+        role: 'user',
+        content: `Advanced test message ${i + 1}: billing question`,
+        created_at: new Date().toISOString(),
+      });
+      createdConversationIds.push(convIds[i]);
     }
 
-    if (createdConversationIds.length < 3) {
-      console.warn(`Only created ${createdConversationIds.length}/3 conversations via widget`);
-      return;
+    // Step 3: Create a pending escalation (wrong_answer) for conv 0 and its handoff session
+    const escalationId = 'e2e00000-0a01-0000-0000-000000000001';
+    await supabaseUpsert('conversation_escalations', {
+      id: escalationId,
+      chatbot_id: DASHBOARD_CHATBOT_ID,
+      session_id: sessionIds[0],
+      conversation_id: convIds[0],
+      reason: 'wrong_answer',
+      details: 'The AI gave incorrect pricing information',
+      status: 'open',
+      created_at: new Date().toISOString(),
+    });
+    await supabaseUpsert('telegram_handoff_sessions', {
+      id: 'e2e00000-0a02-0000-0000-000000000001',
+      chatbot_id: DASHBOARD_CHATBOT_ID,
+      conversation_id: convIds[0],
+      session_id: sessionIds[0],
+      status: 'pending',
+      agent_source: 'platform',
+      escalation_id: escalationId,
+      created_at: new Date().toISOString(),
+    });
+
+    // Step 4: Create active handoff sessions for conv 1 and conv 2
+    for (let i = 1; i < 3; i++) {
+      await supabaseUpsert('telegram_handoff_sessions', {
+        id: `e2e00000-0a02-0000-0000-00000000000${i + 1}`,
+        chatbot_id: DASHBOARD_CHATBOT_ID,
+        conversation_id: convIds[i],
+        session_id: sessionIds[i],
+        status: 'active',
+        agent_name: 'Agent',
+        agent_source: 'platform',
+        created_at: new Date().toISOString(),
+      });
     }
-
-    // Step 3: Escalate conv 0 via widget report UI (wrong_answer reason)
-    const escalatePage = await browser.newPage();
-    await openWidget(escalatePage);
-    await sendWidgetMessage(escalatePage, 'The AI gave incorrect pricing information - this is wrong');
-    await escalateViaWidgetReport(escalatePage, 'wrong_answer', 'The AI gave incorrect pricing information');
-    await escalatePage.close();
-
-    // Step 4: Use agent console UI to take over conv 1 and conv 2
-    const agentCtx = await browser.newContext({ storageState: 'tests/auth/e2e-storage.json' });
-    const agentPage = await agentCtx.newPage();
-    await gotoAgentConsole(agentPage);
-
-    // Take over first pending (becomes conv 1 - active)
-    await agentPage.getByTestId('filter-pending').click();
-    await expect(agentPage.getByTestId('conversation-list-body')).toBeVisible({ timeout: 15000 });
-    await agentPage.waitForTimeout(2000);
-
-    let items = agentPage.locator('[data-testid^="conversation-item-"]');
-    let count = await items.count();
-    if (count > 0) {
-      await items.first().click();
-      await expect(agentPage.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
-      const takeOverBtn = agentPage.getByTestId('action-take-over');
-      if (await takeOverBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await takeOverBtn.click();
-        await agentPage.waitForTimeout(2000);
-      }
-    }
-
-    // Take over next pending (becomes conv 2 - active for switching tests)
-    await agentPage.getByTestId('filter-pending').click();
-    await agentPage.waitForTimeout(2000);
-    items = agentPage.locator('[data-testid^="conversation-item-"]');
-    count = await items.count();
-    if (count > 0) {
-      await items.first().click();
-      await expect(agentPage.getByTestId('chat-messages-area')).toBeVisible({ timeout: 15000 });
-      const takeOverBtn = agentPage.getByTestId('action-take-over');
-      if (await takeOverBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await takeOverBtn.click();
-        await agentPage.waitForTimeout(2000);
-      }
-    }
-
-    await agentPage.close();
-    await agentCtx.close();
   });
 
   test.afterAll(async () => {
@@ -260,6 +268,8 @@ test.describe('29. Agent Console Advanced Behaviors', () => {
     await supabaseDelete('messages', 'conversation_id', createdConversationIds);
     await supabaseDelete('conversations', 'id', createdConversationIds);
   });
+
+
 
   test('AGENT-ADV-001: Debounced filter change prevents multiple fetches', async ({ page }) => {
     await gotoAgentConsole(page);

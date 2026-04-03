@@ -29,33 +29,20 @@ test.describe('Chat Advanced Flows', () => {
   });
 
   test('unpublished chatbot shows warning on deploy page', async ({ page }) => {
-    // Unpublish via overview page
-    await page.goto(`/dashboard/chatbots/${CHATBOT_ID}`);
-    await page.waitForLoadState('domcontentloaded');
+    // Unpublish directly via API to avoid UI timing issues
+    const unpublishRes = await page.request.delete(`/api/chatbots/${CHATBOT_ID}/publish`);
+    // Accept 200 (unpublished) or 400/404 (already unpublished or not found)
+    expect([200, 400, 404]).toContain(unpublishRes.status());
 
-    const unpublishButton = page.getByRole('button', { name: 'Unpublish' });
-    if (await unpublishButton.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await unpublishButton.click();
-      await page.waitForResponse(
-        (res) => res.url().includes('/publish') && res.request().method() === 'DELETE'
-      );
-    }
-
-    // Verify widget returns 403 for chat
+    // Verify widget returns 403 for chat when unpublished
     const res = await page.request.post(`/api/chat/${CHATBOT_ID}`, {
       data: { message: 'Hello', stream: false, session_id: 'e2e-unpub' },
     });
     expect(res.status()).toBe(403);
 
-    // Re-publish via overview page
-    await page.goto(`/dashboard/chatbots/${CHATBOT_ID}`);
-    await page.waitForLoadState('domcontentloaded');
-    const publishButton = page.getByRole('button', { name: 'Publish' });
-    await expect(publishButton).toBeVisible({ timeout: 10000 });
-    await publishButton.click();
-    await page.waitForResponse(
-      (res) => res.url().includes('/publish') && res.request().method() === 'POST'
-    );
+    // Re-publish directly via API
+    const publishRes = await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
+    expect(publishRes.status()).toBe(200);
   });
 
   test('welcome message shown in widget', async ({ page }) => {

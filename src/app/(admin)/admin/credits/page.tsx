@@ -219,13 +219,16 @@ export default function AdminCreditsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <H1 variant="dashboard">
-          Credit Adjustments
-        </H1>
-        <p className="text-secondary-500 dark:text-secondary-400 mt-1">
-          Manually add or remove credits for users. Adjustments appear in their usage history.
-        </p>
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
+          <Coins className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+        </div>
+        <div>
+          <H1 variant="dashboard">Credit Adjustments</H1>
+          <p className="text-secondary-600 dark:text-secondary-400 mt-1">
+            Manually add or remove credits for users. Adjustments appear in their usage history.
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

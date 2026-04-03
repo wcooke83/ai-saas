@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Status page glow backgrounds */
+.glow-operational   { background: radial-gradient(circle, rgb(14 165 233 / 0.10) 0%, transparent 70%); }
+.dark .glow-operational   { background: radial-gradient(circle, rgb(14 165 233 / 0.20) 0%, transparent 70%); }
+.glow-degraded      { background: radial-gradient(circle, rgb(245 158 11 / 0.10) 0%, transparent 70%); }
+.dark .glow-degraded      { background: radial-gradient(circle, rgb(245 158 11 / 0.20) 0%, transparent 70%); }
+.glow-outage        { background: radial-gradient(circle, rgb(239 68 68 / 0.10) 0%, transparent 70%); }
+.dark .glow-outage        { background: radial-gradient(circle, rgb(239 68 68 / 0.20) 0%, transparent 70%); }
+.glow-maintenance   { background: radial-gradient(circle, rgb(14 165 233 / 0.10) 0%, transparent 70%); }
+.dark .glow-maintenance   { background: radial-gradient(circle, rgb(14 165 233 / 0.20) 0%, transparent 70%); }
+
 /* Explicit backdrop-blur utilities to ensure they work */
 @layer utilities {
   .prose :where(ul):not(:where([class~="not-prose"], [class~="not-prose"] *)) {

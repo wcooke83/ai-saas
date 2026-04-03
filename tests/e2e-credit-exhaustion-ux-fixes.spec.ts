@@ -30,30 +30,11 @@ const SETTINGS_URL = `/dashboard/chatbots/${BOT_ID}/settings`;
  * API helper with real UI interactions.
  */
 async function setFallbackModeViaUI(page: Page, mode: 'tickets' | 'contact_form' | 'purchase_credits' | 'help_articles') {
-  // 'purchase_credits' requires a selectedPackageId before the settings UI will allow saving.
-  // Since test setup doesn't pre-configure packages, use a direct API call for this mode.
-  if (mode === 'purchase_credits') {
-    await page.request.patch(`/api/chatbots/${BOT_ID}`, {
-      data: { credit_exhaustion_mode: 'purchase_credits' },
-    });
-    return;
-  }
-
-  await page.goto(SETTINGS_URL);
-  await page.waitForLoadState('networkidle');
-  const navBtn = page.locator('nav button').filter({ hasText: 'Credit Exhaustion' });
-  await navBtn.waitFor({ state: 'visible', timeout: 30000 });
-  await navBtn.click();
-  await expect(page.getByRole('heading', { name: 'Limits & Fallback' })).toBeVisible({ timeout: 10000 });
-
-  // Select the desired mode radio button
-  await page.locator(`input[value="${mode}"]`).click({ force: true });
-
-  // Click Save Changes — use first() to avoid the lg:hidden mobile-only sticky button
-  await page.locator('button', { hasText: 'Save Changes' }).first().click();
-
-  // Wait for save to complete — button text changes to "Saving..." then back
-  await expect(page.locator('button', { hasText: 'Save Changes' }).first()).toBeEnabled({ timeout: 10000 });
+  // Use direct API call for all modes — the settings page takes >10s to load and render
+  // which exceeds the test timeout budget. UI-based saving is tested separately in SETT-* tests.
+  await page.request.patch(`/api/chatbots/${BOT_ID}`, {
+    data: { credit_exhaustion_mode: mode },
+  });
 }
 
 /**
@@ -112,7 +93,7 @@ async function ensureTestArticle(page: Page): Promise<{ id: string; title: strin
   }
   // No articles exist — generate them via the settings UI
   await page.goto(SETTINGS_URL);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   const navBtn = page.locator('nav button').filter({ hasText: 'Credit Exhaustion' });
   await navBtn.waitFor({ state: 'visible', timeout: 30000 });
   await navBtn.click();
@@ -154,8 +135,7 @@ test.describe('1. Immediate Fallback on Mount', () => {
     await setFallbackModeViaUI(page, 'tickets');
     await exhaustCredits(page);
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     // Should show ticket form immediately — no need to send a message
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
@@ -167,8 +147,7 @@ test.describe('1. Immediate Fallback on Mount', () => {
     await setFallbackModeViaUI(page, 'contact_form');
     await exhaustCredits(page);
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-contact-form')).toBeVisible({ timeout: 10000 });
   });
@@ -192,8 +171,7 @@ test.describe('1. Immediate Fallback on Mount', () => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) });
     });
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-purchase-view')).toBeVisible({ timeout: 10000 });
   });
@@ -202,16 +180,14 @@ test.describe('1. Immediate Fallback on Mount', () => {
     await setFallbackModeViaUI(page, 'help_articles');
     await exhaustCredits(page);
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-articles-view')).toBeVisible({ timeout: 10000 });
   });
 
   test('MOUNT-005: Widget shows normal chat when creditExhausted=false', async ({ page }) => {
     await resetCredits(page);
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     // Chat input should be visible, no fallback views
     await expect(page.locator('.chat-widget-input')).toBeVisible({ timeout: 15000 });
@@ -231,8 +207,7 @@ test.describe('2. Per-Field Validation', () => {
   test('VAL-001: Ticket form shows per-field errors when fields are empty', async ({ page }) => {
     await setFallbackModeViaUI(page, 'tickets');
     await exhaustCredits(page);
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     // Widget shows ticket form immediately since credits are exhausted
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
@@ -252,8 +227,7 @@ test.describe('2. Per-Field Validation', () => {
   test('VAL-002: Ticket form shows email format error for invalid email', async ({ page }) => {
     await setFallbackModeViaUI(page, 'tickets');
     await exhaustCredits(page);
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
 
@@ -274,8 +248,7 @@ test.describe('2. Per-Field Validation', () => {
   test('VAL-003: Ticket form clears field error when user starts typing', async ({ page }) => {
     await setFallbackModeViaUI(page, 'tickets');
     await exhaustCredits(page);
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
 
@@ -291,8 +264,7 @@ test.describe('2. Per-Field Validation', () => {
   test('VAL-004: Contact form shows per-field errors', async ({ page }) => {
     await setFallbackModeViaUI(page, 'contact_form');
     await exhaustCredits(page);
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-contact-form')).toBeVisible({ timeout: 10000 });
 
@@ -307,8 +279,7 @@ test.describe('2. Per-Field Validation', () => {
   test('VAL-005: Contact form validates email format', async ({ page }) => {
     await setFallbackModeViaUI(page, 'contact_form');
     await exhaustCredits(page);
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-contact-form')).toBeVisible({ timeout: 10000 });
 
@@ -330,8 +301,7 @@ test.describe('3. Accessibility', () => {
   test('A11Y-001: Ticket form inputs have id and labels have htmlFor', async ({ page }) => {
     await setFallbackModeViaUI(page, 'tickets');
     await exhaustCredits(page);
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
 
@@ -349,8 +319,7 @@ test.describe('3. Accessibility', () => {
   test('A11Y-002: Contact form inputs have id and labels have htmlFor', async ({ page }) => {
     await setFallbackModeViaUI(page, 'contact_form');
     await exhaustCredits(page);
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-contact-form')).toBeVisible({ timeout: 10000 });
 
@@ -365,8 +334,7 @@ test.describe('3. Accessibility', () => {
   test('A11Y-003: Error messages have role=alert', async ({ page }) => {
     await setFallbackModeViaUI(page, 'tickets');
     await exhaustCredits(page);
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
 
@@ -383,8 +351,7 @@ test.describe('3. Accessibility', () => {
     await setFallbackModeViaUI(page, 'help_articles');
     await exhaustCredits(page);
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-articles-view')).toBeVisible({ timeout: 10000 });
 
@@ -411,8 +378,7 @@ test.describe('3. Accessibility', () => {
     await setFallbackModeViaUI(page, 'help_articles');
     await exhaustCredits(page);
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-articles-view')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('[role="list"][aria-label="Help articles"]')).toBeVisible();
@@ -472,8 +438,7 @@ test.describe('4. Purchase Error Display', () => {
       { id: 'pkg-err', name: '50 Credits', creditAmount: 50, priceCents: 499, stripePriceId: 'price_test' },
     ], { upsellMessage: 'Buy more credits' });
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-purchase-view')).toBeVisible({ timeout: 10000 });
 
@@ -499,8 +464,7 @@ test.describe('4. Purchase Error Display', () => {
       { id: 'pkg-load', name: '100 Credits', creditAmount: 100, priceCents: 999, stripePriceId: 'price_test' },
     ], { upsellMessage: 'Buy more' });
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-purchase-view')).toBeVisible({ timeout: 10000 });
 
@@ -514,8 +478,7 @@ test.describe('4. Purchase Error Display', () => {
       { id: 'pkg-aria', name: '50 Credits', creditAmount: 50, priceCents: 499, stripePriceId: 'price_test' },
     ], { upsellMessage: 'Buy more' });
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-purchase-view')).toBeVisible({ timeout: 10000 });
 
@@ -536,8 +499,7 @@ test.describe('5. Back to Chat Navigation', () => {
     await setFallbackModeViaUI(page, 'tickets');
     await exhaustCredits(page);
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
 
@@ -556,8 +518,7 @@ test.describe('5. Back to Chat Navigation', () => {
     await setFallbackModeViaUI(page, 'tickets');
     await exhaustCredits(page);
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
 
@@ -578,8 +539,7 @@ test.describe('5. Back to Chat Navigation', () => {
     await setFallbackModeViaUI(page, 'contact_form');
     await exhaustCredits(page);
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-contact-form')).toBeVisible({ timeout: 10000 });
 
@@ -722,8 +682,7 @@ test.describe('7. Low Credit Warning Banner', () => {
     await setFallbackModeViaUI(page, 'tickets');
     await setLowCredits(page);
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     const banner = page.locator('.chat-widget-low-credit-banner');
     await expect(banner).toBeVisible({ timeout: 10000 });
@@ -734,8 +693,7 @@ test.describe('7. Low Credit Warning Banner', () => {
     await setFallbackModeViaUI(page, 'tickets');
     await setLowCredits(page);
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     const banner = page.locator('.chat-widget-low-credit-banner');
     await expect(banner).toBeVisible({ timeout: 10000 });
@@ -766,8 +724,7 @@ test.describe('7. Low Credit Warning Banner', () => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) });
     });
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     const banner = page.locator('.chat-widget-low-credit-banner');
     await expect(banner).toBeVisible({ timeout: 10000 });
@@ -801,8 +758,7 @@ test.describe('7. Low Credit Warning Banner', () => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) });
     });
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     const banner = page.locator('.chat-widget-low-credit-banner');
     await expect(banner).toBeVisible({ timeout: 10000 });
@@ -828,8 +784,7 @@ test.describe('7. Low Credit Warning Banner', () => {
   test('LOW-005: No banner when creditLow=false', async ({ page }) => {
     await resetCredits(page);
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-input')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('.chat-widget-low-credit-banner')).not.toBeVisible();
@@ -845,8 +800,7 @@ test.describe('8. Full Credit Exhaustion -> Purchase -> Continue Flow', () => {
   test('FLOW-001: Normal chat works when credits are not exhausted', async ({ page }) => {
     await resetCredits(page);
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-input')).toBeVisible({ timeout: 10000 });
     // No fallback views
@@ -859,8 +813,7 @@ test.describe('8. Full Credit Exhaustion -> Purchase -> Continue Flow', () => {
     await setFallbackModeViaUI(page, 'tickets');
     await setLowCredits(page);
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     // Chat input should still be available
     await expect(page.locator('.chat-widget-input')).toBeVisible({ timeout: 10000 });
@@ -898,8 +851,7 @@ test.describe('8. Full Credit Exhaustion -> Purchase -> Continue Flow', () => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) });
     });
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     // Should show purchase view, not chat
     await expect(page.locator('.chat-widget-purchase-view')).toBeVisible({ timeout: 10000 });
@@ -933,8 +885,7 @@ test.describe('8. Full Credit Exhaustion -> Purchase -> Continue Flow', () => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) });
     });
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-purchase-view')).toBeVisible({ timeout: 10000 });
 
@@ -990,8 +941,7 @@ test.describe('8. Full Credit Exhaustion -> Purchase -> Continue Flow', () => {
       });
     });
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-purchase-view')).toBeVisible({ timeout: 10000 });
 
@@ -1008,8 +958,7 @@ test.describe('8. Full Credit Exhaustion -> Purchase -> Continue Flow', () => {
     await setFallbackModeViaUI(page, 'tickets');
     await exhaustCredits(page);
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-ticket-form')).toBeVisible({ timeout: 10000 });
 
@@ -1017,8 +966,7 @@ test.describe('8. Full Credit Exhaustion -> Purchase -> Continue Flow', () => {
     await resetCredits(page);
 
     // Reload the page (simulates returning from Stripe checkout)
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.reload({ waitUntil: 'load' });
 
     // Chat should now be available
     await expect(page.locator('.chat-widget-input')).toBeVisible({ timeout: 10000 });
@@ -1029,8 +977,7 @@ test.describe('8. Full Credit Exhaustion -> Purchase -> Continue Flow', () => {
     // Simulate post-purchase state: credits restored
     await resetCredits(page);
 
-    await page.goto(WIDGET_URL);
-    await page.waitForLoadState('networkidle');
+    await page.goto(WIDGET_URL, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.chat-widget-input')).toBeVisible({ timeout: 10000 });
 

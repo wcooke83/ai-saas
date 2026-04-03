@@ -44,14 +44,8 @@ test.describe('Section 40: Admin -- Trial Links (/admin/trials)', () => {
 
     // Select a plan — wait for plans to load into dropdown
     const planSelect = page.locator('select').filter({ has: page.locator('option', { hasText: 'Select a plan...' }) });
-    // Wait for plan options to load
-    await expect(planSelect.locator('option')).not.toHaveCount(0, { timeout: 5000 });
-    const options = await planSelect.locator('option').allTextContents();
-    if (options.length <= 1) {
-      // No plans available — skip the rest of this test
-      test.skip(true, 'No plans available in dropdown');
-      return;
-    }
+    // Wait for actual plan options to load (not just the placeholder)
+    await expect(planSelect.locator('option', { hasText: 'credits/mo' }).first()).toBeAttached({ timeout: 10000 });
     await planSelect.selectOption({ index: 1 });
 
     // Set duration
@@ -165,12 +159,8 @@ test.describe('Section 40: Admin -- Trial Links (/admin/trials)', () => {
     await page.locator('input[placeholder="e.g., SUMMER2024"]').fill(uniqueCode);
 
     const planSelect = page.locator('select').filter({ has: page.locator('option', { hasText: 'Select a plan...' }) });
-    await expect(planSelect.locator('option')).not.toHaveCount(0, { timeout: 5000 });
-    const options = await planSelect.locator('option').allTextContents();
-    if (options.length <= 1) {
-      test.skip(true, 'No plans available in dropdown');
-      return;
-    }
+    // Wait for actual plan options to load (not just the placeholder)
+    await expect(planSelect.locator('option', { hasText: 'credits/mo' }).first()).toBeAttached({ timeout: 10000 });
     await planSelect.selectOption({ index: 1 });
 
     await page.locator('input[type="number"][min="1"][max="365"]').fill('14');
@@ -296,12 +286,8 @@ test.describe('Section 40: Admin -- Trial Links (/admin/trials)', () => {
     const deleteCode = `DEL-${Date.now().toString(36).toUpperCase()}`;
     await page.locator('input[placeholder="e.g., SUMMER2024"]').fill(deleteCode);
     const planSelect = page.locator('select').filter({ has: page.locator('option', { hasText: 'Select a plan...' }) });
-    await expect(planSelect.locator('option')).not.toHaveCount(0, { timeout: 5000 });
-    const options = await planSelect.locator('option').allTextContents();
-    if (options.length <= 1) {
-      test.skip(true, 'No plans available in dropdown');
-      return;
-    }
+    // Wait for actual plan options to load (not just the placeholder)
+    await expect(planSelect.locator('option', { hasText: 'credits/mo' }).first()).toBeAttached({ timeout: 10000 });
     await planSelect.selectOption({ index: 1 });
     await page.locator('input[type="number"][min="1"][max="365"]').fill('7');
     await page.locator('form button[type="submit"]').click();

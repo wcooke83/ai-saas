@@ -17,9 +17,8 @@ const CUSTOMIZE_URL = `/dashboard/chatbots/${CHATBOT_ID}/customize`;
 
 async function gotoCustomize(page: import('@playwright/test').Page) {
   await page.goto(CUSTOMIZE_URL, { waitUntil: 'commit' });
-  await page.waitForLoadState('domcontentloaded');
-  // Wait for page to hydrate — Save Changes button is a reliable signal
-  await expect(page.getByRole('button', { name: /Save Changes/i })).toBeVisible({ timeout: 30000 });
+  // Wait for page to hydrate — branding checkbox only renders after API fetch resolves
+  await expect(page.locator('input#showBranding')).toBeVisible({ timeout: 9000 });
 }
 
 test.describe('Branding Lock on Customize Page', () => {
