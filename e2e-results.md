@@ -101,9 +101,9 @@
 | 92 | e2e-settings-ai-model | ✅ Done | ✅ | | | | | | | mum | 4/4 passed | 2026-04-04 |
 | 93 | e2e-settings-editors | ✅ Done | ✅ | | | | | | | mum | 23/23 passed | 2026-04-04 |
 | 94 | e2e-settings-escalation | ✅ Done | ✅ | | | | | | | mum | 6/6 passed | 2026-04-04 |
-| 95 | e2e-settings-feedback | 🔄 Running | | | | | | | | | mum |
+| 95 | e2e-settings-feedback | ✅ Done | ✅ | | | | | | | mum | 5/5 passed | 2026-04-04 |
 | 96 | e2e-settings-general | 🔄 Running | | | | | | | will | | |
-| 97 | e2e-settings-handoff | ⏳ Queued | | | | | | | | | |
+| 97 | e2e-settings-handoff | 🔄 Running | | | | | | | | | mum |
 | 98 | e2e-settings-memory | ⏳ Queued | | | | | | | | | |
 | 99 | e2e-settings-prechat | ⏳ Queued | | | | | | | | | |
 | 100 | e2e-settings-proactive | ⏳ Queued | | | | | | | | | |
