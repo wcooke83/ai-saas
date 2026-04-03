@@ -113,8 +113,8 @@
 | 104 | e2e-settings-transcripts | ✅ Done | ✅ | | | | | | | will | 7/7 passed | 2026-04-04 |
 | 105 | e2e-settings-uploads | ✅ Done | ✅ | | | | | | | mum | 8/8 passed (SET-UPLOAD-002 flaky→retry; server restart) | 2026-04-04 |
 | 106 | e2e-slack-integration | 🔄 Running | | | | | | | will | | |
-| 107 | e2e-survey | 🔄 Running | | | | | | | | | mum |
-| 108 | e2e-telegram-integration | ⏳ Queued | | | | | | | | | |
+| 107 | e2e-survey | ✅ Done | ✅ | | | | | | | mum | 4/4 passed | 2026-04-04 |
+| 108 | e2e-telegram-integration | 🔄 Running | | | | | | | | | mum |
 | 109 | e2e-ticketing-system | ⏳ Queued | | | | | | | | | |
 | 110 | e2e-tooltip | ⏳ Queued | | | | | | | | | |
 | 111 | e2e-untested-endpoints | ⏳ Queued | | | | | | | | | |
