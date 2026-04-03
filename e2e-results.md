@@ -123,8 +123,8 @@
 | 114 | e2e-widget-advanced | ✅ Done | | 🔧 | | | Timeout | Test Code | 1/3 | canada | WIDGET-ADV-002: widget redirected to fallback view on load (creditExhausted on mount → useEffect redirect); fixed with route intercept returning 403 USAGE_LIMIT_REACHED instead | 2026-04-04 |
 | 115 | e2e-widget-config | ✅ Done | ✅ | | | | | | canada | 4/4 passed | 2026-04-04 |
 | 116 | e2e-widget-core | 🔄 Running | | | | | | | canada | | |
-| 117 | e2e-widget-customization | 🔄 Running | | | | | | | | will | |
-| 118 | e2e-widget-sdk | ⏳ Queued | | | | | | | | | |
+| 117 | e2e-widget-customization | ✅ Done | ✅ | | | | | | | will | 12/12 passed | 2026-04-04 |
+| 118 | e2e-widget-sdk | 🔄 Running | | | | | | | | will | |
 | 119 | e2e-zapier | ⏳ Queued | | | | | | | | | |
 | 120 | e2e-zero-state-dashboard | ⏳ Queued | | | | | | | | | |
 | 121 | e2e-zz-widget-chat-interaction | ⏳ Queued | | | | | | | | | |
