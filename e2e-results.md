@@ -126,8 +126,8 @@
 | 117 | e2e-widget-customization | ✅ Done | ✅ | | | | | | | will | 12/12 passed | 2026-04-04 |
 | 118 | e2e-widget-sdk | 🔄 Running | | | | | | | | will | |
 | 119 | e2e-zapier | ✅ Done | ✅ | | | | | | canada | 19/19 passed | 2026-04-04 |
-| 120 | e2e-zero-state-dashboard | 🔄 Running | | | | | | | canada | | |
-| 121 | e2e-zz-widget-chat-interaction | ⏳ Queued | | | | | | | | | |
+| 120 | e2e-zero-state-dashboard | ✅ Done | ✅ | | | | | | canada | 6/6 passed | 2026-04-04 |
+| 121 | e2e-zz-widget-chat-interaction | 🔄 Running | | | | | | | canada | | |
 | 122 | e2e-status-pages | ⏳ Queued | | | | | | | | | |
 
 ## Summary
