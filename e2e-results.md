@@ -114,8 +114,8 @@
 | 105 | e2e-settings-uploads | ✅ Done | ✅ | | | | | | | mum | 8/8 passed (SET-UPLOAD-002 flaky→retry; server restart) | 2026-04-04 |
 | 106 | e2e-slack-integration | 🔄 Running | | | | | | | will | | |
 | 107 | e2e-survey | ✅ Done | ✅ | | | | | | | mum | 4/4 passed | 2026-04-04 |
-| 108 | e2e-telegram-integration | 🔄 Running | | | | | | | | | mum |
-| 109 | e2e-ticketing-system | ⏳ Queued | | | | | | | | | |
+| 108 | e2e-telegram-integration | ✅ Done | ✅ | | | | | | | mum | 19/19 passed | 2026-04-04 |
+| 109 | e2e-ticketing-system | 🔄 Running | | | | | | | | | mum |
 | 110 | e2e-tooltip | ⏳ Queued | | | | | | | | | |
 | 111 | e2e-untested-endpoints | ⏳ Queued | | | | | | | | | |
 | 112 | e2e-upgrade-page | ⏳ Queued | | | | | | | | | |
