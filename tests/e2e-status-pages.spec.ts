@@ -14,22 +14,32 @@
  * clean up after themselves so they don't pollute other runs.
  */
 
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, request, type Page } from '@playwright/test';
+
+const E2E_SECRET = process.env.E2E_TEST_SECRET!;
+const BASE_URL = 'http://localhost:3030';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Wait for the admin/status page to finish its initial data fetch. */
 async function waitForAdminStatusLoaded(page: Page) {
   // The page shows a spinner while loading, then renders the Tabs.
-  // We wait for the Components tab trigger to be visible as the ready signal.
+  // TabsTrigger in this app is a custom component that renders as role="button"
+  // (not role="tab"), so we use getByRole('button') to locate tab buttons.
   await expect(
-    page.getByRole('tab', { name: 'Components' })
+    page.getByRole('button', { name: 'Components' })
   ).toBeVisible({ timeout: 15_000 });
 }
 
 /** Switch to a named tab on the admin status page. */
 async function switchTab(page: Page, name: 'Components' | 'Incidents' | 'Maintenance') {
-  await page.getByRole('tab', { name }).click();
+  // TabsTrigger renders as plain <button> elements (no role="tab").
+  // The Incidents tab may include a badge count (e.g. "Incidents 1"), so we
+  // match it with a regex. Components and Maintenance never have badges.
+  const tabLocator = name === 'Incidents'
+    ? page.getByRole('button', { name: /^Incidents/ })
+    : page.getByRole('button', { name });
+  await tabLocator.click();
   // Wait for the tab panel to become visible — each panel has a distinct heading
   if (name === 'Components') {
     // ComponentsTab renders a grid; wait for at least one select to appear
@@ -107,6 +117,17 @@ async function expectToast(page: Page, text: string | RegExp) {
 // ─── Test Suite ───────────────────────────────────────────────────────────────
 
 test.describe('Section 50: Status Pages', () => {
+  // e2e-global-credit-packages.afterAll() clears is_admin to false.
+  // Restore admin access before any tests in this suite run.
+  test.beforeAll(async () => {
+    const ctx = await request.newContext({ baseURL: BASE_URL });
+    const res = await ctx.post('/api/auth/e2e-set-admin', {
+      data: { secret: E2E_SECRET, is_admin: true },
+    });
+    const body = await res.json();
+    expect(res.ok(), `Failed to promote e2e user to admin: ${JSON.stringify(body)}`).toBeTruthy();
+    await ctx.dispose();
+  });
 
   // ── /admin/status — Components Tab ──────────────────────────────────────────
 
@@ -125,8 +146,9 @@ test.describe('Section 50: Status Pages', () => {
       await waitForAdminStatusLoaded(page);
 
       // Spot-check the first two well-known seeded component names
-      await expect(page.getByText('Web Application')).toBeVisible();
-      await expect(page.getByText('Database & API')).toBeVisible();
+      // Actual DB names from migration: 'Web App' and 'Database / API'
+      await expect(page.getByText('Web App')).toBeVisible();
+      await expect(page.getByText('Database / API')).toBeVisible();
 
       // All selects should have a valid default value
       const selects = page.locator('select');
@@ -434,7 +456,8 @@ test.describe('Section 50: Status Pages', () => {
       const postPromise = page.waitForResponse(
         (res) => res.url().includes('/api/status/incidents') && res.request().method() === 'POST'
       );
-      await page.getByRole('button', { name: 'Schedule' }).click();
+      // 'Schedule Maintenance' button also matches without exact:true — scope to the dialog
+      await page.getByRole('dialog').getByRole('button', { name: 'Schedule', exact: true }).click();
       const postRes = await postPromise;
       expect(postRes.ok()).toBeTruthy();
 
@@ -613,6 +636,18 @@ test.describe('Section 50: Status Pages', () => {
     });
 
     test('ADMIN-STATUS-042: Resolving incident + restoring components → public page returns to All Systems Operational', async ({ page }) => {
+      // Clean up any pre-existing active incidents and upcoming maintenance windows
+      // left by earlier test failures (flaky retries don't clean up first-attempt data)
+      for (const param of ['active=true', 'maintenance=true']) {
+        const existingRes = await page.request.get(`/api/status/incidents?${param}`);
+        if (existingRes.ok()) {
+          const { incidents: existingItems } = await existingRes.json();
+          for (const item of existingItems) {
+            await apiDeleteIncident(page, item.id);
+          }
+        }
+      }
+
       // Ensure all components are operational via API
       const compRes = await page.request.get('/api/status/components');
       const { components } = await compRes.json();
