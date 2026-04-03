@@ -46,23 +46,41 @@ async function clickWizardNext(page: import('@playwright/test').Page) {
  */
 /**
  * Navigate to the chatbot overview page.
- * If already on a chatbot subpage, clicks the Overview tab (client-side nav).
- * Otherwise falls back to page.goto() with retries.
+ * Always uses page.goto() for reliability — avoids client-side nav timing issues.
  */
 async function gotoOverviewAndWait(page: import('@playwright/test').Page, chatbotId: string) {
-  const currentUrl = page.url();
-  if (currentUrl.includes(`/dashboard/chatbots/${chatbotId}/`)) {
-    // Already on a subpage — use client-side navigation via the tab
-    await page.getByRole('link', { name: 'Overview' }).click();
-    await page.waitForURL(`**/dashboard/chatbots/${chatbotId}`, { timeout: 10_000, waitUntil: 'commit' });
-  } else {
-    await page.goto(`/dashboard/chatbots/${chatbotId}`);
-  }
+  await page.goto(`/dashboard/chatbots/${chatbotId}`);
   // Wait for page data to load — h1 only renders after loading=false
   await page.waitForFunction(() => !!document.querySelector('h1'), { timeout: 30_000 });
 }
 
 test.describe('Getting Started Onboarding Checklist', () => {
+
+  // ─────────────────────────────────────────────────────────────────
+  // CLEANUP: Delete any orphaned "E2E Onboarding Bot" chatbots from
+  // previous interrupted runs to avoid hitting plan chatbot limits.
+  // ─────────────────────────────────────────────────────────────────
+
+  test.beforeAll(async ({ browser }) => {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    try {
+      const listRes = await page.request.get('/api/chatbots');
+      if (listRes.ok()) {
+        const body = await listRes.json();
+        const chatbots: Array<{ id: string; name: string }> = body.data?.chatbots || body.data || [];
+        const orphans = chatbots.filter(
+          (c) => typeof c.name === 'string' && c.name.startsWith('E2E Onboarding Bot')
+        );
+        for (const orphan of orphans) {
+          await page.request.delete(`/api/chatbots/${orphan.id}`);
+          console.log(`[beforeAll] Deleted orphaned chatbot: ${orphan.name} (${orphan.id})`);
+        }
+      }
+    } finally {
+      await ctx.close();
+    }
+  });
 
   // ─────────────────────────────────────────────────────────────────
   // PHASE 1: Create a chatbot through the wizard
