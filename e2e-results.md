@@ -87,9 +87,9 @@
 | 78 | e2e-overview-page | ✅ Done | | 🔧 | | | Selector | Test Code | 1/3 | OVERVIEW-003 strict mode: getByText('Conversations') matched nav link + stat card; fixed with exact:true + .first() | 2026-04-04 |
 | 79 | e2e-ownership-fix | ✅ Done | | 🔧 | | | State/Data | Test Code | 1/3 | mum | OTHER_CHATBOT_ID was e2e user's own bot (created in prior run); replaced with non-existent UUID so all 11 pass | 2026-04-04 |
 | 80 | e2e-performance-page | ✅ Done | ✅ | | | | | | | 8/8 passed (1 flaky→retry) | 2026-04-04 |
-| 81 | e2e-plan-limits | 🔄 Running | | | | | | | mum | | |
+| 81 | e2e-plan-limits | ✅ Done | ✅ | | | | | | | mum | 5/5 passed | 2026-04-04 |
 | 82 | e2e-pricing | 🔄 Running | | | | | | | will | | |
-| 83 | e2e-profile-removed | ⏳ Queued | | | | | | | | | |
+| 83 | e2e-profile-removed | 🔄 Running | | | | | | | | | mum |
 | 84 | e2e-public-pages | ⏳ Queued | | | | | | | | | |
 | 85 | e2e-publish | ⏳ Queued | | | | | | | | | |
 | 86 | e2e-quick-templates | ⏳ Queued | | | | | | | | | |
