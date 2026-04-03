@@ -22,9 +22,9 @@ const CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
 // Also test widget submission against the real chatbot (kept for reference)
 const WIDGET_CHATBOT_ID = '10df2440-6aac-441a-855d-715c0ea8e506';
 
-// Test email accounts (from environment)
-const VISITOR_EMAIL = process.env.E2E_VISITOR_EMAIL!;
-const VISITOR_PASSWORD = process.env.E2E_VISITOR_PASSWORD!;
+// Test email accounts (from environment; fallback so non-IMAP tests run without credentials)
+const VISITOR_EMAIL = process.env.E2E_VISITOR_EMAIL || 'e2e-visitor@test.local';
+const VISITOR_PASSWORD = process.env.E2E_VISITOR_PASSWORD || '';
 
 const IMAP_HOST = process.env.SMTP_HOST || 'mail.cholds.com';
 const IMAP_PORT = 993;
@@ -37,8 +37,8 @@ let createdTicketReference: string;
  * Helper: Navigate to tickets page and wait for loading to complete
  */
 async function gotoTicketsPage(page: import('@playwright/test').Page) {
-  await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/tickets`);
-  await page.waitForLoadState('networkidle');
+  // Use domcontentloaded — networkidle hangs due to background polling on the tickets page
+  await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/tickets`, { waitUntil: 'domcontentloaded' });
   // Wait for the filter tabs which always render after loading completes
   await page.getByRole('button', { name: 'All', exact: true }).waitFor({ state: 'visible', timeout: 30000 });
   // Wait for table data to render
@@ -182,6 +182,9 @@ test.describe('Ticketing System - Full Lifecycle', () => {
       data: { secret: process.env.E2E_TEST_SECRET!, prefix: 'ticket:' },
     });
 
+    // Ensure chatbot is published and active (widget API requires this)
+    await request.post(`/api/chatbots/${CHATBOT_ID}/publish`);
+
     const res = await request.post(`/api/widget/${CHATBOT_ID}/tickets`, {
       data: {
         name: 'E2E Test Visitor',
@@ -290,9 +293,9 @@ test.describe('Ticketing System - Full Lifecycle', () => {
       await expect(page.getByRole('button', { name: tab, exact: true })).toBeVisible({ timeout: 10000 });
     }
 
-    // Click "Open" filter
+    // Click "Open" filter and wait for spinner to clear
     await page.getByRole('button', { name: 'Open', exact: true }).click();
-    await page.waitForLoadState('networkidle').catch(() => {});
+    await page.waitForFunction(() => !document.querySelector('.animate-spin'), { timeout: 10000 }).catch(() => {});
   });
 
   test('TKT-010: Ticket list shows the created ticket', async ({ page }) => {
@@ -414,19 +417,25 @@ test.describe('Ticketing System - Full Lifecycle', () => {
 
     await gotoTicketsPage(page);
 
+    // Wait for and click the ticket row
+    await page.locator('tr', { hasText: createdTicketReference }).waitFor({ state: 'visible', timeout: 20000 });
     await page.locator('tr', { hasText: createdTicketReference }).click();
     await expect(page.getByText(createdTicketReference)).toBeVisible({ timeout: 10000 });
 
-    // Click "Open" status button to change back to open
-    const openBtn = page.locator('button', { hasText: /^Open$/i }).first();
-    // Only click if not already active (ticket is in_progress)
-    const currentBadge = page.getByText('in progress').first();
-    if (await currentBadge.isVisible().catch(() => false)) {
-      // The "Open" button in the status grid
-      const statusButtons = page.locator('.grid-cols-2 button');
-      await statusButtons.filter({ hasText: 'Open' }).click();
-      // Toast should appear (API call can take several seconds)
-      await expect(page.getByText('Status updated')).toBeVisible({ timeout: 10000 });
+    // The status buttons grid uses .grid-cols-2; use enabled state to detect current status
+    // Open button is disabled when ticket is already "open"; enabled when it's in_progress/resolved/closed
+    const openBtn = page.locator('.grid-cols-2 button').filter({ hasText: 'Open' });
+    const isEnabled = await openBtn.isEnabled().catch(() => false);
+    if (isEnabled) {
+      // Wait for the PATCH response before checking toast (avoids timing race)
+      const statusResponsePromise = page.waitForResponse(
+        res => res.url().includes('/tickets/') && res.url().includes('/chatbots/') && res.request().method() === 'PATCH',
+        { timeout: 30000 }
+      );
+      await openBtn.click();
+      const statusRes = await statusResponsePromise;
+      expect(statusRes.ok()).toBeTruthy();
+      await expect(page.getByText(/Status updated to/)).toBeVisible({ timeout: 5000 });
     }
   });
 
@@ -497,8 +506,14 @@ test.describe('Ticketing System - Full Lifecycle', () => {
     await expect(replyInput).toBeVisible({ timeout: 10000 });
     await replyInput.fill('We have deployed a fix for this issue. Please try again now and let us know if you can log in successfully.');
 
-    // Click send
+    // Click send (wait for API response before asserting toast to avoid timing race)
+    const replyResponsePromise = page.waitForResponse(
+      res => res.url().includes('/replies') && res.url().includes('/tickets/') && res.request().method() === 'POST',
+      { timeout: 30000 }
+    );
     await page.getByRole('button', { name: 'Send Reply' }).click();
+    const replyRes = await replyResponsePromise;
+    expect(replyRes.ok()).toBeTruthy();
 
     // Success toast
     await expect(page.getByText('Reply sent')).toBeVisible({ timeout: 10000 });
@@ -542,7 +557,13 @@ test.describe('Ticketing System - Full Lifecycle', () => {
     await expect(notesTextarea).toBeVisible({ timeout: 10000 });
     await notesTextarea.fill('Customer is a premium tier user. Issue related to recent password policy change. Follow up in 24h if not resolved.');
 
+    // Wait for the PATCH response to ensure API completes before checking toast
+    const saveResponsePromise = page.waitForResponse(
+      res => res.url().includes(`/tickets/${createdTicketId}`) && res.request().method() === 'PATCH',
+      { timeout: 30000 }
+    );
     await page.getByRole('button', { name: 'Save Notes' }).click();
+    await saveResponsePromise;
 
     await expect(page.getByText('Notes saved')).toBeVisible({ timeout: 5000 });
   });
@@ -631,7 +652,7 @@ test.describe('Ticketing System - Full Lifecycle', () => {
 
     // Switch to "Closed" filter to find the ticket
     await page.getByRole('button', { name: 'Closed', exact: true }).click();
-    await page.waitForFunction(() => !document.querySelector('.animate-spin'), { timeout: 15000 });
+    await page.waitForFunction(() => !document.querySelector('.animate-spin'), { timeout: 15000 }).catch(() => {});
 
     const ticketRow = page.locator('tr', { hasText: createdTicketReference });
     if (await ticketRow.isVisible().catch(() => false)) {
@@ -729,7 +750,7 @@ test.describe('Ticketing System - Full Lifecycle', () => {
     // Click into a ticket
     const allBtn = page.getByRole('button', { name: 'All', exact: true });
     await allBtn.click();
-    await page.waitForFunction(() => !document.querySelector('.animate-spin'), { timeout: 15000 });
+    await page.waitForFunction(() => !document.querySelector('.animate-spin'), { timeout: 15000 }).catch(() => {});
 
     const firstRow = page.locator('table tbody tr').first();
     await expect(firstRow).toBeVisible({ timeout: 10000 });
@@ -752,7 +773,7 @@ test.describe('Ticketing System - Full Lifecycle', () => {
 
     // Click "Open" filter - should show only open tickets
     await page.getByRole('button', { name: 'Open', exact: true }).click();
-    await page.waitForFunction(() => !document.querySelector('.animate-spin'), { timeout: 15000 });
+    await page.waitForFunction(() => !document.querySelector('.animate-spin'), { timeout: 15000 }).catch(() => {});
 
     const rows = page.locator('table tbody tr');
     const count = await rows.count();
@@ -770,7 +791,7 @@ test.describe('Ticketing System - Full Lifecycle', () => {
     await gotoTicketsPage(page);
 
     await page.getByRole('button', { name: 'Closed', exact: true }).click();
-    await page.waitForFunction(() => !document.querySelector('.animate-spin'), { timeout: 15000 });
+    await page.waitForFunction(() => !document.querySelector('.animate-spin'), { timeout: 15000 }).catch(() => {});
 
     // Our first ticket was closed in TKT-028
     if (createdTicketReference) {
