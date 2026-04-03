@@ -543,6 +543,8 @@ export default function WebhooksPage() {
                         size="sm"
                         onClick={() => handleDelete(wh.id)}
                         disabled={deletingId === wh.id}
+                        data-testid={`delete-webhook-${wh.id}`}
+                        aria-label="Delete webhook"
                         className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300"
                       >
                         {deletingId === wh.id ? (

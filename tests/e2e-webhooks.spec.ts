@@ -34,7 +34,7 @@ test.describe('Webhooks Dashboard Page', () => {
     await page.waitForLoadState('domcontentloaded');
 
     await expect(
-      page.getByText('Receive real-time HTTP notifications when events happen in your chatbots.')
+      page.getByText('Receive real-time HTTP notifications when events happen in your chatbots')
     ).toBeVisible({ timeout: 10000 });
   });
 
@@ -56,7 +56,8 @@ test.describe('Webhooks Dashboard Page', () => {
     await page.getByRole('button', { name: /Add Webhook/i }).click();
     await expect(page.getByText('New Webhook')).toBeVisible({ timeout: 5000 });
 
-    await page.getByRole('button', { name: /Cancel/i }).click();
+    // Scope to the form — the header also shows "Cancel" when form is open, creating 2 matches
+    await page.locator('form').getByRole('button', { name: /Cancel/i }).click();
     await expect(page.getByText('New Webhook')).not.toBeVisible({ timeout: 5000 });
   });
 });
@@ -65,6 +66,16 @@ test.describe('Webhooks CRUD via UI', () => {
   let createdWebhookUrl: string;
 
   test('WHK-010: Create webhook and see secret banner', async ({ page }) => {
+    // Cleanup any pre-existing webhooks at this URL to avoid strict mode issues
+    const listRes = await page.request.get('/api/webhooks');
+    if (listRes.ok()) {
+      const body = await listRes.json();
+      const existing = (body.data?.webhooks ?? []).filter((wh: { url: string }) => wh.url === TEST_WEBHOOK_URL);
+      for (const wh of existing) {
+        await page.request.delete(`/api/webhooks/${wh.id}`);
+      }
+    }
+
     await page.goto(WEBHOOKS_URL);
     await page.waitForLoadState('domcontentloaded');
 
@@ -100,7 +111,7 @@ test.describe('Webhooks CRUD via UI', () => {
 
     // Webhook URL should appear (may be truncated)
     const urlText = TEST_WEBHOOK_URL.slice(0, 40);
-    await expect(page.getByText(urlText, { exact: false })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(urlText, { exact: false }).first()).toBeVisible({ timeout: 15000 });
   });
 
   test('WHK-012: Webhook list shows event badges', async ({ page }) => {
@@ -108,17 +119,17 @@ test.describe('Webhooks CRUD via UI', () => {
     await page.waitForLoadState('domcontentloaded');
 
     // Wait for list to load
-    await expect(page.getByText(TEST_WEBHOOK_URL.slice(0, 40), { exact: false })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(TEST_WEBHOOK_URL.slice(0, 40), { exact: false }).first()).toBeVisible({ timeout: 15000 });
 
-    // Webhook with no events selected shows "All events" badge
-    await expect(page.getByText('All events')).toBeVisible({ timeout: 5000 });
+    // Webhook with no events selected shows "All events" badge (use .first() — other webhooks may also show this)
+    await expect(page.getByText('All events').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('WHK-013: Toggle webhook active/inactive', async ({ page }) => {
     await page.goto(WEBHOOKS_URL);
     await page.waitForLoadState('domcontentloaded');
 
-    await expect(page.getByText(TEST_WEBHOOK_URL.slice(0, 40), { exact: false })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(TEST_WEBHOOK_URL.slice(0, 40), { exact: false }).first()).toBeVisible({ timeout: 15000 });
 
     // Find Disable button (webhook is active after creation)
     const disableButton = page.getByRole('button', { name: /Disable/i }).first();
@@ -144,33 +155,35 @@ test.describe('Webhooks CRUD via UI', () => {
   });
 
   test('WHK-014: Delete webhook via UI', async ({ page }) => {
+    // Get the test webhook ID from the API so we can target the exact delete button
+    const listRes = await page.request.get('/api/webhooks');
+    expect(listRes.ok()).toBeTruthy();
+    const listBody = await listRes.json();
+    const testWebhook = (listBody.data?.webhooks ?? []).find((wh: { url: string }) => wh.url === TEST_WEBHOOK_URL);
+    expect(testWebhook).toBeDefined();
+    const webhookId = testWebhook.id;
+
     await page.goto(WEBHOOKS_URL);
     await page.waitForLoadState('domcontentloaded');
-
-    await expect(page.getByText(TEST_WEBHOOK_URL.slice(0, 40), { exact: false })).toBeVisible({ timeout: 15000 });
-
-    // Accept the confirm dialog
-    page.on('dialog', (dialog) => dialog.accept());
+    await expect(page.getByText(TEST_WEBHOOK_URL.slice(0, 40), { exact: false }).first()).toBeVisible({ timeout: 15000 });
 
     const deletePromise = page.waitForResponse(
       (res) => res.url().includes('/api/webhooks/') && res.request().method() === 'DELETE'
     );
-    // Click the trash icon button
-    const deleteButton = page.locator('button').filter({ has: page.locator('svg.lucide-trash-2') }).first();
+
+    // Click the specific delete button for this webhook (data-testid added for test reliability)
+    const deleteButton = page.locator(`[data-testid="delete-webhook-${webhookId}"]`);
     await expect(deleteButton).toBeVisible({ timeout: 5000 });
     await deleteButton.click();
+
+    // App uses a React confirm dialog (not native window.confirm) — click the "Delete" button in the dialog
+    await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
 
     const deleteRes = await deletePromise;
     expect(deleteRes.ok()).toBeTruthy();
 
     // Webhook URL should no longer appear
     await expect(page.getByText(TEST_WEBHOOK_URL.slice(0, 40), { exact: false })).not.toBeVisible({ timeout: 10000 });
-
-    // May show empty state
-    const noWebhooksEl = page.getByText('No webhooks yet.');
-    if (await noWebhooksEl.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await expect(noWebhooksEl).toBeVisible();
-    }
   });
 });
 
