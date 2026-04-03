@@ -69,7 +69,7 @@
 | 61 | e2e-help-articles-knowledge-rag | ✅ Done | ✅ | | | 2 | | | | mum | 11/11 passed, 2 skipped (SCHED-002/003 — CRON_SECRET not set) | 2026-04-04 |
 | 62 | e2e-integration-flows | ✅ Done | | 🔧 | | | Selector | Test Code | 2/3 | mum | #system_prompt not found — settings opens on General tab; added nav click to Chatbot Instructions tab | 2026-04-04 |
 | 63 | e2e-invoice-history | ✅ Done | | 🔧 | | 1 | Selector | Test Code | 2/3 | mum | INVOICE-010 strict mode: getByText matched 3-4 elements; fixed to getByRole('heading') | 2026-04-04 |
-| 64 | e2e-knowledge-advanced | ⏳ Queued | | | | | | | | | |
+| 64 | e2e-knowledge-advanced | 🔄 Running | | | | | | | | | mum |
 | 65 | e2e-knowledge-base | ⏳ Queued | | | | | | | | | |
 | 66 | e2e-knowledge-lifecycle | ⏳ Queued | | | | | | | | | |
 | 67 | e2e-knowledge-management | ⏳ Queued | | | | | | | | | |
