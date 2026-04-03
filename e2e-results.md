@@ -85,7 +85,7 @@
 | 76 | e2e-onboarding-wizard | ✅ Done | ✅ | | | | | | | mum | 2/2 passed | 2026-04-04 |
 | 77 | e2e-otp-advanced | ✅ Done | ✅ | | | | | | | 3/3 passed | 2026-04-04 |
 | 78 | e2e-overview-page | 🔄 Running | | | | | | | will | | |
-| 79 | e2e-ownership-fix | ⏳ Queued | | | | | | | | | |
+| 79 | e2e-ownership-fix | 🔄 Running | | | | | | | | | mum |
 | 80 | e2e-performance-page | ⏳ Queued | | | | | | | | | |
 | 81 | e2e-plan-limits | ⏳ Queued | | | | | | | | | |
 | 82 | e2e-pricing | ⏳ Queued | | | | | | | | | |
