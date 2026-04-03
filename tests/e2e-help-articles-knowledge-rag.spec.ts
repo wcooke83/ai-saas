@@ -281,6 +281,20 @@ test.describe('Help Articles: Performance Page Verification', () => {
 // ─────────────────────────────────────────────────────────────────────
 
 test.describe('Help Articles: Schedule & Cron Execution', () => {
+  test.beforeAll(async ({ browser }) => {
+    // Ensure the test chatbot exists for the e2e user before running schedule tests
+    if (!E2E_SECRET) return;
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    const res = await page.request.post('/api/e2e/ensure-chatbot', {
+      data: { secret: E2E_SECRET, chatbot_id: CHATBOT_ID, is_published: true },
+    });
+    if (!res.ok()) {
+      console.warn('[SCHED beforeAll] ensure-chatbot failed:', await res.text());
+    }
+    await ctx.close();
+  });
+
   test('SCHED-001: Set schedule and verify it persists via API', async ({ page }) => {
     // Get current schedule
     const getRes = await page.request.get(`/api/chatbots/${CHATBOT_ID}/articles/schedule`);

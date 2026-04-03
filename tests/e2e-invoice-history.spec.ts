@@ -104,7 +104,7 @@ test.describe('Billing Page – Overall Section Order', () => {
     await expect(page.getByRole('heading', { name: 'Invoice History' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Purchase Credits' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Auto Top-up' })).toBeVisible();
-    await expect(page.getByText('Need More?').first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Need More?' })).toBeVisible();
   });
 
   test('INVOICE-011: View All Plans link goes to upgrade page', async ({ page }) => {

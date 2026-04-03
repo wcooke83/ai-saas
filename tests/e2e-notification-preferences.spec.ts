@@ -52,12 +52,8 @@ test.describe('Notification Preferences UI', () => {
     await page.waitForLoadState('domcontentloaded');
     await expect(page.getByText('Notifications').first()).toBeVisible({ timeout: 20000 });
 
-    // Find the "Marketing emails" toggle (default: false, safest to toggle)
-    const marketingRow = page.locator('div').filter({ hasText: /^Marketing emails$/ }).locator('..');
-    const toggle = marketingRow.locator('button[role="switch"]').or(
-      marketingRow.locator('input[type="checkbox"]')
-    ).first();
-
+    // The toggle is a sr-only <input> inside a <label>; click the label to trigger it
+    const toggle = page.locator('label').filter({ has: page.getByText('Toggle Marketing emails') });
     await expect(toggle).toBeVisible({ timeout: 10000 });
 
     // Watch for the PATCH call
@@ -88,17 +84,12 @@ test.describe('Notification Preferences UI', () => {
     await page.waitForLoadState('domcontentloaded');
     await expect(page.getByText('Notifications').first()).toBeVisible({ timeout: 20000 });
 
-    // Read the initial state of "Product updates" toggle
-    const productUpdatesRow = page.locator('div').filter({ hasText: /^Product updates$/ }).locator('..');
-    const toggle = productUpdatesRow.locator('button[role="switch"]').or(
-      productUpdatesRow.locator('input[type="checkbox"]')
-    ).first();
-
+    // The toggle is a sr-only <input> inside a <label>; click the label to trigger it
+    const toggle = page.locator('label').filter({ has: page.getByText('Toggle Product updates') });
     await expect(toggle).toBeVisible({ timeout: 10000 });
 
-    const initialChecked = await toggle.isChecked().catch(() => null);
-    const initialAriaChecked = await toggle.getAttribute('aria-checked');
-    const wasOn = initialChecked !== null ? initialChecked : initialAriaChecked === 'true';
+    const initialChecked = await toggle.locator('input[type="checkbox"]').isChecked().catch(() => null);
+    const wasOn = initialChecked !== null ? initialChecked : false;
 
     // Toggle it
     const patchPromise = page.waitForResponse(
@@ -112,13 +103,10 @@ test.describe('Notification Preferences UI', () => {
     await page.reload({ waitUntil: 'domcontentloaded' });
     await expect(page.getByText('Notifications').first()).toBeVisible({ timeout: 20000 });
 
-    const toggleAfter = productUpdatesRow.locator('button[role="switch"]').or(
-      productUpdatesRow.locator('input[type="checkbox"]')
-    ).first();
+    const toggleAfter = page.locator('label').filter({ has: page.getByText('Toggle Product updates') });
 
-    const checkedAfter = await toggleAfter.isChecked().catch(() => null);
-    const ariaCheckedAfter = await toggleAfter.getAttribute('aria-checked');
-    const isOnAfter = checkedAfter !== null ? checkedAfter : ariaCheckedAfter === 'true';
+    const checkedAfter = await toggleAfter.locator('input[type="checkbox"]').isChecked().catch(() => null);
+    const isOnAfter = checkedAfter !== null ? checkedAfter : false;
 
     // Should have flipped
     expect(isOnAfter).toBe(!wasOn);

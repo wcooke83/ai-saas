@@ -1,7 +1,8 @@
 # E2E Test Results
 
-**Run started:** 2026-04-03
-**Mode:** All tests (full reset)
+**Run started:** 2026-04-03 (continued 2026-04-04)
+**Runner:** will
+**Mode:** Continue from row 61
 **Status:** In Progress
 
 | # | Test | Status | Passed | Fixed | Failed | Skipped | Failure Type | Fix Target | Attempts | Notes | Timestamp |
@@ -66,21 +67,21 @@
 | 58 | e2e-gate-pages | ✅ Done | ✅ | | | | | | | 8/8 passed | 2026-04-03 |
 | 59 | e2e-global-credit-packages | ✅ Done | | 🔧 | | | Selector | Test Code | 1/3 | NAV-002: waitForURL before toHaveURL for client-side nav | 2026-04-03 |
 | 60 | e2e-handoff | ✅ Done | ✅ | | | | | | | 4/4 passed | 2026-04-03 |
-| 61 | e2e-help-articles-knowledge-rag | ✅ Done | ✅ | | | 2 | | | | mum | 11/11 passed, 2 skipped (SCHED-002/003 — CRON_SECRET not set) | 2026-04-04 |
-| 62 | e2e-integration-flows | ✅ Done | | 🔧 | | | Selector | Test Code | 2/3 | mum | #system_prompt not found — settings opens on General tab; added nav click to Chatbot Instructions tab | 2026-04-04 |
-| 63 | e2e-invoice-history | ✅ Done | | 🔧 | | 1 | Selector | Test Code | 2/3 | mum | INVOICE-010 strict mode: getByText matched 3-4 elements; fixed to getByRole('heading') | 2026-04-04 |
-| 64 | e2e-knowledge-advanced | ✅ Done | | 🔧 | | | State/Data | Environment | 2/3 | mum | 403 — E2E chatbot hit 50-source pro plan limit; deleted 45 stale test sources to clear space | 2026-04-04 |
-| 65 | e2e-knowledge-base | 🔄 Running | | | | | | | | | mum |
-| 66 | e2e-knowledge-lifecycle | ⏳ Queued | | | | | | | | | |
-| 67 | e2e-knowledge-management | ⏳ Queued | | | | | | | | | |
-| 68 | e2e-leads | ⏳ Queued | | | | | | | | | |
-| 69 | e2e-memory-otp | ⏳ Queued | | | | | | | | | |
-| 70 | e2e-middleware-infra | ⏳ Queued | | | | | | | | | |
-| 71 | e2e-model-selection-removal | ⏳ Queued | | | | | | | | | |
-| 72 | e2e-navigation | ⏳ Queued | | | | | | | | | |
-| 73 | e2e-navigation-onboarding | ⏳ Queued | | | | | | | | | |
-| 74 | e2e-notification-preferences | ⏳ Queued | | | | | | | | | |
-| 75 | e2e-onboarding-checklist | ⏳ Queued | | | | | | | | | |
+| 61 | e2e-help-articles-knowledge-rag | ✅ Done | | 🔧 | | | Server Error | Test Code | 1/3 | SCHED-001/002 fail: chatbot 10df2440 not in e2e DB → 404; added beforeAll ensure-chatbot to SCHED describe; SCHED-002 also unblocked (UI no longer in error state) | 2026-04-04 |
+| 62 | e2e-integration-flows | ✅ Done | | 🔧 | | | Selector | Test Code | 1/3 | #system_prompt not visible: settings page defaults to General section; added click on "Chatbot Instructions" nav button in both goto+restore steps | 2026-04-04 |
+| 63 | e2e-invoice-history | ✅ Done | | 🔧 | | 1 | Selector | Test Code | 1/3 | INVOICE-010: multiple strict mode violations; all section heading checks changed to getByRole('heading'); INVOICE-005 auto-skipped (no invoices in dev DB) | 2026-04-04 |
+| 64 | e2e-knowledge-advanced | ✅ Done | | 🔧 | | | State/Data | Test Code | 1/3 | Plan limit hit (51 sources on chatbot); setup now reuses existing "E2E Priority Test" source; details test uses .first() to avoid strict mode on duplicate names | 2026-04-04 |
+| 65 | e2e-knowledge-base | ✅ Done | | 🔧 | | 2 | Selector | Test Code | 1/3 | KNOWLEDGE-008 toast text updated to regex (API returns "Re-embedding N source(s)..." not "Re-processing started"); KNOWLEDGE-006 skip (no source to delete); KNOWLEDGE-008 flaky in isolation (button hidden when all sources processing) | 2026-04-04 |
+| 66 | e2e-knowledge-lifecycle | ✅ Done | ✅ | | | | | | | 5/5 passed | 2026-04-04 |
+| 67 | e2e-knowledge-management | ✅ Done | ✅ | | | | | | | 4/4 passed | 2026-04-04 |
+| 68 | e2e-leads | ✅ Done | ✅ | | | | | | | 3/3 passed | 2026-04-04 |
+| 69 | e2e-memory-otp | ✅ Done | ✅ | | | | | | | 3/3 passed | 2026-04-04 |
+| 70 | e2e-middleware-infra | ✅ Done | ✅ | | | | | | | 7/7 passed | 2026-04-04 |
+| 71 | e2e-model-selection-removal | ✅ Done | ✅ | | | | | | | 7/7 passed | 2026-04-04 |
+| 72 | e2e-navigation | ✅ Done | ✅ | | | | | | | 6/6 passed | 2026-04-04 |
+| 73 | e2e-navigation-onboarding | ✅ Done | ✅ | | | 4 | | | | 9/13 passed, 4 skipped (onboarding already complete for e2e user) | 2026-04-04 |
+| 74 | e2e-notification-preferences | ✅ Done | | 🔧 | | | Selector | Test Code | 1/3 | NOTIF-003/004: toggle is sr-only input inside label; changed locator to label.filter({has: getByText('Toggle ...')}) and read isChecked() from input child | 2026-04-04 |
+| 75 | e2e-onboarding-checklist | 🔄 Running | | | | | | | | | |
 | 76 | e2e-onboarding-wizard | ⏳ Queued | | | | | | | | | |
 | 77 | e2e-otp-advanced | ⏳ Queued | | | | | | | | | |
 | 78 | e2e-overview-page | ⏳ Queued | | | | | | | | | |
@@ -127,6 +128,7 @@
 | 119 | e2e-zapier | ⏳ Queued | | | | | | | | | |
 | 120 | e2e-zero-state-dashboard | ⏳ Queued | | | | | | | | | |
 | 121 | e2e-zz-widget-chat-interaction | ⏳ Queued | | | | | | | | | |
+| 122 | e2e-status-pages | ⏳ Queued | | | | | | | | | |
 
 ## Summary
 

@@ -46,8 +46,7 @@ test.describe('Cross-Feature Integration', () => {
     // Update system prompt via settings page
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/settings`);
     await page.waitForLoadState('domcontentloaded');
-    await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
-    await page.locator('nav button', { hasText: 'Chatbot Instructions' }).click();
+    await page.getByRole('button', { name: 'Chatbot Instructions' }).click();
 
     const promptTextarea = page.locator('#system_prompt');
     await expect(promptTextarea).toBeVisible({ timeout: 10000 });
@@ -79,8 +78,7 @@ test.describe('Cross-Feature Integration', () => {
     // Restore original prompt
     await page.goto(`/dashboard/chatbots/${CHATBOT_ID}/settings`);
     await page.waitForLoadState('domcontentloaded');
-    await page.locator('nav button').first().waitFor({ state: 'visible', timeout: 30000 });
-    await page.locator('nav button', { hasText: 'Chatbot Instructions' }).click();
+    await page.getByRole('button', { name: 'Chatbot Instructions' }).click();
     const restorePrompt = page.locator('#system_prompt');
     await expect(restorePrompt).toBeVisible({ timeout: 10000 });
     await restorePrompt.clear();
