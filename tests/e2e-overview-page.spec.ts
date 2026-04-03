@@ -56,7 +56,7 @@ test.describe('34. Overview Page', () => {
     await gotoOverview(page);
     await expect(page.getByRole('heading').first()).toBeVisible({ timeout: 30000 });
 
-    await expect(page.getByText('Conversations')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Conversations', { exact: true }).first()).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('Messages').first()).toBeVisible({ timeout: 5000 });
     await expect(page.getByText('Satisfaction')).toBeVisible({ timeout: 5000 });
     await expect(page.getByText('This Month')).toBeVisible({ timeout: 5000 });

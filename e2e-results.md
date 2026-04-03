@@ -84,8 +84,8 @@
 | 75 | e2e-onboarding-checklist | ✅ Done | | 🔧 | | | State/Data | Test Code | 2/3 | Plan chatbot limit hit (2 orphaned bots from prior runs); added beforeAll to delete E2E Onboarding Bot* leftovers; OB-002 nav fixed to page.goto() | 2026-04-04 |
 | 76 | e2e-onboarding-wizard | ✅ Done | ✅ | | | | | | | mum | 2/2 passed | 2026-04-04 |
 | 77 | e2e-otp-advanced | ✅ Done | ✅ | | | | | | | 3/3 passed | 2026-04-04 |
-| 78 | e2e-overview-page | 🔄 Running | | | | | | | will | | |
-| 79 | e2e-ownership-fix | 🔄 Running | | | | | | | | | mum |
+| 78 | e2e-overview-page | ✅ Done | | 🔧 | | | Selector | Test Code | 1/3 | OVERVIEW-003 strict mode: getByText('Conversations') matched nav link + stat card; fixed with exact:true + .first() | 2026-04-04 |
+| 79 | e2e-ownership-fix | 🔄 Running | | | | | | | mum | | |
 | 80 | e2e-performance-page | ⏳ Queued | | | | | | | | | |
 | 81 | e2e-plan-limits | ⏳ Queued | | | | | | | | | |
 | 82 | e2e-pricing | ⏳ Queued | | | | | | | | | |
