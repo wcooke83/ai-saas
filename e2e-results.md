@@ -66,7 +66,7 @@
 | 58 | e2e-gate-pages | ✅ Done | ✅ | | | | | | | 8/8 passed | 2026-04-03 |
 | 59 | e2e-global-credit-packages | ✅ Done | | 🔧 | | | Selector | Test Code | 1/3 | NAV-002: waitForURL before toHaveURL for client-side nav | 2026-04-03 |
 | 60 | e2e-handoff | ✅ Done | ✅ | | | | | | | 4/4 passed | 2026-04-03 |
-| 61 | e2e-help-articles-knowledge-rag | 🔄 Running | | | | | | | | | |
+| 61 | e2e-help-articles-knowledge-rag | 🔄 Running | | | | | | | | | mum |
 | 62 | e2e-integration-flows | ⏳ Queued | | | | | | | | | |
 | 63 | e2e-invoice-history | ⏳ Queued | | | | | | | | | |
 | 64 | e2e-knowledge-advanced | ⏳ Queued | | | | | | | | | |
