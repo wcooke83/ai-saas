@@ -81,7 +81,7 @@
 | 72 | e2e-navigation | ✅ Done | ✅ | | | | | | | 6/6 passed | 2026-04-04 |
 | 73 | e2e-navigation-onboarding | ✅ Done | ✅ | | | 4 | | | | 9/13 passed, 4 skipped (onboarding already complete for e2e user) | 2026-04-04 |
 | 74 | e2e-notification-preferences | ✅ Done | | 🔧 | | | Selector | Test Code | 1/3 | NOTIF-003/004: toggle is sr-only input inside label; changed locator to label.filter({has: getByText('Toggle ...')}) and read isChecked() from input child | 2026-04-04 |
-| 75 | e2e-onboarding-checklist | 🔄 Running | | | | | | | | | |
+| 75 | e2e-onboarding-checklist | 🔄 Running | | | | | | | will | | |
 | 76 | e2e-onboarding-wizard | ⏳ Queued | | | | | | | | | |
 | 77 | e2e-otp-advanced | ⏳ Queued | | | | | | | | | |
 | 78 | e2e-overview-page | ⏳ Queued | | | | | | | | | |
