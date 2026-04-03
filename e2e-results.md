@@ -86,7 +86,7 @@
 | 77 | e2e-otp-advanced | ✅ Done | ✅ | | | | | | | 3/3 passed | 2026-04-04 |
 | 78 | e2e-overview-page | ✅ Done | | 🔧 | | | Selector | Test Code | 1/3 | OVERVIEW-003 strict mode: getByText('Conversations') matched nav link + stat card; fixed with exact:true + .first() | 2026-04-04 |
 | 79 | e2e-ownership-fix | 🔄 Running | | | | | | | mum | | |
-| 80 | e2e-performance-page | ⏳ Queued | | | | | | | | | |
+| 80 | e2e-performance-page | 🔄 Running | | | | | | | will | | |
 | 81 | e2e-plan-limits | ⏳ Queued | | | | | | | | | |
 | 82 | e2e-pricing | ⏳ Queued | | | | | | | | | |
 | 83 | e2e-profile-removed | ⏳ Queued | | | | | | | | | |
