@@ -92,13 +92,13 @@
 | 83 | e2e-profile-removed | ✅ Done | ✅ | | | | | | | mum | 11/11 passed | 2026-04-04 |
 | 84 | e2e-public-pages | ✅ Done | ✅ | | | | | | | mum | 3/3 passed | 2026-04-04 |
 | 85 | e2e-publish | ✅ Done | | 🔧 | | | Selector | Test Code | 1/3 | mum | toast link selector: getByRole('button'→'link'), name /Go to Deploy/→/Get your embed codes/; 7/8 passed first run | 2026-04-04 |
-| 86 | e2e-quick-templates | 🔄 Running | | | | | | | | | mum |
+| 86 | e2e-quick-templates | ✅ Done | | 🔧 | | | Timeout / Server Error | Test Code | 2/3 | mum | QT-CRUD-003: reduced to 1 template iteration (3×nav>60s); QT-BEH-008: goto retry loop for server restart; 37/39 passed | 2026-04-04 |
 | 87 | e2e-rag-memory-edge-cases | ✅ Done | ✅ | | | | | | | will | 16/16 passed (RAG-002 flaky→retry; ensure-chatbot called before run) | 2026-04-04 |
 | 88 | e2e-recover-stuck-sources | ✅ Done | ✅ | | | | | | | will | 6/6 passed | 2026-04-04 |
 | 89 | e2e-reembed-detection | ✅ Done | ✅ | | | | | | | will | 13/13 passed | 2026-04-04 |
 | 90 | e2e-security | ✅ Done | ✅ | | | | | | | will | 11/11 passed | 2026-04-04 |
 | 91 | e2e-sentiment | 🔄 Running | | | | | | | will | | |
-| 92 | e2e-settings-ai-model | ⏳ Queued | | | | | | | | | |
+| 92 | e2e-settings-ai-model | 🔄 Running | | | | | | | | | mum |
 | 93 | e2e-settings-editors | ⏳ Queued | | | | | | | | | |
 | 94 | e2e-settings-escalation | ⏳ Queued | | | | | | | | | |
 | 95 | e2e-settings-feedback | ⏳ Queued | | | | | | | | | |
