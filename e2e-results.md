@@ -108,9 +108,9 @@
 | 99 | e2e-settings-prechat | ✅ Done | ✅ | | | | | | | mum | 13/13 passed | 2026-04-04 |
 | 100 | e2e-settings-proactive | ✅ Done | ✅ | | | | | | | mum | 6/6 passed | 2026-04-04 |
 | 101 | e2e-settings-save | ✅ Done | ✅ | | | | | | | mum | 7/7 passed | 2026-04-04 |
-| 102 | e2e-settings-survey | 🔄 Running | | | | | | | will | | |
+| 102 | e2e-settings-survey | ✅ Done | ✅ | | | | | | | will | 7/7 passed (SET-SURVEY-006 flaky→retry) | 2026-04-04 |
 | 103 | e2e-settings-system-prompt | 🔄 Running | | | | | | | | | mum |
-| 104 | e2e-settings-transcripts | ⏳ Queued | | | | | | | | | |
+| 104 | e2e-settings-transcripts | 🔄 Running | | | | | | | will | | |
 | 105 | e2e-settings-uploads | ⏳ Queued | | | | | | | | | |
 | 106 | e2e-slack-integration | ⏳ Queued | | | | | | | | | |
 | 107 | e2e-survey | ⏳ Queued | | | | | | | | | |
