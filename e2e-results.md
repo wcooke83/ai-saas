@@ -70,7 +70,7 @@
 | 62 | e2e-integration-flows | ✅ Done | | 🔧 | | | Selector | Test Code | 2/3 | mum | #system_prompt not found — settings opens on General tab; added nav click to Chatbot Instructions tab | 2026-04-04 |
 | 63 | e2e-invoice-history | ✅ Done | | 🔧 | | 1 | Selector | Test Code | 2/3 | mum | INVOICE-010 strict mode: getByText matched 3-4 elements; fixed to getByRole('heading') | 2026-04-04 |
 | 64 | e2e-knowledge-advanced | ✅ Done | | 🔧 | | | State/Data | Environment | 2/3 | mum | 403 — E2E chatbot hit 50-source pro plan limit; deleted 45 stale test sources to clear space | 2026-04-04 |
-| 65 | e2e-knowledge-base | ⏳ Queued | | | | | | | | | |
+| 65 | e2e-knowledge-base | 🔄 Running | | | | | | | | | mum |
 | 66 | e2e-knowledge-lifecycle | ⏳ Queued | | | | | | | | | |
 | 67 | e2e-knowledge-management | ⏳ Queued | | | | | | | | | |
 | 68 | e2e-leads | ⏳ Queued | | | | | | | | | |
