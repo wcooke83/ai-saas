@@ -102,13 +102,13 @@
 | 93 | e2e-settings-editors | ✅ Done | ✅ | | | | | | | mum | 23/23 passed | 2026-04-04 |
 | 94 | e2e-settings-escalation | ✅ Done | ✅ | | | | | | | mum | 6/6 passed | 2026-04-04 |
 | 95 | e2e-settings-feedback | ✅ Done | ✅ | | | | | | | mum | 5/5 passed | 2026-04-04 |
-| 96 | e2e-settings-general | 🔄 Running | | | | | | | will | | |
+| 96 | e2e-settings-general | ✅ Done | ✅ | | | | | | | will | 16/16 passed | 2026-04-04 |
 | 97 | e2e-settings-handoff | ✅ Done | ✅ | | | | | | | mum | 14/14 passed | 2026-04-04 |
 | 98 | e2e-settings-memory | ✅ Done | ✅ | | | | | | | mum | 6/6 passed | 2026-04-04 |
 | 99 | e2e-settings-prechat | ✅ Done | ✅ | | | | | | | mum | 13/13 passed | 2026-04-04 |
 | 100 | e2e-settings-proactive | ✅ Done | ✅ | | | | | | | mum | 6/6 passed | 2026-04-04 |
 | 101 | e2e-settings-save | 🔄 Running | | | | | | | | | mum |
-| 102 | e2e-settings-survey | ⏳ Queued | | | | | | | | | |
+| 102 | e2e-settings-survey | 🔄 Running | | | | | | | will | | |
 | 103 | e2e-settings-system-prompt | ⏳ Queued | | | | | | | | | |
 | 104 | e2e-settings-transcripts | ⏳ Queued | | | | | | | | | |
 | 105 | e2e-settings-uploads | ⏳ Queued | | | | | | | | | |
