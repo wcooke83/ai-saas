@@ -118,8 +118,8 @@
 | 109 | e2e-ticketing-system | 🔄 Running | | | | | | | | | mum |
 | 110 | e2e-tooltip | ✅ Done | ✅ | | | | | | | will | 1/1 passed (flaky→retry, ERR_ABORTED on first load) | 2026-04-04 |
 | 111 | e2e-untested-endpoints | ✅ Done | ✅ | | | | | | | will | 7/7 passed | 2026-04-04 |
-| 112 | e2e-upgrade-page | 🔄 Running | | | | | | | will | | |
-| 113 | e2e-webhooks | ⏳ Queued | | | | | | | | | |
+| 112 | e2e-upgrade-page | ✅ Done | ✅ | | | | | | | will | 17/17 passed (UPGRADE-011 flaky→retry) | 2026-04-04 |
+| 113 | e2e-webhooks | 🔄 Running | | | | | | | will | | |
 | 114 | e2e-widget-advanced | ⏳ Queued | | | | | | | | | |
 | 115 | e2e-widget-config | ⏳ Queued | | | | | | | | | |
 | 116 | e2e-widget-core | ⏳ Queued | | | | | | | | | |
