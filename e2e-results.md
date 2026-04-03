@@ -82,7 +82,7 @@
 | 73 | e2e-navigation-onboarding | ✅ Done | ✅ | | | 4 | | | | 9/13 passed, 4 skipped (onboarding already complete for e2e user) | 2026-04-04 |
 | 74 | e2e-notification-preferences | ✅ Done | | 🔧 | | | Selector | Test Code | 1/3 | NOTIF-003/004: toggle is sr-only input inside label; changed locator to label.filter({has: getByText('Toggle ...')}) and read isChecked() from input child | 2026-04-04 |
 | 75 | e2e-onboarding-checklist | ✅ Done | | 🔧 | | | State/Data | Test Code | 2/3 | Plan chatbot limit hit (2 orphaned bots from prior runs); added beforeAll to delete E2E Onboarding Bot* leftovers; OB-002 nav fixed to page.goto() | 2026-04-04 |
-| 76 | e2e-onboarding-wizard | 🔄 Running | | | | | | | mum | | |
+| 76 | e2e-onboarding-wizard | ✅ Done | ✅ | | | | | | | mum | 2/2 passed | 2026-04-04 |
 | 77 | e2e-otp-advanced | ✅ Done | ✅ | | | | | | | 3/3 passed | 2026-04-04 |
 | 78 | e2e-overview-page | 🔄 Running | | | | | | | will | | |
 | 79 | e2e-ownership-fix | ⏳ Queued | | | | | | | | | |
