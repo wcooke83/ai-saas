@@ -122,7 +122,7 @@
 | 113 | e2e-webhooks | ✅ Done | | 🔧 | | | Selector/Assertion | Test Code + App Code | 3/3 | Fixed: description missing period, Cancel strict mode (scoped to form), "All events" strict mode (.first()), trash btn class (lucide-trash2 not -2), React confirm dialog (not native), cleanup moved to WHK-010, data-testid added to delete btn | will | 2026-04-04 |
 | 114 | e2e-widget-advanced | ✅ Done | | 🔧 | | | Timeout | Test Code | 1/3 | canada | WIDGET-ADV-002: widget redirected to fallback view on load (creditExhausted on mount → useEffect redirect); fixed with route intercept returning 403 USAGE_LIMIT_REACHED instead | 2026-04-04 |
 | 115 | e2e-widget-config | ✅ Done | ✅ | | | | | | canada | 4/4 passed | 2026-04-04 |
-| 116 | e2e-widget-core | 🔄 Running | | | | | | | canada | | |
+| 116 | e2e-widget-core | 🔄 Running | | | | | | | canada | running 2026-04-04 | |
 | 117 | e2e-widget-customization | ✅ Done | ✅ | | | | | | | will | 12/12 passed | 2026-04-04 |
 | 118 | e2e-widget-sdk | 🔄 Running | | | | | | | | will | |
 | 119 | e2e-zapier | ⏳ Queued | | | | | | | | | |
