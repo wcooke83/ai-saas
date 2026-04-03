@@ -89,8 +89,8 @@
 | 80 | e2e-performance-page | ✅ Done | ✅ | | | | | | | 8/8 passed (1 flaky→retry) | 2026-04-04 |
 | 81 | e2e-plan-limits | ✅ Done | ✅ | | | | | | | mum | 5/5 passed | 2026-04-04 |
 | 82 | e2e-pricing | 🔄 Running | | | | | | | will | | |
-| 83 | e2e-profile-removed | 🔄 Running | | | | | | | | | mum |
-| 84 | e2e-public-pages | ⏳ Queued | | | | | | | | | |
+| 83 | e2e-profile-removed | ✅ Done | ✅ | | | | | | | mum | 11/11 passed | 2026-04-04 |
+| 84 | e2e-public-pages | 🔄 Running | | | | | | | | | mum |
 | 85 | e2e-publish | ⏳ Queued | | | | | | | | | |
 | 86 | e2e-quick-templates | ⏳ Queued | | | | | | | | | |
 | 87 | e2e-rag-memory-edge-cases | ⏳ Queued | | | | | | | | | |
