@@ -91,8 +91,8 @@
 | 82 | e2e-pricing | 🔄 Running | | | | | | | will | | |
 | 83 | e2e-profile-removed | ✅ Done | ✅ | | | | | | | mum | 11/11 passed | 2026-04-04 |
 | 84 | e2e-public-pages | ✅ Done | ✅ | | | | | | | mum | 3/3 passed | 2026-04-04 |
-| 85 | e2e-publish | 🔄 Running | | | | | | | | | mum |
-| 86 | e2e-quick-templates | ⏳ Queued | | | | | | | | | |
+| 85 | e2e-publish | ✅ Done | | 🔧 | | | Selector | Test Code | 1/3 | mum | toast link selector: getByRole('button'→'link'), name /Go to Deploy/→/Get your embed codes/; 7/8 passed first run | 2026-04-04 |
+| 86 | e2e-quick-templates | 🔄 Running | | | | | | | | | mum |
 | 87 | e2e-rag-memory-edge-cases | ⏳ Queued | | | | | | | | | |
 | 88 | e2e-recover-stuck-sources | ⏳ Queued | | | | | | | | | |
 | 89 | e2e-reembed-detection | ⏳ Queued | | | | | | | | | |

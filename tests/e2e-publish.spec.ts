@@ -51,8 +51,8 @@ test.describe('Chatbot Publish/Unpublish', () => {
       )
     ).toBeVisible({ timeout: 10000 });
 
-    // P2: toast should have a "Go to Deploy" action button
-    const deployAction = page.getByRole('button', { name: /Go to Deploy/i });
+    // P2: toast should have a link to the deploy page
+    const deployAction = page.getByRole('link', { name: /Get your embed codes/i });
     await expect(deployAction).toBeVisible({ timeout: 5000 });
   });
 
