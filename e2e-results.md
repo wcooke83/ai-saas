@@ -106,8 +106,8 @@
 | 97 | e2e-settings-handoff | ✅ Done | ✅ | | | | | | | mum | 14/14 passed | 2026-04-04 |
 | 98 | e2e-settings-memory | ✅ Done | ✅ | | | | | | | mum | 6/6 passed | 2026-04-04 |
 | 99 | e2e-settings-prechat | ✅ Done | ✅ | | | | | | | mum | 13/13 passed | 2026-04-04 |
-| 100 | e2e-settings-proactive | 🔄 Running | | | | | | | | | mum |
-| 101 | e2e-settings-save | ⏳ Queued | | | | | | | | | |
+| 100 | e2e-settings-proactive | ✅ Done | ✅ | | | | | | | mum | 6/6 passed | 2026-04-04 |
+| 101 | e2e-settings-save | 🔄 Running | | | | | | | | | mum |
 | 102 | e2e-settings-survey | ⏳ Queued | | | | | | | | | |
 | 103 | e2e-settings-system-prompt | ⏳ Queued | | | | | | | | | |
 | 104 | e2e-settings-transcripts | ⏳ Queued | | | | | | | | | |
