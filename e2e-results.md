@@ -98,8 +98,8 @@
 | 89 | e2e-reembed-detection | ✅ Done | ✅ | | | | | | | will | 13/13 passed | 2026-04-04 |
 | 90 | e2e-security | ✅ Done | ✅ | | | | | | | will | 11/11 passed | 2026-04-04 |
 | 91 | e2e-sentiment | 🔄 Running | | | | | | | will | | |
-| 92 | e2e-settings-ai-model | 🔄 Running | | | | | | | | | mum |
-| 93 | e2e-settings-editors | ⏳ Queued | | | | | | | | | |
+| 92 | e2e-settings-ai-model | ✅ Done | ✅ | | | | | | | mum | 4/4 passed | 2026-04-04 |
+| 93 | e2e-settings-editors | 🔄 Running | | | | | | | | | mum |
 | 94 | e2e-settings-escalation | ⏳ Queued | | | | | | | | | |
 | 95 | e2e-settings-feedback | ⏳ Queued | | | | | | | | | |
 | 96 | e2e-settings-general | ⏳ Queued | | | | | | | | | |
