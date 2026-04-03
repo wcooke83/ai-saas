@@ -21,10 +21,10 @@ Run through these steps at the start of every session:
 ### 1a. Runner label
 Ask: **"What should I label this runner?"** (e.g. `machine-1`, `will-desktop`). This goes in the Runner column of the results file.
 
-### 1b. Git coordination
+### 1b. Multi-machine mode
 Ask: **"Are multiple machines working through this suite concurrently?"**
-- If **yes** → follow the Git Coordination protocol (Section 7) for every test
-- If **no** → skip all git pull/push/claim steps
+- If **yes** → set `MULTI_MACHINE=true` in your working state. You will follow git pull/claim/push steps during test execution.
+- If **no** → set `MULTI_MACHINE=false`. Skip all git steps during test execution.
 
 ### 1c. Scope selection
 Ask: **"Which tests should I run?"**
@@ -86,7 +86,11 @@ Only run files matching `e2e-*.spec.ts` in `tests/`. Ignore:
 Maintain `e2e-results.md` at the project root. Update it **before and after every test**.
 
 ### First run — auto-populate
-On the first run (no existing `e2e-results.md`), scan all in-scope `e2e-*.spec.ts` files in `tests/`. Parse each file to extract individual `test()` and `test.describe()` → `test()` blocks. Create one row per test case, all set to `⏳ Queued`.
+On the first run (no existing `e2e-results.md`), scan all in-scope `e2e-*.spec.ts` files in `tests/`. Parse each file to extract `test.describe()` blocks and the `test()` calls within them. Create one row per test case:
+- **Test File** = the spec filename
+- **Test Suite** = the enclosing `test.describe()` name (use `—` if the test is top-level, not inside a describe block)
+- **Test Case** = the `test()` name
+- All rows start as `⏳ Queued`
 
 ### Table format
 
@@ -97,8 +101,8 @@ On the first run (no existing `e2e-results.md`), scan all in-scope `e2e-*.spec.t
 **Runner:** <runner label>
 **Status:** In Progress | Complete
 
-| Test File | Test Case | Status | Outcome | Step Failed | Failure Type | Fix Target | Attempts | Runner | Notes | Requirements | Timestamp |
-|-----------|-----------|--------|---------|-------------|--------------|------------|----------|--------|-------|--------------|-----------|
+| Test File | Test Suite | Test Case | Status | Outcome | Step Failed | Failure Type | Fix Target | Attempts | Runner | Notes | Requirements | Timestamp |
+|-----------|------------|-----------|--------|---------|-------------|--------------|------------|----------|--------|-------|--------------|-----------|
 ```
 
 ### Column definitions
@@ -106,7 +110,8 @@ On the first run (no existing `e2e-results.md`), scan all in-scope `e2e-*.spec.t
 | Column | Values / Description |
 |--------|---------------------|
 | **Test File** | Spec filename, e.g. `e2e-chatbot-crud.spec.ts` |
-| **Test Case** | The specific `test()` name within the file |
+| **Test Suite** | The `test.describe()` block name, e.g. `Chatbot CRUD operations`. Use `—` if the test is not inside a `describe` block. |
+| **Test Case** | The specific `test()` name within the suite, e.g. `should create a new chatbot` |
 | **Status** | `⏳ Queued` → `🔄 Running` → `✅ Done` |
 | **Outcome** | Exactly one: `✅ Passed` · `🔧 Fixed` · `❌ Failed` · `⚠️ Skipped` · `🚧 Blocked` |
 | **Step Failed** | Which `test.step()` or assertion failed — blank if passed |
@@ -139,21 +144,42 @@ After the run completes (or is interrupted), add:
 
 ---
 
-## 4. Test Execution
+## 4. Test Execution Loop
 
-Run **one test at a time**. Never batch or parallelise.
+Run **one test at a time**. Never batch or parallelise. Follow this loop exactly for every test.
 
-### Command template
+### Step 1: Find the next test
+
+1. **[If MULTI_MACHINE]** Run `git pull` to get the latest `e2e-results.md`
+2. Read `e2e-results.md` and find the next eligible test based on the selected scope
+3. If no eligible tests remain → go to Step 8 (completion)
+
+### Step 2: Claim the test
+
+1. Set the test's status to `🔄 Running` in `e2e-results.md`
+2. Add your runner label to the Runner column
+3. Write `e2e-results.md` to disk
+4. **[If MULTI_MACHINE]**
+   - `git add e2e-results.md && git commit -m "claim: [test file] > [test suite] > [test case] on [runner]" && git push`
+   - If push fails:
+     - `git pull --rebase`
+     - Re-read `e2e-results.md` — check if another runner claimed this test
+     - If claimed by another runner → skip this test, go back to Step 1
+     - If not claimed → re-apply your claim, commit, push again
+
+### Step 3: Run the test
 
 For authenticated tests (`e2e` project):
 ```bash
-npx playwright test tests/<file> -g "<test name>" --project=e2e --headed --trace=retain-on-failure --reporter=list
+npx playwright test tests/<file> -g "<test case name>" --project=e2e --headed --trace=retain-on-failure --reporter=list
 ```
 
 For public page tests (`e2e-public` project):
 ```bash
-npx playwright test tests/<file> -g "<test name>" --project=e2e-public --headed --trace=retain-on-failure --reporter=list
+npx playwright test tests/<file> -g "<test case name>" --project=e2e-public --headed --trace=retain-on-failure --reporter=list
 ```
+
+Note: Playwright's `-g` flag matches against the full test title (which includes the `test.describe` name). If the test case name alone is ambiguous (e.g. two describe blocks contain a test with the same name), use the full title: `-g "Suite Name > Test Case Name"`.
 
 **Flags explained:**
 - `--project=e2e` / `--project=e2e-public` — matches the correct project config (auth vs no-auth)
@@ -161,16 +187,84 @@ npx playwright test tests/<file> -g "<test name>" --project=e2e-public --headed 
 - `--trace=retain-on-failure` — auto-captures trace zip for failed tests
 - `--reporter=list` — outputs each test step/assertion as it runs
 
-**Do not override the global timeout** from `playwright.config.ts` (60s) on the command line. The config timeout is the ceiling. If a test approaches that timeout, it's a bug — diagnose why it's slow. Never increase timeouts as a fix.
+**Do not override the global timeout** from `playwright.config.ts` (60s) on the command line. If a test approaches that timeout, it's a bug — diagnose why it's slow. Never increase timeouts as a fix.
 
-### Chromium first
-All projects use `Desktop Chrome`. Run every test in Chromium. Once the full suite is green, ask if the user wants Firefox and/or WebKit.
+### Step 4: Log output
 
-### Step-level logging
-Where tests use `test.step()`, Playwright's list reporter outputs each step. For tests without `test.step()`, log:
+Where tests use `test.step()`, Playwright's list reporter outputs each step. For all tests, log:
 - The test name and file being run
 - The Playwright CLI output (assertions, navigation events, errors)
 - The final pass/fail result with duration
+
+### Step 5: Handle the result
+
+**If the test passed:**
+- Update the row: Outcome → `✅ Passed`, Status → `✅ Done`, add timestamp
+- Go to Step 7
+
+**If the test failed:**
+- Record which test case and step failed
+- Capture the trace file path (Playwright prints it — typically `test-results/<test>/trace.zip`)
+- Check `server.log` for errors around the time of failure:
+  ```bash
+  tail -n 100 server.log
+  grep -i "error\|exception\|fatal\|500\|unhandled" server.log | tail -n 30
+  ```
+- Read the test file — understand what it expects
+- Read the relevant source code — the page, component, API route, or middleware under test
+- Categorise the failure type: `Selector` · `Timeout` · `Server Error` · `Assertion` · `Auth` · `Navigation` · `State/Data` · `Other`
+- Go to Step 6
+
+### Step 6: Decide and fix
+
+**Would the fix change user-facing behaviour?**
+→ Mark `⚠️ Skipped`, Status → `✅ Done`. Explain in Notes. Populate Requirements. Go to Step 7.
+
+**Blocked on something outside agent's control?** (missing env var, credentials, third-party service, design decision)
+→ Mark `🚧 Blocked`, Status → `✅ Done`. Explain in Notes. Populate Requirements. Go to Step 7.
+
+**Otherwise → enter fix loop (max 3 attempts):**
+
+Each attempt must be a **different approach** — do not repeat or tweak the same fix.
+
+1. **State your diagnosis**: what's wrong and why
+2. **State your fix plan**: what you'll change, whether it's **test code** or **app code**, and which agent should apply it (see Agent Routing in Section 5)
+3. **Route to the right agent** for the fix
+4. **Apply the fix**
+5. **Clean up state before re-running**:
+   - If auth-related: delete `tests/auth/e2e-storage.json` and re-run `e2e-setup`
+   - If data-related: call the E2E API helpers (`/api/e2e/reset-rate-limits`, `/api/e2e/ensure-chatbot`, etc.) as needed
+   - If process-related: check for zombie processes on port 3030 (`fuser -k 3030/tcp`)
+6. **Re-run the test** (same command as Step 3)
+7. **If it passes** → mark `🔧 Fixed`, Status → `✅ Done`. Record: what was wrong, what changed, fix target, attempt number. Go to Step 7.
+8. **If it fails again**:
+   - Re-read the error output and trace — **do not assume the failure is the same**
+   - Carry forward what you learned from previous attempts
+   - Try a **fundamentally different approach** on the next attempt
+   - Continue to next attempt
+
+**After 3 failed attempts** → mark `❌ Failed`, Status → `✅ Done`. Notes must include: all three approaches tried, why each failed, the trace path, and your best theory on root cause. Populate Requirements if user action could help. Go to Step 7.
+
+### Step 7: Commit and loop
+
+1. Write updated `e2e-results.md` to disk
+2. **[If MULTI_MACHINE]**
+   - `git add e2e-results.md` (plus any changed source/test files if a fix was applied)
+   - `git commit -m "result: [test file] > [test suite] > [test case] [outcome]" && git push`
+   - If push fails:
+     - `git pull --rebase`
+     - Resolve conflicts in `e2e-results.md`: keep both runners' results, only update your own row
+     - Push again
+3. Go back to Step 1
+
+### Step 8: Completion
+
+1. Update the header in `e2e-results.md`: Status → `Complete`
+2. Add the Summary section (totals for Passed, Fixed, Failed, Skipped, Blocked)
+3. Write to disk
+4. **[If MULTI_MACHINE]** Commit and push
+5. Report the summary to the user
+6. Ask: **"The full suite is green in Chromium. Would you like to run against Firefox and/or WebKit?"** (only if all tests passed/fixed)
 
 ---
 
@@ -195,56 +289,10 @@ When handing off, always pass: the test file path, the error output, the trace p
 
 ---
 
-## 6. Failure Handling
+## 6. Safe vs Unsafe Fixes
 
-### On any failure:
-
-1. Record which **test case** and **step** failed
-2. Capture the **trace file path** (Playwright prints it — typically `test-results/<test>/trace.zip`)
-3. Check `server.log` for errors around the time of failure:
-   ```bash
-   tail -n 100 server.log
-   grep -i "error\|exception\|fatal\|500\|unhandled" server.log | tail -n 30
-   ```
-4. **Read the test file** — understand what it expects
-5. **Read the relevant source code** — the page, component, API route, or middleware under test
-6. Categorise the failure type: `Selector` · `Timeout` · `Server Error` · `Assertion` · `Auth` · `Navigation` · `State/Data` · `Other`
-
-### Decision tree:
-
-```
-Failure
-├── Would the fix change user-facing behaviour?
-│   └── YES → Mark ⚠️ Skipped. Explain in Notes. Populate Requirements.
-├── Blocked on something outside agent's control?
-│   (missing env var, credentials, third-party service, design decision)
-│   └── YES → Mark 🚧 Blocked. Explain in Notes. Populate Requirements.
-└── Otherwise → Enter fix loop (up to 3 attempts)
-```
-
-### Fix loop (max 3 attempts)
-
-Each attempt must be a **different approach** — do not repeat or tweak the same fix.
-
-1. **State your diagnosis**: what's wrong and why
-2. **State your fix plan**: what you'll change, whether it's **test code** or **app code**, and which agent should apply it
-3. **Route to the right agent** for the fix (see Agent Routing above)
-4. **Apply the fix**
-5. **Clean up state before re-running**:
-   - If auth-related: delete `tests/auth/e2e-storage.json` and re-run `e2e-setup`
-   - If data-related: call the E2E API helpers (`/api/e2e/reset-rate-limits`, `/api/e2e/ensure-chatbot`, etc.) as needed
-   - If process-related: check for zombie processes on port 3030 (`fuser -k 3030/tcp`)
-6. **Re-run the test**
-7. **If it passes** → mark `🔧 Fixed`, record: what was wrong, what changed, fix target, attempt number
-8. **If it fails again**:
-   - Re-read the error output and trace — **do not assume the failure is the same**
-   - Carry forward what you learned from previous attempts
-   - Try a **fundamentally different approach** on the next attempt
-
-**After 3 failed attempts** → mark `❌ Failed`. Notes must include: all three approaches tried, why each failed, the trace path, and your best theory on root cause. Populate Requirements if user action could help resolve it.
-
-### What counts as a safe fix (OK to apply):
-- Test selector updates (data-testid, getByRole, getByText)
+### Safe to apply (OK):
+- Test selector updates (`data-testid`, `getByRole`, `getByText`, `getByLabel`)
 - Test wait strategy improvements (replacing hardcoded waits with proper assertions)
 - Test data/fixture setup or teardown issues
 - Import path corrections in tests
@@ -252,42 +300,18 @@ Each attempt must be a **different approach** — do not repeat or tweak the sam
 - Adding `data-testid` attributes to app code (doesn't affect UX)
 - Fixing genuine app bugs that clearly produce wrong behaviour (e.g. 500 error on a valid request, broken redirect logic)
 
-### What is NOT safe (do NOT apply without permission):
+### NOT safe — do NOT apply without permission:
 - Changing component rendering, layout, or styles
 - Modifying API response shapes or business logic
 - Altering validation rules or error messages
 - Changing route behaviour or redirects
 - Anything where you're unsure if it changes what the user sees
 
----
-
-## 7. Git Coordination (multi-machine only)
-
-> **Only follow this section if the user said "yes" to multi-machine mode in the startup checklist.**
-
-### Claiming a test
-1. `git pull` to get latest `e2e-results.md`
-2. Find the next eligible test based on scope
-3. Set status to `🔄 Running`, add your runner label
-4. `git add e2e-results.md && git commit -m "claim: [test name] on [runner]" && git push`
-5. If push fails → `git pull --rebase`, check if another runner claimed it:
-   - If claimed → skip, pick next test
-   - If not claimed → re-apply claim, push again
-
-### After completing a test
-1. Update the results row (outcome, notes, timestamp)
-2. `git add` results + any changed source/test files
-3. `git commit -m "result: [test name] [outcome]" && git push`
-4. If push fails → `git pull --rebase`, resolve conflicts (keep both runners' results, only update your own row), push again
-
-### Conflict resolution rules
-- Never overwrite another runner's results
-- If both runners updated the same row (shouldn't happen), keep the other runner's version and re-claim yours
-- The results file is the source of truth — if a row says `🔄 Running` with another runner's label, skip it
+When in doubt, mark `⚠️ Skipped` and explain. It's always safer to skip than to break something.
 
 ---
 
-## 8. Rules (non-negotiable)
+## 7. Rules (non-negotiable)
 
 ### Execution
 - One test at a time. Never batch or parallelise.
@@ -316,9 +340,15 @@ Each attempt must be a **different approach** — do not repeat or tweak the sam
 ### Results file
 - Update before claiming a test and after completing it.
 - Notes column: concise. Verbose reasoning goes in your working output to the user.
-- Each test case gets its own row. One spec file may have multiple rows.
+- Each test case gets its own row. One spec file may have multiple suites, and one suite may have multiple test cases — each gets its own row.
 - Populate **Requirements** for any `⚠️ Skipped` or `🚧 Blocked` test. Requirements must be actionable and start with a verb.
 - `❌ Failed` tests may also have Requirements if user action could help.
+
+### Git coordination (when MULTI_MACHINE is true)
+- Always `git pull` before claiming a test.
+- Always commit + push immediately after claiming and after completing a test.
+- If a push fails, `git pull --rebase` and handle conflicts — never overwrite another runner's results.
+- Only update your own rows. If another runner has claimed or completed a test, leave their row untouched.
 
 ### Communication
 - Be verbose in your working output — explain your reasoning step by step during diagnosis and fix attempts.

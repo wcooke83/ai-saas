@@ -8,7 +8,9 @@
 import { test, expect } from '@playwright/test';
 
 const OWN_CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
-const OTHER_CHATBOT_ID = '10df2440-6aac-441a-855d-715c0ea8e506';
+// A UUID the e2e user will never own (non-existent); API returns 404 for both
+// "not found" and "owned by another user" — either validates the ownership fix.
+const OTHER_CHATBOT_ID = 'e2e00000-0000-0000-dead-000000000404';
 const FAKE_CHATBOT_ID = '00000000-0000-0000-0000-000000000000';
 
 test.describe('Ownership Check Fix (403 -> 404)', () => {
