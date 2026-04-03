@@ -3,27 +3,13 @@ import { test, expect } from '@playwright/test';
 const CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
 
 /**
- * Helper: ensure the chatbot is published by navigating to its overview page
- * and clicking the Publish button if it's not already published.
+ * Helper: ensure the chatbot is published.
+ * Uses the API directly (same pattern as ensureUnpublished) to avoid
+ * UI ambiguity (the chatbot overview page may have multiple "Publish" buttons
+ * from onboarding checklist steps alongside the real header action).
  */
 async function ensurePublished(page: import('@playwright/test').Page) {
-  await page.goto(`/dashboard/chatbots/${CHATBOT_ID}`);
-  await page.waitForLoadState('domcontentloaded');
-
-  // If an "Unpublish" button is visible the chatbot is already published
-  const unpublishBtn = page.getByRole('button', { name: 'Unpublish' });
-  if (await unpublishBtn.isVisible({ timeout: 8000 }).catch(() => false)) {
-    return; // already published
-  }
-
-  // Otherwise click Publish and wait for the API response
-  const publishBtn = page.getByRole('button', { name: 'Publish' });
-  await publishBtn.click();
-  await page.waitForResponse(
-    (res) => res.url().includes(`/api/chatbots/${CHATBOT_ID}/publish`) && res.request().method() === 'POST' && res.ok()
-  );
-  // Confirm the button now reads "Unpublish"
-  await expect(page.getByRole('button', { name: 'Unpublish' })).toBeVisible({ timeout: 5000 });
+  await page.request.post(`/api/chatbots/${CHATBOT_ID}/publish`).catch(() => {});
 }
 
 /**
