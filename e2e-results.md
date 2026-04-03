@@ -88,7 +88,7 @@
 | 79 | e2e-ownership-fix | ✅ Done | | 🔧 | | | State/Data | Test Code | 1/3 | mum | OTHER_CHATBOT_ID was e2e user's own bot (created in prior run); replaced with non-existent UUID so all 11 pass | 2026-04-04 |
 | 80 | e2e-performance-page | ✅ Done | ✅ | | | | | | | 8/8 passed (1 flaky→retry) | 2026-04-04 |
 | 81 | e2e-plan-limits | ✅ Done | ✅ | | | | | | | mum | 5/5 passed | 2026-04-04 |
-| 82 | e2e-pricing | 🔄 Running | | | | | | | will | | |
+| 82 | e2e-pricing | ✅ Done | | 🔧 | | | Selector | Test Code | 1/3 | will | Page redesigned: h1, billing toggle (switch→aria-pressed buttons), testimonial/trust/table selectors all updated | 2026-04-04 |
 | 83 | e2e-profile-removed | ✅ Done | ✅ | | | | | | | mum | 11/11 passed | 2026-04-04 |
 | 84 | e2e-public-pages | ✅ Done | ✅ | | | | | | | mum | 3/3 passed | 2026-04-04 |
 | 85 | e2e-publish | ✅ Done | | 🔧 | | | Selector | Test Code | 1/3 | mum | toast link selector: getByRole('button'→'link'), name /Go to Deploy/→/Get your embed codes/; 7/8 passed first run | 2026-04-04 |
