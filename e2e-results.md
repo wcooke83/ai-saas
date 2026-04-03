@@ -115,7 +115,7 @@
 | 106 | e2e-slack-integration | ✅ Done | ✅ | | | | | | | will | 11/11 passed | 2026-04-04 |
 | 107 | e2e-survey | ✅ Done | ✅ | | | | | | | mum | 4/4 passed | 2026-04-04 |
 | 108 | e2e-telegram-integration | ✅ Done | ✅ | | | | | | | mum | 19/19 passed | 2026-04-04 |
-| 109 | e2e-ticketing-system | 🔄 Running | | | | | | | | | canada |
+| 109 | e2e-ticketing-system | ✅ Done | | 🔧 | | | Timeout / State/Data | Test Code | 3/3 | canada | beforeAll ensure-chatbot (cross-runner state); networkidle→spinner-wait for filter clicks; toast timeout 5s→10s for TKT-018; TKT-009 flaky→retry | 2026-04-04 |
 | 110 | e2e-tooltip | ✅ Done | ✅ | | | | | | | will | 1/1 passed (flaky→retry, ERR_ABORTED on first load) | 2026-04-04 |
 | 111 | e2e-untested-endpoints | ✅ Done | ✅ | | | | | | | will | 7/7 passed | 2026-04-04 |
 | 112 | e2e-upgrade-page | ✅ Done | ✅ | | | | | | | will | 17/17 passed (UPGRADE-011 flaky→retry) | 2026-04-04 |
