@@ -76,9 +76,24 @@ test.describe('27. Widget Advanced Behaviors & Edge Cases', () => {
   });
 
   test('WIDGET-ADV-002: Chat disabled state on message limit error', async ({ page }) => {
-    // Exhaust credits so the real chat API returns 403 USAGE_LIMIT_REACHED
-    await page.request.patch(`/api/chatbots/${CHATBOT_ID}`, {
-      data: { monthly_message_limit: 1, messages_this_month: 1 },
+    // Use route intercept to return 403 USAGE_LIMIT_REACHED for user messages.
+    // Patching credits exhausted before load causes the widget's useEffect to redirect
+    // to a fallback view on mount (e.g. ticket-form), so .chat-widget-messages never renders.
+    // Instead, intercept at the API level so the widget loads normally and the disabled
+    // state is triggered by the user's message attempt.
+    await page.route(`**/api/chat/${CHATBOT_ID}`, async (route) => {
+      const body = route.request().postDataJSON();
+      // Let welcome message save pass through
+      if (body?.message === '__WELCOME__') {
+        await route.continue();
+        return;
+      }
+      // Return 403 USAGE_LIMIT_REACHED for user messages
+      await route.fulfill({
+        status: 403,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: { code: 'USAGE_LIMIT_REACHED', message: 'monthly message limit exceeded' } }),
+      });
     });
 
     await openWidget(page);
