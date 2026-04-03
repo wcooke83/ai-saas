@@ -100,8 +100,8 @@
 | 91 | e2e-sentiment | 🔄 Running | | | | | | | will | | |
 | 92 | e2e-settings-ai-model | ✅ Done | ✅ | | | | | | | mum | 4/4 passed | 2026-04-04 |
 | 93 | e2e-settings-editors | ✅ Done | ✅ | | | | | | | mum | 23/23 passed | 2026-04-04 |
-| 94 | e2e-settings-escalation | 🔄 Running | | | | | | | | | mum |
-| 95 | e2e-settings-feedback | ⏳ Queued | | | | | | | | | |
+| 94 | e2e-settings-escalation | ✅ Done | ✅ | | | | | | | mum | 6/6 passed | 2026-04-04 |
+| 95 | e2e-settings-feedback | 🔄 Running | | | | | | | | | mum |
 | 96 | e2e-settings-general | ⏳ Queued | | | | | | | | | |
 | 97 | e2e-settings-handoff | ⏳ Queued | | | | | | | | | |
 | 98 | e2e-settings-memory | ⏳ Queued | | | | | | | | | |
