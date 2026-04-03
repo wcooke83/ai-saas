@@ -148,10 +148,10 @@ After the run completes (or is interrupted), add:
 
 Run **one test at a time**. Never batch or parallelise. Follow this loop exactly for every test.
 
-### Step 1: Find the next test
+### Step 1: Sync and find the next test
 
-1. **[If MULTI_MACHINE]** Run `git pull` to get the latest `e2e-results.md`
-2. Read `e2e-results.md` and find the next eligible test based on the selected scope
+1. **[If MULTI_MACHINE]** Run `git pull` **first, before doing anything else**, to get the latest `e2e-results.md`. Another runner may have claimed or completed tests since your last loop iteration. You must read fresh state.
+2. **After pulling** (or immediately if single-machine), read `e2e-results.md` and find the next eligible test based on the selected scope
 3. If no eligible tests remain → go to Step 8 (completion)
 
 ### Step 2: Claim the test
