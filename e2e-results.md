@@ -107,9 +107,9 @@
 | 98 | e2e-settings-memory | ✅ Done | ✅ | | | | | | | mum | 6/6 passed | 2026-04-04 |
 | 99 | e2e-settings-prechat | ✅ Done | ✅ | | | | | | | mum | 13/13 passed | 2026-04-04 |
 | 100 | e2e-settings-proactive | ✅ Done | ✅ | | | | | | | mum | 6/6 passed | 2026-04-04 |
-| 101 | e2e-settings-save | 🔄 Running | | | | | | | | | mum |
+| 101 | e2e-settings-save | ✅ Done | ✅ | | | | | | | mum | 7/7 passed | 2026-04-04 |
 | 102 | e2e-settings-survey | 🔄 Running | | | | | | | will | | |
-| 103 | e2e-settings-system-prompt | ⏳ Queued | | | | | | | | | |
+| 103 | e2e-settings-system-prompt | 🔄 Running | | | | | | | | | mum |
 | 104 | e2e-settings-transcripts | ⏳ Queued | | | | | | | | | |
 | 105 | e2e-settings-uploads | ⏳ Queued | | | | | | | | | |
 | 106 | e2e-slack-integration | ⏳ Queued | | | | | | | | | |
