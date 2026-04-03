@@ -120,7 +120,7 @@
 | 111 | e2e-untested-endpoints | ✅ Done | ✅ | | | | | | | will | 7/7 passed | 2026-04-04 |
 | 112 | e2e-upgrade-page | ✅ Done | ✅ | | | | | | | will | 17/17 passed (UPGRADE-011 flaky→retry) | 2026-04-04 |
 | 113 | e2e-webhooks | 🔄 Running | | | | | | | will | | |
-| 114 | e2e-widget-advanced | ⏳ Queued | | | | | | | | | |
+| 114 | e2e-widget-advanced | 🔄 Running | | | | | | | canada | | |
 | 115 | e2e-widget-config | ⏳ Queued | | | | | | | | | |
 | 116 | e2e-widget-core | ⏳ Queued | | | | | | | | | |
 | 117 | e2e-widget-customization | ⏳ Queued | | | | | | | | | |
