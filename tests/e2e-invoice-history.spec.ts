@@ -96,15 +96,15 @@ test.describe('Billing Page – Overall Section Order', () => {
     await gotoBilling(page);
 
     // Wait for full page load
-    await expect(page.getByText('Purchase Credits')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Purchase Credits' })).toBeVisible({ timeout: 15000 });
 
     // Expected sections on the billing page
-    await expect(page.getByText('Current Plan')).toBeVisible();
-    await expect(page.getByText('Payment Method')).toBeVisible();
-    await expect(page.getByText('Invoice History')).toBeVisible();
-    await expect(page.getByText('Purchase Credits')).toBeVisible();
-    await expect(page.getByText('Auto Top-up')).toBeVisible();
-    await expect(page.getByText('Need More?')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Current Plan' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Payment Method' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Invoice History' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Purchase Credits' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Auto Top-up' })).toBeVisible();
+    await expect(page.getByText('Need More?').first()).toBeVisible();
   });
 
   test('INVOICE-011: View All Plans link goes to upgrade page', async ({ page }) => {
