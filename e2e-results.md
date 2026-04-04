@@ -36,7 +36,7 @@
 | 27 | e2e-chatbot-crud | ✅ Done | | 🔧 | | | Timeout / State | Test Code | 3/3 | canada | beforeAll cleanup E2E Temp Bot leftovers (pro plan 10-bot limit); overview timeout 5s→15s (client useEffect fetch); fill+expect before Save (RHF sync); all 6 pass | 2026-04-04 |
 | 28 | e2e-chatbot-pages | ✅ Done | ✅ | | | | | | | 12/12 passed | 2026-04-03 |
 | 29 | e2e-chatbot-subnav-updates | ✅ Done | ✅ | | | | | | | 8/8 passed (1 flaky→retry) | 2026-04-03 |
-| 30 | e2e-chatbot-widget-deploy-page | ✅ Done | ✅ | | | 1 | | | | 26/27 passed, 1 skipped (back link removed, sidebar nav) | 2026-04-03 |
+| 30 | e2e-chatbot-widget-deploy-page | ✅ Done | ✅ | | | 1 | | | | 26/27 passed, 1 skipped (back link removed, sidebar nav) | 2026-04-04 |
 | 31 | e2e-contact-submissions | ✅ Done | | 🔧 | | | Timeout | Test Code | 3/3 | test.setTimeout(60s/180s) added per-test for SMTP/widget/dashboard flows; CS-039 spinner wait before badge count | 2026-04-03 |
 | 32 | e2e-conversations | ✅ Done | | 🔧 | | | Assertion Mismatch | Test Code | 1/3 | waitForResponse→correct endpoint; session_id→visitor_id param | 2026-04-03 |
 | 33 | e2e-credit-exhaustion-comprehensive | ✅ Done | | 🔧 | | | Timeout / Assertion Mismatch | Test Code | 3/3 | networkidle→domcontentloaded; UI saves→API calls; widget mock 403; exhaustCredits includes purchased_credits=0 | 2026-04-03 |
@@ -48,11 +48,11 @@
 | 39 | e2e-dashboard-escalations | ✅ Done | ✅ | | | | | | | 8/8 passed | 2026-04-03 |
 | 40 | e2e-dashboard-leads | ✅ Done | ✅ | | | | | | | 19/19 passed (1 flaky→retry, transient API error) | 2026-04-03 |
 | 41 | e2e-dashboard-pages | ✅ Done | ✅ | | | | | | | 7/7 passed | 2026-04-03 |
-| 42 | e2e-dashboard-performance | ✅ Done | ✅ | | | 2 | | | | 7/9 passed, 2 skipped (no perf data) | 2026-04-03 |
+| 42 | e2e-dashboard-performance | ✅ Done | | 🔧 | | | | Test Code | 1/3 | will | 10/10 passed. PERF-003/004 were skipping because `getByText('Total Requests').isVisible()` threw Playwright strict mode violation (text matched 2 elements); fixed with `.first()`. Added beforeAll to seed a chat message. | 2026-04-04 |
 | 43 | e2e-dashboard-sentiment | ✅ Done | | 🔧 | | | Server Error | Environment | 1/3 | Dev server was broken (missing manifests from failed build); restarted npm run dev; all 12 tests passed | 2026-04-03 |
 | 44 | e2e-dashboard-smoke | ✅ Done | ✅ | | | | | | | 2/2 passed | 2026-04-03 |
 | 45 | e2e-dashboard-surveys | ✅ Done | | 🔧 | | | Timeout | Test Code | 1/3 | SURVEYS-001: added timeout:8000 to stat card assertions | 2026-04-03 |
-| 46 | e2e-data-integrity | ✅ Done | | 🔧 | | | Timeout | Environment | 3/3 | canada | All 7 now pass; prior server memory pressure resolved (no code change needed) | 2026-04-04 |
+| 46 | e2e-data-integrity | ✅ Done | ✅ | | | | | | | will | 7/7 passed | 2026-04-04 |
 | 47 | e2e-debug-widget | ✅ Done | ✅ | | | | | | | 1/1 passed | 2026-04-03 |
 | 48 | e2e-deploy-publish-flow | ✅ Done | | 🔧 | | | Selector / Assertion Mismatch | Test Code | 2/3 | FLOW-041: toast link selector; FLOW-070: unpublished text; FLOW-100: fetch count limit | 2026-04-03 |
 | 49 | e2e-deployment-page | ✅ Done | | 🔧 | | 1 | Timeout | Environment | 3/3 | canada | 21/21 pass, 1 skipped (DEPLOY-022 conditional); prior server memory pressure resolved | 2026-04-04 |
@@ -69,7 +69,7 @@
 | 60 | e2e-handoff | ✅ Done | ✅ | | | | | | | 4/4 passed | 2026-04-03 |
 | 61 | e2e-help-articles-knowledge-rag | ✅ Done | | 🔧 | 0 | | Server Error / Timeout | Test Code + App Code | 2/3 | 13/13 passed. SCHED-002 unblocked: added optional ?chatbot_id= scope param to /api/cron/regenerate-articles so test only processes 1 chatbot instead of all (~5min→15s). SCHED-003 also scoped for consistency. | 2026-04-04 |
 | 62 | e2e-integration-flows | ✅ Done | | 🔧 | | | Selector | Test Code | 1/3 | #system_prompt not visible: settings page defaults to General section; added click on "Chatbot Instructions" nav button in both goto+restore steps | 2026-04-04 |
-| 63 | e2e-invoice-history | ✅ Done | | 🔧 | | 1 | Selector | Test Code | 1/3 | INVOICE-010: multiple strict mode violations; all section heading checks changed to getByRole('heading'); INVOICE-005 auto-skipped (no invoices in dev DB) | 2026-04-04 |
+| 63 | e2e-invoice-history | ✅ Done | | 🔧 | | | Selector | Test Code | 1/3 | will | 10/10 passed. Added beforeAll/afterAll to seed and void a real Stripe sandbox invoice via /api/e2e/seed-stripe-invoice; INVOICE-005 now passes. Also fixed INVOICE-010 strict mode violations. | 2026-04-04 |
 | 64 | e2e-knowledge-advanced | ✅ Done | | 🔧 | | | State/Data | Test Code | 1/3 | Plan limit hit (51 sources on chatbot); setup now reuses existing "E2E Priority Test" source; details test uses .first() to avoid strict mode on duplicate names | 2026-04-04 |
 | 65 | e2e-knowledge-base | ✅ Done | | 🔧 | 0 | | Selector | Test Code | 2/3 | 22/22 passed (KNOWLEDGE-006 skip: no source to delete — correct). Fixed: (1) added exact:true to all 25 getByRole('heading',{name:'Knowledge Base'}) calls — "Knowledge base re-processing required" banner caused strict mode violation; (2) added .first() to all 5 .or() toast chains — toast+button simultaneously visible caused strict mode. | 2026-04-04 |
 | 66 | e2e-knowledge-lifecycle | ✅ Done | ✅ | | | | | | | 5/5 passed | 2026-04-04 |
@@ -79,7 +79,7 @@
 | 70 | e2e-middleware-infra | ✅ Done | ✅ | | | | | | | 7/7 passed | 2026-04-04 |
 | 71 | e2e-model-selection-removal | ✅ Done | ✅ | | | | | | | 7/7 passed | 2026-04-04 |
 | 72 | e2e-navigation | ✅ Done | ✅ | | | | | | | 6/6 passed | 2026-04-04 |
-| 73 | e2e-navigation-onboarding | ✅ Done | ✅ | | | 4 | | | | 9/13 passed, 4 skipped (onboarding already complete for e2e user) | 2026-04-04 |
+| 73 | e2e-navigation-onboarding | ✅ Done | | 🔧 | | | | Test Code + App Code | 1/3 | will | 17/17 passed + 4 skip (originals still skip for e2e chatbot — expected). New describe block '24c. Fresh Account' adds NAV-004b/005b/006b/LAYOUT-005b using a temp user created via /api/e2e/create-temp-user; afterAll deletes account via UI 'Delete Account' button. Implemented Delete Account feature (API endpoint + settings page dialog). | 2026-04-04 |
 | 74 | e2e-notification-preferences | ✅ Done | | 🔧 | | | Selector | Test Code | 1/3 | NOTIF-003/004: toggle is sr-only input inside label; changed locator to label.filter({has: getByText('Toggle ...')}) and read isChecked() from input child | 2026-04-04 |
 | 75 | e2e-onboarding-checklist | ✅ Done | | 🔧 | | | State/Data | Test Code | 2/3 | Plan chatbot limit hit (2 orphaned bots from prior runs); added beforeAll to delete E2E Onboarding Bot* leftovers; OB-002 nav fixed to page.goto() | 2026-04-04 |
 | 76 | e2e-onboarding-wizard | ✅ Done | ✅ | | | | | | | mum | 2/2 passed | 2026-04-04 |
@@ -133,8 +133,13 @@
 ## Summary
 
 - Total: 122
-- ✅ Passed: 55
-- 🔧 Fixed: 59
+- ✅ Passed: 54
+- 🔧 Fixed: 61
 - ❌ Failed: 0
 - ⚠️ Skipped: 7
 - ⏳ Remaining: 0
+
+### Post-run improvements (2026-04-04)
+- e2e-invoice-history: INVOICE-005 now passes (seeded real Stripe sandbox invoice)
+- e2e-navigation-onboarding: NAV-004b/005b/006b/LAYOUT-005b now pass (fresh user + Delete Account feature)
+- e2e-dashboard-performance: PERF-003/004 now pass (chat message seed + strict mode fix)
