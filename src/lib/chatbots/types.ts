@@ -1284,6 +1284,11 @@ export interface ChatbotPlanLimits {
   apiAccess: boolean;
 }
 
+/**
+ * @deprecated Use `getPlanLimits(planSlug)` from `@/lib/chatbots/plan-limits` instead.
+ * Plan limits are now driven by the `subscription_plans` table in the database.
+ * This constant is retained only to avoid breaking any unreachable references during the migration.
+ */
 export const CHATBOT_PLAN_LIMITS: Record<string, ChatbotPlanLimits> = {
   free: {
     chatbots: 1,

@@ -14,7 +14,8 @@ import {
   generateUniqueSlug,
   checkChatbotLimit,
 } from '@/lib/chatbots/api';
-import { DEFAULT_WIDGET_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, CHATBOT_PLAN_LIMITS } from '@/lib/chatbots/types';
+import { DEFAULT_WIDGET_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG } from '@/lib/chatbots/types';
+import { getPlanLimits, FREE_PLAN_LIMITS } from '@/lib/chatbots/plan-limits';
 import { checkReembedStatusBatch } from '@/lib/chatbots/reembed-check';
 
 // Create chatbot validation schema
@@ -91,9 +92,9 @@ export async function POST(req: NextRequest) {
       ...(input.widget_config || {}),
     };
 
-    // Derive monthly_message_limit from plan (-1 means unlimited → 0 in DB convention)
-    const planLimits = CHATBOT_PLAN_LIMITS[user.plan || 'free'] || CHATBOT_PLAN_LIMITS.free;
-    const monthlyMessageLimit = planLimits.messagesPerMonth === -1 ? 0 : planLimits.messagesPerMonth;
+    // Derive monthly_message_limit from the subscription_plans table (0 = unlimited in DB convention)
+    const planLimits = await getPlanLimits(user.plan || 'free').catch(() => FREE_PLAN_LIMITS);
+    const monthlyMessageLimit = planLimits.monthlyMessageLimit;
 
     // Create chatbot
     const chatbot = await createChatbot({

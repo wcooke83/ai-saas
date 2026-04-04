@@ -10,7 +10,7 @@ import { authenticate } from '@/lib/auth/session';
 import { successResponse, errorResponse, APIError } from '@/lib/api/utils';
 import { getChatbot } from '@/lib/chatbots/api';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { CHATBOT_PLAN_LIMITS } from '@/lib/chatbots/types';
+import { getPlanLimits, FREE_PLAN_LIMITS } from '@/lib/chatbots/plan-limits';
 import {
   getSlackIntegration,
   getSlackOAuthURL,
@@ -23,14 +23,16 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-async function getUserPlanSlug(userId: string): Promise<string> {
+async function getSlackAllowed(userId: string): Promise<boolean> {
   const supabase = createAdminClient();
   const { data } = await supabase
     .from('subscriptions')
     .select('plan')
     .eq('user_id', userId)
     .single();
-  return data?.plan || 'free';
+  const planSlug = data?.plan || 'free';
+  const limits = await getPlanLimits(planSlug).catch(() => FREE_PLAN_LIMITS);
+  return limits.slackEnabled;
 }
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
@@ -53,8 +55,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     }
 
     // Check plan — free users see connected: false so UI can show upgrade prompt
-    const planSlug = await getUserPlanSlug(user.id);
-    const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.slackIntegration ?? false;
+    const planAllowed = await getSlackAllowed(user.id);
     if (!planAllowed) {
       return successResponse({ connected: false, plan_required: true });
     }
@@ -103,8 +104,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     }
 
     // Enforce plan — Pro+ required
-    const planSlug = await getUserPlanSlug(user.id);
-    const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.slackIntegration ?? false;
+    const planAllowed = await getSlackAllowed(user.id);
     if (!planAllowed) {
       throw APIError.forbidden('Slack integration requires a Pro plan or higher');
     }

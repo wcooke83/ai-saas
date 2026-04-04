@@ -16,7 +16,7 @@ import {
 import { DEFAULT_TELEGRAM_CONFIG } from '@/lib/telegram/types';
 import type { TelegramConfig } from '@/lib/telegram/types';
 import { decryptTelegramConfig } from '@/lib/telegram/crypto';
-import { CHATBOT_PLAN_LIMITS } from '@/lib/chatbots/types';
+import { getPlanLimits, FREE_PLAN_LIMITS } from '@/lib/chatbots/plan-limits';
 import type { Json } from '@/types/database';
 
 function parseTelegramConfig(raw: Json | null): TelegramConfig {
@@ -52,7 +52,8 @@ async function checkTelegramPlanGate(userId: string): Promise<boolean> {
     .eq('user_id', userId)
     .single();
   const planSlug = sub?.plan || 'free';
-  return CHATBOT_PLAN_LIMITS[planSlug]?.telegramIntegration ?? false;
+  const limits = await getPlanLimits(planSlug).catch(() => FREE_PLAN_LIMITS);
+  return limits.telegramEnabled;
 }
 
 /**
