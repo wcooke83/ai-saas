@@ -23,12 +23,17 @@ const BASE_URL = 'http://localhost:3030';
 
 /** Wait for the admin/status page to finish its initial data fetch. */
 async function waitForAdminStatusLoaded(page: Page) {
-  // The page shows a spinner while loading, then renders the Tabs.
+  // Wait for the initial network fetches (fetchAll) to complete before asserting.
+  // This prevents catching the page in a half-loaded state during dev-server compilation.
+  await page.waitForLoadState('networkidle').catch(() => {});
   // TabsTrigger renders as a <button> (no role="tab"), so use getByRole('button').
   // We wait for the Components button to be visible as the ready signal.
   await expect(
     page.getByRole('button', { name: 'Components', exact: true })
   ).toBeVisible({ timeout: 15_000 });
+  // Also wait for at least one status select to confirm component data is loaded
+  // (the button can appear before the data fetch completes).
+  await expect(page.locator('select').first()).toBeVisible({ timeout: 15_000 });
 }
 
 /** Switch to a named tab on the admin status page. */
@@ -604,7 +609,8 @@ test.describe('Section 50: Status Pages', () => {
         await page.goto(`/status?_t=${Date.now()}`);
         await page.waitForLoadState('networkidle').catch(() => {});
 
-        const alert = page.locator('[role="alert"]');
+        // The Next.js route announcer also has role="alert" — filter to the visible incident callout
+        const alert = page.locator('[role="alert"]').filter({ hasText: 'ACTIVE INCIDENT' });
         await expect(alert).toBeVisible({ timeout: 20_000 });
         await expect(alert).toContainText(title);
         await expect(alert).toContainText('ACTIVE INCIDENT');
@@ -664,16 +670,20 @@ test.describe('Section 50: Status Pages', () => {
       // Clean up any leftover active incidents that could prevent "ALL SYSTEMS OPERATIONAL"
       // (previous tests may have leaked incidents if their cleanup failed silently)
       const activeRes = await page.request.get('/api/status/incidents?active=true');
-      const { incidents: activeLeftovers } = await activeRes.json();
-      for (const inc of activeLeftovers ?? []) {
-        await page.request.delete(`/api/status/incidents/${inc.id}`).catch(() => {});
+      if (activeRes.ok()) {
+        const { incidents: activeLeftovers } = await activeRes.json();
+        for (const inc of (activeLeftovers ?? [])) {
+          await page.request.delete(`/api/status/incidents/${inc.id}`).catch(() => {});
+        }
       }
 
       // Clean up any leftover maintenance windows that trigger "MAINTENANCE IN PROGRESS"
       const maintRes = await page.request.get('/api/status/incidents?maintenance=true');
-      const { incidents: maintLeftovers } = await maintRes.json();
-      for (const m of maintLeftovers ?? []) {
-        await page.request.delete(`/api/status/incidents/${m.id}`).catch(() => {});
+      if (maintRes.ok()) {
+        const { incidents: maintLeftovers } = await maintRes.json();
+        for (const m of (maintLeftovers ?? [])) {
+          await page.request.delete(`/api/status/incidents/${m.id}`).catch(() => {});
+        }
       }
 
       // Create and immediately resolve an incident
