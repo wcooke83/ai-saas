@@ -72,18 +72,8 @@ export async function attemptAutoTopup(
       .eq('user_id', chatbotUserId)
       .single();
 
-    let customerId = userCredits?.stripe_customer_id;
+    const customerId = userCredits?.stripe_customer_id;
     let paymentMethodId = userCredits?.default_payment_method_id;
-
-    // Fallback: check subscriptions table
-    if (!customerId) {
-      const { data: sub } = await supabase
-        .from('subscriptions')
-        .select('stripe_customer_id')
-        .eq('user_id', chatbotUserId)
-        .single();
-      customerId = sub?.stripe_customer_id;
-    }
 
     if (!customerId) {
       return { success: false, error: 'no_stripe_customer' };

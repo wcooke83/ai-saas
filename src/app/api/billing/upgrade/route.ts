@@ -124,16 +124,23 @@ export async function POST(req: NextRequest) {
       try {
         const stripe = getStripeClient();
 
+        // Get stripe_customer_id from user_credits (authoritative source)
+        const { data: userCredits } = await supabase
+          .from('user_credits')
+          .select('stripe_customer_id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
         // Retrieve the current subscription to get the item ID
         const stripeSub = await stripe.subscriptions.retrieve(
           subscription.stripe_subscription_id
         );
         const itemId = stripeSub.items.data[0]?.id;
 
-        if (itemId) {
+        if (itemId && userCredits?.stripe_customer_id) {
           // Ask Stripe what the upcoming invoice would look like with the new price
           const upcomingInvoice = await stripe.invoices.retrieveUpcoming({
-            customer: subscription.stripe_customer_id!,
+            customer: userCredits.stripe_customer_id,
             subscription: subscription.stripe_subscription_id,
             subscription_items: [{ id: itemId, price: newPriceId }],
             subscription_proration_behavior: 'create_prorations',

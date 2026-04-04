@@ -114,7 +114,6 @@ async function handleSubscriptionCheckout(
   const { error: updateError } = await supabase
     .from('subscriptions')
     .update({
-      stripe_customer_id: session.customer as string,
       stripe_subscription_id: session.subscription as string,
       plan_id: planId,
       plan: planSlug,
