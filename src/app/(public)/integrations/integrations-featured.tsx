@@ -6,6 +6,10 @@ import {
   Globe,
   MessageSquare,
   Send,
+  Facebook,
+  Instagram,
+  Phone,
+  Mail,
 } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +28,7 @@ interface FeaturedChannel {
   highlights: string[];
 }
 
-const channels: FeaturedChannel[] = [
+const featuredChannels: FeaturedChannel[] = [
   {
     icon: Globe,
     name: 'Website Widget',
@@ -71,6 +75,73 @@ const channels: FeaturedChannel[] = [
       'Automatic replies 24/7',
       'Rich message support',
       'Easy bot setup',
+    ],
+  },
+];
+
+const messagingChannels: FeaturedChannel[] = [
+  {
+    icon: Facebook,
+    name: 'Facebook Messenger',
+    tagline: 'Answer every DM, automatically',
+    description:
+      'Connect your Facebook Page and let VocUI respond to every Messenger DM instantly -- trained on your FAQs, products, and policies. Human handoff available.',
+    status: 'available',
+    href: '/chatbot-for-facebook-messenger',
+    cta: 'Explore Messenger integration',
+    highlights: [
+      '24/7 automated replies',
+      'Human handoff support',
+      'Trained on your content',
+      'No missed DMs',
+    ],
+  },
+  {
+    icon: Instagram,
+    name: 'Instagram DMs',
+    tagline: 'Turn DMs into instant support',
+    description:
+      'Connect your Instagram Professional account and auto-reply to every DM -- including story replies -- with answers from your knowledge base.',
+    status: 'available',
+    href: '/chatbot-for-instagram',
+    cta: 'Explore Instagram integration',
+    highlights: [
+      'Story reply handling',
+      'Consistent brand voice',
+      'Works while you sleep',
+      'Requires Professional account',
+    ],
+  },
+  {
+    icon: Phone,
+    name: 'SMS via Twilio',
+    tagline: 'AI replies to inbound texts',
+    description:
+      'Bring your own Twilio number and let VocUI answer every inbound SMS from your knowledge base. A2P 10DLC compatible for US businesses.',
+    status: 'available',
+    href: '/chatbot-for-sms',
+    cta: 'Explore SMS integration',
+    highlights: [
+      'Bring your own Twilio number',
+      'Instant text replies',
+      'A2P 10DLC compatible',
+      'Human handoff triggers',
+    ],
+  },
+  {
+    icon: Mail,
+    name: 'Email Inbound',
+    tagline: 'AI replies to support emails',
+    description:
+      'Forward your support inbox to VocUI -- no credentials needed. Every inbound email gets an instant, knowledge-base-powered reply that threads correctly.',
+    status: 'available',
+    href: '/chatbot-for-email',
+    cta: 'Explore email integration',
+    highlights: [
+      'No email credentials needed',
+      'Threads correctly',
+      'Works with Gmail, Outlook, Zendesk',
+      'Human escalation for edge cases',
     ],
   },
 ];
@@ -138,18 +209,43 @@ export function IntegrationsFeatured() {
         >
           {/* Widget card -- prominent, spans 7 cols */}
           <motion.div variants={fadeUp} className="lg:col-span-7">
-            <ChannelCard channel={channels[0]} variant="large" />
+            <ChannelCard channel={featuredChannels[0]} variant="large" />
           </motion.div>
 
           {/* Slack + Telegram -- stacked in 5 cols */}
           <div className="lg:col-span-5 flex flex-col gap-6">
             <motion.div variants={fadeUp}>
-              <ChannelCard channel={channels[1]} variant="compact" />
+              <ChannelCard channel={featuredChannels[1]} variant="compact" />
             </motion.div>
             <motion.div variants={fadeUp}>
-              <ChannelCard channel={channels[2]} variant="compact" />
+              <ChannelCard channel={featuredChannels[2]} variant="compact" />
             </motion.div>
           </div>
+        </motion.div>
+
+        {/* Messaging channels -- 4-column grid */}
+        <motion.p
+          className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-500 mt-20 mb-6"
+          initial={prefersReducedMotion ? false : 'hidden'}
+          whileInView="visible"
+          viewport={{ once: true, margin: '-80px' }}
+          variants={fadeUp}
+        >
+          Messaging channels
+        </motion.p>
+
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+          initial={prefersReducedMotion ? false : 'hidden'}
+          whileInView="visible"
+          viewport={{ once: true, margin: '-80px' }}
+          variants={stagger}
+        >
+          {messagingChannels.map((channel) => (
+            <motion.div key={channel.name} variants={fadeUp}>
+              <ChannelCard channel={channel} variant="compact" />
+            </motion.div>
+          ))}
         </motion.div>
       </div>
     </section>
