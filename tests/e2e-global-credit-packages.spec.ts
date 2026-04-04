@@ -445,6 +445,13 @@ test.describe('4. Settings Page — Auto-Purchase Package Selection', () => {
   });
 
   test('SET-001: Settings page shows radio cards for package selection with details and spend cap', async ({ page }) => {
+    // Re-promote to admin: the file-level afterAll may run between retry cycles (Playwright
+    // beforeAll/afterAll lifecycle with retries:1), demoting the user before this group starts.
+    const promoteRes = await page.request.post('/api/auth/e2e-set-admin', {
+      data: { secret: E2E_SECRET, is_admin: true },
+    });
+    expect(promoteRes.ok(), `SET-001: failed to re-promote admin: ${promoteRes.status()}`).toBeTruthy();
+
     // Create packages via admin API (no admin UI for packages in settings)
     await createTestPackageViaUI(page, {
       name: 'Settings Pkg A',
@@ -462,13 +469,17 @@ test.describe('4. Settings Page — Auto-Purchase Package Selection', () => {
     // Navigate to settings and select purchase_credits mode via UI
     await page.goto(`/dashboard/chatbots/${BOT_ID}/settings`);
     await page.waitForLoadState('domcontentloaded');
+    // Wait for the initial chatbot data fetch to settle — prevents a late reset()
+    // call from unchecking the radio after we interact with it.
+    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
 
     // Navigate to Credit Exhaustion section
     await page.getByRole('button', { name: /Credit Exhaustion/i }).click();
 
-    // Select Auto-Purchase mode via radio
+    // Select Auto-Purchase mode — click the radio input directly (not the label) to avoid
+    // the InfoTooltip button inside the label intercepting the click.
     const autoPurchaseLabel = page.locator('label').filter({ hasText: 'Auto-Purchase Additional Credits' });
-    await autoPurchaseLabel.click();
+    await autoPurchaseLabel.locator('input[type="radio"]').click();
 
     // Verify radio cards exist with correct name attribute
     const radioCards = page.locator('input[type="radio"][name="autoTopupPackage"]');
@@ -477,8 +488,8 @@ test.describe('4. Settings Page — Auto-Purchase Package Selection', () => {
     expect(radioCount).toBeGreaterThanOrEqual(2);
 
     // Verify package names and details are displayed
-    await expect(page.getByText('Settings Pkg A').first()).toBeVisible();
-    await expect(page.getByText('Settings Pkg B').first()).toBeVisible();
+    await expect(page.getByText('Settings Pkg A').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Settings Pkg B').first()).toBeVisible({ timeout: 5000 });
 
     // Verify credit amounts ("additional messages" text per UI)
     await expect(page.getByText('100 additional messages').first()).toBeVisible();
@@ -535,31 +546,30 @@ test.describe('4. Settings Page — Auto-Purchase Package Selection', () => {
 
     await page.goto(`/dashboard/chatbots/${BOT_ID}/settings`);
     await page.waitForLoadState('domcontentloaded');
+    // Wait for the initial chatbot data fetch to settle before interacting.
+    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
 
     await page.getByRole('button', { name: /Credit Exhaustion/i }).click();
 
     // Wait for radio cards to load
     await expect(page.getByText('Radio Test Pkg').first()).toBeVisible({ timeout: 15000 });
 
-    // Click the label wrapper that contains the radio card for our package
+    // Click the radio input directly — label.click() can miss the target in the combined
+    // run when the click lands on empty flex space or an adjacent interactive element.
     const pkgLabel = page.locator('label').filter({ hasText: 'Radio Test Pkg' }).first();
-    await pkgLabel.click();
+    const radio = pkgLabel.locator('input[type="radio"]');
+    await radio.click();
 
     // Verify radio is checked
-    const radio = pkgLabel.locator('input[type="radio"]');
-    await expect(radio).toBeChecked();
+    await expect(radio).toBeChecked({ timeout: 5000 });
 
-    // Save settings
+    // Save settings — wait for success toast to confirm PATCH was made and accepted.
+    // waitForResponse.catch() silently swallows a missed intercept and leads to a
+    // false-pass check after reload showing the radio still unchecked.
     const saveButtons = page.getByRole('button', { name: 'Save Changes' });
     const saveCount = await saveButtons.count();
     await saveButtons.nth(saveCount - 1).click();
-
-    // Wait for save to complete (toast or network response)
-    await page.waitForResponse(
-      (res) => res.url().includes(`/api/chatbots/${BOT_ID}`) && res.request().method() === 'PATCH',
-      { timeout: 10000 },
-    ).catch(() => {});
-    await page.waitForTimeout(1000);
+    await expect(page.getByText('Settings saved successfully')).toBeVisible({ timeout: 15000 });
 
     // Reload and verify persistence
     await page.reload();
@@ -881,22 +891,28 @@ test.describe('8. Edge Cases & Integration', () => {
 
     await page.goto(`/dashboard/chatbots/${BOT_ID}/settings`);
     await page.waitForLoadState('domcontentloaded');
+    // Wait for the initial chatbot data fetch to settle before interacting.
+    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
     await page.getByRole('button', { name: /Credit Exhaustion/i }).click();
 
     // Wait for packages and select via radio card
     await expect(page.getByText('Persist Config Pkg').first()).toBeVisible({ timeout: 15000 });
     const pkgLabel = page.locator('label').filter({ hasText: 'Persist Config Pkg' }).first();
-    await pkgLabel.click();
+    // Click the radio input directly — label.click() can miss in the combined run
+    // when the click lands on empty flex space between the package name and price.
+    const radio = pkgLabel.locator('input[type="radio"]');
+    await radio.click();
 
-    // Save
+    // Verify RHF state updated before saving.
+    await expect(radio).toBeChecked({ timeout: 5000 });
+
+    // Save — wait for success toast as confirmation the PATCH was made and accepted.
+    // Waiting for the toast is more reliable than intercepting the PATCH response,
+    // which can be missed if the response races with Playwright's listener setup.
     const saveButtons = page.getByRole('button', { name: 'Save Changes' });
     const saveCount = await saveButtons.count();
     await saveButtons.nth(saveCount - 1).click();
-    await page.waitForResponse(
-      (res) => res.url().includes(`/api/chatbots/${BOT_ID}`) && res.request().method() === 'PATCH',
-      { timeout: 10000 },
-    ).catch(() => {});
-    await page.waitForTimeout(1000);
+    await expect(page.getByText('Settings saved successfully')).toBeVisible({ timeout: 15000 });
 
     // Verify config was persisted by reading bot data via API
     const botRes = await page.request.get(`/api/chatbots/${BOT_ID}`);
