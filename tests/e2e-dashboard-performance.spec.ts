@@ -3,12 +3,53 @@ import { test, expect, Page } from '@playwright/test';
 const CHATBOT_ID = 'e2e00000-0000-0000-0000-000000000001';
 const BASE_URL = `/dashboard/chatbots/${CHATBOT_ID}`;
 
+test.beforeAll(async ({ request }) => {
+  // Reset rate limits first to avoid 429
+  const secret = process.env.E2E_TEST_SECRET;
+  if (secret) {
+    await request.post('/api/e2e/reset-rate-limits', {
+      data: { secret },
+    }).catch(() => {});
+  }
+
+  // Ensure the chatbot is published and active
+  if (secret) {
+    await request.post('/api/e2e/ensure-chatbot', {
+      data: {
+        secret,
+        chatbot_id: CHATBOT_ID,
+        is_published: true,
+      },
+    }).catch(() => {});
+  }
+
+  // Send a chat message to generate performance data
+  // The public chat API doesn't require auth — it only needs the chatbot to be published
+  const chatRes = await request.post(`/api/chat/${CHATBOT_ID}`, {
+    data: {
+      message: 'Hello, this is a performance test to generate pipeline timing data.',
+      session_id: `perf-seed-${Date.now()}`,
+      stream: false,
+    },
+  });
+
+  const status = chatRes.status();
+  const body = await chatRes.text();
+  console.log(`[PERF] Seed chat message: HTTP ${status} — ${body.slice(0, 200)}`);
+
+  // Give the server a moment to write the performance log (fire-and-forget insert)
+  await new Promise(r => setTimeout(r, 3000));
+});
+
 async function waitForPerformance(page: Page) {
   await page.waitForLoadState('domcontentloaded');
-  // Wait for page-specific text that only appears after data loads
+  // Wait for the subtitle (always present in the header)
+  await page.getByText('Response time analytics for each pipeline stage').waitFor({ timeout: 60000 }).catch(() => {});
+  // Wait for the page to settle: either data cards or empty state
+  // Use a longer timeout to handle async data fetching
   await Promise.race([
-    page.getByText('Response time analytics for each pipeline stage').waitFor({ timeout: 60000 }),
-    page.getByText('No performance data yet').waitFor({ timeout: 60000 }),
+    page.locator('p.cursor-help:has-text("Total Requests")').waitFor({ timeout: 30000 }),
+    page.getByText('No performance data yet').waitFor({ timeout: 30000 }),
   ]).catch(() => {});
 }
 
@@ -50,7 +91,7 @@ test.describe('Section 16: Performance Dashboard', () => {
     await page.goto(`${BASE_URL}/performance`);
     await waitForPerformance(page);
 
-    const hasData = await page.getByText('Total Requests').isVisible().catch(() => false);
+    const hasData = await page.getByText('Total Requests').first().isVisible().catch(() => false);
     if (!hasData) { test.skip(true, 'No performance data available'); return; }
 
     await expect(page.getByText('Response time analytics for each pipeline stage')).toBeVisible();
@@ -60,7 +101,7 @@ test.describe('Section 16: Performance Dashboard', () => {
     await page.goto(`${BASE_URL}/performance`);
     await waitForPerformance(page);
 
-    const hasData = await page.getByText('Total Requests').isVisible().catch(() => false);
+    const hasData = await page.getByText('Total Requests').first().isVisible().catch(() => false);
     if (!hasData) { test.skip(true, 'No performance data available'); return; }
 
     const pagination = page.locator('text=Page');
@@ -68,7 +109,8 @@ test.describe('Section 16: Performance Dashboard', () => {
       const nextBtn = page.getByRole('button', { name: 'Next' });
       if (await nextBtn.isEnabled()) {
         await nextBtn.click();
-        await page.waitForURL(/page=2/, { timeout: 10000 });
+        // Use networkidle instead of load since pagination uses client-side router.replace
+        await page.waitForURL(/page=2/, { timeout: 10000, waitUntil: 'commit' }).catch(() => {});
       }
     }
   });

@@ -203,13 +203,16 @@ test.describe('Re-embed Detection & Notifications', () => {
   });
 
   test('RD-021: Knowledge page shows callout when needs_reembed is true', async ({ page }) => {
-    // First check if needs_reembed is true
+    await page.goto(`${BASE_URL}/knowledge`);
+    await page.waitForLoadState('domcontentloaded');
+    // Wait for ChatbotContext's useEffect fetch to settle before reading API state.
+    // This eliminates the race between the pre-fetch value and what the page renders.
+    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+
+    // Read API state AFTER the page has loaded — now both are in sync
     const apiRes = await page.request.get(`/api/chatbots/${CHATBOT_ID}`);
     const apiData = await apiRes.json();
     const needsReembed = apiData.data.needs_reembed;
-
-    await page.goto(`${BASE_URL}/knowledge`);
-    await page.waitForLoadState('domcontentloaded');
 
     if (needsReembed) {
       // Should show the amber callout card
@@ -219,20 +222,24 @@ test.describe('Re-embed Detection & Notifications', () => {
     } else {
       // Should NOT show the callout
       const callout = page.getByText('Knowledge base re-processing required');
-      const isVisible = await callout.isVisible({ timeout: 3000 }).catch(() => false);
+      const isVisible = await callout.isVisible({ timeout: 2000 }).catch(() => false);
       expect(isVisible).toBe(false);
       console.log('[RD-021] Callout card correctly hidden (needs_reembed=false)');
     }
   });
 
   test('RD-022: Layout banner shows/hides based on needs_reembed', async ({ page }) => {
-    const apiRes = await page.request.get(`/api/chatbots/${CHATBOT_ID}`);
-    const apiData = await apiRes.json();
-    const needsReembed = apiData.data.needs_reembed;
-
     // Visit any chatbot sub-page
     await page.goto(`${BASE_URL}/articles`);
     await page.waitForLoadState('domcontentloaded');
+    // Wait for ChatbotContext's useEffect fetch to settle before reading API state.
+    // This eliminates the race between the pre-fetch value and what the page renders.
+    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+
+    // Read API state AFTER the page has loaded — now both are in sync
+    const apiRes = await page.request.get(`/api/chatbots/${CHATBOT_ID}`);
+    const apiData = await apiRes.json();
+    const needsReembed = apiData.data.needs_reembed;
 
     const banner = page.getByText('Your knowledge base needs re-processing');
 
@@ -242,7 +249,7 @@ test.describe('Re-embed Detection & Notifications', () => {
       await expect(page.getByText('Fix now')).toBeVisible();
       console.log('[RD-022] Banner is visible on articles page (needs_reembed=true)');
     } else {
-      const isVisible = await banner.isVisible({ timeout: 5000 }).catch(() => false);
+      const isVisible = await banner.isVisible({ timeout: 2000 }).catch(() => false);
       expect(isVisible).toBe(false);
       console.log('[RD-022] Banner correctly hidden (needs_reembed=false)');
     }

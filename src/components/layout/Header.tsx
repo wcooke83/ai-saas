@@ -33,6 +33,7 @@ const menuLinks = {
     { label: 'Pricing', href: '/pricing' },
     { label: 'Features', href: '/features' },
     { label: 'Integrations', href: '/integrations' },
+    { label: 'Appointment Booking', href: '/chatbot-booking' },
   ],
   resources: [
     { label: 'Documentation', href: '/wiki' },

@@ -66,6 +66,11 @@ export default function SettingsPage() {
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
+  // Delete account state
+  const [deleteAccountDialogOpen, setDeleteAccountDialogOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleteAccountLoading, setDeleteAccountLoading] = useState(false);
+
   // 2FA Modal state
   const [show2FAModal, setShow2FAModal] = useState(false);
   const [twoFAEnabled, setTwoFAEnabled] = useState(false);
@@ -378,6 +383,26 @@ export default function SettingsPage() {
       toast.success('Two-factor authentication has been disabled');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to disable 2FA');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') return;
+    setDeleteAccountLoading(true);
+    try {
+      const res = await fetch('/api/auth/delete-account', { method: 'POST' });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || 'Failed to delete account');
+        return;
+      }
+      // Sign out and redirect
+      await supabase.auth.signOut();
+      router.push('/login');
+    } catch {
+      toast.error('Failed to delete account. Please try again.');
+    } finally {
+      setDeleteAccountLoading(false);
     }
   };
 
@@ -736,7 +761,7 @@ export default function SettingsPage() {
                 </p>
                 <p className="text-sm text-red-600 dark:text-red-400">Permanently delete your account and all data</p>
               </div>
-              <Button variant="destructive">Delete Account</Button>
+              <Button variant="destructive" onClick={() => setDeleteAccountDialogOpen(true)}>Delete Account</Button>
             </div>
           </CardContent>
         </Card>
@@ -1045,6 +1070,47 @@ export default function SettingsPage() {
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Account Confirmation Dialog */}
+      <Dialog open={deleteAccountDialogOpen} onOpenChange={(open) => {
+        setDeleteAccountDialogOpen(open);
+        if (!open) setDeleteConfirmText('');
+      }}>
+        <DialogContent className="mx-4">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Delete Account</DialogTitle>
+            <DialogDescription>
+              This will permanently delete your account, all chatbots, knowledge sources, and conversation history. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label htmlFor="deleteConfirm">
+                Type <strong>DELETE</strong> to confirm
+              </Label>
+              <Input
+                id="deleteConfirm"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="DELETE"
+                autoComplete="off"
+              />
+            </div>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => { setDeleteAccountDialogOpen(false); setDeleteConfirmText(''); }}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                disabled={deleteConfirmText !== 'DELETE' || deleteAccountLoading}
+                onClick={handleDeleteAccount}
+              >
+                {deleteAccountLoading ? 'Deleting...' : 'Delete Account'}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -1,6 +1,30 @@
 import { test, expect } from '@playwright/test';
 
 const BILLING_URL = '/dashboard/billing';
+const E2E_SECRET = process.env.E2E_TEST_SECRET;
+
+let seededInvoiceId: string | null = null;
+
+test.beforeAll(async ({ request }) => {
+  if (!E2E_SECRET) return;
+  const res = await request.post('/api/e2e/seed-stripe-invoice', {
+    data: { secret: E2E_SECRET },
+  });
+  if (!res.ok()) return; // non-fatal
+  const data = await res.json();
+  if (data.invoiceId) {
+    seededInvoiceId = data.invoiceId;
+    console.log(`[Invoice] Seeded test invoice: ${seededInvoiceId} (status: ${data.status})`);
+  }
+});
+
+test.afterAll(async ({ request }) => {
+  if (!E2E_SECRET || !seededInvoiceId) return;
+  await request.post('/api/e2e/void-stripe-invoice', {
+    data: { secret: E2E_SECRET, invoiceId: seededInvoiceId },
+  }).catch(() => {});
+  console.log(`[Invoice] Voided test invoice: ${seededInvoiceId}`);
+});
 
 async function gotoBilling(page: import('@playwright/test').Page) {
   await page.goto(BILLING_URL);

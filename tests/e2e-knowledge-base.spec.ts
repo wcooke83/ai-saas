@@ -18,12 +18,12 @@ test.describe('21. Knowledge Base', () => {
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
 
     // Either heading visible or still loading — wait for heading
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
   });
 
   test('KNOWLEDGE-002: Add URL source', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     await page.getByRole('button', { name: /Import Website Content/i }).click();
     await page.getByLabel('Website URL').fill('https://example.com/test-page');
@@ -34,12 +34,13 @@ test.describe('21. Knowledge Base', () => {
       page.getByText('Knowledge source added')
         .or(page.getByText(/maximum number|plan.*limit|Failed to add/i))
         .or(page.getByRole('button', { name: /Import Website Content/i }))
+        .first()
     ).toBeVisible({ timeout: 30000 });
   });
 
   test('KNOWLEDGE-003: Add URL source with crawl', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     await page.getByRole('button', { name: /Import Website Content/i }).click();
     await page.getByLabel('Website URL').fill('https://example.com');
@@ -52,12 +53,13 @@ test.describe('21. Knowledge Base', () => {
       page.getByText('Website crawl started')
         .or(page.getByText(/maximum number|plan.*limit|Failed to add/i))
         .or(page.getByRole('button', { name: /Import Website Content/i }))
+        .first()
     ).toBeVisible({ timeout: 30000 });
   });
 
   test('KNOWLEDGE-004: Add text source', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     await page.getByRole('button', { name: /Add Text Content/i }).click();
     // Label is "Name (optional)" — use placeholder to find input
@@ -72,12 +74,13 @@ test.describe('21. Knowledge Base', () => {
       page.getByText('Knowledge source added')
         .or(page.getByText(/maximum number|plan.*limit|Failed to add/i))
         .or(page.getByRole('button', { name: /Add Text Content/i }))
+        .first()
     ).toBeVisible({ timeout: 30000 });
   });
 
   test('KNOWLEDGE-005: Add Q&A pair', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     await page.getByRole('button', { name: /Add Q&A Pair/i }).click();
     await page.locator('#question').fill('What is the return policy?');
@@ -88,12 +91,13 @@ test.describe('21. Knowledge Base', () => {
       page.getByText('Knowledge source added')
         .or(page.getByText(/maximum number|plan.*limit|Failed to add/i))
         .or(page.getByRole('button', { name: /Add Q&A Pair/i }))
+        .first()
     ).toBeVisible({ timeout: 30000 });
   });
 
   test('KNOWLEDGE-006: Delete source', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     const deleteBtn = page.locator('button[title*="Delete"]').first();
     if (await deleteBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -103,7 +107,7 @@ test.describe('21. Knowledge Base', () => {
       if (await confirmBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
         await confirmBtn.click();
       }
-      await expect(page.getByText(/deleted|removed/i).or(page.getByRole('heading', { name: 'Knowledge Base' }))).toBeVisible({ timeout: 15000 });
+      await expect(page.getByText(/deleted|removed/i).or(page.getByRole('heading', { name: 'Knowledge Base', exact: true }))).toBeVisible({ timeout: 15000 });
     } else {
       test.skip(true, 'No sources available to delete');
     }
@@ -111,7 +115,7 @@ test.describe('21. Knowledge Base', () => {
 
   test('KNOWLEDGE-007: Pin/unpin source (priority)', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     const btn = page.locator('button[title*="Pin"], button[title*="Unpin"]').first();
     if (await btn.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -126,7 +130,7 @@ test.describe('21. Knowledge Base', () => {
 
   test('KNOWLEDGE-008: Reprocess source', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     const reprocessBtn = page.locator('button[title*="Re-process"]').first();
     if (await reprocessBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -144,7 +148,7 @@ test.describe('21. Knowledge Base', () => {
 
   test('KNOWLEDGE-009: Failed source display', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     const failedBadge = page.getByText('failed').first();
     if (await failedBadge.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -157,7 +161,7 @@ test.describe('21. Knowledge Base', () => {
   test('KNOWLEDGE-010: RAG retrieval from knowledge base @slow', async ({ page }) => {
     // RAG retrieval requires embeddings — verify page loads and sources exist
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     const content = page.getByText(/Sources \(\d+\)/)
       .or(page.getByText('No knowledge sources yet'));
@@ -167,17 +171,17 @@ test.describe('21. Knowledge Base', () => {
   test('KNOWLEDGE-011: Real-time status updates', async ({ page }) => {
     // Verify page loads and stays functional (realtime subscription is active in background)
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     // Page should remain stable for a few seconds (realtime subscription active)
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible();
   });
 });
 
 test.describe('38. Knowledge Base Details', () => {
   test('KNOWLEDGE-ADV-001: URL crawl max pages slider', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     await page.getByRole('button', { name: /Import Website Content/i }).click();
     await page.locator('#crawl-toggle').check();
@@ -191,7 +195,7 @@ test.describe('38. Knowledge Base Details', () => {
 
   test('KNOWLEDGE-ADV-002: URL validation -- required', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     await page.getByRole('button', { name: /Import Website Content/i }).click();
     await page.getByRole('button', { name: /Add Source/i }).click();
@@ -201,7 +205,7 @@ test.describe('38. Knowledge Base Details', () => {
 
   test('KNOWLEDGE-ADV-003: Text content validation -- required', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     await page.getByRole('button', { name: /Add Text Content/i }).click();
     await page.getByRole('button', { name: /Add Source/i }).click();
@@ -211,7 +215,7 @@ test.describe('38. Knowledge Base Details', () => {
 
   test('KNOWLEDGE-ADV-004: Q&A validation -- both fields required', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     await page.getByRole('button', { name: /Add Q&A Pair/i }).click();
     await page.locator('#question').fill('What is the return policy?');
@@ -222,7 +226,7 @@ test.describe('38. Knowledge Base Details', () => {
 
   test('KNOWLEDGE-ADV-005: Text source optional name field', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     await page.getByRole('button', { name: /Add Text Content/i }).click();
     // Name field label is "Name (optional)"
@@ -235,7 +239,7 @@ test.describe('38. Knowledge Base Details', () => {
 
   test('KNOWLEDGE-ADV-006: Source type icons', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     // Page loaded — verify content is present (sources or empty state)
     const content = page.getByText(/Sources \(\d+\)/)
@@ -246,7 +250,7 @@ test.describe('38. Knowledge Base Details', () => {
 
   test('KNOWLEDGE-ADV-007: Source status color coding', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     // Verify page loaded — sources or empty state visible
     const content = page.getByText(/Sources \(\d+\)/)
@@ -257,7 +261,7 @@ test.describe('38. Knowledge Base Details', () => {
 
   test('KNOWLEDGE-ADV-008: Priority toggle optimistic update', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     const pinBtn = page.locator('button[title*="Pin"], button[title*="Unpin"]').first();
     if (await pinBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -272,19 +276,19 @@ test.describe('38. Knowledge Base Details', () => {
 
   test('KNOWLEDGE-ADV-009: Refresh button', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     const refreshButton = page.getByRole('button', { name: /Refresh/i });
     await expect(refreshButton).toBeVisible();
     await refreshButton.click();
 
     // Page should remain functional
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 15000 });
   });
 
   test('KNOWLEDGE-ADV-010: Cancel button on add forms', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     await page.getByRole('button', { name: /Import Website Content/i }).click();
     await expect(page.getByLabel('Website URL')).toBeVisible();
@@ -298,7 +302,7 @@ test.describe('38. Knowledge Base Details', () => {
 
   test('KNOWLEDGE-ADV-011: Crawl vs non-crawl success toast', async ({ page }) => {
     await gotoKnowledge(page);
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'Knowledge Base', exact: true })).toBeVisible({ timeout: 30000 });
 
     // Test non-crawl URL add: should show "Knowledge source added" toast
     await page.getByRole('button', { name: /Import Website Content/i }).click();
@@ -310,6 +314,7 @@ test.describe('38. Knowledge Base Details', () => {
         .or(page.getByText('Website crawl started'))
         .or(page.getByText(/maximum number|plan.*limit|Failed to add/i))
         .or(page.getByRole('button', { name: /Import Website Content/i }))
+        .first()
     ).toBeVisible({ timeout: 30000 });
   });
 });

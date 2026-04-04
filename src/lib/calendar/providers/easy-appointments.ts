@@ -308,34 +308,61 @@ export class EasyAppointmentsAdapter implements CalendarProviderAdapter {
     email: string,
     timezone: string
   ): Promise<number> {
-    // Search for existing customer by email
+    const emailLower = email.toLowerCase();
+
+    /** Fetch all customers and find by email (search endpoint is broken in some EA versions) */
+    const findByEmail = async (): Promise<number | null> => {
+      try {
+        const all = await this.request<Array<{ id: number; email: string }>>('GET', '/customers');
+        const match = Array.isArray(all)
+          ? all.find((c) => c.email?.toLowerCase() === emailLower)
+          : null;
+        return match ? match.id : null;
+      } catch {
+        return null;
+      }
+    };
+
+    // Try the (potentially broken) search endpoint first; fall back to full list scan
     try {
       const customers = await this.request<Array<{
         id: number;
         email: string;
       }>>('GET', `/customers?q=${encodeURIComponent(email)}`);
 
-      const existing = customers.find(
-        (c) => c.email?.toLowerCase() === email.toLowerCase()
-      );
+      const existing = Array.isArray(customers)
+        ? customers.find((c) => c.email?.toLowerCase() === emailLower)
+        : null;
       if (existing) return existing.id;
     } catch {
-      // Search failed, create new
+      // Search endpoint unavailable — fall through to full list scan below
     }
+
+    // Full list scan (works even when the ?q= search endpoint is broken)
+    const existingId = await findByEmail();
+    if (existingId !== null) return existingId;
 
     // Split name into first/last
     const parts = name.trim().split(/\s+/);
     const firstName = parts[0] || name;
     const lastName = parts.slice(1).join(' ') || '';
 
-    const customer = await this.request<{ id: number }>('POST', '/customers', {
-      firstName,
-      lastName,
-      email,
-      timezone,
-    });
-
-    return customer.id;
+    try {
+      const customer = await this.request<{ id: number }>('POST', '/customers', {
+        firstName,
+        lastName,
+        email,
+        phone: '000-000-0000', // EA requires phone; use placeholder when caller has none
+        timezone,
+      });
+      return customer.id;
+    } catch (err) {
+      // If creation failed because email is already in use (race condition or stale cache),
+      // do one final full list scan before giving up.
+      const retryId = await findByEmail();
+      if (retryId !== null) return retryId;
+      throw err;
+    }
   }
 
   /** Convert ISO 8601 to EA format: "YYYY-MM-DD HH:mm:ss" */

@@ -1030,6 +1030,17 @@ export async function executeChatStream(
     for (const evt of calResult.calendarEvents) {
       callbacks.onCalendar(evt.action, evt.data);
     }
+    // Embed tool results in the stored message so the AI sees them on the next turn.
+    // The widget renders streamedContent (from onToken), not this DB content, so users
+    // never see these notes — they only exist for the AI's conversation context.
+    if (calResult.calendarEvents.length > 0) {
+      const toolNotes = calResult.calendarEvents
+        .map(evt => `[CALENDAR_RESULT:${evt.action.toUpperCase()}:${JSON.stringify(evt.data)}]`)
+        .join('\n');
+      processedResponse = processedResponse
+        ? `${processedResponse}\n${toolNotes}`
+        : toolNotes;
+    }
   }
 
   // Save assistant message
