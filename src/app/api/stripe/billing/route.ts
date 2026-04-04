@@ -20,24 +20,14 @@ export async function GET(req: NextRequest) {
     const user = await requireAuth(req);
     const supabase = createAdminClient();
 
-    // Get stripe_customer_id from subscriptions or user_credits
-    const { data: subscription } = await supabase
-      .from('subscriptions')
+    // Get stripe_customer_id from user_credits (authoritative source)
+    const { data: credits } = await supabase
+      .from('user_credits')
       .select('stripe_customer_id')
       .eq('user_id', user.id)
       .maybeSingle();
 
-    let customerId = subscription?.stripe_customer_id;
-
-    if (!customerId) {
-      const { data: credits } = await supabase
-        .from('user_credits')
-        .select('stripe_customer_id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      customerId = credits?.stripe_customer_id;
-    }
+    const customerId = credits?.stripe_customer_id;
 
     if (!customerId) {
       // No Stripe customer yet — return empty data

@@ -33,12 +33,19 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Fetch user's current subscription first to know their plan
-    const { data: rawSubscription } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', user.id)
-      .maybeSingle();
+    // Fetch user's current subscription and stripe_customer_id in parallel
+    const [{ data: rawSubscription }, { data: userCreditsData }] = await Promise.all([
+      supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle(),
+      supabase
+        .from('user_credits')
+        .select('stripe_customer_id')
+        .eq('user_id', user.id)
+        .maybeSingle(),
+    ]);
 
     const subscriptionData = rawSubscription as SubscriptionRow | null;
     const userPlanId = subscriptionData?.plan_id;
@@ -103,7 +110,7 @@ export async function GET() {
         trialEndsAt: subscriptionData.trial_ends_at
           ? new Date(subscriptionData.trial_ends_at)
           : null,
-        stripeCustomerId: subscriptionData.stripe_customer_id,
+        stripeCustomerId: userCreditsData?.stripe_customer_id ?? null,
         stripeSubscriptionId: subscriptionData.stripe_subscription_id,
       };
     }

@@ -70,17 +70,11 @@ export async function getOrCreateCustomer(
     },
   });
 
-  // Save customer ID to both tables
-  await Promise.all([
-    supabase
-      .from('user_credits')
-      .update({ stripe_customer_id: customer.id })
-      .eq('user_id', userId),
-    supabase
-      .from('subscriptions')
-      .update({ stripe_customer_id: customer.id })
-      .eq('user_id', userId),
-  ]);
+  // Save customer ID to user_credits (authoritative source)
+  await supabase
+    .from('user_credits')
+    .update({ stripe_customer_id: customer.id })
+    .eq('user_id', userId);
 
   return customer.id;
 }
