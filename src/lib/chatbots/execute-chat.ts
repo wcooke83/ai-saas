@@ -40,6 +40,7 @@ import { analyzeConversationSentiment, updateVisitorLoyalty } from './sentiment'
 import { CalendarService } from '@/lib/calendar/service';
 import { handleCalendarToolCall } from './tools/calendar-handler';
 import { attemptAutoTopup, triggerPreemptiveTopup } from './auto-topup';
+import { deductCredits } from '@/lib/usage/tracker';
 import { emitWebhookEvent, emitTypedWebhookEvent } from '@/lib/webhooks/emit';
 import { isChatDebugMode } from '@/lib/settings';
 import { logAPICall } from '@/lib/api/logging';
@@ -441,7 +442,12 @@ function firePostGenerationEffects(opts: {
       { role: 'assistant', content: assistantResponse } as Message,
     ];
     extractAndStoreMemory(visitorId, chatbotId, allMessages, existingMemory, supabase)
-      .then(() => ensureMemoryEmailMapping(chatbotId, visitorId, preChatInfo, supabase))
+      .then(() => {
+        deductCredits(chatbot.user_id, 1, { description: 'Memory extraction' }).catch((err) => {
+          console.error('[memory-meter] credit deduction failed:', err);
+        });
+        return ensureMemoryEmailMapping(chatbotId, visitorId, preChatInfo, supabase);
+      })
       .catch(() => {});
   }
 
