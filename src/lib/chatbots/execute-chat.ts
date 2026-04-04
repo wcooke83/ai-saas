@@ -44,6 +44,7 @@ import { deductCredits } from '@/lib/usage/tracker';
 import { emitWebhookEvent, emitTypedWebhookEvent } from '@/lib/webhooks/emit';
 import { isChatDebugMode } from '@/lib/settings';
 import { checkSubscriptionStatus } from '@/lib/usage/tracker';
+import { trackActivationMilestone } from '@/lib/onboarding/activation';
 import { logAPICall } from '@/lib/api/logging';
 import type { Chatbot, Message, Attachment, FileUploadConfig, ConversationMemory } from './types';
 import { DEFAULT_FILE_UPLOAD_CONFIG } from './types';
@@ -433,6 +434,22 @@ function firePostGenerationEffects(opts: {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ chatbotId, userId: chatbot.user_id }),
     }).catch(() => {});
+
+    // Track first_test_message milestone when owner is mid-onboarding
+    // (channel === 'widget' here catches both the embed preview and the dashboard test panel)
+    (supabase as any)
+      .from('profiles')
+      .select('onboarding_completed_at')
+      .eq('id', chatbot.user_id)
+      .single()
+      .then(({ data }: { data: { onboarding_completed_at: string | null } | null }) => {
+        if (data && data.onboarding_completed_at === null) {
+          trackActivationMilestone(chatbot.user_id, 'first_test_message', {
+            chatbot_id: chatbotId,
+          }).catch(() => {});
+        }
+      })
+      .catch(() => {});
   }
 
   // Memory extraction

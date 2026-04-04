@@ -17,6 +17,7 @@ import {
 import { createAdminClient } from '@/lib/supabase/admin';
 import { processKnowledgeSource, processUrlWithCrawl } from '@/lib/chatbots/knowledge/processor';
 import { deductCredits } from '@/lib/usage/tracker';
+import { trackActivationMilestone } from '@/lib/onboarding/activation';
 
 // Add knowledge source validation schema
 const addKnowledgeSchema = z.object({
@@ -142,12 +143,23 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     // Record first knowledge source milestone (fire-and-forget)
     const admin = createAdminClient();
-    admin
+    (admin as any)
       .from('chatbots')
       .update({ first_knowledge_source_at: new Date().toISOString() })
       .eq('id', id)
       .is('first_knowledge_source_at', null)
       .then(() => {});
+
+    // Track knowledge_added activation milestone if request comes from onboarding wizard
+    const isOnboarding =
+      req.nextUrl.searchParams.get('onboarding') === 'true' ||
+      req.headers.get('x-onboarding') === 'true';
+    if (isOnboarding) {
+      trackActivationMilestone(user.id, 'knowledge_added', {
+        chatbot_id: id,
+        source_type: input.type,
+      }).catch(() => {});
+    }
 
     // Deduct indexing credits before async processing:
     //   - Crawl mode: ceil(maxPages / 10) credits

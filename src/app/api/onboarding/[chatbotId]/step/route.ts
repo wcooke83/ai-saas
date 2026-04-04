@@ -14,6 +14,7 @@ import { authenticate } from '@/lib/auth/session';
 import { successResponse, errorResponse, APIError, parseBody } from '@/lib/api/utils';
 import { getChatbot, updateChatbot } from '@/lib/chatbots/api';
 import type { ChatbotUpdate } from '@/lib/chatbots/types';
+import { trackActivationMilestone } from '@/lib/onboarding/activation';
 
 const stepSchema = z.object({
   step: z.union([
@@ -75,6 +76,11 @@ export async function PATCH(
     }
 
     const updated = await updateChatbot(chatbotId, updates);
+
+    // Track deploy milestone when user reaches step 5 (the deploy step)
+    if (input.step === 5) {
+      trackActivationMilestone(user.id, 'chatbot_deployed', { chatbot_id: chatbotId }).catch(() => {});
+    }
 
     return successResponse({ chatbot: updated });
   } catch (error) {

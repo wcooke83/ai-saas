@@ -15,6 +15,7 @@ import {
 import { DEFAULT_WIDGET_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG } from '@/lib/chatbots/types';
 import { getPlanLimits, FREE_PLAN_LIMITS } from '@/lib/chatbots/plan-limits';
 import { createClient as createAdminClient } from '@/lib/supabase/admin';
+import { trackActivationMilestone } from '@/lib/onboarding/activation';
 
 const startSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
@@ -84,6 +85,10 @@ export async function POST(req: NextRequest) {
         })
         .eq('id', user.id);
     }
+
+    // Track activation milestones (fire-and-forget)
+    trackActivationMilestone(user.id, 'onboarding_started').catch(() => {});
+    trackActivationMilestone(user.id, 'chatbot_created', { chatbot_id: chatbot.id }).catch(() => {});
 
     return successResponse({ chatbot }, undefined, 201);
   } catch (error) {

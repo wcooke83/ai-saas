@@ -17,6 +17,7 @@ import {
 import { DEFAULT_WIDGET_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG } from '@/lib/chatbots/types';
 import { getPlanLimits, FREE_PLAN_LIMITS } from '@/lib/chatbots/plan-limits';
 import { checkReembedStatusBatch } from '@/lib/chatbots/reembed-check';
+import { trackActivationMilestone } from '@/lib/onboarding/activation';
 
 // Create chatbot validation schema
 const createChatbotSchema = z.object({
@@ -116,6 +117,14 @@ export async function POST(req: NextRequest) {
         ? { ...DEFAULT_FILE_UPLOAD_CONFIG, ...input.file_upload_config }
         : undefined,
     });
+
+    // Track chatbot_created milestone if request comes from onboarding wizard
+    const isOnboarding =
+      req.nextUrl.searchParams.get('onboarding') === 'true' ||
+      req.headers.get('x-onboarding') === 'true';
+    if (isOnboarding) {
+      trackActivationMilestone(user.id, 'chatbot_created', { chatbot_id: chatbot.id }).catch(() => {});
+    }
 
     return successResponse({ chatbot }, undefined, 201);
   } catch (error) {
