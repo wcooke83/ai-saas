@@ -54,8 +54,9 @@ export function IntegrationsHero() {
               className="text-lg text-secondary-600 dark:text-secondary-400 max-w-xl leading-relaxed mb-10"
             >
               One chatbot, trained on your content. Deploy it on your website,
-              in Slack, on Telegram, inside WordPress or Shopify -- wherever
-              your conversations happen.
+              in Slack, on Telegram, via Facebook Messenger, Instagram DMs, SMS,
+              email, or inside WordPress and Shopify -- wherever your
+              conversations happen.
             </motion.p>
 
             <motion.div
@@ -88,7 +89,7 @@ export function IntegrationsHero() {
           >
             <div className="grid grid-cols-3 lg:grid-cols-1 gap-6 lg:gap-0 lg:divide-y lg:divide-secondary-200 dark:lg:divide-secondary-700">
               {[
-                { value: '9+', label: 'Integrations available' },
+                { value: '13+', label: 'Integrations available' },
                 { value: '1 line', label: 'Of code to embed' },
                 { value: '< 5 min', label: 'To deploy anywhere' },
               ].map(({ value, label }) => (
