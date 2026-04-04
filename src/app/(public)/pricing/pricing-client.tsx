@@ -147,28 +147,49 @@ const testimonials = [
 ];
 
 const featureDisplayNames: Record<string, string> = {
-  priority_support: 'Priority Support',
-  dedicated_support: 'Dedicated Account Manager',
-  pdf_export: 'PDF Export',
-  docx_export: 'DOCX Export',
-  sso: 'SSO & Security',
-  sla: 'SLA Guarantee',
-  custom_integrations: 'Custom Integrations',
-  custom_branding: 'Custom Branding',
+  priority_support:   'Priority Support',
+  dedicated_support:  'Dedicated Account Manager',
+  pdf_export:         'PDF Export',
+  docx_export:        'DOCX Export',
+  sso:                'SSO & Security',
+  sla:                'SLA Guarantee',
+  custom_integrations:'Custom Integrations',
+  custom_branding:    'Custom Branding',
+  // new feature gates
+  chatbots:           'Chatbots',
+  knowledge_sources:  'Knowledge Sources',
+  team_seats:         'Team Seats',
+  widget:             'Widget Deployment',
+  slack:              'Slack',
+  telegram:           'Telegram',
+  whatsapp:           'WhatsApp',
+  discord:            'Discord',
+  teams:              'Microsoft Teams',
+  branding_removal:   'Remove VocUI Branding',
+  api_access:         'API Access',
+  zapier_webhooks:    'Zapier + Webhooks',
+  analytics_export:   'Analytics Export',
+  article_generation: 'Article Generation',
+  human_handoff:      'Human Handoff',
+  credit_rollover:    'Credit Rollover',
 };
 
 const faqs = [
   {
-    question: 'What are credits?',
-    answer: 'Credits are used each time your chatbot answers a question. A short answer uses about 1 credit. A detailed, multi-paragraph response uses 2\u20133. A 10-message conversation typically uses 5\u201315 credits total. Adding knowledge sources does not consume credits.',
+    question: 'What counts as a message?',
+    answer: 'Each chatbot reply counts as one message. A 10-turn conversation uses 10 messages. Adding knowledge sources does not consume messages.',
   },
   {
     question: 'Can I change plans anytime?',
     answer: 'Yes. Upgrade or downgrade anytime \u2014 changes take effect immediately, and we prorate the difference.',
   },
   {
-    question: 'What happens if I run out of credits?',
-    answer: 'Your chatbot pauses until credits are available. You can buy more credits instantly, turn on auto-topup so you never run out, or upgrade to a plan with a higher monthly allocation.',
+    question: 'What happens if I run out of messages?',
+    answer: 'Your chatbot pauses until messages are available. You can buy more instantly, enable auto-top-up so you never run out, or upgrade to a plan with a higher monthly allocation.',
+  },
+  {
+    question: 'Does the annual plan really save 2 months?',
+    answer: 'Yes \u2014 annual billing gives you 12 months of access for the price of 10. That\u2019s a 17% discount applied automatically at checkout.',
   },
   {
     question: 'Does Pro have a free trial?',
@@ -192,6 +213,32 @@ const faqs = [
 // Helper: build comparison features from plans
 // ────────────────────────────────────────────────────────────────────────────
 
+// Ordered list of feature keys for the comparison table
+const comparisonFeatureOrder: string[] = [
+  'chatbots',
+  'knowledge_sources',
+  'team_seats',
+  // channels
+  'widget',
+  'slack',
+  'telegram',
+  'whatsapp',
+  'discord',
+  'teams',
+  // capabilities
+  'branding_removal',
+  'api_access',
+  'zapier_webhooks',
+  'analytics_export',
+  'article_generation',
+  'human_handoff',
+  'credit_rollover',
+  // support
+  'priority_support',
+  'sla',
+  'dedicated_support',
+];
+
 function buildComparisonFeatures(plans: SubscriptionPlan[]) {
   if (!plans.length) return [];
 
@@ -199,7 +246,7 @@ function buildComparisonFeatures(plans: SubscriptionPlan[]) {
 
   const features: { name: string; values: Record<string, boolean | string> }[] = [
     {
-      name: 'Monthly Credits',
+      name: 'Messages / month',
       values: Object.fromEntries(
         sortedPlans.map(p => [
           p.slug,
@@ -207,17 +254,33 @@ function buildComparisonFeatures(plans: SubscriptionPlan[]) {
         ])
       ),
     },
-    {
-      name: 'API Keys',
-      values: Object.fromEntries(
-        sortedPlans.map(p => [
-          p.slug,
-          p.api_keys_limit === -1 ? 'Unlimited' : p.api_keys_limit.toString()
-        ])
-      ),
-    },
   ];
 
+  // Add ordered feature rows
+  comparisonFeatureOrder.forEach(key => {
+    // Check if at least one plan has this key
+    const hasKey = sortedPlans.some(plan =>
+      plan.features && typeof plan.features === 'object' && key in (plan.features as Record<string, unknown>)
+    );
+    if (!hasKey) return;
+
+    features.push({
+      name: featureDisplayNames[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+      values: Object.fromEntries(
+        sortedPlans.map(plan => {
+          const featureValue = (plan.features as Record<string, unknown>)?.[key];
+          if (featureValue === true) return [plan.slug, true];
+          if (featureValue === false) return [plan.slug, false];
+          if (typeof featureValue === 'number' && featureValue === -1) return [plan.slug, 'Unlimited'];
+          if (typeof featureValue === 'number') return [plan.slug, featureValue.toLocaleString()];
+          if (typeof featureValue === 'string') return [plan.slug, featureValue.charAt(0).toUpperCase() + featureValue.slice(1)];
+          return [plan.slug, false];
+        })
+      ),
+    });
+  });
+
+  // Append any remaining tool-config keys not in the ordered list
   const allFeatureKeys = new Set<string>();
   sortedPlans.forEach(plan => {
     if (plan.features && typeof plan.features === 'object') {
@@ -225,7 +288,7 @@ function buildComparisonFeatures(plans: SubscriptionPlan[]) {
     }
   });
 
-  const toolKeys = Array.from(allFeatureKeys).filter(key => toolConfig[key]);
+  const toolKeys = Array.from(allFeatureKeys).filter(key => toolConfig[key] && !comparisonFeatureOrder.includes(key));
   toolKeys.forEach(key => {
     features.push({
       name: toolConfig[key].name,
@@ -240,7 +303,10 @@ function buildComparisonFeatures(plans: SubscriptionPlan[]) {
     });
   });
 
-  const nonToolKeys = Array.from(allFeatureKeys).filter(key => !toolConfig[key]);
+  // Legacy non-tool keys not already covered
+  const nonToolKeys = Array.from(allFeatureKeys).filter(
+    key => !toolConfig[key] && !comparisonFeatureOrder.includes(key)
+  );
   nonToolKeys.forEach(key => {
     features.push({
       name: featureDisplayNames[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
@@ -361,15 +427,30 @@ function PricingCard({
     .filter(([key]) => !toolConfig[key])
     .map(([key]) => featureDisplayNames[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
 
-  // Enterprise gets a curated feature list; others get the data-driven bullets
+  // Curated bullet lists per plan for compact card display
   const bullets: string[] = [];
   if (isCustom) {
-    bullets.push('Custom credit allocation');
+    bullets.push('Unlimited chatbots');
+    bullets.push('25,000 messages/mo');
+    bullets.push('Priority support + SLA');
     bullets.push('Dedicated account manager');
-    bullets.push('Priority support (SLA)');
-    bullets.push('Custom integrations');
+  } else if (plan.slug === 'pro') {
+    bullets.push('10 chatbots · 5,000 messages/mo');
+    bullets.push('Branding removal + API access');
+    bullets.push('All channels: Slack, Telegram, WhatsApp');
+    bullets.push('Analytics export + credit rollover');
+  } else if (plan.slug === 'base') {
+    bullets.push('3 chatbots · 1,000 messages/mo');
+    bullets.push('Slack + Telegram included');
+    bullets.push('10 knowledge sources');
+    bullets.push('2 team seats');
+  } else if (plan.slug === 'free') {
+    bullets.push('1 chatbot · 50 messages/mo');
+    bullets.push('3 knowledge sources');
+    bullets.push('Widget deployment');
+    bullets.push('No credit card required');
   } else {
-    bullets.push(`${creditsText} credits/mo`);
+    bullets.push(`${creditsText} messages/mo`);
     bullets.push(`${apiKeysText} API key${plan.api_keys_limit === 1 ? '' : 's'}`);
     includedTools.forEach(t => bullets.push(t.name));
     otherFeatures.forEach(f => bullets.push(f));
@@ -447,6 +528,13 @@ function PricingCard({
         </ul>
       </div>
 
+      {/* Pro comparison callout */}
+      {plan.slug === 'pro' && (
+        <p className="text-[10px] text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/40 border border-primary-200 dark:border-primary-800 rounded-md px-2.5 py-2 leading-snug mb-3">
+          Branding removal + API access — features competitors charge $150–400/mo for.
+        </p>
+      )}
+
       {/* CTA — pinned to bottom */}
       <div className="mt-auto">
         <Button
@@ -508,18 +596,6 @@ export default function PricingClient({ plans }: { plans: SubscriptionPlan[] }) 
   const sortedPlans = sortPlansByDisplayOrder(plans);
   const allPlans = sortedPlans;
 
-  // Average savings for annual billing
-  const paidPlans = plans.filter(p => p.price_monthly_cents > 0 && p.price_yearly_cents && p.price_yearly_cents > 0);
-  const avgSavings = paidPlans.length > 0
-    ? Math.round(
-        paidPlans.reduce((sum, p) => {
-          const monthlyTotal = p.price_monthly_cents * 12;
-          const yearly = p.price_yearly_cents!;
-          return sum + ((monthlyTotal - yearly) / monthlyTotal) * 100;
-        }, 0) / paidPlans.length
-      )
-    : 0;
-
   const comparisonFeatures = buildComparisonFeatures(plans);
 
   return (
@@ -560,8 +636,8 @@ export default function PricingClient({ plans }: { plans: SubscriptionPlan[] }) 
                   variants={fadeUp}
                   className="text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-secondary-900 dark:text-secondary-100 leading-[1.08] mb-5"
                 >
-                  One chatbot.{' '}
-                  <span className="text-primary-500">Your entire knowledge base.</span>
+                  Pro is now{' '}
+                  <span className="text-primary-500">$79/mo.</span>
                 </motion.h1>
 
                 {/* Subtitle */}
@@ -569,7 +645,7 @@ export default function PricingClient({ plans }: { plans: SubscriptionPlan[] }) 
                   variants={fadeUp}
                   className="text-lg text-secondary-600 dark:text-secondary-400 leading-relaxed mb-8 max-w-md"
                 >
-                  Pick a plan that fits how many questions your chatbot handles.
+                  We cut the Pro price nearly in half. Branding removal, API access, and all channels — features competitors charge $150–400/mo for, now at $79.
                 </motion.p>
 
                 {/* Billing toggle */}
@@ -596,11 +672,9 @@ export default function PricingClient({ plans }: { plans: SubscriptionPlan[] }) 
                       aria-pressed={isYearly}
                     >
                       Annual
-                      {avgSavings > 0 && (
-                        <span className="text-xs font-semibold text-green-600 dark:text-green-400">
-                          -{avgSavings}%
-                        </span>
-                      )}
+                      <span className="text-xs font-semibold text-green-600 dark:text-green-400">
+                        Save 17% · 2 months free
+                      </span>
                     </button>
                   </div>
                 </motion.div>
