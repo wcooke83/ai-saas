@@ -21,19 +21,23 @@ export async function handleCheckoutCompleted(
     return;
   }
 
-  if (!userId) {
-    console.error('Missing user_id in checkout session metadata');
-    return;
-  }
+  // User-level credit top-up pack purchase
+  if (session.mode === 'payment' && session.metadata?.type === 'credit_top_up') {
+    if (!userId) {
+      console.error('Missing user_id in credit_top_up checkout session');
+      return;
+    }
+    await handleCreditTopUp(session, userId);
+    // Still fall through to save payment method below
+  } else {
+    if (!userId) {
+      console.error('Missing user_id in checkout session metadata');
+      return;
+    }
 
-  if (session.mode === 'subscription') {
-    await handleSubscriptionCheckout(session, userId);
-  } else if (session.mode === 'payment') {
-    if (session.metadata?.type === 'credit_top_up') {
-      await handleCreditTopUpCheckout(session);
-    } else if (session.metadata?.type === 'ltd') {
-      await handleLTDCheckout(session);
-    } else {
+    if (session.mode === 'subscription') {
+      await handleSubscriptionCheckout(session, userId);
+    } else if (session.mode === 'payment') {
       await handleCreditPurchase(session, userId);
     }
   }
@@ -201,6 +205,72 @@ async function handleCreditPurchase(
   });
 
   console.log(`Added ${creditAmount} credits for user ${userId} (${type})`);
+}
+
+/**
+ * Handle user-level credit top-up pack purchase (from /api/billing/credits/checkout)
+ * Marks the pending credit_purchases row as completed and adds credits to user balance.
+ */
+async function handleCreditTopUp(
+  session: Stripe.Checkout.Session,
+  userId: string
+): Promise<void> {
+  const supabase = createAdminClient();
+  const purchaseId = session.metadata?.purchase_id;
+  const packId = session.metadata?.pack_id;
+
+  // Mark the pending purchase record as completed
+  if (purchaseId) {
+    await supabase
+      .from('credit_purchases')
+      .update({
+        status: 'completed',
+        stripe_payment_intent_id: (session.payment_intent as string) || null,
+        stripe_session_id: session.id,
+      })
+      .eq('id', purchaseId)
+      .eq('status', 'pending'); // idempotency guard
+  }
+
+  // Look up credit amount from the pack
+  let creditAmount = 0;
+  if (packId) {
+    const { data: pack } = await supabase
+      .from('credit_packages')
+      .select('credit_amount')
+      .eq('id', packId)
+      .single();
+    creditAmount = pack?.credit_amount ?? 0;
+  }
+
+  if (creditAmount <= 0) {
+    // Fallback: look up from the purchase record we just updated
+    const { data: purchase } = purchaseId
+      ? await supabase
+          .from('credit_purchases')
+          .select('credit_amount')
+          .eq('id', purchaseId)
+          .single()
+      : { data: null };
+    creditAmount = purchase?.credit_amount ?? 0;
+  }
+
+  if (creditAmount <= 0) {
+    console.error('[CreditTopUp] Could not determine credit amount for purchase', purchaseId);
+    return;
+  }
+
+  // Add credits to the user's balance
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase.rpc as any)('add_purchased_credits', {
+    p_user_id: userId,
+    p_amount: creditAmount,
+    p_type: 'purchase',
+    p_payment_intent_id: (session.payment_intent as string) || null,
+    p_description: 'Credit pack purchase',
+  });
+
+  console.log(`[CreditTopUp] Added ${creditAmount} credits for user ${userId} (purchase ${purchaseId})`);
 }
 
 /**

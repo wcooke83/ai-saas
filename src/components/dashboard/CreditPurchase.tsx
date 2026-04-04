@@ -30,6 +30,7 @@ interface CreditPackage {
   credit_amount: number;
   price_cents: number;
   sort_order: number;
+  bonusCredits?: number;
 }
 
 interface CreditPurchaseProps {
@@ -44,6 +45,7 @@ export default function CreditPurchase({ purchaseSource }: CreditPurchaseProps) 
   const [showDialog, setShowDialog] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [selectedPriceCents, setSelectedPriceCents] = useState<number | null>(null);
+  const [selectedPackId, setSelectedPackId] = useState<string | null>(null);
   const [customAmount, setCustomAmount] = useState('');
 
   const isExternalPurchase = purchaseSource && purchaseSource !== 'stripe';
@@ -52,7 +54,7 @@ export default function CreditPurchase({ purchaseSource }: CreditPurchaseProps) 
     try {
       const [balanceRes, packagesRes] = await Promise.all([
         fetch('/api/billing/credits'),
-        fetch('/api/credit-packages'),
+        fetch('/api/billing/credits/packs'),
       ]);
 
       if (balanceRes.ok) {
@@ -64,7 +66,7 @@ export default function CreditPurchase({ purchaseSource }: CreditPurchaseProps) 
       if (packagesRes.ok) {
         const result = await packagesRes.json();
         const data = result.data || result;
-        setPackages(data.packages || []);
+        setPackages(data.packs || data.packages || []);
       }
     } catch (err) {
       console.error('Failed to load credit data:', err);
@@ -77,9 +79,10 @@ export default function CreditPurchase({ purchaseSource }: CreditPurchaseProps) 
     loadData();
   }, [loadData]);
 
-  const handlePurchase = async (amount: number, priceCents?: number) => {
+  const handlePurchase = async (amount: number, priceCents?: number, packId?: string) => {
     setSelectedAmount(amount);
     setSelectedPriceCents(priceCents ?? null);
+    setSelectedPackId(packId ?? null);
     setShowDialog(true);
   };
 
@@ -88,13 +91,18 @@ export default function CreditPurchase({ purchaseSource }: CreditPurchaseProps) 
 
     setPurchasing(true);
     try {
-      const res = await fetch('/api/stripe/checkout', {
+      // Use pack-based checkout when a packId is available (preferred flow)
+      const endpoint = selectedPackId
+        ? '/api/billing/credits/checkout'
+        : '/api/stripe/checkout';
+      const body = selectedPackId
+        ? { packId: selectedPackId }
+        : { type: 'credits', creditAmount: selectedAmount };
+
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'credits',
-          creditAmount: selectedAmount,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
@@ -207,7 +215,7 @@ export default function CreditPurchase({ purchaseSource }: CreditPurchaseProps) 
                 {packages.map((pkg) => (
                   <button
                     key={pkg.id}
-                    onClick={() => handlePurchase(pkg.credit_amount, pkg.price_cents)}
+                    onClick={() => handlePurchase(pkg.credit_amount, pkg.price_cents, pkg.id)}
                     className="relative p-4 rounded-lg border text-left transition-all hover:border-primary-500 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800/50"
                   >
                     <div className="flex items-center gap-2 mb-1">
