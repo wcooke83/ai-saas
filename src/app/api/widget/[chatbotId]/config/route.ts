@@ -4,7 +4,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { DEFAULT_WIDGET_CONFIG, DEFAULT_PRE_CHAT_FORM_CONFIG, DEFAULT_POST_CHAT_SURVEY_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, DEFAULT_PROACTIVE_MESSAGES_CONFIG, DEFAULT_TRANSCRIPT_CONFIG, DEFAULT_ESCALATION_CONFIG, DEFAULT_FEEDBACK_CONFIG, DEFAULT_LIVE_HANDOFF_CONFIG, DEFAULT_TELEGRAM_CONFIG, DEFAULT_CREDIT_EXHAUSTION_CONFIG } from '@/lib/chatbots/types';
+import { DEFAULT_WIDGET_CONFIG, DEFAULT_PRE_CHAT_FORM_CONFIG, DEFAULT_POST_CHAT_SURVEY_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, DEFAULT_PROACTIVE_MESSAGES_CONFIG, DEFAULT_TRANSCRIPT_CONFIG, DEFAULT_ESCALATION_CONFIG, DEFAULT_FEEDBACK_CONFIG, DEFAULT_LIVE_HANDOFF_CONFIG, DEFAULT_TELEGRAM_CONFIG, DEFAULT_CREDIT_EXHAUSTION_CONFIG, CHATBOT_PLAN_LIMITS } from '@/lib/chatbots/types';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getChatbotCorsOrigin } from '@/lib/api/cors';
 
@@ -14,6 +14,7 @@ interface RouteParams {
 
 interface ChatbotConfig {
   id: string;
+  user_id: string;
   name: string;
   welcome_message: string | null;
   placeholder_text: string | null;
@@ -52,7 +53,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     // Filter to only published+active chatbots manually
     const { data: chatbotData, error } = await (supabase as any)
       .from('chatbots')
-      .select('id, name, welcome_message, placeholder_text, logo_url, widget_config, pre_chat_form_config, post_chat_survey_config, file_upload_config, proactive_messages_config, transcript_config, escalation_config, feedback_config, live_handoff_config, telegram_config, credit_exhaustion_mode, credit_exhaustion_config, monthly_message_limit, messages_this_month, purchased_credits_remaining, memory_enabled, session_ttl_hours, is_published, status, language, allowed_origins')
+      .select('id, user_id, name, welcome_message, placeholder_text, logo_url, widget_config, pre_chat_form_config, post_chat_survey_config, file_upload_config, proactive_messages_config, transcript_config, escalation_config, feedback_config, live_handoff_config, telegram_config, credit_exhaustion_mode, credit_exhaustion_config, monthly_message_limit, messages_this_month, purchased_credits_remaining, memory_enabled, session_ttl_hours, is_published, status, language, allowed_origins')
       .eq('id', chatbotId)
       .eq('is_published', true)
       .eq('status', 'active')
@@ -76,11 +77,23 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     const chatbot = chatbotData as ChatbotConfig;
     const corsOrigin = getChatbotCorsOrigin(chatbot.allowed_origins, req.headers.get('origin'));
 
-    // Merge widget config with defaults
+    // Resolve owner's plan to enforce branding server-side (Gap 1)
+    const { data: ownerSub } = await supabase
+      .from('subscriptions')
+      .select('plan')
+      .eq('user_id', chatbot.user_id)
+      .maybeSingle();
+    const ownerPlan = (ownerSub as { plan: string } | null)?.plan || 'free';
+    const brandingAllowed = CHATBOT_PLAN_LIMITS[ownerPlan]?.customBranding ?? false;
+
+    // Merge widget config with defaults, then enforce branding for non-Pro plans
     const widgetConfig = {
       ...DEFAULT_WIDGET_CONFIG,
       ...(chatbot.widget_config || {}),
     };
+    if (!brandingAllowed) {
+      widgetConfig.showBranding = true;
+    }
 
     return new Response(
       JSON.stringify({
