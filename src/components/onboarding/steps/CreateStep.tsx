@@ -106,7 +106,7 @@ export function CreateStep() {
           Name your chatbot
         </h2>
         <p className="mt-1 text-secondary-500 dark:text-secondary-400">
-          Pick a name and a personality template to get started.
+          You can always change this later.
         </p>
       </div>
 
@@ -115,7 +115,7 @@ export function CreateStep() {
         <Label htmlFor="chatbot-name">Chatbot name</Label>
         <Input
           id="chatbot-name"
-          placeholder="My Support Bot"
+          placeholder="e.g. Support Bot"
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={100}
@@ -124,11 +124,14 @@ export function CreateStep() {
             if (e.key === 'Enter') handleSubmit();
           }}
         />
+        <p className="text-xs text-secondary-500 dark:text-secondary-400">
+          This is what your visitors will see.
+        </p>
       </div>
 
       {/* Template selector */}
       <div className="space-y-3">
-        <Label>Choose a template</Label>
+        <Label>What will your chatbot do?</Label>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {WIZARD_TEMPLATES.map((template) => {
             const isSelected = selectedTemplate.id === template.id;
@@ -204,7 +207,7 @@ export function CreateStep() {
             </>
           ) : (
             <>
-              Next: Train your chatbot
+              Create chatbot
               <ArrowRight className="w-4 h-4 ml-2" />
             </>
           )}

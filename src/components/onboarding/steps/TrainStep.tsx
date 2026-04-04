@@ -159,11 +159,10 @@ export function TrainStep() {
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
-          Train your chatbot
+          Train it on your content
         </h2>
         <p className="mt-1 text-secondary-500 dark:text-secondary-400">
-          Give your chatbot content to learn from. You can always add more
-          later.
+          Add a source and your chatbot will learn from it immediately.
         </p>
       </div>
 
@@ -190,7 +189,7 @@ export function TrainStep() {
             }
           >
             <Globe className="w-4 h-4" aria-hidden="true" />
-            Import Website
+            Add a URL
           </button>
           <button
             type="button"
@@ -212,7 +211,7 @@ export function TrainStep() {
             }
           >
             <Type className="w-4 h-4" aria-hidden="true" />
-            Paste Text
+            Paste text
           </button>
         </div>
 
@@ -228,7 +227,7 @@ export function TrainStep() {
                 <Input
                   id="url-input"
                   type="text"
-                  placeholder="example.com or https://example.com"
+                  placeholder="https://yoursite.com/support"
                   value={urlInput}
                   onChange={(e) => {
                     setUrlInput(e.target.value);
@@ -347,7 +346,7 @@ export function TrainStep() {
                 <Label htmlFor="text-content">Content</Label>
                 <Textarea
                   id="text-content"
-                  placeholder="Paste your text content here..."
+                  placeholder="Paste your FAQs, product info, or any text you want the chatbot to know..."
                   value={textInput}
                   onChange={(e) => setTextInput(e.target.value)}
                   className="min-h-[160px] resize-y"
@@ -420,7 +419,7 @@ export function TrainStep() {
                     source.status === 'failed' && 'text-red-600 dark:text-red-400'
                   )}
                 >
-                  {source.status === 'processing' ? 'Processing...' : source.status}
+                  {source.status === 'processing' ? 'Reading your content… this takes about 30 seconds.' : source.status}
                 </span>
               </div>
             ))}
@@ -442,7 +441,7 @@ export function TrainStep() {
             disabled={contextLoading}
             className="text-sm text-center text-secondary-500 dark:text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-200 motion-safe:transition-colors"
           >
-            Skip for now
+            I&apos;ll add knowledge later
           </button>
           <Button onClick={handleNext} disabled={contextLoading} size="lg" className="w-full sm:w-auto">
             {contextLoading ? (

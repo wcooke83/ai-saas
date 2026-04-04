@@ -71,10 +71,10 @@ export function DeployStep() {
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
-          Deploy your chatbot
+          You&apos;re ready to go live
         </h2>
         <p className="mt-1 text-secondary-500 dark:text-secondary-400">
-          Publish your chatbot and add it to your website. You can also do this from the dashboard later.
+          Add your chatbot to your site or connect your channels.
         </p>
       </div>
 
@@ -91,7 +91,7 @@ export function DeployStep() {
             </div>
             <div>
               <p className="font-medium text-secondary-900 dark:text-secondary-100">
-                Your chatbot is live
+                You&apos;re all set. Your chatbot is live.
               </p>
               <p className="text-sm text-secondary-500 dark:text-secondary-400">
                 Copy the embed code below to add it to your website.
@@ -128,14 +128,14 @@ export function DeployStep() {
       {/* Embed code */}
       <div className="space-y-3">
         <label className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
-          Add to your website
+          Website widget
         </label>
         <p className="text-sm text-secondary-500 dark:text-secondary-400">
-          Copy this snippet and paste it into your website&apos;s HTML, just before the closing{' '}
+          Paste this snippet before the closing{' '}
           <code className="px-1 py-0.5 rounded bg-secondary-100 dark:bg-secondary-800 text-xs font-mono">
             &lt;/body&gt;
           </code>{' '}
-          tag. If you use WordPress, Shopify, or another site builder, look for "custom code" in your settings.
+          tag on your site.
         </p>
         <div className="relative group">
           <pre
@@ -156,12 +156,12 @@ export function DeployStep() {
             {copied ? (
               <>
                 <Check className="w-3.5 h-3.5 mr-1.5" />
-                Copied
+                Copied!
               </>
             ) : (
               <>
                 <Copy className="w-3.5 h-3.5 mr-1.5" />
-                Copy
+                Copy code
               </>
             )}
           </Button>
@@ -171,7 +171,7 @@ export function DeployStep() {
             href={`/dashboard/chatbots/${chatbotId}/deploy`}
             className="inline-flex items-center gap-1 text-sm text-primary-500 hover:text-primary-600 hover:underline"
           >
-            View all deployment options (API, Slack, Telegram)
+            Connect Slack workspace or Telegram
             <ArrowRight className="w-3 h-3" />
           </Link>
         )}
@@ -206,7 +206,7 @@ export function DeployStep() {
               </>
             ) : (
               <>
-                Go to dashboard
+                Go to my dashboard
                 <ArrowRight className="ml-2 h-4 w-4" />
               </>
             )}

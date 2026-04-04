@@ -119,7 +119,7 @@ export function StyleStep() {
           {/* Primary Color */}
           <div className="space-y-3">
             <label className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
-              Primary Color
+              Widget colour
             </label>
             <div className="flex flex-wrap items-center gap-2">
               {COLOR_PRESETS.map((preset) => (

@@ -21,8 +21,8 @@ interface ChatMessage {
 
 const SUGGESTED_QUESTIONS = [
   'What can you help me with?',
-  'What services do you offer?',
-  'Tell me about yourself.',
+  'How does this work?',
+  'Tell me about your services.',
 ];
 
 export function TestStep() {
@@ -166,11 +166,10 @@ export function TestStep() {
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
-          Test your chatbot
+          Ask it something
         </h2>
         <p className="mt-1 text-secondary-500 dark:text-secondary-400">
-          Try a conversation with {chatbotName}. See how it responds to questions
-          using your content.
+          See how your chatbot responds. It learns from what you added.
         </p>
       </div>
 
@@ -315,7 +314,7 @@ export function TestStep() {
           </div>
           <div>
             <p className="text-sm font-medium text-green-800 dark:text-green-200">
-              Your chatbot is working!
+              It&apos;s working — next step
             </p>
             <p className="text-xs text-green-600 dark:text-green-400 mt-0.5">
               Add more knowledge sources later to improve its answers.
@@ -334,11 +333,11 @@ export function TestStep() {
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:gap-4">
           <button
             type="button"
-            onClick={handleNext}
+            onClick={() => goToStep(2)}
             disabled={ctxLoading}
             className="text-sm text-center text-secondary-500 dark:text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-200 motion-safe:transition-colors"
           >
-            Skip for now
+            My answers aren&apos;t right — fix my knowledge
           </button>
           <Button
             onClick={handleNext}
@@ -353,7 +352,7 @@ export function TestStep() {
               </>
             ) : (
               <>
-                Next: Style your widget
+                It&apos;s working — next step
                 <ArrowRight className="w-4 h-4 ml-2" />
               </>
             )}

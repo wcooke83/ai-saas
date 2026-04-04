@@ -114,6 +114,59 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // New-user onboarding redirect: when an authenticated user hits /dashboard
+  // for the first time, check whether they have completed onboarding. If not,
+  // send them to the wizard. We only do this on the exact /dashboard entry
+  // point (not sub-pages) to keep the middleware fast.
+  if (pathname === '/dashboard' && isAuthenticated) {
+    const userId = response.headers.get('x-user-id');
+    if (userId) {
+      try {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (supabaseUrl && serviceRoleKey) {
+          // Check profiles.onboarding_completed_at in a single lightweight query
+          const profileRes = await fetch(
+            `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=onboarding_completed_at`,
+            {
+              headers: {
+                apikey: serviceRoleKey,
+                Authorization: `Bearer ${serviceRoleKey}`,
+                'Content-Type': 'application/json',
+              },
+            }
+          );
+          if (profileRes.ok) {
+            const profiles = await profileRes.json();
+            const profile = profiles?.[0];
+            // Only redirect if onboarding has never been completed
+            if (profile && profile.onboarding_completed_at === null) {
+              // Check if they have any chatbots already (pre-wizard users should not be redirected)
+              const chatbotsRes = await fetch(
+                `${supabaseUrl}/rest/v1/chatbots?user_id=eq.${userId}&select=id&limit=1`,
+                {
+                  headers: {
+                    apikey: serviceRoleKey,
+                    Authorization: `Bearer ${serviceRoleKey}`,
+                    'Content-Type': 'application/json',
+                    Prefer: 'count=exact',
+                  },
+                }
+              );
+              const countHeader = chatbotsRes.headers.get('content-range');
+              const total = countHeader ? parseInt(countHeader.split('/')[1] ?? '0', 10) : 0;
+              if (total === 0) {
+                return NextResponse.redirect(new URL('/onboarding', request.url));
+              }
+            }
+          }
+        }
+      } catch {
+        // If the check fails (network, env vars missing), fall through to dashboard
+      }
+    }
+  }
+
   // Redirect /signup to /login?mode=signup (preserving query params like ?plan=)
   // Handled here in middleware to avoid RSC round-trip and client-side navigation issues
   if (pathname === '/signup') {

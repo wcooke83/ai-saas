@@ -12,10 +12,10 @@ import type { Chatbot } from '@/lib/chatbots/types';
 
 const STEP_LABELS: Record<number, string> = {
   1: 'Name your chatbot',
-  2: 'Train your chatbot',
-  3: 'Test your chatbot',
+  2: 'Train it on your content',
+  3: 'Ask it something',
   4: 'Style your widget',
-  5: 'Deploy your chatbot',
+  5: "You're ready to go live",
 };
 
 interface OnboardingStepClientProps {
