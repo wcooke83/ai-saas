@@ -8,6 +8,7 @@ import { authenticate } from '@/lib/auth/session';
 import { successResponse, errorResponse, APIError } from '@/lib/api/utils';
 import { getChatbot } from '@/lib/chatbots/api';
 import { generateHelpArticles } from '@/lib/chatbots/articles';
+import { deductCredits } from '@/lib/usage/tracker';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -21,6 +22,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     const chatbot = await getChatbot(id);
     if (!chatbot || chatbot.user_id !== user.id) throw APIError.notFound('Chatbot not found');
+
+    // Deduct 5 credits for article generation before processing
+    await deductCredits(user.id, 5, 'Article generation', { chatbot_id: id });
 
     const result = await generateHelpArticles(id);
 

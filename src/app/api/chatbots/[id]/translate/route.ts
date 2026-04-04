@@ -11,6 +11,7 @@ import { authenticate } from '@/lib/auth/session';
 import { successResponse, errorResponse, APIError, parseBody } from '@/lib/api/utils';
 import { getChatbot } from '@/lib/chatbots/api';
 import { generate } from '@/lib/ai/provider';
+import { deductCredits } from '@/lib/usage/tracker';
 import {
   DEFAULT_PRE_CHAT_FORM_CONFIG,
   DEFAULT_POST_CHAT_SURVEY_CONFIG,
@@ -256,6 +257,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     // Validate input
     const input = await parseBody(req, translateSchema);
+
+    // Deduct 3 credits per translation request before processing
+    await deductCredits(user.id, 3, 'Translation', { chatbot_id: id, target_language: input.targetLanguage });
 
     const result: {
       preChatFormConfig?: PreChatFormConfig;
