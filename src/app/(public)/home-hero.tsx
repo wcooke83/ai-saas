@@ -34,7 +34,7 @@ export function HomeHero() {
               variants={fadeUp}
               className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-500 mb-6"
             >
-              AI Customer Support, Done Right
+              AI chatbots — half the price of Chatbase
             </motion.p>
 
             {/* H1 */}
@@ -42,19 +42,32 @@ export function HomeHero() {
               variants={fadeUp}
               className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-secondary-900 dark:text-secondary-100 leading-[1.08] mb-8"
             >
-              Stop answering the same questions.{' '}
-              <span className="text-primary-500">Your knowledge base</span>{' '}
-              becomes the chatbot.
+              Deploy your AI chatbot everywhere.{' '}
+              <span className="text-primary-500">Starting at $29.</span>
             </motion.h1>
 
             {/* Supporting text */}
             <motion.p
               variants={fadeUp}
-              className="text-lg text-secondary-600 dark:text-secondary-400 max-w-xl leading-relaxed mb-10"
+              className="text-lg text-secondary-600 dark:text-secondary-400 max-w-xl leading-relaxed mb-6"
             >
-              VocUI turns your docs, URLs, and FAQs into an AI chatbot that deflects support tickets,
-              captures leads, and books appointments — deployed on your site in under an hour.
+              Widget, Slack, and Telegram on every Base plan — no add-ons, no surprises.
+              Pro adds branding removal, API access, and all channels for $79/mo. Chatbase charges $189 for the same.
             </motion.p>
+
+            {/* Pricing proof callout */}
+            <motion.div
+              variants={fadeUp}
+              className="flex flex-wrap gap-x-6 gap-y-2 mb-8"
+            >
+              <span className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+                <span className="text-primary-500 font-semibold">Base $29</span> — widget + Slack + Telegram
+              </span>
+              <span className="text-secondary-300 dark:text-secondary-600 hidden sm:inline" aria-hidden="true">|</span>
+              <span className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+                <span className="text-primary-500 font-semibold">Pro $79</span> — all channels + API + white-label
+              </span>
+            </motion.div>
 
             {/* CTAs */}
             <motion.div

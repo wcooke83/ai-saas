@@ -35,9 +35,9 @@ const supportingFeatures: Feature[] = [
   },
   {
     icon: Globe,
-    name: 'Multi-Channel Deploy',
+    name: 'Multi-Channel Deploy — from $29',
     description:
-      'JS widget, iFrame, Slack, Telegram, or REST API. One chatbot, every channel where your customers are.',
+      'Widget, Slack, and Telegram on every Base plan. WhatsApp, Discord, and Teams on Pro. No competitor includes this at $29/mo.',
   },
   {
     icon: FileText,
@@ -71,9 +71,9 @@ const supportingFeatures: Feature[] = [
   },
   {
     icon: Layers,
-    name: 'Full Widget Customization',
+    name: 'White-Label + API Access',
     description:
-      'Colors, fonts, border radius, position, auto-open behavior, and dark mode — styled to match your brand exactly.',
+      'Remove VocUI branding and connect via REST API from $79/mo. Chatbase charges $189 for this. Full widget customization — colors, fonts, position — on every plan.',
   },
 ];
 
