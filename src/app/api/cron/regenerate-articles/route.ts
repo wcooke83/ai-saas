@@ -41,6 +41,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Optional: scope the run to a single chatbot (useful for testing and manual triggers)
+  const { searchParams } = new URL(req.url);
+  const scopedChatbotId = searchParams.get('chatbot_id') ?? undefined;
+
   const supabase = createAdminClient();
   const now = Date.now();
   const results: Array<{
@@ -55,9 +59,14 @@ export async function POST(req: NextRequest) {
 
   try {
     // Find all chatbots — we need to check both chatbot-level and per-prompt schedules
-    const { data: chatbots, error } = await supabase
+    // If chatbot_id query param is provided, scope the run to that chatbot only.
+    let query = supabase
       .from('chatbots')
       .select('id, name, article_schedule, article_last_generated_at');
+    if (scopedChatbotId) {
+      query = query.eq('id', scopedChatbotId);
+    }
+    const { data: chatbots, error } = await query;
 
     if (error) throw error;
     if (!chatbots || chatbots.length === 0) {

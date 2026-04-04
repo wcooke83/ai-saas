@@ -369,16 +369,19 @@ test.describe('Help Articles: Schedule & Cron Execution', () => {
     expect(backdateData.success).toBe(true);
     console.log(`[SCHED-002] Backdated timestamps to: ${backdateData.backdated_to}`);
 
-    // 4. Call the REAL cron endpoint — exactly what the external scheduler does
-    // The Vercel function timeout is 30s, but we give extra for network. If the
-    // cron itself exceeds that, the server returns a partial response or timeout.
-    console.log('[SCHED-002] Calling real cron endpoint...');
+    // 4. Call the REAL cron endpoint — exactly what the external scheduler does.
+    // Scope to this chatbot only via ?chatbot_id= so the request completes quickly
+    // instead of blocking on every chatbot in the DB (which can take >5 minutes).
+    console.log('[SCHED-002] Calling real cron endpoint (scoped to test chatbot)...');
     let cronRes;
     try {
-      cronRes = await page.request.post('/api/cron/regenerate-articles', {
-        headers: { Authorization: `Bearer ${CRON_SECRET}` },
-        timeout: 120_000,
-      });
+      cronRes = await page.request.post(
+        `/api/cron/regenerate-articles?chatbot_id=${CHATBOT_ID}`,
+        {
+          headers: { Authorization: `Bearer ${CRON_SECRET}` },
+          timeout: 120_000,
+        },
+      );
     } catch (err) {
       console.log(`[SCHED-002] Cron request threw (likely timeout): ${err}`);
       // Restore schedule and pass — the cron was invoked, it just took too long
@@ -440,11 +443,14 @@ test.describe('Help Articles: Schedule & Cron Execution', () => {
     expect(await select.inputValue()).toBe('manual');
     console.log('[SCHED-003] Set schedule to manual via UI');
 
-    // Call the real cron — our chatbot should NOT be in the results
-    const cronRes = await page.request.post('/api/cron/regenerate-articles', {
-      headers: { Authorization: `Bearer ${CRON_SECRET}` },
-      timeout: 30_000,
-    });
+    // Call the real cron scoped to this chatbot — it should be skipped (manual schedule)
+    const cronRes = await page.request.post(
+      `/api/cron/regenerate-articles?chatbot_id=${CHATBOT_ID}`,
+      {
+        headers: { Authorization: `Bearer ${CRON_SECRET}` },
+        timeout: 30_000,
+      },
+    );
     expect(cronRes.ok()).toBeTruthy();
 
     const cronData = await cronRes.json();
