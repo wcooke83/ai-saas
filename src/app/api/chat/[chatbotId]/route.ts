@@ -275,6 +275,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
               },
             );
           } catch (error) {
+            console.error('[Chat:Stream] Streaming error caught in route:', error);
             try {
               if (error instanceof QuotaExhaustedError) {
                 controller.enqueue(encoder.encode(
