@@ -9,6 +9,7 @@ import { getMultiplierForProvider, getModelById, isUserAffiliate, type AIProvide
 import { calculateTokenCost, type ModelBillingResult } from '@/types/ai-models';
 import type { CreditBalance, RateLimitStatus } from '@/types/billing';
 import type { ModelTier } from '@/lib/ai/provider';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 // ===================
 // TYPES
@@ -644,6 +645,25 @@ export async function deductCredits(
 ): Promise<{ success: boolean; remaining: number }> {
   const supabase = createAdminClient();
 
+  // First check if auto top-up should trigger
+  const balance = await getCreditBalance(userId);
+
+  if (!balance.isUnlimited && balance.totalAvailable < amount) {
+    const topupResult = await triggerAutoTopupIfNeeded(userId, amount);
+    if (!topupResult.success) {
+      throw APIError.insufficientCredits(
+        `Insufficient credits. You have ${balance.totalAvailable} credits, but need ${amount}.`,
+        {
+          available: balance.totalAvailable,
+          needed: amount,
+          needs_topup: true,
+          upgrade_url: '/dashboard/billing',
+        }
+      );
+    }
+  }
+
+  // Use database function for atomic deduction
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.rpc as any)('deduct_user_credits_atomic', {
     p_user_id: userId,
@@ -659,23 +679,22 @@ export async function deductCredits(
 
   if (!data?.success) {
     if (data?.needs_topup) {
-      throw new APIError(
+      throw APIError.insufficientCredits(
         'Insufficient credits. Auto top-up will be triggered.',
-        402,
-        'INSUFFICIENT_CREDITS',
         {
+          available: balance.totalAvailable,
+          needed: amount,
           needs_topup: true,
-          topup_pack_id: data.topup_pack_id,
           upgrade_url: '/dashboard/billing',
         }
       );
     }
-    throw new APIError(
-      'Insufficient credits.',
-      402,
-      'INSUFFICIENT_CREDITS',
-      { upgrade_url: '/dashboard/billing' }
-    );
+    throw APIError.insufficientCredits('Insufficient credits', {
+      available: balance.totalAvailable,
+      needed: amount,
+      needs_topup: false,
+      upgrade_url: '/dashboard/billing',
+    });
   }
 
   return {
@@ -904,6 +923,57 @@ export async function checkUsageAndRateLimit(
 }
 
 // ===================
+// FULL CREDIT STATUS
+// ===================
+
+export interface FullCreditStatus {
+  plan_credits_limit: number;
+  plan_credits_used: number;
+  plan_credits_remaining: number;
+  purchased_credits: number;
+  bonus_credits: number;
+  total_available: number;
+  auto_topup_enabled: boolean;
+  period_end: string | null;
+  plan_slug: string;
+}
+
+/**
+ * Call the get_full_credit_status RPC and return typed result.
+ * Pass a server/admin Supabase client — do not create one internally
+ * so callers can use either anon (user-scoped) or service role.
+ */
+export async function getCreditStatus(
+  userId: string,
+  supabase: SupabaseClient
+): Promise<FullCreditStatus> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase.rpc as any)('get_full_credit_status', {
+    p_user_id: userId,
+  }) as { data: FullCreditStatus[] | null; error: unknown };
+
+  if (error) throw error;
+
+  const row = data?.[0];
+  if (!row) {
+    // No usage record yet — return safe defaults
+    return {
+      plan_credits_limit: 0,
+      plan_credits_used: 0,
+      plan_credits_remaining: 0,
+      purchased_credits: 0,
+      bonus_credits: 0,
+      total_available: 0,
+      auto_topup_enabled: false,
+      period_end: null,
+      plan_slug: 'free',
+    };
+  }
+
+  return row;
+}
+
+// ===================
 // CONVENIENCE EXPORT
 // ===================
 
@@ -925,4 +995,5 @@ export const trackUsage = {
   getRateLimitStatus,
   checkUsageAndRateLimit,
   triggerAutoTopup: triggerAutoTopupIfNeeded,
+  getCreditStatus,
 };

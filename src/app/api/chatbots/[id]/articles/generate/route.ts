@@ -3,7 +3,7 @@
  * POST /api/chatbots/:id/articles/generate - Generate articles from knowledge sources
  */
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { authenticate } from '@/lib/auth/session';
 import { successResponse, errorResponse, APIError } from '@/lib/api/utils';
 import { getChatbot } from '@/lib/chatbots/api';
@@ -38,6 +38,20 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         : `Generated ${result.count} articles from ${result.sourcesUsed} knowledge sources${chunks}`,
     });
   } catch (error) {
+    if (error instanceof APIError && error.code === 'INSUFFICIENT_CREDITS') {
+      const d = error.details as { available: number; needed: number; needs_topup: boolean; upgrade_url: string } | undefined;
+      return NextResponse.json(
+        {
+          error: 'insufficient_credits',
+          code: 'INSUFFICIENT_CREDITS',
+          available: d?.available ?? 0,
+          needed: d?.needed ?? 0,
+          needs_topup: d?.needs_topup ?? false,
+          upgrade_url: d?.upgrade_url ?? '/dashboard/billing',
+        },
+        { status: 402 }
+      );
+    }
     return errorResponse(error);
   }
 }

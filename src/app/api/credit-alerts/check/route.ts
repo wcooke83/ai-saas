@@ -1,88 +1,111 @@
+/**
+ * GET /api/credit-alerts/check
+ * Returns the current user's full credit status and alert level.
+ * Called by the dashboard on page load and periodically for the credit meter UI.
+ * Also records the first crossing of 75% / 90% thresholds per billing period.
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { getCreditBalance } from '@/lib/usage/tracker';
-import { sendCreditAlert75Email, sendCreditAlert90Email } from '@/lib/email/resend';
+import { getCreditStatus } from '@/lib/usage/tracker';
 import { APIError, errorResponse } from '@/lib/api/utils';
 
-export async function POST(req: NextRequest) {
+type AlertLevel = '75' | '90' | '100' | null;
+
+function computeAlertLevel(
+  planUsed: number,
+  planLimit: number,
+  totalAvailable: number
+): AlertLevel {
+  if (planLimit <= 0) return null;
+  if (totalAvailable <= 0) return '100';
+  const pct = (planUsed / planLimit) * 100;
+  if (pct >= 90) return '90';
+  if (pct >= 75) return '75';
+  return null;
+}
+
+export async function GET(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { userId } = body as { userId?: string };
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    if (!userId) {
-      throw APIError.badRequest('userId is required');
+    if (authError || !user) {
+      throw APIError.unauthorized();
     }
 
-    const supabase = createAdminClient();
+    const adminClient = createAdminClient();
 
-    // Get credit balance
-    const balance = await getCreditBalance(userId);
+    const status = await getCreditStatus(user.id, adminClient);
 
-    // Skip unlimited plans
-    if (balance.isUnlimited) {
-      return NextResponse.json({ checked: true, alertSent: null });
+    const alertLevel = computeAlertLevel(
+      status.plan_credits_used,
+      status.plan_credits_limit,
+      status.total_available
+    );
+
+    // Record threshold crossings (fire-and-forget — never re-set if already set this period)
+    if (alertLevel === '90' || alertLevel === '100') {
+      void markAlertIfNew(adminClient, user.id, '90');
+    } else if (alertLevel === '75') {
+      void markAlertIfNew(adminClient, user.id, '75');
     }
 
-    const percentUsed = Math.round((balance.planUsed / balance.planAllocation) * 100);
+    return NextResponse.json({
+      plan_credits_limit: status.plan_credits_limit,
+      plan_credits_used: status.plan_credits_used,
+      plan_credits_remaining: status.plan_credits_remaining,
+      purchased_credits: status.purchased_credits,
+      bonus_credits: status.bonus_credits,
+      total_available: status.total_available,
+      auto_topup_enabled: status.auto_topup_enabled,
+      period_end: status.period_end,
+      plan_slug: status.plan_slug,
+      alert_level: alertLevel,
+    });
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
 
-    // Skip if below 75%
-    if (percentUsed < 75) {
-      return NextResponse.json({ checked: true, alertSent: null });
-    }
+/**
+ * Sets credit_alert_75_sent_at or credit_alert_90_sent_at on the usage row
+ * only if it hasn't been set during the current billing period.
+ */
+async function markAlertIfNew(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  adminClient: any,
+  userId: string,
+  threshold: '75' | '90'
+): Promise<void> {
+  try {
+    const col =
+      threshold === '75' ? 'credit_alert_75_sent_at' : 'credit_alert_90_sent_at';
 
-    // Get user email
-    const { data: authData, error: authError } = await supabase.auth.admin.getUserById(userId);
-    if (authError || !authData.user?.email) {
-      throw APIError.notFound('User not found');
-    }
-
-    const email = authData.user.email;
-    const emailLocalPart = email.split('@')[0];
-    const firstName = emailLocalPart.charAt(0).toUpperCase() + emailLocalPart.slice(1);
-
-    // Get usage row for alert tracking columns
-    const { data: usageRow } = await (supabase as any)
+    const { data: row } = await adminClient
       .from('usage')
-      .select('period_start, credit_alert_75_sent_at, credit_alert_90_sent_at')
+      .select(`period_start, ${col}`)
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(1)
-      .maybeSingle() as { data: { period_start: string | null; credit_alert_75_sent_at: string | null; credit_alert_90_sent_at: string | null } | null };
+      .maybeSingle() as {
+        data: { period_start: string | null; [key: string]: string | null } | null
+      };
 
-    const periodStart = usageRow?.period_start ? new Date(usageRow.period_start) : null;
+    if (!row) return;
 
-    const alert90SentAt = usageRow?.credit_alert_90_sent_at
-      ? new Date(usageRow.credit_alert_90_sent_at)
-      : null;
-    const alert75SentAt = usageRow?.credit_alert_75_sent_at
-      ? new Date(usageRow.credit_alert_75_sent_at)
-      : null;
+    const periodStart = row.period_start ? new Date(row.period_start) : null;
+    const sentAt = row[col] ? new Date(row[col] as string) : null;
 
-    const alert90AlreadySent =
-      alert90SentAt !== null && periodStart !== null && alert90SentAt >= periodStart;
-    const alert75AlreadySent =
-      alert75SentAt !== null && periodStart !== null && alert75SentAt >= periodStart;
+    // Already set this period — skip
+    if (sentAt && periodStart && sentAt >= periodStart) return;
 
-    if (percentUsed >= 90 && !alert90AlreadySent) {
-      await sendCreditAlert90Email(email, firstName);
-      await (supabase as any)
-        .from('usage')
-        .update({ credit_alert_90_sent_at: new Date().toISOString() })
-        .eq('user_id', userId);
-      return NextResponse.json({ checked: true, alertSent: '90' });
-    }
-
-    if (percentUsed >= 75 && !alert75AlreadySent) {
-      await sendCreditAlert75Email(email, firstName);
-      await (supabase as any)
-        .from('usage')
-        .update({ credit_alert_75_sent_at: new Date().toISOString() })
-        .eq('user_id', userId);
-      return NextResponse.json({ checked: true, alertSent: '75' });
-    }
-
-    return NextResponse.json({ checked: true, alertSent: null });
-  } catch (error) {
-    return errorResponse(error);
+    await adminClient
+      .from('usage')
+      .update({ [col]: new Date().toISOString() })
+      .eq('user_id', userId);
+  } catch (err) {
+    console.error(`[credit-alerts/check] markAlertIfNew(${threshold}) failed:`, err);
   }
 }
