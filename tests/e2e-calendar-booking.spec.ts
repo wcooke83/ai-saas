@@ -41,6 +41,11 @@ const createdIntegrationIds: string[] = [];
 const createdBookingIds: string[] = [];
 const createdEAAppointmentIds: number[] = [];
 
+// Module-level booking state — persists across describe-block re-initializations caused by
+// Playwright retries so CAL-111–115 always see the booking created by CAL-110.
+let _liveBookingId: string | null = null;
+let _liveProviderBookingId: string | null = null;
+
 // ── Easy!Appointments API helpers (external service — acceptable to keep) ──
 
 async function eaRequest<T>(method: string, path: string, body?: unknown): Promise<T> {
@@ -323,8 +328,8 @@ test.describe('Calendar Booking Integration', () => {
   let integrationId: string | null = null;
   let bookingDate: string;
   let availableSlot: { start: string; end: string } | null = null;
-  let liveBookingId: string | null = null;
-  let liveProviderBookingId: string | null = null;
+  // _liveBookingId / _liveProviderBookingId are module-level so they survive describe-block
+  // re-initialisation triggered by Playwright's retry mechanism.
 
   test.beforeAll(async ({ browser }) => {
     test.setTimeout(120_000);
@@ -386,10 +391,10 @@ test.describe('Calendar Booking Integration', () => {
       await eaCancelAppointment(eaId);
       console.log('[Calendar E2E] Cancelled EA appointment:', eaId);
     }
-    if (liveProviderBookingId) {
+    if (_liveProviderBookingId) {
       try {
-        await eaRequest('DELETE', `/appointments/${liveProviderBookingId}`);
-        console.log('[Calendar E2E] Cancelled EA appointment:', liveProviderBookingId);
+        await eaRequest('DELETE', `/appointments/${_liveProviderBookingId}`);
+        console.log('[Calendar E2E] Cancelled EA appointment:', _liveProviderBookingId);
       } catch (e) {
         console.warn('[Calendar E2E] Failed to cancel EA appointment:', e);
       }
@@ -517,6 +522,21 @@ test.describe('Calendar Booking Integration', () => {
       let reply = await getLastAssistantMessage(page);
       console.log(`[CAL-110] Availability reply: ${reply.slice(0, 200)}`);
 
+      // Helper: poll DB for booking up to maxMs (processCalendarMarkers runs AFTER streaming
+      // and makes an EA API call — can take 10–20 s after sendMessage returns)
+      const pollBooking = async (maxMs = 30_000) => {
+        const deadline = Date.now() + maxMs;
+        while (Date.now() < deadline) {
+          const result = await supabaseSelect(
+            'calendar_bookings',
+            `attendee_email=eq.${email}&order=created_at.desc&limit=1&select=id,provider_booking_id,status,attendee_name`
+          );
+          if (result?.[0]?.id) return result;
+          await page.waitForTimeout(2000);
+        }
+        return null;
+      };
+
       // Step 2: Request the booking with all details upfront
       await sendMessage(
         page,
@@ -525,14 +545,8 @@ test.describe('Calendar Booking Integration', () => {
       reply = await getLastAssistantMessage(page);
       console.log(`[CAL-110] Booking reply: ${reply.slice(0, 200)}`);
 
-      // Wait for booking to be processed
-      await page.waitForTimeout(5000);
-
-      // Check for the booking in DB
-      let bookings = await supabaseSelect(
-        'calendar_bookings',
-        `attendee_email=eq.${email}&order=created_at.desc&limit=1&select=id,provider_booking_id,status,attendee_name`
-      );
+      // Poll DB — server-side EA call runs after streaming completes
+      let bookings = await pollBooking();
 
       // Step 3: If booking not created yet, the AI might have asked a follow-up — respond and retry
       if (!bookings?.[0]?.id) {
@@ -543,12 +557,8 @@ test.describe('Calendar Booking Integration', () => {
         );
         reply = await getLastAssistantMessage(page);
         console.log(`[CAL-110] Retry reply: ${reply.slice(0, 200)}`);
-        await page.waitForTimeout(5000);
 
-        bookings = await supabaseSelect(
-          'calendar_bookings',
-          `attendee_email=eq.${email}&order=created_at.desc&limit=1&select=id,provider_booking_id,status,attendee_name`
-        );
+        bookings = await pollBooking();
       }
 
       // Step 4: If still not found, try one more time with a very direct request
@@ -560,57 +570,142 @@ test.describe('Calendar Booking Integration', () => {
         );
         reply = await getLastAssistantMessage(page);
         console.log(`[CAL-110] Final attempt reply: ${reply.slice(0, 200)}`);
-        await page.waitForTimeout(5000);
 
-        bookings = await supabaseSelect(
-          'calendar_bookings',
-          `attendee_email=eq.${email}&order=created_at.desc&limit=1&select=id,provider_booking_id,status,attendee_name`
-        );
+        bookings = await pollBooking();
       }
 
       if (bookings?.[0]?.id) {
-        liveBookingId = bookings[0].id;
-        liveProviderBookingId = bookings[0].provider_booking_id;
-        createdBookingIds.push(liveBookingId!);
-        if (liveProviderBookingId) {
-          createdEAAppointmentIds.push(Number(liveProviderBookingId));
+        _liveBookingId = bookings[0].id;
+        _liveProviderBookingId = bookings[0].provider_booking_id;
+        createdBookingIds.push(_liveBookingId!);
+        if (_liveProviderBookingId) {
+          createdEAAppointmentIds.push(Number(_liveProviderBookingId));
         }
         expect(bookings[0].attendee_name).toBe(name);
         expect(['confirmed', 'pending']).toContain(bookings[0].status);
-        console.log(`[CAL-110] Booking created: ${liveBookingId}, provider: ${liveProviderBookingId}`);
+        console.log(`[CAL-110] Booking created: ${_liveBookingId}, provider: ${_liveProviderBookingId}`);
       } else {
-        console.warn('[CAL-110] Could not create booking after 3 attempts — downstream tests will skip');
-        // Don't fail the test — the AI interaction is non-deterministic
-        // Downstream tests will gracefully skip via test.skip(!liveBookingId)
+        // AI didn't create the booking (non-deterministic) — fall back to the /api/calendar/book
+        // endpoint so that CAL-111–115 always run and test the downstream flows.
+        console.warn('[CAL-110] AI did not book after 3 attempts — using /api/calendar/book as fallback');
+
+        try {
+          const slotStart = availableSlot?.start ?? `${bookingDate}T10:00:00`;
+          const slotEnd   = availableSlot?.end   ?? `${bookingDate}T10:30:00`;
+
+          const res = await page.request.post('/api/calendar/book', {
+            data: {
+              chatbotId: DASHBOARD_CHATBOT_ID,
+              sessionId:  `e2e-fallback-${Date.now()}`,
+              start:      slotStart,
+              end:        slotEnd,
+              attendeeName:     name,
+              attendeeEmail:    email,
+              attendeeTimezone: TIMEZONE,
+              notes: 'E2E programmatic fallback',
+            },
+          });
+
+          if (res.ok()) {
+            const body = await res.json() as { data?: { id?: string; providerBookingId?: string } };
+            const bookingId = body?.data?.id;
+            const provId    = body?.data?.providerBookingId;
+
+            // The API creates the EA appointment and inserts calendar_bookings.
+            // Re-query DB to get the Supabase row id.
+            const created = await supabaseSelect(
+              'calendar_bookings',
+              `attendee_email=eq.${email}&order=created_at.desc&limit=1&select=id,provider_booking_id`
+            );
+            if (created?.[0]?.id) {
+              _liveBookingId = created[0].id;
+              _liveProviderBookingId = created[0].provider_booking_id ?? provId ?? null;
+              createdBookingIds.push(_liveBookingId!);
+              if (_liveProviderBookingId) createdEAAppointmentIds.push(Number(_liveProviderBookingId));
+              console.log(`[CAL-110] Fallback booking created: ${_liveBookingId}, EA: ${_liveProviderBookingId}`);
+            }
+          } else {
+            const errText = await res.text();
+            console.error(`[CAL-110] /api/calendar/book failed (${res.status()}): ${errText.slice(0, 300)}`);
+          }
+        } catch (err) {
+          console.error('[CAL-110] Fallback booking threw:', err);
+        }
+
+        // Verify the reply at least mentions something booking-related
         expect(reply).toMatch(/book|confirm|schedul|appoint|slot|time/i);
       }
     });
 
-    test('CAL-111: Booking visible in dashboard calendar page', async ({ page }) => {
-      test.skip(!liveBookingId, 'No booking');
+    // ── Helper: create a test booking via the API and return its IDs ──
+    // Playwright runs beforeAll/afterAll once PER TEST (due to retries config), so
+    // CAL-111–115 cannot rely on state shared from CAL-110. Each test creates its own
+    // booking via the API to ensure it is self-contained.
+    const createTestBooking = async (page: import('@playwright/test').Page, suffix = '') => {
+      const res = await page.request.post('/api/calendar/book', {
+        data: {
+          chatbotId: DASHBOARD_CHATBOT_ID,
+          sessionId: `e2e-cal-test-${Date.now()}${suffix}`,
+          start: `${bookingDate}T09:00:00.000Z`,
+          end:   `${bookingDate}T09:30:00.000Z`,
+          attendeeName:     'E2E Live Booker',
+          attendeeEmail:    'e2e-live@example.com',
+          attendeeTimezone: TIMEZONE,
+          notes: `E2E self-contained test${suffix}`,
+        },
+      });
+      const body = await res.json().catch(() => ({})) as {
+        data?: { id?: string; providerBookingId?: string };
+      };
+      const bookingId = body?.data?.id ?? null;
+      const eaId = body?.data?.providerBookingId
+        ? Number(body.data.providerBookingId)
+        : null;
+      if (bookingId) createdBookingIds.push(bookingId);
+      if (eaId) createdEAAppointmentIds.push(eaId);
+      return { bookingId, eaId };
+    };
 
+    // ── Helper: navigate to calendar page and open Booking History tab ──
+    const openHistoryTab = async (page: import('@playwright/test').Page) => {
       await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('domcontentloaded');
-
-      // Booking History section should show our booking
+      // Wait for network idle to ensure React hydration is complete
+      await page.waitForLoadState('networkidle');
+      // Use getByText since Radix UI ARIA roles (role="tab"/"tablist") are added after
+      // hydration and are unreliable in Playwright. getByText is stable and works.
       await expect(page.getByText('Booking History').first()).toBeVisible({ timeout: 15000 });
+      await page.getByText('Booking History').first().click({ force: true });
+      // Wait briefly for tab panel content to render after click
+      await page.waitForTimeout(500);
+    };
+
+    test('CAL-111: Booking visible in dashboard calendar page', async ({ page }) => {
+      test.skip(!integrationId, 'No integration');
+
+      // Self-contained: create our own booking rather than depending on CAL-110 shared state
+      const { bookingId } = await createTestBooking(page, '-cal111');
+      expect(bookingId).toBeTruthy();
+
+      await openHistoryTab(page);
       await expect(page.getByText('E2E Live Booker').first()).toBeVisible({ timeout: 15000 });
     });
 
     test('CAL-112: Booking appears in booking history list', async ({ page }) => {
-      test.skip(!liveBookingId, 'No booking');
+      test.skip(!integrationId, 'No integration');
 
-      await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('domcontentloaded');
+      const { bookingId } = await createTestBooking(page, '-cal112');
+      expect(bookingId).toBeTruthy();
 
-      await expect(page.getByText('Booking History').first()).toBeVisible({ timeout: 15000 });
-      // Verify the email is shown
+      await openHistoryTab(page);
       await expect(page.getByText('e2e-live@example.com').first()).toBeVisible({ timeout: 10000 });
     });
 
     test('CAL-113: Reschedule booking via widget chat', async ({ page }) => {
       test.setTimeout(180_000);
-      test.skip(!liveBookingId, 'No booking');
+      test.skip(!integrationId, 'No integration');
+
+      const { bookingId } = await createTestBooking(page, '-cal113');
+      expect(bookingId).toBeTruthy();
 
       await openWidget(page);
 
@@ -625,25 +720,25 @@ test.describe('Calendar Booking Integration', () => {
       // The AI may or may not complete the reschedule — verify it handled the request
       expect(reply.length).toBeGreaterThan(0);
 
-      // Check if provider booking ID changed
-      if (liveBookingId) {
+      // Check if provider booking ID changed (reschedule may create a new EA appointment)
+      if (bookingId) {
         const bookings = await supabaseSelect(
           'calendar_bookings',
-          `id=eq.${liveBookingId}&select=provider_booking_id`
+          `id=eq.${bookingId}&select=provider_booking_id`
         );
         if (bookings?.[0]?.provider_booking_id) {
-          liveProviderBookingId = bookings[0].provider_booking_id;
+          console.log(`[CAL-113] Provider booking ID after reschedule: ${bookings[0].provider_booking_id}`);
         }
       }
     });
 
     test('CAL-114: Cancel booking via dashboard UI', async ({ page }) => {
-      test.skip(!liveBookingId, 'No booking');
+      test.skip(!integrationId, 'No integration');
 
-      await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('domcontentloaded');
+      const { bookingId } = await createTestBooking(page, '-cal114');
+      expect(bookingId).toBeTruthy();
 
-      await expect(page.getByText('Booking History').first()).toBeVisible({ timeout: 15000 });
+      await openHistoryTab(page);
 
       // Find and click the cancel button for our booking
       const cancelBtn = page.locator(`button[aria-label="Cancel booking for E2E Live Booker"]`);
@@ -656,35 +751,44 @@ test.describe('Calendar Booking Integration', () => {
         // Verify status in DB
         const bookings = await supabaseSelect(
           'calendar_bookings',
-          `id=eq.${liveBookingId}&select=status`
+          `id=eq.${bookingId}&select=status`
         );
         if (bookings?.[0]) {
           expect(bookings[0].status).toBe('cancelled');
         }
-        console.log(`[CAL-114] Booking cancelled via dashboard: ${liveBookingId}`);
-        liveProviderBookingId = null;
+        console.log(`[CAL-114] Booking cancelled via dashboard: ${bookingId}`);
       } else {
         // Fallback: cancel via widget chat
         await openWidget(page);
         await sendMessage(page, `I need to cancel my appointment. My email is e2e-live@example.com.`);
         const reply = await getLastAssistantMessage(page);
         console.log(`[CAL-114] Cancel via widget reply: ${reply.slice(0, 200)}`);
-        liveProviderBookingId = null;
       }
     });
 
     test('CAL-115: Cancelled booking shows cancelled status in dashboard', async ({ page }) => {
-      test.skip(!liveBookingId, 'No booking');
+      test.skip(!integrationId, 'No integration');
 
-      await page.goto(CALENDAR_SETTINGS_URL);
-      await page.waitForLoadState('domcontentloaded');
+      // Create a booking then cancel it via API so we can verify the UI shows cancelled status
+      const { bookingId } = await createTestBooking(page, '-cal115');
+      expect(bookingId).toBeTruthy();
 
-      await expect(page.getByText('Booking History').first()).toBeVisible({ timeout: 15000 });
+      // Cancel the booking via API so it appears as cancelled in the dashboard
+      if (bookingId) {
+        await page.request.delete(`/api/calendar/bookings/${bookingId}`).catch(() => {});
+      }
 
-      // The booking should show as cancelled
-      const bodyText = await page.locator('body').textContent();
-      const hasCancelled = bodyText?.includes('cancelled') || bodyText?.includes('Cancelled');
-      expect(hasCancelled).toBeTruthy();
+      await openHistoryTab(page);
+
+      // The booking should show as cancelled (after the DELETE call above)
+      await expect(
+        page.locator('[data-status="cancelled"]').first()
+      ).toBeVisible({ timeout: 10000 }).catch(async () => {
+        // Fallback: check page text includes 'cancelled'
+        const bodyText = await page.locator('body').textContent();
+        const hasCancelled = bodyText?.toLowerCase().includes('cancelled');
+        expect(hasCancelled).toBeTruthy();
+      });
     });
 
     test('CAL-116: Second full lifecycle via widget (create + cancel)', async ({ page }) => {
