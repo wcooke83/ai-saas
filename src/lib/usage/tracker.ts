@@ -8,6 +8,7 @@ import { APIError } from '@/lib/api/utils';
 import { getMultiplierForProvider, getModelById, isUserAffiliate, type AIProvider } from '@/lib/settings';
 import { calculateTokenCost, type ModelBillingResult } from '@/types/ai-models';
 import type { CreditBalance, RateLimitStatus } from '@/types/billing';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 // ===================
 // TYPES
@@ -614,8 +615,14 @@ export async function deductCredits(
   if (!balance.isUnlimited && balance.totalAvailable < amount) {
     const topupResult = await triggerAutoTopupIfNeeded(userId, amount);
     if (!topupResult.success) {
-      throw APIError.usageLimitReached(
-        `Insufficient credits. You have ${balance.totalAvailable} credits, but need ${amount}.`
+      throw APIError.insufficientCredits(
+        `Insufficient credits. You have ${balance.totalAvailable} credits, but need ${amount}.`,
+        {
+          available: balance.totalAvailable,
+          needed: amount,
+          needs_topup: true,
+          upgrade_url: '/dashboard/billing',
+        }
       );
     }
   }
@@ -638,7 +645,13 @@ export async function deductCredits(
   const result = data?.[0];
 
   if (!result?.success) {
-    throw APIError.usageLimitReached('Insufficient credits');
+    const remaining = await getCreditBalance(userId);
+    throw APIError.insufficientCredits('Insufficient credits', {
+      available: remaining.totalAvailable,
+      needed: amount,
+      needs_topup: false,
+      upgrade_url: '/dashboard/billing',
+    });
   }
 
   return {
@@ -868,6 +881,57 @@ export async function checkUsageAndRateLimit(
 }
 
 // ===================
+// FULL CREDIT STATUS
+// ===================
+
+export interface FullCreditStatus {
+  plan_credits_limit: number;
+  plan_credits_used: number;
+  plan_credits_remaining: number;
+  purchased_credits: number;
+  bonus_credits: number;
+  total_available: number;
+  auto_topup_enabled: boolean;
+  period_end: string | null;
+  plan_slug: string;
+}
+
+/**
+ * Call the get_full_credit_status RPC and return typed result.
+ * Pass a server/admin Supabase client — do not create one internally
+ * so callers can use either anon (user-scoped) or service role.
+ */
+export async function getCreditStatus(
+  userId: string,
+  supabase: SupabaseClient
+): Promise<FullCreditStatus> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase.rpc as any)('get_full_credit_status', {
+    p_user_id: userId,
+  }) as { data: FullCreditStatus[] | null; error: unknown };
+
+  if (error) throw error;
+
+  const row = data?.[0];
+  if (!row) {
+    // No usage record yet — return safe defaults
+    return {
+      plan_credits_limit: 0,
+      plan_credits_used: 0,
+      plan_credits_remaining: 0,
+      purchased_credits: 0,
+      bonus_credits: 0,
+      total_available: 0,
+      auto_topup_enabled: false,
+      period_end: null,
+      plan_slug: 'free',
+    };
+  }
+
+  return row;
+}
+
+// ===================
 // CONVENIENCE EXPORT
 // ===================
 
@@ -888,4 +952,5 @@ export const trackUsage = {
   getRateLimitStatus,
   checkUsageAndRateLimit,
   triggerAutoTopup: triggerAutoTopupIfNeeded,
+  getCreditStatus,
 };

@@ -48,6 +48,13 @@ export class APIError extends Error {
   static usageLimitReached(message = 'Usage limit reached. Please upgrade.') {
     return new APIError(message, 403, 'USAGE_LIMIT_REACHED');
   }
+
+  static insufficientCredits(
+    message = 'Insufficient credits',
+    details?: { available: number; needed: number; needs_topup: boolean; upgrade_url: string }
+  ) {
+    return new APIError(message, 402, 'INSUFFICIENT_CREDITS', details);
+  }
 }
 
 // ===================
