@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -576,21 +575,12 @@ function PricingCard({
 // ────────────────────────────────────────────────────────────────────────────
 
 export default function PricingClient({ plans }: { plans: SubscriptionPlan[] }) {
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const prefersReducedMotion = useReducedMotion();
 
-  const [isYearly, setIsYearly] = useState(() => {
-    const billing = searchParams.get('billing');
-    return billing ? billing === 'annual' : true;
-  });
+  const [isYearly, setIsYearly] = useState(true);
 
   function toggleBilling() {
-    const next = !isYearly;
-    setIsYearly(next);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('billing', next ? 'annual' : 'monthly');
-    router.replace(`?${params.toString()}`, { scroll: false });
+    setIsYearly(prev => !prev);
   }
 
   const sortedPlans = sortPlansByDisplayOrder(plans);
