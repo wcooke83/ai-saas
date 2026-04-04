@@ -42,3 +42,9 @@ export {
 
 // Theme Components
 export { ThemeToggle, ThemeToggleSimple } from './theme-toggle';
+
+// Credit / Billing UI Components
+export { CreditMeter } from './credit-meter';
+export type { CreditMeterProps } from './credit-meter';
+export { CreditWarningBanner } from './credit-warning-banner';
+export type { CreditWarningBannerProps } from './credit-warning-banner';

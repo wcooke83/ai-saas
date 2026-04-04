@@ -1,164 +1,107 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { AlertTriangle, X, Zap } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { createClient } from '@/lib/supabase/client';
+import { CreditWarningBanner } from '@/components/ui/credit-warning-banner';
+import { CreditDepletionModal } from '@/components/billing/credit-depletion-modal';
 
-interface CreditUsage {
-  credits_used: number;
-  credits_limit: number;
-  period_start: string;
+interface CreditStatus {
+  alertLevel: '75' | '90' | '100' | null;
+  available: number;
+  isUnlimited: boolean;
+}
+
+interface CreditPack {
+  id: string;
+  name: string;
+  credit_amount: number;
+  price_cents: number;
+  sort_order: number;
+}
+
+function buildDismissKey(alertLevel: '75' | '90' | '100'): string {
+  // Session-scoped key (sessionStorage) so it clears on browser close
+  return `credit-alert-dismissed-${alertLevel}`;
 }
 
 export function CreditAlertBanner() {
-  const [creditUsage, setCreditUsage] = useState<CreditUsage | null>(null);
+  const [status, setStatus] = useState<CreditStatus | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [packs, setPacks] = useState<CreditPack[]>([]);
 
   useEffect(() => {
     async function checkCredits() {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      try {
+        const res = await fetch('/api/credit-alerts/check');
+        if (!res.ok) return;
+        const result = await res.json();
+        const data: CreditStatus = result?.data ?? result;
+        setStatus(data);
 
-      const { data } = await supabase
-        .from('usage')
-        .select('credits_used, credits_limit, period_start')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        if (data.alertLevel) {
+          const key = buildDismissKey(data.alertLevel);
+          if (sessionStorage.getItem(key) === 'true') {
+            setDismissed(true);
+          }
+        }
+      } catch {
+        // non-critical
+      }
+    }
 
-      if (data) {
-        setCreditUsage(data as CreditUsage);
+    async function loadPacks() {
+      try {
+        const res = await fetch('/api/credit-packages');
+        if (!res.ok) return;
+        const result = await res.json();
+        const data: CreditPack[] = result?.data?.packages ?? [];
+        setPacks(data.slice(0, 3));
+      } catch {
+        // non-critical
       }
     }
 
     checkCredits();
+    loadPacks();
   }, []);
 
-  if (!creditUsage) return null;
-
-  const { credits_used, credits_limit, period_start } = creditUsage;
-
-  // Unlimited plans
-  if (credits_limit >= 999999) return null;
-
-  const percentUsed = Math.round((credits_used / credits_limit) * 100);
-
-  if (percentUsed < 75) return null;
-
-  const threshold = percentUsed >= 90 ? 90 : 75;
-  const dismissKey = `credit-alert-dismissed-${threshold}-${period_start}`;
-
-  // Check localStorage dismissal (done after threshold calculation so key is stable)
-  if (typeof window !== 'undefined' && localStorage.getItem(dismissKey) === 'true') {
-    return null;
-  }
-
-  if (dismissed) return null;
+  if (!status || status.isUnlimited || !status.alertLevel || dismissed) return null;
 
   function handleDismiss() {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(dismissKey, 'true');
+    if (status?.alertLevel) {
+      sessionStorage.setItem(buildDismissKey(status.alertLevel), 'true');
     }
     setDismissed(true);
   }
 
-  if (threshold === 90) {
-    return (
-      <div
-        className="relative rounded-lg border p-4 mb-6 bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700"
-        role="alert"
-      >
-        <div className="flex items-start gap-3">
-          <AlertTriangle
-            className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-600 dark:text-red-400"
-            aria-hidden="true"
-          />
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-red-800 dark:text-red-200">
-              Only 10% of your credits remain
-            </h3>
-            <p className="text-sm mt-1 text-red-700 dark:text-red-300">
-              When you hit zero, all your chatbots go offline and stop answering questions. Add credits now or enable auto-topup before that happens.
-            </p>
-            <div className="mt-3">
-              <Button size="sm" variant="destructive" asChild>
-                <Link href="/dashboard/billing">
-                  <Zap className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Add Credits Now
-                </Link>
-              </Button>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={handleDismiss}
-            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
-            aria-label="Dismiss"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-        <p className="mt-2 ml-8 text-xs">
-          <button
-            type="button"
-            onClick={handleDismiss}
-            className="text-red-600 dark:text-red-400 hover:underline"
-          >
-            I'll handle it later
-          </button>
-        </p>
-      </div>
-    );
+  function handleBuyCredits() {
+    setShowModal(true);
   }
 
+  const mappedPacks = packs.map((p) => ({
+    id: p.id,
+    slug: p.id,
+    name: p.name,
+    credits: p.credit_amount,
+    bonusCredits: 0,
+    priceCents: p.price_cents,
+  }));
+
   return (
-    <div
-      className="relative rounded-lg border p-4 mb-6 bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700"
-      role="alert"
-    >
-      <div className="flex items-start gap-3">
-        <AlertTriangle
-          className="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-600 dark:text-amber-400"
-          aria-hidden="true"
-        />
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-200">
-            You've used 75% of your monthly credits
-          </h3>
-          <p className="text-sm mt-1 text-amber-700 dark:text-amber-300">
-            Your chatbots will stop responding when credits run out. Enable auto-topup to stay online automatically, or buy more credits now.
-          </p>
-          <div className="mt-3">
-            <Button size="sm" variant="default" asChild>
-              <Link href="/dashboard/billing">
-                <Zap className="w-4 h-4 mr-2" aria-hidden="true" />
-                Add Credits
-              </Link>
-            </Button>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={handleDismiss}
-          className="text-amber-500 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-200"
-          aria-label="Dismiss"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-      <p className="mt-2 ml-8 text-xs">
-        <button
-          type="button"
-          onClick={handleDismiss}
-          className="text-amber-600 dark:text-amber-400 hover:underline"
-        >
-          Remind me later
-        </button>
-      </p>
-    </div>
+    <>
+      <CreditWarningBanner
+        alertLevel={status.alertLevel}
+        available={status.available}
+        onDismiss={handleDismiss}
+        onBuyCredits={handleBuyCredits}
+      />
+      <CreditDepletionModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        needed={0}
+        available={status.available}
+        packs={mappedPacks}
+      />
+    </>
   );
 }
