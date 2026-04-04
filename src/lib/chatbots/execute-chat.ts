@@ -49,7 +49,7 @@ import { DEFAULT_FILE_UPLOAD_CONFIG } from './types';
 
 // ── Types ───────────────────────────────────────────────────────────
 
-export type ChatChannel = 'widget' | 'api' | 'slack' | 'telegram' | 'whatsapp' | 'discord' | 'teams' | 'zapier';
+export type ChatChannel = 'widget' | 'api' | 'slack' | 'telegram' | 'whatsapp' | 'messenger' | 'instagram' | 'sms' | 'email' | 'discord' | 'teams' | 'zapier';
 
 export interface ExecuteChatInput {
   chatbotId: string;

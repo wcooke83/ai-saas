@@ -19,7 +19,11 @@ import { DEFAULT_WIDGET_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, CHATBOT_PLAN_LIMITS,
 import { checkReembedStatus } from '@/lib/chatbots/reembed-check';
 import { encryptTelegramConfig, decryptTelegramConfig, encryptToken, decryptToken } from '@/lib/telegram/crypto';
 import { encryptWhatsAppConfig, decryptWhatsAppConfig } from '@/lib/whatsapp/crypto';
+import { encryptMessengerConfig, decryptMessengerConfig } from '@/lib/messenger/crypto';
+import { encryptInstagramConfig, decryptInstagramConfig } from '@/lib/instagram/crypto';
+import { encryptSmsConfig, decryptSmsConfig } from '@/lib/sms/crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { requireChatbotAccess } from '@/lib/auth/agent-permissions';
 
 // Update chatbot validation schema
 const updateChatbotSchema = z.object({
@@ -49,6 +53,10 @@ const updateChatbotSchema = z.object({
   live_handoff_config: z.record(z.unknown()).optional(),
   telegram_config: z.record(z.unknown()).optional(),
   whatsapp_config: z.record(z.unknown()).optional(),
+  messenger_config: z.record(z.unknown()).optional(),
+  instagram_config: z.record(z.unknown()).optional(),
+  sms_config: z.record(z.unknown()).optional(),
+  email_config: z.record(z.unknown()).optional(),
   teams_config: z.record(z.unknown()).optional(),
   discord_config: z.record(z.unknown()).optional(),
   live_fetch_threshold: z.number().min(0.5).max(0.95).optional(),
@@ -95,6 +103,24 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       (chatbot as any).whatsapp_config = decryptWhatsAppConfig(chatbot.whatsapp_config as unknown as Record<string, unknown>);
     }
 
+    // Decrypt messenger access token before sending to client
+    if (chatbot.messenger_config && typeof chatbot.messenger_config === 'object' && !Array.isArray(chatbot.messenger_config)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (chatbot as any).messenger_config = decryptMessengerConfig(chatbot.messenger_config as unknown as Record<string, unknown>);
+    }
+
+    // Decrypt instagram access token before sending to client
+    if (chatbot.instagram_config && typeof chatbot.instagram_config === 'object' && !Array.isArray(chatbot.instagram_config)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (chatbot as any).instagram_config = decryptInstagramConfig(chatbot.instagram_config as unknown as Record<string, unknown>);
+    }
+
+    // Decrypt SMS auth token before sending to client
+    if (chatbot.sms_config && typeof chatbot.sms_config === 'object' && !Array.isArray(chatbot.sms_config)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (chatbot as any).sms_config = decryptSmsConfig(chatbot.sms_config as unknown as Record<string, unknown>);
+    }
+
     // Decrypt discord bot token before sending to client
     if (chatbot.discord_config && typeof chatbot.discord_config === 'object' && !Array.isArray(chatbot.discord_config)) {
       const dc = chatbot.discord_config as unknown as Record<string, unknown>;
@@ -129,19 +155,25 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       throw APIError.unauthorized('Authentication required');
     }
 
+    // Verify owner or assigned agent with can_modify_settings
+    await requireChatbotAccess(id, user.id, 'can_modify_settings');
+
     // Get existing chatbot
     const existing = await getChatbot(id);
-    if (!existing || existing.user_id !== user.id) {
+    if (!existing) {
       throw APIError.notFound('Chatbot not found');
     }
 
     // Validate input
     const input = await parseBody(req, updateChatbotSchema);
 
+    // Plan gates run against the chatbot owner's subscription, not the agent's
+    const ownerUserId = existing.user_id;
+
     // Handle slug update if name changed
     let slug = existing.slug;
     if (input.name && input.name !== existing.name) {
-      slug = await generateUniqueSlug(user.id, input.name);
+      slug = await generateUniqueSlug(ownerUserId, input.name);
     }
 
     // Merge widget config if provided
@@ -159,7 +191,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         const { data: sub } = await adminSupabase
           .from('subscriptions')
           .select('plan')
-          .eq('user_id', user.id)
+          .eq('user_id', ownerUserId)
           .single();
         const planSlug = sub?.plan || 'free';
         const brandingAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.customBranding ?? false;
@@ -192,7 +224,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         const { data: sub } = await adminSupabase
           .from('subscriptions')
           .select('plan')
-          .eq('user_id', user.id)
+          .eq('user_id', ownerUserId)
           .single();
         const planSlug = sub?.plan || 'free';
         const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.telegramIntegration ?? false;
@@ -215,7 +247,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         const { data: sub } = await adminSupabase
           .from('subscriptions')
           .select('plan')
-          .eq('user_id', user.id)
+          .eq('user_id', ownerUserId)
           .single();
         const planSlug = sub?.plan || 'free';
         const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.whatsappIntegration ?? false;
@@ -230,6 +262,93 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       input.whatsapp_config = encryptWhatsAppConfig(input.whatsapp_config as Record<string, unknown>);
     }
 
+    // Gate Messenger integration behind Pro+ plan
+    if (input.messenger_config && typeof input.messenger_config === 'object') {
+      const mc = input.messenger_config as Record<string, unknown>;
+      if (mc.enabled === true || mc.ai_responses_enabled === true) {
+        const adminSupabase = createAdminClient();
+        const { data: sub } = await adminSupabase
+          .from('subscriptions')
+          .select('plan')
+          .eq('user_id', user.id)
+          .single();
+        const planSlug = sub?.plan || 'free';
+        const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.messengerIntegration ?? false;
+        if (!planAllowed) {
+          throw APIError.forbidden('Messenger integration requires a Pro or Agency plan');
+        }
+      }
+    }
+
+    // Encrypt messenger access token before storing
+    if (input.messenger_config && typeof input.messenger_config === 'object') {
+      input.messenger_config = encryptMessengerConfig(input.messenger_config as Record<string, unknown>);
+    }
+
+    // Gate Instagram integration behind Pro+ plan
+    if (input.instagram_config && typeof input.instagram_config === 'object') {
+      const ic = input.instagram_config as Record<string, unknown>;
+      if (ic.enabled === true || ic.ai_responses_enabled === true) {
+        const adminSupabase = createAdminClient();
+        const { data: sub } = await adminSupabase
+          .from('subscriptions')
+          .select('plan')
+          .eq('user_id', user.id)
+          .single();
+        const planSlug = sub?.plan || 'free';
+        const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.instagramIntegration ?? false;
+        if (!planAllowed) {
+          throw APIError.forbidden('Instagram integration requires a Pro or Agency plan');
+        }
+      }
+    }
+
+    // Encrypt instagram access token before storing
+    if (input.instagram_config && typeof input.instagram_config === 'object') {
+      input.instagram_config = encryptInstagramConfig(input.instagram_config as Record<string, unknown>);
+    }
+
+    // Gate SMS integration behind Pro+ plan
+    if (input.sms_config && typeof input.sms_config === 'object') {
+      const sc = input.sms_config as Record<string, unknown>;
+      if (sc.enabled === true || sc.ai_responses_enabled === true) {
+        const adminSupabase = createAdminClient();
+        const { data: sub } = await adminSupabase
+          .from('subscriptions')
+          .select('plan')
+          .eq('user_id', ownerUserId)
+          .single();
+        const planSlug = sub?.plan || 'free';
+        const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.smsIntegration ?? false;
+        if (!planAllowed) {
+          throw APIError.forbidden('SMS integration requires a Pro or Agency plan');
+        }
+      }
+    }
+
+    // Encrypt SMS auth token before storing
+    if (input.sms_config && typeof input.sms_config === 'object') {
+      input.sms_config = encryptSmsConfig(input.sms_config as Record<string, unknown>);
+    }
+
+    // Gate Email integration behind Pro+ plan
+    if (input.email_config && typeof input.email_config === 'object') {
+      const ec = input.email_config as Record<string, unknown>;
+      if (ec.enabled === true || ec.ai_responses_enabled === true) {
+        const adminSupabase = createAdminClient();
+        const { data: sub } = await adminSupabase
+          .from('subscriptions')
+          .select('plan')
+          .eq('user_id', user.id)
+          .single();
+        const planSlug = sub?.plan || 'free';
+        const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.emailIntegration ?? false;
+        if (!planAllowed) {
+          throw APIError.forbidden('Email integration requires a Pro or Agency plan');
+        }
+      }
+    }
+
     // Gate Discord integration behind Pro+ plan
     if (input.discord_config && typeof input.discord_config === 'object') {
       const dc = input.discord_config as Record<string, unknown>;
@@ -238,7 +357,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         const { data: sub } = await adminSupabase
           .from('subscriptions')
           .select('plan')
-          .eq('user_id', user.id)
+          .eq('user_id', ownerUserId)
           .single();
         const planSlug = sub?.plan || 'free';
         const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.discordIntegration ?? false;
@@ -264,7 +383,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         const { data: sub } = await adminSupabase
           .from('subscriptions')
           .select('plan')
-          .eq('user_id', user.id)
+          .eq('user_id', ownerUserId)
           .single();
         const planSlug = sub?.plan || 'free';
         const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.teamsIntegration ?? false;

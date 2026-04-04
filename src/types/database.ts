@@ -1096,6 +1096,10 @@ export type Database = {
           user_id: string
           welcome_message: string | null
           whatsapp_config: Json | null
+          messenger_config: Json | null
+          instagram_config: Json | null
+          sms_config: Json | null
+          email_config: Json | null
           widget_config: Json | null
         }
         Insert: {
@@ -1151,6 +1155,10 @@ export type Database = {
           user_id: string
           welcome_message?: string | null
           whatsapp_config?: Json | null
+          messenger_config?: Json | null
+          instagram_config?: Json | null
+          sms_config?: Json | null
+          email_config?: Json | null
           widget_config?: Json | null
         }
         Update: {
@@ -1206,6 +1214,10 @@ export type Database = {
           user_id?: string
           welcome_message?: string | null
           whatsapp_config?: Json | null
+          messenger_config?: Json | null
+          instagram_config?: Json | null
+          sms_config?: Json | null
+          email_config?: Json | null
           widget_config?: Json | null
         }
         Relationships: [

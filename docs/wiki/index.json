@@ -1,6 +1,56 @@
 {
   "categories": [
     {
+      "id": "integrations",
+      "title": "Integrations",
+      "icon": "Plug",
+      "description": "Connect your chatbot to messaging platforms and channels",
+      "pages": [
+        {
+          "id": "slack-integration",
+          "file": "slack-integration.md",
+          "title": "Slack Integration",
+          "description": "Connect your chatbot to Slack so team members can interact with it directly from any channel",
+          "order": 1
+        },
+        {
+          "id": "whatsapp-integration",
+          "file": "whatsapp-integration.md",
+          "title": "WhatsApp Integration",
+          "description": "Deploy your chatbot on WhatsApp Business so customers can get AI-powered answers via WhatsApp",
+          "order": 2
+        },
+        {
+          "id": "messenger-integration",
+          "file": "messenger-integration.md",
+          "title": "Facebook Messenger Integration",
+          "description": "Deploy your chatbot on Facebook Messenger so customers can message your Page and get AI-powered answers",
+          "order": 3
+        },
+        {
+          "id": "instagram-integration",
+          "file": "instagram-integration.md",
+          "title": "Instagram DM Integration",
+          "description": "Deploy your chatbot on Instagram Direct Messages to respond automatically to incoming DMs",
+          "order": 4
+        },
+        {
+          "id": "email-inbound-integration",
+          "file": "email-inbound-integration.md",
+          "title": "Email Inbound Integration",
+          "description": "Give your chatbot a dedicated email address so customers can email it and receive AI-powered replies",
+          "order": 5
+        },
+        {
+          "id": "sms-twilio-integration",
+          "file": "sms-twilio-integration.md",
+          "title": "SMS Integration (Twilio)",
+          "description": "Connect your Twilio phone number so customers can text it and receive AI-powered replies",
+          "order": 6
+        }
+      ]
+    },
+    {
       "id": "getting-started",
       "title": "Getting Started",
       "icon": "Rocket",

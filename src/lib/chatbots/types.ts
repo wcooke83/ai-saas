@@ -501,6 +501,59 @@ export const DEFAULT_WHATSAPP_CONFIG: WhatsAppConfig = {
   ai_responses_enabled: false,
 };
 
+export interface MessengerConfig {
+  enabled: boolean;
+  page_id?: string;
+  page_name?: string;
+  access_token?: string;
+  ai_responses_enabled?: boolean;
+}
+
+export const DEFAULT_MESSENGER_CONFIG: MessengerConfig = {
+  enabled: false,
+  ai_responses_enabled: false,
+};
+
+export interface InstagramConfig {
+  enabled: boolean;
+  instagram_id?: string;
+  username?: string;
+  access_token?: string;
+  ai_responses_enabled?: boolean;
+}
+
+export const DEFAULT_INSTAGRAM_CONFIG: InstagramConfig = {
+  enabled: false,
+  ai_responses_enabled: false,
+};
+
+export interface EmailConfig {
+  enabled: boolean;
+  email_address?: string;
+  ai_responses_enabled?: boolean;
+  reply_name?: string;
+}
+
+export const DEFAULT_EMAIL_CONFIG: EmailConfig = {
+  enabled: false,
+  ai_responses_enabled: true,
+};
+
+export interface SmsConfig {
+  enabled: boolean;
+  account_sid?: string;          // Twilio Account SID (ACxxxxxxx)
+  auth_token?: string;           // AES-256-GCM encrypted at rest (prefix: "enc:")
+  phone_number?: string;         // E.164 format: "+14155551234"
+  max_response_length?: number;  // Default: 320 chars (2 SMS segments)
+  ai_responses_enabled?: boolean;
+}
+
+export const DEFAULT_SMS_CONFIG: SmsConfig = {
+  enabled: false,
+  ai_responses_enabled: false,
+  max_response_length: 320,
+};
+
 export interface TeamsConfig {
   enabled: boolean;
   app_id?: string;
@@ -700,6 +753,18 @@ export interface Chatbot {
   // WhatsApp
   whatsapp_config?: WhatsAppConfig;
 
+  // Messenger
+  messenger_config?: MessengerConfig;
+
+  // Instagram
+  instagram_config?: InstagramConfig;
+
+  // SMS / Twilio
+  sms_config?: SmsConfig;
+
+  // Email
+  email_config?: EmailConfig;
+
   // Microsoft Teams
   teams_config?: TeamsConfig;
 
@@ -765,6 +830,10 @@ export interface ChatbotInsert {
   live_handoff_config?: LiveHandoffConfig;
   telegram_config?: TelegramConfig;
   whatsapp_config?: WhatsAppConfig;
+  messenger_config?: MessengerConfig;
+  instagram_config?: InstagramConfig;
+  sms_config?: SmsConfig;
+  email_config?: EmailConfig;
   credit_exhaustion_mode?: CreditExhaustionMode;
   credit_exhaustion_config?: CreditExhaustionConfig;
   allowed_origins?: string[] | null;
@@ -804,6 +873,10 @@ export interface ChatbotUpdate {
   live_handoff_config?: LiveHandoffConfig;
   telegram_config?: TelegramConfig;
   whatsapp_config?: WhatsAppConfig;
+  messenger_config?: MessengerConfig;
+  instagram_config?: InstagramConfig;
+  sms_config?: SmsConfig;
+  email_config?: EmailConfig;
   teams_config?: TeamsConfig;
   discord_config?: DiscordConfig;
   credit_exhaustion_mode?: CreditExhaustionMode;
@@ -919,7 +992,7 @@ export interface KnowledgeChunkMatch {
 // CONVERSATIONS
 // ============================================
 
-export type ConversationChannel = 'widget' | 'api' | 'slack' | 'telegram' | 'whatsapp' | 'discord' | 'teams' | 'zapier';
+export type ConversationChannel = 'widget' | 'api' | 'slack' | 'telegram' | 'whatsapp' | 'messenger' | 'instagram' | 'sms' | 'email' | 'discord' | 'teams' | 'zapier';
 export type ConversationStatus = 'active' | 'closed' | 'archived';
 
 export interface ConversationMemory {
@@ -1202,6 +1275,10 @@ export interface ChatbotPlanLimits {
   slackIntegration: boolean;
   telegramIntegration: boolean;
   whatsappIntegration: boolean;
+  messengerIntegration: boolean;
+  instagramIntegration: boolean;
+  smsIntegration: boolean;
+  emailIntegration: boolean;
   discordIntegration: boolean;
   teamsIntegration: boolean;
   apiAccess: boolean;
@@ -1217,6 +1294,10 @@ export const CHATBOT_PLAN_LIMITS: Record<string, ChatbotPlanLimits> = {
     slackIntegration: false,
     telegramIntegration: false,
     whatsappIntegration: false,
+    messengerIntegration: false,
+    instagramIntegration: false,
+    smsIntegration: false,
+    emailIntegration: false,
     discordIntegration: false,
     teamsIntegration: false,
     apiAccess: false,
@@ -1230,6 +1311,10 @@ export const CHATBOT_PLAN_LIMITS: Record<string, ChatbotPlanLimits> = {
     slackIntegration: true,
     telegramIntegration: true,
     whatsappIntegration: true,
+    messengerIntegration: true,
+    instagramIntegration: true,
+    smsIntegration: true,
+    emailIntegration: true,
     discordIntegration: true,
     teamsIntegration: true,
     apiAccess: true,
@@ -1243,6 +1328,10 @@ export const CHATBOT_PLAN_LIMITS: Record<string, ChatbotPlanLimits> = {
     slackIntegration: true,
     telegramIntegration: true,
     whatsappIntegration: true,
+    messengerIntegration: true,
+    instagramIntegration: true,
+    smsIntegration: true,
+    emailIntegration: true,
     discordIntegration: true,
     teamsIntegration: true,
     apiAccess: true,

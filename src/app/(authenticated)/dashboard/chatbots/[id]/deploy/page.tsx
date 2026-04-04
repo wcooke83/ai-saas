@@ -8,7 +8,7 @@ import {
   Code, Copy, Check, ExternalLink, Globe, Terminal,
   Info, BookOpen, FileCode, Zap, Headphones, ChevronDown, AlertTriangle,
   Eye, EyeOff, Loader2, MessageSquare, Settings, Send,
-  Phone, Users, Gamepad2
+  Phone, Users, Gamepad2, Smartphone, Mail
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -139,6 +139,47 @@ export default function DeployPage({ params }: DeployPageProps) {
   const [discordAiEnabled, setDiscordAiEnabled] = useState(false);
   const [discordAiSaving, setDiscordAiSaving] = useState(false);
 
+  // Messenger state
+  const [messengerPageId, setMessengerPageId] = useState('');
+  const [messengerPageName, setMessengerPageName] = useState('');
+  const [messengerAccessToken, setMessengerAccessToken] = useState('');
+  const [messengerConnecting, setMessengerConnecting] = useState(false);
+  const [messengerDisconnecting, setMessengerDisconnecting] = useState(false);
+  const [messengerLoading, setMessengerLoading] = useState(true);
+  const [messengerConnected, setMessengerConnected] = useState(false);
+  const [messengerAiEnabled, setMessengerAiEnabled] = useState(false);
+  const [messengerAiSaving, setMessengerAiSaving] = useState(false);
+
+  // Instagram state
+  const [instagramId, setInstagramId] = useState('');
+  const [instagramUsername, setInstagramUsername] = useState('');
+  const [instagramAccessToken, setInstagramAccessToken] = useState('');
+  const [instagramConnecting, setInstagramConnecting] = useState(false);
+  const [instagramDisconnecting, setInstagramDisconnecting] = useState(false);
+  const [instagramLoading, setInstagramLoading] = useState(true);
+  const [instagramConnected, setInstagramConnected] = useState(false);
+  const [instagramAiEnabled, setInstagramAiEnabled] = useState(false);
+  const [instagramAiSaving, setInstagramAiSaving] = useState(false);
+
+  // Email state
+  const [emailEnabled, setEmailEnabled] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(true);
+  const [emailSaving, setEmailSaving] = useState(false);
+  const [emailAddress, setEmailAddress] = useState<string | null>(null);
+  const [emailReplyName, setEmailReplyName] = useState('');
+  const [emailAiEnabled, setEmailAiEnabled] = useState(true);
+
+  // SMS state
+  const [smsAccountSid, setSmsAccountSid] = useState('');
+  const [smsAuthToken, setSmsAuthToken] = useState('');
+  const [smsPhoneNumber, setSmsPhoneNumber] = useState('');
+  const [smsConnecting, setSmsConnecting] = useState(false);
+  const [smsDisconnecting, setSmsDisconnecting] = useState(false);
+  const [smsLoading, setSmsLoading] = useState(true);
+  const [smsConnected, setSmsConnected] = useState(false);
+  const [smsAiEnabled, setSmsAiEnabled] = useState(false);
+  const [smsAiSaving, setSmsAiSaving] = useState(false);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('slack_connected')) {
@@ -194,12 +235,43 @@ export default function DeployPage({ params }: DeployPageProps) {
           setDiscordConnected(true);
           setDiscordAiEnabled(dc.ai_responses_enabled ?? false);
         }
+        // Messenger
+        const mc = bot?.messenger_config;
+        if (mc?.page_id && mc?.enabled) {
+          setMessengerConnected(true);
+          setMessengerAiEnabled(mc.ai_responses_enabled ?? false);
+        }
+        // Instagram
+        const ic = bot?.instagram_config;
+        if (ic?.instagram_id && ic?.enabled) {
+          setInstagramConnected(true);
+          setInstagramAiEnabled(ic.ai_responses_enabled ?? false);
+        }
+        // SMS
+        const sc = bot?.sms_config;
+        if (sc?.account_sid && sc?.enabled) {
+          setSmsConnected(true);
+          setSmsAiEnabled(sc.ai_responses_enabled ?? false);
+        }
+        setSmsLoading(false);
+        // Email
+        const ec = bot?.email_config;
+        if (ec?.enabled) {
+          setEmailEnabled(true);
+          setEmailAddress(ec.email_address || null);
+          setEmailReplyName(ec.reply_name || '');
+          setEmailAiEnabled(ec.ai_responses_enabled !== false);
+        }
+        setEmailLoading(false);
       })
       .finally(() => {
         setTelegramLoading(false);
         setWhatsappLoading(false);
         setTeamsLoading(false);
         setDiscordLoading(false);
+        setMessengerLoading(false);
+        setInstagramLoading(false);
+        setSmsLoading(false);
       });
   }, [id]);
 
@@ -592,6 +664,293 @@ export default function DeployPage({ params }: DeployPageProps) {
     }
   };
 
+  // ===== Messenger handlers =====
+  const handleMessengerConnect = async () => {
+    if (!messengerPageId.trim() || !messengerAccessToken.trim()) {
+      toast.error('Please enter your Page ID and Access Token');
+      return;
+    }
+    setMessengerConnecting(true);
+    try {
+      const patchRes = await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messenger_config: {
+            enabled: true,
+            page_id: messengerPageId.trim(),
+            page_name: messengerPageName.trim() || undefined,
+            access_token: messengerAccessToken.trim(),
+            ai_responses_enabled: true,
+          },
+        }),
+      });
+      if (!patchRes.ok) throw new Error((await patchRes.json()).error?.message || 'Failed to save config');
+      const setupRes = await fetch(`/api/messenger/setup?chatbot_id=${id}`, { method: 'POST' });
+      if (!setupRes.ok) throw new Error((await setupRes.json()).error || 'Failed to set up Messenger webhook');
+      setMessengerConnected(true);
+      setMessengerAiEnabled(true);
+      setMessengerPageId('');
+      setMessengerPageName('');
+      setMessengerAccessToken('');
+      toast.success('Messenger connected successfully');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to connect Messenger');
+    } finally {
+      setMessengerConnecting(false);
+    }
+  };
+
+  const handleMessengerDisconnect = async () => {
+    setMessengerDisconnecting(true);
+    try {
+      await fetch(`/api/messenger/setup?chatbot_id=${id}`, { method: 'DELETE' });
+      await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messenger_config: { enabled: false } }),
+      });
+      setMessengerConnected(false);
+      setMessengerAiEnabled(false);
+      toast.success('Messenger disconnected');
+    } catch {
+      toast.error('Failed to disconnect Messenger');
+    } finally {
+      setMessengerDisconnecting(false);
+    }
+  };
+
+  const handleMessengerAiToggle = async () => {
+    const newValue = !messengerAiEnabled;
+    setMessengerAiEnabled(newValue);
+    setMessengerAiSaving(true);
+    try {
+      const res = await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messenger_config: { ...chatbot?.messenger_config, ai_responses_enabled: newValue } }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error?.message || 'Failed to save');
+      toast.success(`AI responses ${newValue ? 'enabled' : 'disabled'}`);
+    } catch (err) {
+      setMessengerAiEnabled(!newValue);
+      toast.error(err instanceof Error ? err.message : 'Failed to update setting');
+    } finally {
+      setMessengerAiSaving(false);
+    }
+  };
+
+  // ===== Instagram handlers =====
+  const handleInstagramConnect = async () => {
+    if (!instagramId.trim() || !instagramAccessToken.trim()) {
+      toast.error('Please enter your Instagram ID and Access Token');
+      return;
+    }
+    setInstagramConnecting(true);
+    try {
+      const patchRes = await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instagram_config: {
+            enabled: true,
+            instagram_id: instagramId.trim(),
+            username: instagramUsername.trim() || undefined,
+            access_token: instagramAccessToken.trim(),
+            ai_responses_enabled: true,
+          },
+        }),
+      });
+      if (!patchRes.ok) throw new Error((await patchRes.json()).error?.message || 'Failed to save config');
+      const setupRes = await fetch(`/api/instagram/setup?chatbot_id=${id}`, { method: 'POST' });
+      if (!setupRes.ok) throw new Error((await setupRes.json()).error || 'Failed to set up Instagram webhook');
+      setInstagramConnected(true);
+      setInstagramAiEnabled(true);
+      setInstagramId('');
+      setInstagramUsername('');
+      setInstagramAccessToken('');
+      toast.success('Instagram connected successfully');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to connect Instagram');
+    } finally {
+      setInstagramConnecting(false);
+    }
+  };
+
+  const handleInstagramDisconnect = async () => {
+    setInstagramDisconnecting(true);
+    try {
+      await fetch(`/api/instagram/setup?chatbot_id=${id}`, { method: 'DELETE' });
+      await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ instagram_config: { enabled: false } }),
+      });
+      setInstagramConnected(false);
+      setInstagramAiEnabled(false);
+      toast.success('Instagram disconnected');
+    } catch {
+      toast.error('Failed to disconnect Instagram');
+    } finally {
+      setInstagramDisconnecting(false);
+    }
+  };
+
+  const handleInstagramAiToggle = async () => {
+    const newValue = !instagramAiEnabled;
+    setInstagramAiEnabled(newValue);
+    setInstagramAiSaving(true);
+    try {
+      const res = await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ instagram_config: { ...chatbot?.instagram_config, ai_responses_enabled: newValue } }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error?.message || 'Failed to save');
+      toast.success(`AI responses ${newValue ? 'enabled' : 'disabled'}`);
+    } catch (err) {
+      setInstagramAiEnabled(!newValue);
+      toast.error(err instanceof Error ? err.message : 'Failed to update setting');
+    } finally {
+      setInstagramAiSaving(false);
+    }
+  };
+
+  // ===== Email handlers =====
+  const handleEmailEnable = async () => {
+    setEmailSaving(true);
+    try {
+      const res = await fetch(`/api/email/setup?chatbot_id=${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reply_name: emailReplyName, ai_responses_enabled: emailAiEnabled }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to enable email');
+      setEmailEnabled(true);
+      setEmailAddress(data.data.email_address);
+      toast.success('Email integration enabled');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to enable email integration');
+    } finally {
+      setEmailSaving(false);
+    }
+  };
+
+  const handleEmailDisable = async () => {
+    setEmailSaving(true);
+    try {
+      const res = await fetch(`/api/email/setup?chatbot_id=${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to disable email');
+      setEmailEnabled(false);
+      setEmailAddress(null);
+      toast.success('Email integration disabled');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to disable email integration');
+    } finally {
+      setEmailSaving(false);
+    }
+  };
+
+  const handleEmailSettingsSave = async () => {
+    setEmailSaving(true);
+    try {
+      const res = await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email_config: {
+            ...chatbot?.email_config,
+            reply_name: emailReplyName,
+            ai_responses_enabled: emailAiEnabled,
+          },
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error?.message || 'Failed to save');
+      toast.success('Email settings saved');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save email settings');
+    } finally {
+      setEmailSaving(false);
+    }
+  };
+
+  // ===== SMS handlers =====
+  const handleSmsConnect = async () => {
+    if (!smsAccountSid.trim() || !smsAuthToken.trim() || !smsPhoneNumber.trim()) {
+      toast.error('Please enter your Account SID, Auth Token, and phone number');
+      return;
+    }
+    setSmsConnecting(true);
+    try {
+      const patchRes = await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sms_config: {
+            enabled: true,
+            account_sid: smsAccountSid.trim(),
+            auth_token: smsAuthToken.trim(),
+            phone_number: smsPhoneNumber.trim(),
+            ai_responses_enabled: true,
+          },
+        }),
+      });
+      if (!patchRes.ok) throw new Error((await patchRes.json()).error?.message || 'Failed to save config');
+      const setupRes = await fetch(`/api/sms/setup?chatbot_id=${id}`, { method: 'POST' });
+      if (!setupRes.ok) throw new Error((await setupRes.json()).error || 'Failed to set up SMS webhook');
+      setSmsConnected(true);
+      setSmsAiEnabled(true);
+      setSmsAccountSid('');
+      setSmsAuthToken('');
+      setSmsPhoneNumber('');
+      toast.success('SMS connected successfully');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to connect SMS');
+    } finally {
+      setSmsConnecting(false);
+    }
+  };
+
+  const handleSmsDisconnect = async () => {
+    setSmsDisconnecting(true);
+    try {
+      await fetch(`/api/sms/setup?chatbot_id=${id}`, { method: 'DELETE' });
+      await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sms_config: { enabled: false } }),
+      });
+      setSmsConnected(false);
+      setSmsAiEnabled(false);
+      toast.success('SMS disconnected');
+    } catch {
+      toast.error('Failed to disconnect SMS');
+    } finally {
+      setSmsDisconnecting(false);
+    }
+  };
+
+  const handleSmsAiToggle = async () => {
+    const newValue = !smsAiEnabled;
+    setSmsAiEnabled(newValue);
+    setSmsAiSaving(true);
+    try {
+      const res = await fetch(`/api/chatbots/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sms_config: { ...chatbot?.sms_config, ai_responses_enabled: newValue } }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error?.message || 'Failed to save');
+      toast.success(`AI responses ${newValue ? 'enabled' : 'disabled'}`);
+    } catch (err) {
+      setSmsAiEnabled(!newValue);
+      toast.error(err instanceof Error ? err.message : 'Failed to update setting');
+    } finally {
+      setSmsAiSaving(false);
+    }
+  };
+
   // Handle expand/shrink messages from the widget iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -838,6 +1197,22 @@ const data = await res.json();`;
           <TabsTrigger value="discord" className="gap-1.5">
             <Gamepad2 className="w-3.5 h-3.5" />
             Discord
+          </TabsTrigger>
+          <TabsTrigger value="messenger" className="gap-1.5">
+            <MessageSquare className="w-3.5 h-3.5" />
+            Messenger
+          </TabsTrigger>
+          <TabsTrigger value="instagram" className="gap-1.5">
+            <Phone className="w-3.5 h-3.5" />
+            Instagram
+          </TabsTrigger>
+          <TabsTrigger value="sms" className="gap-1.5">
+            <Smartphone className="w-3.5 h-3.5" />
+            SMS
+          </TabsTrigger>
+          <TabsTrigger value="email" className="gap-1.5">
+            <Mail className="w-3.5 h-3.5" />
+            Email
           </TabsTrigger>
         </TabsList>
 
@@ -2051,6 +2426,527 @@ const data = await res.json();`;
                     <Button onClick={handleDiscordConnect} disabled={discordConnecting || !discordAppId.trim() || !discordBotToken.trim() || !discordPublicKey.trim()} className="gap-2">
                       {discordConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gamepad2 className="w-4 h-4" />}
                       {discordConnecting ? 'Connecting...' : 'Connect to Discord'}
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        {/* ========== SMS TAB ========== */}
+        <TabsContent value="sms">
+          <div className="space-y-6 mt-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                    <Smartphone className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <CardTitle>SMS via Twilio</CardTitle>
+                    <CardDescription>Connect your Twilio phone number so customers can text it and receive AI-powered replies from your knowledge base</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {smsLoading ? (
+                  <Skeleton className="h-20 w-full" />
+                ) : smsConnected ? (
+                  <>
+                    {/* Connected banner */}
+                    <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        <div>
+                          <p className="text-sm font-medium text-green-900 dark:text-green-100">Connected to Twilio SMS</p>
+                          {chatbot?.sms_config?.phone_number && (
+                            <p className="text-xs text-green-700 dark:text-green-300">Phone: {chatbot.sms_config.phone_number}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSmsDisconnect}
+                        disabled={smsDisconnecting}
+                        className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      >
+                        {smsDisconnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Disconnect'}
+                      </Button>
+                    </div>
+
+                    {/* A2P 10DLC warning */}
+                    <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                      <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-amber-900 dark:text-amber-100">A2P 10DLC Required for US SMS</p>
+                        <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                          Your Twilio number must be registered for A2P 10DLC brand + campaign registration to send SMS to US numbers. Complete this in your Twilio Console. Unregistered numbers face delivery failures.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bot Settings */}
+                    <div className="border border-secondary-200 dark:border-secondary-700 rounded-lg">
+                      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-secondary-200 dark:border-secondary-700">
+                        <Settings className="w-4 h-4 text-secondary-500" />
+                        <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Bot Settings</p>
+                      </div>
+                      <div className="p-4 space-y-5">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">AI Responses</p>
+                            <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">
+                              The bot responds to all incoming SMS messages with AI-powered answers from your knowledge base.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={smsAiEnabled}
+                            onClick={handleSmsAiToggle}
+                            disabled={smsAiSaving}
+                            className={cn(
+                              'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0',
+                              smsAiEnabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600',
+                              smsAiSaving && 'opacity-50'
+                            )}
+                          >
+                            <span className={cn('inline-block h-4 w-4 transform rounded-full bg-white transition-transform', smsAiEnabled ? 'translate-x-6' : 'translate-x-1')} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Webhook URL */}
+                    <div>
+                      <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Webhook URL</p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 p-3 bg-secondary-100 dark:bg-secondary-800 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                          <code className="text-sm font-mono text-secondary-800 dark:text-secondary-200 break-all">{baseUrl}/api/sms/webhook/{id}</code>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => copyToClipboard(`${baseUrl}/api/sms/webhook/${id}`, 'sms-webhook')}
+                        >
+                          {copiedCode === 'sms-webhook' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                        Set this as the webhook URL in your Twilio Console under Phone Numbers &rarr; Active Numbers &rarr; Messaging Configuration.
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Setup guide */}
+                    <div className="space-y-4">
+                      <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                        Connect your Twilio phone number to deploy this chatbot via SMS. Follow these steps:
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {[
+                          { n: '1', title: 'Get a Twilio account', desc: 'Sign up at twilio.com and purchase a phone number that supports SMS in your region.' },
+                          { n: '2', title: 'Copy your credentials', desc: 'Find your Account SID and Auth Token on the Twilio Console dashboard home page.' },
+                          { n: '3', title: 'Enter credentials below', desc: 'Paste your Account SID, Auth Token, and the E.164 phone number (e.g. +14155551234).' },
+                          { n: '4', title: 'Configure webhook', desc: 'After connecting, paste the webhook URL shown here into your Twilio number\'s Messaging Configuration.' },
+                        ].map((step) => (
+                          <div key={step.n} className="p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-bold">{step.n}</span>
+                              <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">{step.title}</p>
+                            </div>
+                            <p className="text-xs text-secondary-500 dark:text-secondary-400">{step.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Input fields */}
+                    <div className="space-y-3">
+                      <div>
+                        <label htmlFor="sms-account-sid" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Account SID</label>
+                        <input
+                          id="sms-account-sid"
+                          type="text"
+                          value={smsAccountSid}
+                          onChange={(e) => setSmsAccountSid(e.target.value)}
+                          placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                          className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="sms-auth-token" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Auth Token</label>
+                        <input
+                          id="sms-auth-token"
+                          type="password"
+                          value={smsAuthToken}
+                          onChange={(e) => setSmsAuthToken(e.target.value)}
+                          placeholder="Your Twilio Auth Token"
+                          className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                          Your Twilio Auth Token. Stored securely and encrypted at rest.
+                        </p>
+                      </div>
+                      <div>
+                        <label htmlFor="sms-phone-number" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Phone Number</label>
+                        <input
+                          id="sms-phone-number"
+                          type="text"
+                          value={smsPhoneNumber}
+                          onChange={(e) => setSmsPhoneNumber(e.target.value)}
+                          placeholder="+14155551234"
+                          className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                          Your Twilio phone number in E.164 format, e.g. +14155551234.
+                        </p>
+                      </div>
+                    </div>
+
+                    <Button onClick={handleSmsConnect} disabled={smsConnecting || !smsAccountSid.trim() || !smsAuthToken.trim() || !smsPhoneNumber.trim()} className="gap-2">
+                      {smsConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Smartphone className="w-4 h-4" />}
+                      {smsConnecting ? 'Connecting...' : 'Connect SMS'}
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* ========== MESSENGER TAB ========== */}
+        <TabsContent value="messenger">
+          <div className="space-y-6 mt-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                    <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <CardTitle>Facebook Messenger</CardTitle>
+                    <CardDescription>Deploy this chatbot on Messenger to respond to incoming messages with AI-powered answers from your knowledge base</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {messengerLoading ? (
+                  <Skeleton className="h-20 w-full" />
+                ) : messengerConnected ? (
+                  <>
+                    <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        <div>
+                          <p className="text-sm font-medium text-green-900 dark:text-green-100">Connected to Messenger</p>
+                          {chatbot?.messenger_config?.page_name && (
+                            <p className="text-xs text-green-700 dark:text-green-300">Page: {chatbot.messenger_config.page_name}</p>
+                          )}
+                          {chatbot?.messenger_config?.page_id && (
+                            <p className="text-xs text-green-700 dark:text-green-300">Page ID: {chatbot.messenger_config.page_id}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={handleMessengerDisconnect} disabled={messengerDisconnecting} className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20">
+                        {messengerDisconnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Disconnect'}
+                      </Button>
+                    </div>
+                    <div className="border border-secondary-200 dark:border-secondary-700 rounded-lg">
+                      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-secondary-200 dark:border-secondary-700">
+                        <Settings className="w-4 h-4 text-secondary-500" />
+                        <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Bot Settings</p>
+                      </div>
+                      <div className="p-4 space-y-5">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">AI Responses</p>
+                            <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">The bot responds to all incoming Messenger messages with AI-powered answers from your knowledge base.</p>
+                          </div>
+                          <button type="button" role="switch" aria-checked={messengerAiEnabled} onClick={handleMessengerAiToggle} disabled={messengerAiSaving} className={cn('relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0', messengerAiEnabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600', messengerAiSaving && 'opacity-50')}>
+                            <span className={cn('inline-block h-4 w-4 transform rounded-full bg-white transition-transform', messengerAiEnabled ? 'translate-x-6' : 'translate-x-1')} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Webhook URL</p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 p-3 bg-secondary-100 dark:bg-secondary-800 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                          <code className="text-sm font-mono text-secondary-800 dark:text-secondary-200 break-all">{baseUrl}/api/messenger/webhook</code>
+                        </div>
+                        <Button size="sm" variant="outline" onClick={() => copyToClipboard(`${baseUrl}/api/messenger/webhook`, 'messenger-webhook')}>
+                          {copiedCode === 'messenger-webhook' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">Paste this URL in your Meta app&apos;s Messenger webhook configuration.</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="space-y-4">
+                      <p className="text-sm text-secondary-600 dark:text-secondary-400">Connect your Facebook Page to deploy this chatbot on Messenger. Follow these steps:</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {[
+                          { n: '1', title: 'Create a Meta app', desc: 'Set up a Meta Developer account and create an app with the Messenger product in the Meta Developer Dashboard.' },
+                          { n: '2', title: 'Get your credentials', desc: 'Copy your Facebook Page ID and generate a permanent Page Access Token (system user token) from the Meta Developer Dashboard.' },
+                          { n: '3', title: 'Enter credentials below', desc: 'Paste your Page ID and access token in the fields below and click Connect.' },
+                          { n: '4', title: 'Configure webhook', desc: 'After connecting, copy the webhook URL shown here and add it to your Meta app\'s Messenger webhook settings.' },
+                        ].map((step) => (
+                          <div key={step.n} className="p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-bold">{step.n}</span>
+                              <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">{step.title}</p>
+                            </div>
+                            <p className="text-xs text-secondary-500 dark:text-secondary-400">{step.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <label htmlFor="messenger-page-id" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Page ID</label>
+                        <input id="messenger-page-id" type="text" value={messengerPageId} onChange={(e) => setMessengerPageId(e.target.value)} placeholder="123456789012345" className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                      </div>
+                      <div>
+                        <label htmlFor="messenger-page-name" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Page Name <span className="text-secondary-400 font-normal">(optional)</span></label>
+                        <input id="messenger-page-name" type="text" value={messengerPageName} onChange={(e) => setMessengerPageName(e.target.value)} placeholder="My Business Page" className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                      </div>
+                      <div>
+                        <label htmlFor="messenger-token" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Access Token</label>
+                        <input id="messenger-token" type="password" value={messengerAccessToken} onChange={(e) => setMessengerAccessToken(e.target.value)} placeholder="Your permanent Page Access Token" className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">Your permanent Page Access Token from the Meta Developer Dashboard. Stored securely and encrypted at rest.</p>
+                      </div>
+                    </div>
+                    <Button onClick={handleMessengerConnect} disabled={messengerConnecting || !messengerPageId.trim() || !messengerAccessToken.trim()} className="gap-2">
+                      {messengerConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4" />}
+                      {messengerConnecting ? 'Connecting...' : 'Connect to Messenger'}
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* ========== INSTAGRAM TAB ========== */}
+        <TabsContent value="instagram">
+          <div className="space-y-6 mt-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-pink-100 dark:bg-pink-900/50 rounded-lg">
+                    <Phone className="w-5 h-5 text-pink-600 dark:text-pink-400" />
+                  </div>
+                  <div>
+                    <CardTitle>Instagram DMs</CardTitle>
+                    <CardDescription>Deploy this chatbot on Instagram to respond to incoming Direct Messages with AI-powered answers from your knowledge base</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {instagramLoading ? (
+                  <Skeleton className="h-20 w-full" />
+                ) : instagramConnected ? (
+                  <>
+                    <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        <div>
+                          <p className="text-sm font-medium text-green-900 dark:text-green-100">Connected to Instagram</p>
+                          {chatbot?.instagram_config?.username && (
+                            <p className="text-xs text-green-700 dark:text-green-300">@{chatbot.instagram_config.username}</p>
+                          )}
+                          {chatbot?.instagram_config?.instagram_id && (
+                            <p className="text-xs text-green-700 dark:text-green-300">ID: {chatbot.instagram_config.instagram_id}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={handleInstagramDisconnect} disabled={instagramDisconnecting} className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20">
+                        {instagramDisconnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Disconnect'}
+                      </Button>
+                    </div>
+                    <div className="border border-secondary-200 dark:border-secondary-700 rounded-lg">
+                      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-secondary-200 dark:border-secondary-700">
+                        <Settings className="w-4 h-4 text-secondary-500" />
+                        <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Bot Settings</p>
+                      </div>
+                      <div className="p-4 space-y-5">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">AI Responses</p>
+                            <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">The bot responds to all incoming Instagram DMs with AI-powered answers from your knowledge base.</p>
+                          </div>
+                          <button type="button" role="switch" aria-checked={instagramAiEnabled} onClick={handleInstagramAiToggle} disabled={instagramAiSaving} className={cn('relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0', instagramAiEnabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600', instagramAiSaving && 'opacity-50')}>
+                            <span className={cn('inline-block h-4 w-4 transform rounded-full bg-white transition-transform', instagramAiEnabled ? 'translate-x-6' : 'translate-x-1')} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Webhook URL</p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 p-3 bg-secondary-100 dark:bg-secondary-800 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                          <code className="text-sm font-mono text-secondary-800 dark:text-secondary-200 break-all">{baseUrl}/api/instagram/webhook</code>
+                        </div>
+                        <Button size="sm" variant="outline" onClick={() => copyToClipboard(`${baseUrl}/api/instagram/webhook`, 'instagram-webhook')}>
+                          {copiedCode === 'instagram-webhook' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">Paste this URL in your Meta app&apos;s Instagram webhook configuration.</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="space-y-4">
+                      <p className="text-sm text-secondary-600 dark:text-secondary-400">Connect your Instagram Professional account to deploy this chatbot on Instagram DMs. Follow these steps:</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {[
+                          { n: '1', title: 'Create a Meta app', desc: 'Set up a Meta Developer account and create an app with the Instagram product in the Meta Developer Dashboard.' },
+                          { n: '2', title: 'Get your credentials', desc: 'Copy your Instagram Account ID and generate a permanent access token (system user token) from the Meta Developer Dashboard.' },
+                          { n: '3', title: 'Enter credentials below', desc: 'Paste your Instagram ID and access token in the fields below and click Connect.' },
+                          { n: '4', title: 'Configure webhook', desc: 'After connecting, copy the webhook URL shown here and add it to your Meta app\'s Instagram webhook settings.' },
+                        ].map((step) => (
+                          <div key={step.n} className="p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="flex items-center justify-center w-5 h-5 rounded-full bg-pink-100 dark:bg-pink-900/50 text-pink-700 dark:text-pink-300 text-xs font-bold">{step.n}</span>
+                              <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">{step.title}</p>
+                            </div>
+                            <p className="text-xs text-secondary-500 dark:text-secondary-400">{step.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <label htmlFor="instagram-id" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Instagram Account ID</label>
+                        <input id="instagram-id" type="text" value={instagramId} onChange={(e) => setInstagramId(e.target.value)} placeholder="123456789012345" className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                      </div>
+                      <div>
+                        <label htmlFor="instagram-username" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Username <span className="text-secondary-400 font-normal">(optional)</span></label>
+                        <input id="instagram-username" type="text" value={instagramUsername} onChange={(e) => setInstagramUsername(e.target.value)} placeholder="mybusiness" className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                      </div>
+                      <div>
+                        <label htmlFor="instagram-token" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Access Token</label>
+                        <input id="instagram-token" type="password" value={instagramAccessToken} onChange={(e) => setInstagramAccessToken(e.target.value)} placeholder="Your permanent access token" className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">Your permanent access token from the Meta Developer Dashboard. Stored securely and encrypted at rest.</p>
+                      </div>
+                    </div>
+                    <Button onClick={handleInstagramConnect} disabled={instagramConnecting || !instagramId.trim() || !instagramAccessToken.trim()} className="gap-2">
+                      {instagramConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Phone className="w-4 h-4" />}
+                      {instagramConnecting ? 'Connecting...' : 'Connect to Instagram'}
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* ========== EMAIL TAB ========== */}
+        <TabsContent value="email">
+          <div className="space-y-6 mt-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                    <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <CardTitle>Email Inbound</CardTitle>
+                    <CardDescription>Forward your support inbox to the chatbot address below. The AI replies automatically using your knowledge base.</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {emailLoading ? (
+                  <Skeleton className="h-20 w-full" />
+                ) : emailEnabled ? (
+                  <>
+                    <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        <p className="text-sm font-medium text-green-900 dark:text-green-100">Email integration active</p>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={handleEmailDisable} disabled={emailSaving} className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20">
+                        {emailSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Disable'}
+                      </Button>
+                    </div>
+                    {emailAddress && (
+                      <div>
+                        <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Your inbound email address</p>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 p-3 bg-secondary-100 dark:bg-secondary-800 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                            <code className="text-sm font-mono text-secondary-800 dark:text-secondary-200 break-all">{emailAddress}</code>
+                          </div>
+                          <Button size="sm" variant="outline" onClick={() => copyToClipboard(emailAddress, 'email-address')}>
+                            {copiedCode === 'email-address' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                      <div className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+                        <p className="font-medium">How to route emails to your chatbot:</p>
+                        <p><span className="font-medium">Option A — Email forwarding:</span> In your email provider settings, set up an automatic forward from your support address to the address above.</p>
+                        <p><span className="font-medium">Option B — MX record:</span> Update the MX record of a subdomain (e.g. <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded text-xs">support.yourdomain.com</code>) to point to <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded text-xs">inbound.vocui.com</code>.</p>
+                      </div>
+                    </div>
+                    <div className="border border-secondary-200 dark:border-secondary-700 rounded-lg">
+                      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-secondary-200 dark:border-secondary-700">
+                        <Settings className="w-4 h-4 text-secondary-500" />
+                        <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Reply Settings</p>
+                      </div>
+                      <div className="p-4 space-y-4">
+                        <div>
+                          <label htmlFor="email-reply-name" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Sender name</label>
+                          <input id="email-reply-name" type="text" value={emailReplyName} onChange={(e) => setEmailReplyName(e.target.value)} placeholder={chatbot?.name || 'Support'} className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                          <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">Shown in the From: field of outgoing replies.</p>
+                        </div>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">AI Responses</p>
+                            <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">Automatically reply to inbound emails with AI-powered answers from your knowledge base.</p>
+                          </div>
+                          <button type="button" role="switch" aria-checked={emailAiEnabled} onClick={() => setEmailAiEnabled(!emailAiEnabled)} className={cn('relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0', emailAiEnabled ? 'bg-primary-600' : 'bg-secondary-300 dark:bg-secondary-600')}>
+                            <span className={cn('inline-block h-4 w-4 transform rounded-full bg-white transition-transform', emailAiEnabled ? 'translate-x-6' : 'translate-x-1')} />
+                          </button>
+                        </div>
+                        <Button size="sm" onClick={handleEmailSettingsSave} disabled={emailSaving}>
+                          {emailSaving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+                          Save settings
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-secondary-600 dark:text-secondary-400">Enable email inbound to let customers email your chatbot directly. Each chatbot gets a dedicated email address — no shared credentials required.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {[
+                        { n: '1', title: 'Enable below', desc: 'Click "Enable Email Integration" to activate your dedicated inbound address.' },
+                        { n: '2', title: 'Forward your inbox', desc: 'Set up a forward from your support email (or point an MX record) to the address shown after enabling.' },
+                        { n: '3', title: 'AI replies automatically', desc: 'Incoming emails are answered by your AI chatbot. The reply threads correctly so customers can continue the conversation.' },
+                      ].map((step) => (
+                        <div key={step.n} className="p-3 bg-secondary-50 dark:bg-secondary-800/50 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-bold">{step.n}</span>
+                            <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">{step.title}</p>
+                          </div>
+                          <p className="text-xs text-secondary-500 dark:text-secondary-400">{step.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div>
+                      <label htmlFor="email-reply-name-setup" className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Sender name <span className="text-secondary-400 font-normal">(optional)</span></label>
+                      <input id="email-reply-name-setup" type="text" value={emailReplyName} onChange={(e) => setEmailReplyName(e.target.value)} placeholder={chatbot?.name || 'Support'} className="w-full max-w-sm px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                    </div>
+                    <Button onClick={handleEmailEnable} disabled={emailSaving} className="gap-2">
+                      {emailSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                      {emailSaving ? 'Enabling...' : 'Enable Email Integration'}
                     </Button>
                   </>
                 )}
