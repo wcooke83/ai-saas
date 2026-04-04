@@ -8,6 +8,7 @@ import { APIError } from '@/lib/api/utils';
 import { getMultiplierForProvider, getModelById, isUserAffiliate, type AIProvider } from '@/lib/settings';
 import { calculateTokenCost, type ModelBillingResult } from '@/types/ai-models';
 import type { CreditBalance, RateLimitStatus } from '@/types/billing';
+import type { ModelTier } from '@/lib/ai/provider';
 
 // ===================
 // TYPES
@@ -594,57 +595,67 @@ export async function getCreditBalance(userId: string): Promise<CreditBalance> {
 }
 
 /**
- * Deduct credits with priority: plan → purchased → bonus
- * Uses the database function for atomic operation
+ * Credit cost per action type based on model tier.
+ */
+export function getCreditCost(tier: ModelTier): number {
+  switch (tier) {
+    case 'fast': return 1;
+    case 'balanced': return 2;
+    case 'powerful': return 5;
+    default: return 2;
+  }
+}
+
+/**
+ * Deduct credits atomically using deduct_user_credits_atomic RPC.
+ * Priority: plan allocation → purchased credits → bonus credits.
+ * Throws a 402-like APIError on insufficient credits.
  */
 export async function deductCredits(
   userId: string,
   amount: number,
-  metadata?: {
-    description?: string;
-    relatedUsageId?: string;
-    relatedModelId?: string;
-  }
-): Promise<{ success: boolean; source: string; remaining: number }> {
+  description?: string,
+  metadata?: Record<string, unknown>
+): Promise<{ success: boolean; remaining: number }> {
   const supabase = createAdminClient();
 
-  // First check if auto top-up should trigger
-  const balance = await getCreditBalance(userId);
-
-  if (!balance.isUnlimited && balance.totalAvailable < amount) {
-    const topupResult = await triggerAutoTopupIfNeeded(userId, amount);
-    if (!topupResult.success) {
-      throw APIError.usageLimitReached(
-        `Insufficient credits. You have ${balance.totalAvailable} credits, but need ${amount}.`
-      );
-    }
-  }
-
-  // Use database function for atomic deduction
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.rpc as any)('deduct_credits', {
+  const { data, error } = await (supabase.rpc as any)('deduct_user_credits_atomic', {
     p_user_id: userId,
     p_amount: amount,
-    p_description: metadata?.description || null,
-    p_related_usage_id: metadata?.relatedUsageId || null,
-    p_related_model_id: metadata?.relatedModelId || null,
-  }) as { data: Array<{ success: boolean; deducted_from: string; remaining_total: number }> | null; error: unknown };
+    p_description: description ?? null,
+    p_metadata: metadata ?? null,
+  }) as { data: { success: boolean; needs_topup: boolean; topup_pack_id: string | null; remaining_total: number } | null; error: unknown };
 
   if (error) {
     console.error('Failed to deduct credits:', error);
     throw APIError.internal('Failed to process credit deduction');
   }
 
-  const result = data?.[0];
-
-  if (!result?.success) {
-    throw APIError.usageLimitReached('Insufficient credits');
+  if (!data?.success) {
+    if (data?.needs_topup) {
+      throw new APIError(
+        'Insufficient credits. Auto top-up will be triggered.',
+        402,
+        'INSUFFICIENT_CREDITS',
+        {
+          needs_topup: true,
+          topup_pack_id: data.topup_pack_id,
+          upgrade_url: '/dashboard/billing',
+        }
+      );
+    }
+    throw new APIError(
+      'Insufficient credits.',
+      402,
+      'INSUFFICIENT_CREDITS',
+      { upgrade_url: '/dashboard/billing' }
+    );
   }
 
   return {
     success: true,
-    source: result.deducted_from,
-    remaining: result.remaining_total,
+    remaining: data.remaining_total,
   };
 }
 
@@ -881,9 +892,10 @@ export const trackUsage = {
   logGeneration,
   updateLimits: updateUsageLimits,
   reset: resetUsage,
-  // New credit system
+  // Credit system
   getCreditBalance,
   deductCredits,
+  getCreditCost,
   checkRateLimit,
   getRateLimitStatus,
   checkUsageAndRateLimit,

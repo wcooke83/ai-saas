@@ -9,6 +9,7 @@ import { authenticate } from '@/lib/auth/session';
 import { successResponse, errorResponse, APIError, parseBody } from '@/lib/api/utils';
 import { getChatbot } from '@/lib/chatbots/api';
 import { generateArticlesFromUrl } from '@/lib/chatbots/articles';
+import { deductCredits } from '@/lib/usage/tracker';
 
 const generateFromUrlSchema = z.object({
   url: z.string().url('Please provide a valid URL'),
@@ -28,6 +29,10 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     if (!chatbot || chatbot.user_id !== user.id) throw APIError.notFound('Chatbot not found');
 
     const { url } = await parseBody(req, generateFromUrlSchema);
+
+    // Deduct 5 credits for article generation before processing
+    await deductCredits(user.id, 5, 'Article generation from URL', { chatbot_id: id, url });
+
     const result = await generateArticlesFromUrl(id, url);
 
     const chunks = result.chunksCreated > 0 ? ` (${result.chunksCreated} knowledge chunks added)` : '';

@@ -16,6 +16,7 @@ import {
 } from '@/lib/chatbots/api';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { processKnowledgeSource, processUrlWithCrawl } from '@/lib/chatbots/knowledge/processor';
+import { deductCredits } from '@/lib/usage/tracker';
 
 // Add knowledge source validation schema
 const addKnowledgeSchema = z.object({
@@ -147,6 +148,18 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       .eq('id', id)
       .is('first_knowledge_source_at', null)
       .then(() => {});
+
+    // Deduct indexing credits before async processing:
+    //   - Crawl mode: ceil(maxPages / 10) credits
+    //   - Single source: 1 credit
+    const indexingCredits = (input.type === 'url' && input.crawl)
+      ? Math.ceil((input.maxPages ?? 25) / 10)
+      : 1;
+    await deductCredits(user.id, indexingCredits, 'Knowledge indexing', {
+      chatbot_id: id,
+      source_type: input.type,
+      crawl: input.type === 'url' ? input.crawl : false,
+    });
 
     // Trigger async processing (don't await)
     if (input.type === 'url' && input.crawl) {
