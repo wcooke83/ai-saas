@@ -13,7 +13,8 @@ import { authenticate } from '@/lib/auth/session';
 import { successResponse, errorResponse, APIError, parseBody } from '@/lib/api/utils';
 import { getChatbot, updateChatbot } from '@/lib/chatbots/api';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { CHATBOT_PLAN_LIMITS, DEFAULT_TEAMS_CONFIG } from '@/lib/chatbots/types';
+import { DEFAULT_TEAMS_CONFIG } from '@/lib/chatbots/types';
+import { getPlanLimits, FREE_PLAN_LIMITS } from '@/lib/chatbots/plan-limits';
 import type { TeamsConfig } from '@/lib/chatbots/types';
 import { encryptToken } from '@/lib/telegram/crypto';
 
@@ -29,14 +30,16 @@ const deleteSchema = z.object({
   chatbot_id: z.string().uuid(),
 });
 
-async function getUserPlanSlug(userId: string): Promise<string> {
+async function getTeamsAllowed(userId: string): Promise<boolean> {
   const supabase = createAdminClient();
   const { data } = await supabase
     .from('subscriptions')
     .select('plan')
     .eq('user_id', userId)
     .single();
-  return data?.plan || 'free';
+  const planSlug = data?.plan || 'free';
+  const limits = await getPlanLimits(planSlug).catch(() => FREE_PLAN_LIMITS);
+  return limits.teamsEnabled;
 }
 
 export async function GET(req: NextRequest) {
@@ -58,8 +61,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Check plan
-    const planSlug = await getUserPlanSlug(user.id);
-    const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.teamsIntegration ?? false;
+    const planAllowed = await getTeamsAllowed(user.id);
     if (!planAllowed) {
       return successResponse({ connected: false, plan_required: true });
     }
@@ -100,8 +102,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Enforce Pro+ plan
-    const planSlug = await getUserPlanSlug(user.id);
-    const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.teamsIntegration ?? false;
+    const planAllowed = await getTeamsAllowed(user.id);
     if (!planAllowed) {
       throw APIError.forbidden('Teams integration requires a Pro or Agency plan');
     }

@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation';
 import { authenticate } from '@/lib/auth/session';
 import { getChatbot } from '@/lib/chatbots/api';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { CHATBOT_PLAN_LIMITS } from '@/lib/chatbots/types';
+import { getPlanLimits, FREE_PLAN_LIMITS } from '@/lib/chatbots/plan-limits';
 import { exchangeSlackCode, saveSlackIntegration, verifyOAuthState } from '@/lib/chatbots/integrations/slack';
 
 interface RouteParams {
@@ -61,7 +61,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       .eq('user_id', user.id)
       .single();
     const planSlug = sub?.plan || 'free';
-    if (!(CHATBOT_PLAN_LIMITS[planSlug]?.slackIntegration ?? false)) {
+    const slackLimits = await getPlanLimits(planSlug).catch(() => FREE_PLAN_LIMITS);
+    if (!slackLimits.slackEnabled) {
       return redirect(`/dashboard/chatbots/${id}?slack_error=plan_required`);
     }
 

@@ -2408,16 +2408,21 @@ export type Database = {
       subscription_plans: {
         Row: {
           api_keys_limit: number | null
+          chatbots_limit: number
           created_at: string | null
           credits_monthly: number
           credits_rollover: boolean | null
+          custom_branding_enabled: boolean
           description: string | null
+          discord_enabled: boolean
           display_order: number | null
           features: Json | null
           id: string
           is_active: boolean | null
           is_featured: boolean | null
           is_hidden: boolean | null
+          knowledge_sources_limit: number
+          max_file_size_bytes: number
           name: string
           price_lifetime_cents: number | null
           price_monthly_cents: number
@@ -2425,26 +2430,35 @@ export type Database = {
           rate_limit_is_hard_cap: boolean | null
           rate_limit_period_seconds: number | null
           rate_limit_tokens: number | null
+          slack_enabled: boolean
           slug: string
           stripe_price_id_monthly: string | null
           stripe_price_id_yearly: string | null
+          teams_enabled: boolean
+          telegram_enabled: boolean
           trial_credits: number | null
           trial_days: number | null
           updated_at: string | null
           usage_description: string | null
+          whatsapp_enabled: boolean
         }
         Insert: {
           api_keys_limit?: number | null
+          chatbots_limit?: number
           created_at?: string | null
           credits_monthly?: number
           credits_rollover?: boolean | null
+          custom_branding_enabled?: boolean
           description?: string | null
+          discord_enabled?: boolean
           display_order?: number | null
           features?: Json | null
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
           is_hidden?: boolean | null
+          knowledge_sources_limit?: number
+          max_file_size_bytes?: number
           name: string
           price_lifetime_cents?: number | null
           price_monthly_cents?: number
@@ -2452,26 +2466,35 @@ export type Database = {
           rate_limit_is_hard_cap?: boolean | null
           rate_limit_period_seconds?: number | null
           rate_limit_tokens?: number | null
+          slack_enabled?: boolean
           slug: string
           stripe_price_id_monthly?: string | null
           stripe_price_id_yearly?: string | null
+          teams_enabled?: boolean
+          telegram_enabled?: boolean
           trial_credits?: number | null
           trial_days?: number | null
           updated_at?: string | null
           usage_description?: string | null
+          whatsapp_enabled?: boolean
         }
         Update: {
           api_keys_limit?: number | null
+          chatbots_limit?: number
           created_at?: string | null
           credits_monthly?: number
           credits_rollover?: boolean | null
+          custom_branding_enabled?: boolean
           description?: string | null
+          discord_enabled?: boolean
           display_order?: number | null
           features?: Json | null
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
           is_hidden?: boolean | null
+          knowledge_sources_limit?: number
+          max_file_size_bytes?: number
           name?: string
           price_lifetime_cents?: number | null
           price_monthly_cents?: number
@@ -2479,13 +2502,17 @@ export type Database = {
           rate_limit_is_hard_cap?: boolean | null
           rate_limit_period_seconds?: number | null
           rate_limit_tokens?: number | null
+          slack_enabled?: boolean
           slug?: string
           stripe_price_id_monthly?: string | null
           stripe_price_id_yearly?: string | null
+          teams_enabled?: boolean
+          telegram_enabled?: boolean
           trial_credits?: number | null
           trial_days?: number | null
           updated_at?: string | null
           usage_description?: string | null
+          whatsapp_enabled?: boolean
         }
         Relationships: []
       }

@@ -11,7 +11,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { DEFAULT_WHATSAPP_CONFIG } from '@/lib/whatsapp/types';
 import type { WhatsAppConfig } from '@/lib/whatsapp/types';
 import { decryptWhatsAppConfig } from '@/lib/whatsapp/crypto';
-import { CHATBOT_PLAN_LIMITS } from '@/lib/chatbots/types';
+import { getPlanLimits, FREE_PLAN_LIMITS } from '@/lib/chatbots/plan-limits';
 import type { Json } from '@/types/database';
 
 function parseWhatsAppConfig(raw: Json | null): WhatsAppConfig {
@@ -49,7 +49,8 @@ async function checkWhatsAppPlanGate(userId: string): Promise<boolean> {
     .eq('user_id', userId)
     .single();
   const planSlug = sub?.plan || 'free';
-  return CHATBOT_PLAN_LIMITS[planSlug]?.whatsappIntegration ?? false;
+  const limits = await getPlanLimits(planSlug).catch(() => FREE_PLAN_LIMITS);
+  return limits.whatsappEnabled;
 }
 
 /**

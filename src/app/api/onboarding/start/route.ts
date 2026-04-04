@@ -12,7 +12,8 @@ import {
   generateUniqueSlug,
   checkChatbotLimit,
 } from '@/lib/chatbots/api';
-import { DEFAULT_WIDGET_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, CHATBOT_PLAN_LIMITS } from '@/lib/chatbots/types';
+import { DEFAULT_WIDGET_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG } from '@/lib/chatbots/types';
+import { getPlanLimits, FREE_PLAN_LIMITS } from '@/lib/chatbots/plan-limits';
 import { createClient as createAdminClient } from '@/lib/supabase/admin';
 
 const startSchema = z.object({
@@ -43,8 +44,8 @@ export async function POST(req: NextRequest) {
     // characters the slug would be empty, so fall back to a random ID.
     const slug = await generateUniqueSlug(user.id, input.name || 'chatbot');
 
-    const planLimits = CHATBOT_PLAN_LIMITS[user.plan || 'free'] || CHATBOT_PLAN_LIMITS.free;
-    const monthlyMessageLimit = planLimits.messagesPerMonth === -1 ? 0 : planLimits.messagesPerMonth;
+    const planLimits = await getPlanLimits(user.plan || 'free').catch(() => FREE_PLAN_LIMITS);
+    const monthlyMessageLimit = planLimits.monthlyMessageLimit;
 
     const chatbot = await createChatbot({
       user_id: user.id,

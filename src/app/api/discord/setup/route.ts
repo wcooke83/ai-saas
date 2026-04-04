@@ -12,7 +12,7 @@ import { successResponse, errorResponse, APIError, parseBody } from '@/lib/api/u
 import { createAdminClient } from '@/lib/supabase/admin';
 import { encryptToken, decryptToken } from '@/lib/telegram/crypto';
 import { registerSlashCommand, deleteSlashCommand } from '@/lib/discord/client';
-import { CHATBOT_PLAN_LIMITS } from '@/lib/chatbots/types';
+import { getPlanLimits, FREE_PLAN_LIMITS } from '@/lib/chatbots/plan-limits';
 import type { DiscordConfig } from '@/lib/discord/types';
 
 const setupSchema = z.object({
@@ -58,8 +58,8 @@ export async function POST(req: NextRequest) {
       .single();
 
     const planSlug = sub?.plan || 'free';
-    const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.discordIntegration ?? false;
-    if (!planAllowed) {
+    const discordLimits = await getPlanLimits(planSlug).catch(() => FREE_PLAN_LIMITS);
+    if (!discordLimits.discordEnabled) {
       throw APIError.forbidden('Discord integration requires a Pro or Agency plan');
     }
 

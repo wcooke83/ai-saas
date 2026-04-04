@@ -15,11 +15,12 @@ import {
   deleteChatbot,
   generateUniqueSlug,
 } from '@/lib/chatbots/api';
-import { DEFAULT_WIDGET_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, CHATBOT_PLAN_LIMITS, type WidgetConfig, type FileUploadConfig } from '@/lib/chatbots/types';
+import { DEFAULT_WIDGET_CONFIG, DEFAULT_FILE_UPLOAD_CONFIG, type WidgetConfig, type FileUploadConfig } from '@/lib/chatbots/types';
 import { checkReembedStatus } from '@/lib/chatbots/reembed-check';
 import { encryptTelegramConfig, decryptTelegramConfig, encryptToken, decryptToken } from '@/lib/telegram/crypto';
 import { encryptWhatsAppConfig, decryptWhatsAppConfig } from '@/lib/whatsapp/crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getPlanLimits, FREE_PLAN_LIMITS } from '@/lib/chatbots/plan-limits';
 
 // Update chatbot validation schema
 const updateChatbotSchema = z.object({
@@ -169,19 +170,14 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       };
     }
 
+    // Fetch plan limits once for all integration gates
+    const integrationLimits = await getPlanLimits(user.plan || 'free').catch(() => FREE_PLAN_LIMITS);
+
     // Gate Telegram integration behind Pro+ plan
     if (input.telegram_config && typeof input.telegram_config === 'object') {
       const tc = input.telegram_config as Record<string, unknown>;
       if (tc.enabled === true || tc.ai_responses_enabled === true) {
-        const adminSupabase = createAdminClient();
-        const { data: sub } = await adminSupabase
-          .from('subscriptions')
-          .select('plan')
-          .eq('user_id', user.id)
-          .single();
-        const planSlug = sub?.plan || 'free';
-        const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.telegramIntegration ?? false;
-        if (!planAllowed) {
+        if (!integrationLimits.telegramEnabled) {
           throw APIError.forbidden('Telegram integration requires a Pro or Agency plan');
         }
       }
@@ -196,15 +192,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     if (input.whatsapp_config && typeof input.whatsapp_config === 'object') {
       const wc = input.whatsapp_config as Record<string, unknown>;
       if (wc.enabled === true || wc.ai_responses_enabled === true) {
-        const adminSupabase = createAdminClient();
-        const { data: sub } = await adminSupabase
-          .from('subscriptions')
-          .select('plan')
-          .eq('user_id', user.id)
-          .single();
-        const planSlug = sub?.plan || 'free';
-        const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.whatsappIntegration ?? false;
-        if (!planAllowed) {
+        if (!integrationLimits.whatsappEnabled) {
           throw APIError.forbidden('WhatsApp integration requires a Pro or Agency plan');
         }
       }
@@ -219,15 +207,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     if (input.discord_config && typeof input.discord_config === 'object') {
       const dc = input.discord_config as Record<string, unknown>;
       if (dc.enabled === true || dc.ai_responses_enabled === true) {
-        const adminSupabase = createAdminClient();
-        const { data: sub } = await adminSupabase
-          .from('subscriptions')
-          .select('plan')
-          .eq('user_id', user.id)
-          .single();
-        const planSlug = sub?.plan || 'free';
-        const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.discordIntegration ?? false;
-        if (!planAllowed) {
+        if (!integrationLimits.discordEnabled) {
           throw APIError.forbidden('Discord integration requires a Pro or Agency plan');
         }
       }
@@ -245,15 +225,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     if (input.teams_config && typeof input.teams_config === 'object') {
       const tc = input.teams_config as Record<string, unknown>;
       if (tc.enabled === true || tc.ai_responses_enabled === true) {
-        const adminSupabase = createAdminClient();
-        const { data: sub } = await adminSupabase
-          .from('subscriptions')
-          .select('plan')
-          .eq('user_id', user.id)
-          .single();
-        const planSlug = sub?.plan || 'free';
-        const planAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.teamsIntegration ?? false;
-        if (!planAllowed) {
+        if (!integrationLimits.teamsEnabled) {
           throw APIError.forbidden('Teams integration requires a Pro or Agency plan');
         }
       }

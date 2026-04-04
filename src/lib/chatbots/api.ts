@@ -23,7 +23,7 @@ import type {
   ChatbotAnalytics,
   ChatbotAnalyticsSummary,
 } from './types';
-import { CHATBOT_PLAN_LIMITS } from './types';
+import { getPlanLimits, FREE_PLAN_LIMITS } from './plan-limits';
 import crypto from 'crypto';
 
 // The SSR createServerClient generic signature differs from @supabase/supabase-js createClient,
@@ -642,7 +642,7 @@ export async function getChatbotCount(userId: string): Promise<number> {
 }
 
 export async function checkChatbotLimit(userId: string, plan: string): Promise<boolean> {
-  const limits = CHATBOT_PLAN_LIMITS[plan] || CHATBOT_PLAN_LIMITS.free;
+  const limits = await getPlanLimits(plan).catch(() => FREE_PLAN_LIMITS);
   if (limits.chatbots === -1) return true;
 
   const count = await getChatbotCount(userId);
@@ -662,7 +662,7 @@ export async function getKnowledgeSourceCount(chatbotId: string): Promise<number
 }
 
 export async function checkKnowledgeSourceLimit(chatbotId: string, plan: string): Promise<boolean> {
-  const limits = CHATBOT_PLAN_LIMITS[plan] || CHATBOT_PLAN_LIMITS.free;
+  const limits = await getPlanLimits(plan).catch(() => FREE_PLAN_LIMITS);
   if (limits.knowledgeSources === -1) return true;
 
   const count = await getKnowledgeSourceCount(chatbotId);
