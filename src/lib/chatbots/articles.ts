@@ -9,6 +9,7 @@ import { createHash } from 'crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generate } from '@/lib/ai/provider';
 import { getArticleGenerationModel } from '@/lib/settings';
+import { deductCredits } from '@/lib/usage/tracker';
 import { extractURL } from '@/lib/chatbots/knowledge/extractors/url';
 import { chunkText } from '@/lib/chatbots/knowledge/chunker';
 import { generateEmbeddings, resolveEmbeddingConfig, type EmbeddingProvider } from '@/lib/chatbots/knowledge/embeddings';
@@ -241,9 +242,20 @@ async function embedArticlesAsKnowledge(
  * @param promptIds - Optional array of specific prompt IDs to run (for per-prompt scheduling).
  *                    If omitted, runs all enabled prompts.
  */
+async function getChatbotOwnerId(chatbotId: string): Promise<string | null> {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from('chatbots')
+    .select('user_id')
+    .eq('id', chatbotId)
+    .single();
+  return (data as { user_id: string } | null)?.user_id ?? null;
+}
+
 export async function generateHelpArticles(chatbotId: string, promptIds?: string[]): Promise<GenerateResult> {
   const supabase = createAdminClient();
   const articleModel = await getArticleGenerationModel() || undefined;
+  const ownerId = await getChatbotOwnerId(chatbotId);
 
   // Fetch extraction prompts (optionally filtered)
   const prompts = await fetchEnabledPrompts(supabase, chatbotId, promptIds);
@@ -323,6 +335,11 @@ export async function generateHelpArticles(chatbotId: string, promptIds?: string
 
         generatedArticles.push(article);
         articleCount++;
+        if (ownerId) {
+          deductCredits(ownerId, 5, { description: 'Article generation' }).catch((err) => {
+            console.error('[article-meter] credit deduction failed:', err);
+          });
+        }
       } catch (error) {
         console.error(`[Articles] Failed for prompt "${prompt.question}":`, error);
       }
@@ -368,6 +385,11 @@ export async function generateHelpArticles(chatbotId: string, promptIds?: string
 
         generatedArticles.push(article);
         articleCount++;
+        if (ownerId) {
+          deductCredits(ownerId, 5, { description: 'Article generation' }).catch((err) => {
+            console.error('[article-meter] credit deduction failed:', err);
+          });
+        }
       } catch (error) {
         console.error(`[Articles] Failed for source ${source.id}:`, error);
       }
@@ -412,6 +434,7 @@ export async function generateHelpArticles(chatbotId: string, promptIds?: string
 export async function generateArticlesFromUrl(chatbotId: string, url: string): Promise<GenerateResult> {
   const supabase = createAdminClient();
   const articleModel = await getArticleGenerationModel() || undefined;
+  const ownerId = await getChatbotOwnerId(chatbotId);
 
   // Scrape the URL
   const content = await extractURL(url);
@@ -452,6 +475,11 @@ export async function generateArticlesFromUrl(chatbotId: string, url: string): P
     });
 
     generatedArticles.push(article);
+    if (ownerId) {
+      deductCredits(ownerId, 5, { description: 'Article generation' }).catch((err) => {
+        console.error('[article-meter] credit deduction failed:', err);
+      });
+    }
   } else {
     // Get current max sort_order
     const { data: existingArticles } = await supabase
@@ -488,6 +516,11 @@ export async function generateArticlesFromUrl(chatbotId: string, url: string): P
         });
 
         generatedArticles.push(article);
+        if (ownerId) {
+          deductCredits(ownerId, 5, { description: 'Article generation' }).catch((err) => {
+            console.error('[article-meter] credit deduction failed:', err);
+          });
+        }
       } catch (error) {
         console.error(`[Articles:URL] Failed for prompt "${prompt.question}":`, error);
       }
