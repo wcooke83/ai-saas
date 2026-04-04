@@ -1,0 +1,13 @@
+appId: com.vocui.agent
+---
+- runFlow: _login.yaml
+
+# Navigate to Chatbots tab
+- tapOn: "Chatbots"
+- assertVisible: "Chatbots"
+
+# If chatbots exist, open the first one
+- runFlow:
+    when:
+      visible: "Owned"
+    file: _chatbot_detail.yaml

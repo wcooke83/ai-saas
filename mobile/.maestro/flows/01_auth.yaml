@@ -1,0 +1,34 @@
+appId: com.vocui.agent
+---
+# Test: Login with invalid credentials shows error
+- launchApp:
+    clearState: true
+- assertVisible: "VocUI Agent"
+- tapOn:
+    text: "Email"
+- inputText: "bad@example.com"
+- tapOn:
+    text: "Password"
+- inputText: "wrongpassword"
+- hideKeyboard
+- tapOn: "Sign In"
+- assertVisible: "Invalid login credentials"
+
+# Test: Empty fields shows validation error
+- launchApp:
+    clearState: true
+- tapOn: "Sign In"
+- assertVisible: "Please enter your email and password"
+
+# Test: Successful login redirects to inbox
+- launchApp:
+    clearState: true
+- tapOn:
+    text: "Email"
+- inputText: ${TEST_EMAIL}
+- tapOn:
+    text: "Password"
+- inputText: ${TEST_PASSWORD}
+- hideKeyboard
+- tapOn: "Sign In"
+- assertVisible: "Inbox"

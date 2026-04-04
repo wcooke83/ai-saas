@@ -129,15 +129,21 @@
 | 120 | e2e-zero-state-dashboard | ✅ Done | ✅ | | | | | | canada | 6/6 passed | 2026-04-04 |
 | 121 | e2e-zz-widget-chat-interaction | ✅ Done | ✅ | | | | | | canada | 1/1 passed | 2026-04-04 |
 | 122 | e2e-status-pages | ✅ Done | | 🔧 | | | Selector / Auth / State | Test Code | 3/3 | canada + mum | TabsTrigger renders as button (no role=tab); component names Web App/Database API; try/finally on tests 013-015; Schedule btn scoped to dialog; maintenance window + incident cleanup for ADMIN-STATUS-042 | 2026-04-04 |
+| 123 | e2e-whatsapp-integration | 🔄 Running | | | | | | | will | | |
+| 124 | e2e-messenger-integration | ⏳ Queued | | | | | | | | | |
+| 125 | e2e-instagram-integration | ⏳ Queued | | | | | | | | | |
+| 126 | e2e-sms-integration | ⏳ Queued | | | | | | | | | |
+| 127 | e2e-email-integration | ⏳ Queued | | | | | | | | | |
+| 128 | e2e-discord-integration | ⏳ Queued | | | | | | | | | |
 
 ## Summary
 
-- Total: 122
-- ✅ Passed: 54
-- 🔧 Fixed: 61
+- Total: 128
+- ✅ Passed: 55
+- 🔧 Fixed: 59
 - ❌ Failed: 0
 - ⚠️ Skipped: 7
-- ⏳ Remaining: 0
+- ⏳ Queued: 6
 
 ### Post-run improvements (2026-04-04)
 - e2e-invoice-history: INVOICE-005 now passes (seeded real Stripe sandbox invoice)

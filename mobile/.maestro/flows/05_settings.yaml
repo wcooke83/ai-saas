@@ -1,0 +1,36 @@
+appId: com.vocui.agent
+---
+- runFlow: _login.yaml
+
+# Navigate to Settings tab
+- tapOn: "Settings"
+- assertVisible: "Settings"
+
+# Email is displayed
+- assertVisible: ${TEST_EMAIL}
+
+# Update agent name
+- tapOn:
+    text: "agent-name-input"
+    optional: true
+- eraseText: 50
+- inputText: "Test Agent"
+- tapOn: "Save"
+- assertVisible:
+    text: "Saved"
+    optional: true
+
+# Sign out flow
+- tapOn: "Sign Out"
+- assertVisible: "Sign Out"
+- assertVisible: "Are you sure you want to sign out?"
+- tapOn: "Cancel"
+- assertVisible: "Settings"
+
+# Actually sign out
+- tapOn: "Sign Out"
+- tapOn:
+    text: "Sign Out"
+    index: 1
+- assertVisible: "VocUI Agent"
+- assertVisible: "Sign in to manage conversations"

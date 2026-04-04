@@ -1,34 +1,24 @@
 /**
  * Teams Integration Setup API
- * POST /api/teams/setup - Save Teams config and return webhook URL
+ * POST /api/teams/setup?chatbot_id=... - Confirm setup (reads config from DB) and return webhook URL
  * GET /api/teams/setup - Get config status for a chatbot
  * DELETE /api/teams/setup - Clear Teams config
+ *
+ * The connect flow:
+ *   1. PATCH /api/chatbots/[id] with teams_config (saves encrypted credentials)
+ *   2. POST /api/teams/setup?chatbot_id=... (reads from DB, returns webhook URL)
  *
  * The user registers the returned webhook URL in Azure Bot Registration.
  */
 
 import { NextRequest } from 'next/server';
-import { z } from 'zod';
 import { authenticate } from '@/lib/auth/session';
-import { successResponse, errorResponse, APIError, parseBody } from '@/lib/api/utils';
+import { successResponse, errorResponse, APIError } from '@/lib/api/utils';
 import { getChatbot, updateChatbot } from '@/lib/chatbots/api';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { DEFAULT_TEAMS_CONFIG } from '@/lib/chatbots/types';
 import { getPlanLimits, FREE_PLAN_LIMITS } from '@/lib/chatbots/plan-limits';
 import type { TeamsConfig } from '@/lib/chatbots/types';
-import { encryptToken } from '@/lib/telegram/crypto';
-
-const setupSchema = z.object({
-  chatbot_id: z.string().uuid(),
-  app_id: z.string().min(1, 'Microsoft App ID is required'),
-  app_secret: z.string().min(1, 'Microsoft App Secret is required'),
-  bot_name: z.string().max(100).optional(),
-  ai_responses_enabled: z.boolean().optional(),
-});
-
-const deleteSchema = z.object({
-  chatbot_id: z.string().uuid(),
-});
 
 async function getTeamsAllowed(userId: string): Promise<boolean> {
   const supabase = createAdminClient();
@@ -93,10 +83,14 @@ export async function POST(req: NextRequest) {
       throw APIError.unauthorized('Authentication required');
     }
 
-    const input = await parseBody(req, setupSchema);
+    // chatbot_id comes from query string (credentials were already saved via PATCH /api/chatbots/[id])
+    const chatbotId = req.nextUrl.searchParams.get('chatbot_id');
+    if (!chatbotId) {
+      throw APIError.badRequest('chatbot_id query parameter is required');
+    }
 
     // Verify chatbot ownership
-    const chatbot = await getChatbot(input.chatbot_id);
+    const chatbot = await getChatbot(chatbotId);
     if (!chatbot || chatbot.user_id !== user.id) {
       throw APIError.notFound('Chatbot not found');
     }
@@ -107,20 +101,14 @@ export async function POST(req: NextRequest) {
       throw APIError.forbidden('Teams integration requires a Pro or Agency plan');
     }
 
-    // Build config with encrypted secret
-    const teamsConfig: TeamsConfig = {
-      enabled: true,
-      app_id: input.app_id,
-      app_secret: encryptToken(input.app_secret),
-      bot_name: input.bot_name,
-      ai_responses_enabled: input.ai_responses_enabled ?? false,
-    };
-
-    // Save to chatbot record
-    await updateChatbot(input.chatbot_id, { teams_config: teamsConfig });
+    // Read already-saved config from DB (credentials were encrypted and stored by PATCH)
+    const config = chatbot.teams_config as unknown as TeamsConfig | null;
+    if (!config || !config.enabled || !config.app_id) {
+      throw APIError.badRequest('Teams credentials not configured. Save credentials via the chatbot settings first.');
+    }
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || req.headers.get('origin') || '';
-    const webhookUrl = `${baseUrl}/api/teams/webhook/${input.chatbot_id}`;
+    const webhookUrl = `${baseUrl}/api/teams/webhook/${chatbotId}`;
 
     return successResponse({
       connected: true,
@@ -139,16 +127,20 @@ export async function DELETE(req: NextRequest) {
       throw APIError.unauthorized('Authentication required');
     }
 
-    const input = await parseBody(req, deleteSchema);
+    // chatbot_id comes from query string (deploy page sends DELETE without a body)
+    const chatbotId = req.nextUrl.searchParams.get('chatbot_id');
+    if (!chatbotId) {
+      throw APIError.badRequest('chatbot_id query parameter is required');
+    }
 
     // Verify chatbot ownership
-    const chatbot = await getChatbot(input.chatbot_id);
+    const chatbot = await getChatbot(chatbotId);
     if (!chatbot || chatbot.user_id !== user.id) {
       throw APIError.notFound('Chatbot not found');
     }
 
     // Clear config
-    await updateChatbot(input.chatbot_id, { teams_config: DEFAULT_TEAMS_CONFIG });
+    await updateChatbot(chatbotId, { teams_config: DEFAULT_TEAMS_CONFIG });
 
     return successResponse({ disconnected: true });
   } catch (error) {

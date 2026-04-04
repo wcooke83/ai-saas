@@ -1,0 +1,33 @@
+appId: com.vocui.agent
+---
+# Reusable: takes over a pending conversation, sends a message, and resolves it
+# Caller must be on a Conversations tab with a pending conversation visible
+
+# Open the first pending conversation
+- tapOn:
+    index: 0
+
+# Verify conversation detail
+- assertVisible: "Take Over"
+
+# Take over the conversation
+- tapOn: "Take Over"
+- assertVisible: "Return to AI"
+- assertVisible: "Resolve"
+
+# Send a message
+- tapOn:
+    id: "message-input"
+    optional: true
+- inputText: "Hello, how can I help you today?"
+- tapOn:
+    id: "send-button"
+    optional: true
+- hideKeyboard
+
+# Return to AI
+- tapOn: "Return to AI"
+- assertVisible: "Take Over"
+
+# Go back
+- pressKey: Back

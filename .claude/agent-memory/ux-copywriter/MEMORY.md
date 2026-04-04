@@ -4,3 +4,4 @@
 - [Testimonial Conventions](testimonial_conventions.md) -- Placeholder testimonial format + Before/Setup/After pattern for industry landing pages
 - [Credit Alert Copy Conventions](credit_alert_copy.md) -- Tone and structure for 75%/90% credit alerts; escalate urgency via word choice, always name auto-topup and manual top-up as fixes
 - [Blog Author Profiles](project_blog_author_profiles.md) -- 3 pen names + Will Cooke for E-E-A-T blog attribution; lane assignments for all 55 posts
+- [Onboarding Wizard Conventions](onboarding_wizard_conventions.md) -- Step headlines, use case labels, pre-filled names, deploy tabs, error structure for the 5-step wizard

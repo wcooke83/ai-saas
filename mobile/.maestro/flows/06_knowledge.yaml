@@ -1,0 +1,46 @@
+appId: com.vocui.agent
+---
+- runFlow: _login.yaml
+
+# Navigate to Chatbots → first chatbot → Knowledge
+- tapOn: "Chatbots"
+- tapOn:
+    index: 0
+    childOf: "Chatbots"
+- tapOn: "Knowledge"
+
+# Knowledge screen loads
+- assertVisible: "Knowledge"
+
+# Add a URL source
+- tapOn:
+    id: "add-knowledge-fab"
+    optional: true
+- tapOn:
+    text: "URL"
+    optional: true
+- inputText: "https://example.com"
+- tapOn:
+    text: "Add"
+    optional: true
+- hideKeyboard
+
+# Add a Q&A pair
+- tapOn:
+    id: "add-knowledge-fab"
+    optional: true
+- tapOn:
+    text: "Q&A"
+    optional: true
+- inputText: "What is VocUI?"
+- tapOn:
+    text: "Answer"
+    optional: true
+- inputText: "VocUI is an AI-powered chatbot platform."
+- tapOn:
+    text: "Add"
+    optional: true
+- hideKeyboard
+
+# Go back
+- pressKey: Back

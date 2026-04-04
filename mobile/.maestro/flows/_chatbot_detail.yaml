@@ -1,0 +1,35 @@
+appId: com.vocui.agent
+---
+# Reusable: opens first chatbot and verifies tabs
+# Caller must already be on the Chatbots tab
+
+# Tap first chatbot in the list
+- tapOn:
+    index: 0
+    childOf: "Chatbots"
+
+# Conversations tab is default
+- assertVisible: "Pending"
+- assertVisible: "Active"
+- assertVisible: "Resolved"
+
+# Navigate to Knowledge tab (if permission exists)
+- tapOn:
+    text: "Knowledge"
+    optional: true
+- assertVisible:
+    text: "Knowledge"
+    optional: true
+
+# Navigate to Analytics tab (if permission exists)
+- tapOn:
+    text: "Analytics"
+    optional: true
+
+# Navigate to Settings tab (if permission exists)
+- tapOn:
+    text: "Settings"
+    optional: true
+
+# Go back to chatbot list
+- pressKey: Back

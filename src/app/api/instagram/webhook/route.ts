@@ -55,11 +55,11 @@ export async function POST(request: NextRequest) {
   try {
     const rawBody = await request.text();
 
-    const appSecret = process.env.META_APP_SECRET;
+    const appSecret = process.env.META_INSTAGRAM_APP_SECRET ?? process.env.META_APP_SECRET;
     const signatureHeader = request.headers.get('X-Hub-Signature-256');
 
     if (!appSecret) {
-      console.error('[Instagram Webhook] META_APP_SECRET env var not set');
+      console.error('[Instagram Webhook] META_INSTAGRAM_APP_SECRET (or META_APP_SECRET) env var not set');
       return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
     }
 
@@ -115,7 +115,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    await Promise.all(messagePromises);
+    // Return 200 immediately — Meta requires a response within ~5s or marks the webhook failed.
+    // AI processing continues in the background; errors are caught per-promise above.
+    Promise.all(messagePromises).catch((err) =>
+      console.error('[Instagram Webhook] Background processing error:', err)
+    );
 
     return NextResponse.json({ ok: true });
   } catch (error) {

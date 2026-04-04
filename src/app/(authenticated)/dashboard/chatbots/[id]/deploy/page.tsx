@@ -2178,12 +2178,12 @@ const data = await res.json();`;
                       <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-1">Messaging Endpoint</p>
                       <div className="flex items-center gap-2">
                         <div className="flex-1 p-3 bg-secondary-100 dark:bg-secondary-800 rounded-lg border border-secondary-200 dark:border-secondary-700">
-                          <code className="text-sm font-mono text-secondary-800 dark:text-secondary-200 break-all">{baseUrl}/api/teams/webhook?chatbot_id={id}</code>
+                          <code className="text-sm font-mono text-secondary-800 dark:text-secondary-200 break-all">{baseUrl}/api/teams/webhook/{id}</code>
                         </div>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => copyToClipboard(`${baseUrl}/api/teams/webhook?chatbot_id=${id}`, 'teams-webhook')}
+                          onClick={() => copyToClipboard(`${baseUrl}/api/teams/webhook/${id}`, 'teams-webhook')}
                         >
                           {copiedCode === 'teams-webhook' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                         </Button>

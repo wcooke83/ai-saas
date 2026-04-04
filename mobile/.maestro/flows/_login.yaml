@@ -1,0 +1,16 @@
+appId: com.vocui.agent
+---
+# Reusable login flow — include this in other flows via runFlow
+- launchApp:
+    clearState: true
+- assertVisible: "VocUI Agent"
+- assertVisible: "Sign in to manage conversations"
+- tapOn:
+    text: "Email"
+- inputText: ${TEST_EMAIL}
+- tapOn:
+    text: "Password"
+- inputText: ${TEST_PASSWORD}
+- hideKeyboard
+- tapOn: "Sign In"
+- assertVisible: "Inbox"

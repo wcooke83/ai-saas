@@ -1,0 +1,24 @@
+appId: com.vocui.agent
+---
+- runFlow: _login.yaml
+
+# Inbox loads
+- assertVisible: "Inbox"
+- assertTrue:
+    label: "Shows pending count or all caught up"
+    condition: ${maestro.isVisible("pending") || maestro.isVisible("All caught up")}
+
+# Pull to refresh
+- swipe:
+    direction: DOWN
+    duration: 500
+- swipe:
+    direction: UP
+    duration: 1500
+- assertVisible: "Inbox"
+
+# Tab navigation works
+- tapOn: "Chatbots"
+- assertVisible: "Chatbots"
+- tapOn: "Inbox"
+- assertVisible: "Inbox"

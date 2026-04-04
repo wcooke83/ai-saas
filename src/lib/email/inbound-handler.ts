@@ -13,6 +13,21 @@ import { resolveOrCreateThread } from './thread-tracker';
 import { sendEmailReply } from './sender';
 import type { PostmarkInboundPayload } from './postmark-types';
 
+/** In-memory dedup set for Postmark MessageIDs — prevents double-processing on retry delivery */
+const seenMessageIds = new Map<string, number>();
+const MESSAGE_ID_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+function isEmailDuplicate(messageId: string): boolean {
+  const now = Date.now();
+  // Prune expired entries
+  for (const [id, ts] of seenMessageIds.entries()) {
+    if (now - ts > MESSAGE_ID_TTL_MS) seenMessageIds.delete(id);
+  }
+  if (seenMessageIds.has(messageId)) return true;
+  seenMessageIds.set(messageId, now);
+  return false;
+}
+
 const INBOUND_DOMAIN = process.env.POSTMARK_INBOUND_DOMAIN || 'inbound.vocui.com';
 
 export async function handleInboundEmail(
@@ -40,6 +55,12 @@ export async function handleInboundEmail(
 
   // 3. Silent drop if empty text
   if (!rawText) return;
+
+  // 3b. Dedup — Postmark retries if we don't 200 fast enough; avoid double replies
+  if (payload.MessageID && isEmailDuplicate(payload.MessageID)) {
+    console.log(`[Email:Inbound] Skipping duplicate message ${payload.MessageID}`);
+    return;
+  }
 
   // 4. Sender email — ReplyTo takes precedence over From
   const senderEmail = (payload.ReplyTo?.trim() || payload.From?.trim());

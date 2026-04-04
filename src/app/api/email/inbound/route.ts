@@ -16,15 +16,17 @@ const ok = () => NextResponse.json({ ok: true });
 
 export async function POST(request: NextRequest) {
   try {
-    // Security: verify token query param
+    // Security: verify token query param — fail hard if env var is not set
     const secret = process.env.POSTMARK_INBOUND_SECRET;
-    if (secret) {
-      const token = request.nextUrl.searchParams.get('token');
-      if (token !== secret) {
-        // Still return 200 to avoid Postmark retry storms on misconfiguration
-        console.warn('[Email:Inbound] Invalid token — dropping request');
-        return ok();
-      }
+    if (!secret) {
+      console.error('[Email:Inbound] POSTMARK_INBOUND_SECRET is not set — rejecting all requests');
+      return ok();
+    }
+    const token = request.nextUrl.searchParams.get('token');
+    if (token !== secret) {
+      // Still return 200 to avoid Postmark retry storms on misconfiguration
+      console.warn('[Email:Inbound] Invalid token — dropping request');
+      return ok();
     }
 
     const payload: PostmarkInboundPayload = await request.json();

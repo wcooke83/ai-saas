@@ -1,0 +1,22 @@
+appId: com.vocui.agent
+---
+- runFlow: _login.yaml
+
+# Navigate to Chatbots → first chatbot → Conversations
+- tapOn: "Chatbots"
+- tapOn:
+    index: 0
+    childOf: "Chatbots"
+
+# Check pending tab
+- tapOn: "Pending"
+
+# If a pending conversation exists, open it and take over
+- runFlow:
+    when:
+      visible: "Take Over"
+    file: _take_over_conversation.yaml
+
+# Check resolved conversations
+- tapOn: "Resolved"
+- assertVisible: "Resolved"

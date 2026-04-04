@@ -83,24 +83,19 @@ export async function POST(
     const rawBody = await request.text();
     const formParams = Object.fromEntries(new URLSearchParams(rawBody)) as Record<string, string>;
 
-    const { MessageSid, AccountSid, From, Body, NumMedia } = formParams;
+    const { MessageSid, From, Body, NumMedia } = formParams;
 
-    // Load SMS config for this chatbot
-    const config = await getSmsConfig(chatbotId);
-    if (!config || !config.enabled) {
-      return twimlResponse(null);
-    }
-
-    // Fast fail: validate AccountSid before expensive HMAC check
-    if (!AccountSid || AccountSid !== config.account_sid) {
-      console.warn(`[SMS Webhook] AccountSid mismatch for chatbot ${chatbotId}`);
-      return twimlResponse(null);
-    }
-
-    // Verify Twilio signature (HMAC-SHA1)
+    // Verify Twilio signature (HMAC-SHA1) before loading any config.
+    // AccountSid is not a secret so it is not used as an authentication gate.
     const signature = request.headers.get('X-Twilio-Signature') || '';
     if (!signature) {
       console.warn(`[SMS Webhook] Missing X-Twilio-Signature for chatbot ${chatbotId}`);
+      return twimlResponse(null);
+    }
+
+    // Load SMS config for this chatbot — needed to get the per-chatbot auth_token
+    const config = await getSmsConfig(chatbotId);
+    if (!config || !config.enabled) {
       return twimlResponse(null);
     }
 
@@ -115,7 +110,7 @@ export async function POST(
     const webhookUrl = `${baseUrl}/api/sms/webhook/${chatbotId}`;
 
     if (!verifyTwilioSignature(config.auth_token, signature, webhookUrl, formParams)) {
-      console.warn(`[SMS Webhook] Invalid signature for chatbot ${chatbotId}`);
+      console.warn(`[SMS Webhook] Invalid Twilio signature for chatbot ${chatbotId}`);
       return twimlResponse(null);
     }
 

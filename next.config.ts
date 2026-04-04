@@ -20,13 +20,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  webpack: (config, { dev }) => {
-    if (dev) {
-      // Use memory cache in dev to reduce disk I/O
-      config.cache = {
-        type: 'memory',
-      };
-    }
+  webpack: (config) => {
     return config;
   },
   async redirects() {
