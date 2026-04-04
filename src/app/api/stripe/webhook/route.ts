@@ -7,12 +7,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { getStripeClient } from '@/lib/stripe/client';
 import { createAdminClient } from '@/lib/supabase/admin';
+import type Stripe from 'stripe';
 import {
   handleCheckoutCompleted,
   handleSubscriptionUpdated,
   handleSubscriptionDeleted,
   handleInvoicePaid,
   handleInvoicePaymentFailed,
+  handleCreditTopUpPaymentIntent,
+  handleAutoTopupPaymentIntent,
 } from '@/lib/stripe/webhooks';
 
 export async function POST(req: NextRequest) {
@@ -86,11 +89,43 @@ export async function POST(req: NextRequest) {
         break;
 
       case 'customer.subscription.trial_will_end':
-        // Log for now, could send email reminder
+        // TODO: send trial ending email notification
         console.log(
           `Trial ending soon for subscription: ${event.data.object.id}`
         );
         break;
+
+      case 'payment_intent.succeeded': {
+        const pi = event.data.object as Stripe.PaymentIntent;
+        if (pi.metadata?.type === 'credit_top_up') {
+          await handleCreditTopUpPaymentIntent(pi, supabase);
+        } else if (pi.metadata?.type === 'auto_topup') {
+          await handleAutoTopupPaymentIntent(pi, supabase);
+        }
+        break;
+      }
+
+      case 'payment_intent.payment_failed': {
+        const pi = event.data.object as Stripe.PaymentIntent;
+        if (pi.metadata?.type === 'credit_top_up' || pi.metadata?.type === 'auto_topup') {
+          await supabase
+            .from('user_credit_top_ups' as never)
+            .update({ status: 'failed' } as never)
+            .eq('stripe_payment_intent_id', pi.id);
+        }
+        break;
+      }
+
+      case 'checkout.session.expired': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.metadata?.type === 'credit_top_up') {
+          await supabase
+            .from('user_credit_top_ups' as never)
+            .update({ status: 'failed' } as never)
+            .eq('stripe_payment_intent_id', session.payment_intent as string);
+        }
+        break;
+      }
 
       default:
         console.log(`Unhandled Stripe event type: ${event.type}`);

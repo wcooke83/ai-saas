@@ -29,7 +29,13 @@ export async function handleCheckoutCompleted(
   if (session.mode === 'subscription') {
     await handleSubscriptionCheckout(session, userId);
   } else if (session.mode === 'payment') {
-    await handleCreditPurchase(session, userId);
+    if (session.metadata?.type === 'credit_top_up') {
+      await handleCreditTopUpCheckout(session);
+    } else if (session.metadata?.type === 'ltd') {
+      await handleLTDCheckout(session);
+    } else {
+      await handleCreditPurchase(session, userId);
+    }
   }
 
   // Save the payment method from checkout for future auto top-up use
@@ -347,20 +353,32 @@ export async function handleSubscriptionDeleted(
 ): Promise<void> {
   const supabase = createAdminClient();
 
-  // Get base plan ID (lowest tier)
-  const { data: basePlan } = await supabase
-    .from('subscription_plans')
-    .select('id, credits_monthly')
-    .eq('slug', 'base')
+  // Skip LTD subscribers — they have no Stripe subscription to delete
+  const { data: existingSub } = await supabase
+    .from('subscriptions')
+    .select('purchase_source')
+    .eq('stripe_subscription_id', subscription.id)
     .single();
 
-  // Downgrade user to base plan
+  if (existingSub?.purchase_source === 'ltd') {
+    console.log(`Skipping subscription.deleted for LTD subscriber (${subscription.id})`);
+    return;
+  }
+
+  // Get free plan ID (lowest tier)
+  const { data: freePlan } = await supabase
+    .from('subscription_plans')
+    .select('id, credits_monthly')
+    .eq('slug', 'free')
+    .single();
+
+  // Downgrade user to free plan
   const { data: updated } = await supabase
     .from('subscriptions')
     .update({
       status: 'canceled',
-      plan: 'base',
-      plan_id: basePlan?.id,
+      plan: 'free',
+      plan_id: freePlan?.id,
       stripe_subscription_id: null,
       cancel_at_period_end: false,
       updated_at: new Date().toISOString(),
@@ -369,18 +387,18 @@ export async function handleSubscriptionDeleted(
     .select('user_id')
     .single();
 
-  if (updated?.user_id && basePlan) {
-    // Reset usage limits to base plan
+  if (updated?.user_id && freePlan) {
+    // Reset usage limits to free plan
     await supabase
       .from('usage')
       .update({
-        credits_limit: basePlan.credits_monthly,
+        credits_limit: freePlan.credits_monthly,
         updated_at: new Date().toISOString(),
       })
       .eq('user_id', updated.user_id);
   }
 
-  console.log(`Subscription ${subscription.id} deleted, user downgraded to base`);
+  console.log(`Subscription ${subscription.id} deleted, user downgraded to free`);
 }
 
 /**
@@ -432,25 +450,15 @@ export async function handleInvoicePaid(
     })
     .eq('stripe_subscription_id', subscriptionId);
 
-  // Reset usage for new billing period
-  await supabase
-    .from('usage')
-    .update({
-      credits_used: 0,
-      credits_limit: plan?.credits_monthly || 100,
-      period_start: new Date().toISOString(),
-      period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('user_id', sub.user_id);
-
-  // Log the reset
-  await supabase.from('credit_transactions').insert({
-    user_id: sub.user_id,
-    type: 'plan_allocation',
-    amount: 0,
-    description: 'Monthly billing cycle reset',
+  // Reset usage for new billing period using the allocate_monthly_credits RPC
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: allocateError } = await (supabase.rpc as any)('allocate_monthly_credits', {
+    p_user_id: sub.user_id,
   });
+
+  if (allocateError) {
+    console.error(`Failed to allocate monthly credits for user ${sub.user_id}:`, allocateError);
+  }
 
   console.log(`Usage reset for user ${sub.user_id} (invoice paid, grace period cleared)`);
 }
@@ -501,6 +509,264 @@ export async function handleInvoicePaymentFailed(
     .eq('stripe_subscription_id', subscriptionId);
 
   console.log(`Payment failed for subscription ${subscriptionId}, grace period ends: ${gracePeriodEnd.toISOString()}`);
+}
+
+/**
+ * Handle credit top-up checkout completion
+ */
+export async function handleCreditTopUpCheckout(
+  session: Stripe.Checkout.Session
+): Promise<void> {
+  const supabase = createAdminClient();
+  const userId = session.metadata?.user_id;
+
+  if (!userId) {
+    console.error('[CreditTopUp] Missing user_id in session metadata');
+    return;
+  }
+
+  const paymentIntentId = session.payment_intent as string;
+
+  // Look up existing user_credit_top_ups row by payment intent
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: existingTopUp } = await (supabase as any)
+    .from('user_credit_top_ups')
+    .select('*')
+    .eq('stripe_payment_intent_id', paymentIntentId)
+    .maybeSingle();
+
+  let topUpId: string;
+  let creditsPurchased: number;
+  let bonusCredits: number;
+
+  if (!existingTopUp) {
+    // Row wasn't pre-created — create it from session metadata
+    const packId = session.metadata?.pack_id;
+    creditsPurchased = parseInt(session.metadata?.credits_purchased || '0');
+    bonusCredits = parseInt(session.metadata?.bonus_credits || '0');
+    const pricePaidCents = session.amount_total ?? 0;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: newTopUp, error: insertError } = await (supabase as any)
+      .from('user_credit_top_ups')
+      .insert({
+        user_id: userId,
+        pack_id: packId || null,
+        credits_purchased: creditsPurchased,
+        bonus_credits: bonusCredits,
+        price_paid_cents: pricePaidCents,
+        stripe_payment_intent_id: paymentIntentId,
+        status: 'pending',
+      })
+      .select('id')
+      .single();
+
+    if (insertError || !newTopUp) {
+      console.error('[CreditTopUp] Failed to create top-up record:', insertError);
+      return;
+    }
+
+    topUpId = newTopUp.id;
+  } else {
+    topUpId = existingTopUp.id;
+    creditsPurchased = existingTopUp.credits_purchased;
+    bonusCredits = existingTopUp.bonus_credits ?? 0;
+  }
+
+  // Apply credits via RPC
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: applyError } = await (supabase.rpc as any)('apply_top_up_credits', {
+    p_user_id: userId,
+    p_credits: creditsPurchased,
+    p_bonus_credits: bonusCredits,
+    p_top_up_id: topUpId,
+    p_payment_intent_id: paymentIntentId,
+  });
+
+  if (applyError) {
+    console.error('[CreditTopUp] Failed to apply credits:', applyError);
+    return;
+  }
+
+  // Mark top-up as completed
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase as any)
+    .from('user_credit_top_ups')
+    .update({ status: 'completed' })
+    .eq('id', topUpId);
+
+  console.log(`[CreditTopUp] Applied ${creditsPurchased} credits (+${bonusCredits} bonus) for user ${userId}`);
+}
+
+/**
+ * Handle LTD (Lifetime Deal) checkout completion
+ */
+export async function handleLTDCheckout(
+  session: Stripe.Checkout.Session
+): Promise<void> {
+  const supabase = createAdminClient();
+  const userId = session.metadata?.user_id;
+  const ltdId = session.metadata?.ltd_id;
+
+  if (!userId || !ltdId) {
+    console.error('[LTD] Missing user_id or ltd_id in session metadata');
+    return;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase.rpc as any)('process_ltd_redemption', {
+    p_user_id: userId,
+    p_ltd_id: ltdId,
+    p_payment_intent_id: session.payment_intent as string,
+    p_external_order_id: null,
+  });
+
+  if (error) {
+    console.error('[LTD] Failed to process LTD redemption:', error);
+    return;
+  }
+
+  console.log(`[LTD] Lifetime deal redeemed for user ${userId}, ltd_id: ${ltdId}`);
+}
+
+/**
+ * Handle payment_intent.succeeded for direct credit top-up payments
+ */
+export async function handleCreditTopUpPaymentIntent(
+  pi: Stripe.PaymentIntent,
+  supabase: ReturnType<typeof createAdminClient>
+): Promise<void> {
+  const userId = pi.metadata?.user_id;
+
+  if (!userId) {
+    console.error('[CreditTopUpPI] Missing user_id in payment intent metadata');
+    return;
+  }
+
+  // Deduplicate via processed_payment_intents table
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: dedupError } = await (supabase as any)
+    .from('processed_payment_intents')
+    .insert({ payment_intent_id: pi.id, processed_at: new Date().toISOString() });
+
+  if (dedupError) {
+    // Unique constraint violation — already processed
+    console.log(`[CreditTopUpPI] Already processed payment intent: ${pi.id}`);
+    return;
+  }
+
+  // Look up existing top-up row
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: existingTopUp } = await (supabase as any)
+    .from('user_credit_top_ups')
+    .select('*')
+    .eq('stripe_payment_intent_id', pi.id)
+    .maybeSingle();
+
+  let topUpId: string;
+  let creditsPurchased: number;
+  let bonusCredits: number;
+
+  if (!existingTopUp) {
+    const packId = pi.metadata?.pack_id;
+    creditsPurchased = parseInt(pi.metadata?.credits_purchased || '0');
+    bonusCredits = parseInt(pi.metadata?.bonus_credits || '0');
+    const pricePaidCents = pi.amount;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: newTopUp, error: insertError } = await (supabase as any)
+      .from('user_credit_top_ups')
+      .insert({
+        user_id: userId,
+        pack_id: packId || null,
+        credits_purchased: creditsPurchased,
+        bonus_credits: bonusCredits,
+        price_paid_cents: pricePaidCents,
+        stripe_payment_intent_id: pi.id,
+        status: 'pending',
+      })
+      .select('id')
+      .single();
+
+    if (insertError || !newTopUp) {
+      console.error('[CreditTopUpPI] Failed to create top-up record:', insertError);
+      return;
+    }
+
+    topUpId = newTopUp.id;
+  } else {
+    topUpId = existingTopUp.id;
+    creditsPurchased = existingTopUp.credits_purchased;
+    bonusCredits = existingTopUp.bonus_credits ?? 0;
+  }
+
+  // Apply credits via RPC
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: applyError } = await (supabase.rpc as any)('apply_top_up_credits', {
+    p_user_id: userId,
+    p_credits: creditsPurchased,
+    p_bonus_credits: bonusCredits,
+    p_top_up_id: topUpId,
+    p_payment_intent_id: pi.id,
+  });
+
+  if (applyError) {
+    console.error('[CreditTopUpPI] Failed to apply credits:', applyError);
+    return;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase as any)
+    .from('user_credit_top_ups')
+    .update({ status: 'completed' })
+    .eq('id', topUpId);
+
+  console.log(`[CreditTopUpPI] Applied ${creditsPurchased} credits (+${bonusCredits} bonus) for user ${userId}`);
+}
+
+/**
+ * Handle payment_intent.succeeded for auto top-up payments
+ */
+export async function handleAutoTopupPaymentIntent(
+  pi: Stripe.PaymentIntent,
+  supabase: ReturnType<typeof createAdminClient>
+): Promise<void> {
+  const userId = pi.metadata?.user_id;
+
+  if (!userId) {
+    console.error('[AutoTopup] Missing user_id in payment intent metadata');
+    return;
+  }
+
+  // Deduplicate via processed_payment_intents table
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: dedupError } = await (supabase as any)
+    .from('processed_payment_intents')
+    .insert({ payment_intent_id: pi.id, processed_at: new Date().toISOString() });
+
+  if (dedupError) {
+    console.log(`[AutoTopup] Already processed payment intent: ${pi.id}`);
+    return;
+  }
+
+  const creditAmount = parseInt(pi.metadata?.credit_amount || '0');
+
+  if (creditAmount <= 0) {
+    console.error('[AutoTopup] Invalid credit_amount in payment intent metadata');
+    return;
+  }
+
+  // Use existing add_purchased_credits RPC for auto top-ups
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase.rpc as any)('add_purchased_credits', {
+    p_user_id: userId,
+    p_amount: creditAmount,
+    p_type: 'auto_topup',
+    p_payment_intent_id: pi.id,
+    p_description: 'Auto top-up',
+  });
+
+  console.log(`[AutoTopup] Applied ${creditAmount} credits for user ${userId}`);
 }
 
 /**
