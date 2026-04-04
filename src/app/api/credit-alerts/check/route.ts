@@ -2,7 +2,42 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getCreditBalance } from '@/lib/usage/tracker';
 import { sendCreditAlert75Email, sendCreditAlert90Email } from '@/lib/email/resend';
-import { APIError, errorResponse } from '@/lib/api/utils';
+import { APIError, errorResponse, successResponse } from '@/lib/api/utils';
+import { authenticate } from '@/lib/auth/session';
+
+/**
+ * GET /api/credit-alerts/check
+ * Returns the current credit status for the authenticated user — used by the
+ * dashboard UI to decide which warning banner to show.
+ */
+export async function GET(req: NextRequest) {
+  try {
+    const user = await authenticate(req);
+    if (!user) throw APIError.unauthorized();
+
+    const balance = await getCreditBalance(user.id);
+
+    if (balance.isUnlimited) {
+      return successResponse({ alertLevel: null, available: -1, isUnlimited: true });
+    }
+
+    const total = balance.totalAvailable;
+    const planAllocation = balance.planAllocation;
+
+    let alertLevel: '75' | '90' | '100' | null = null;
+    if (total <= 0) {
+      alertLevel = '100';
+    } else if (planAllocation > 0) {
+      const percentUsed = Math.round((balance.planUsed / planAllocation) * 100);
+      if (percentUsed >= 90) alertLevel = '90';
+      else if (percentUsed >= 75) alertLevel = '75';
+    }
+
+    return successResponse({ alertLevel, available: total, isUnlimited: false });
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
