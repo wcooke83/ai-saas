@@ -1,0 +1,1 @@
+- [Credit System Phase 1 Migration Status](project_credit_system_phase1.md) — Phase 1 additive schema migrations for credit-based billing; new tables, columns, and RPCs written 2026-04-04
