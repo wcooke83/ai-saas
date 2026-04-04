@@ -6,6 +6,8 @@ const BASE = `/dashboard/chatbots/${CHATBOT_ID}`;
 async function gotoOverview(page: import('@playwright/test').Page) {
   await page.goto(BASE, { waitUntil: 'commit' });
   await page.waitForLoadState('domcontentloaded');
+  // Give React a moment to hydrate on cold starts — bounded so it never blocks long
+  await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
 }
 
 test.describe('34. Overview Page', () => {
@@ -111,7 +113,7 @@ test.describe('34. Overview Page', () => {
   test('OVERVIEW-007: Overview error state with back button', async ({ page }) => {
     await page.goto('/dashboard/chatbots/00000000-0000-0000-0000-000000000000', { waitUntil: 'commit' });
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForLoadState('networkidle').catch(() => {});
+    await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
 
     // Either redirected, or showing error state, or login redirect
     const url = page.url();
