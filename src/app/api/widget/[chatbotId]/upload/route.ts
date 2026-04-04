@@ -9,7 +9,7 @@
 import { NextRequest } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { errorResponse, APIError } from '@/lib/api/utils';
-import { DEFAULT_FILE_UPLOAD_CONFIG, FILE_TYPE_MAP } from '@/lib/chatbots/types';
+import { DEFAULT_FILE_UPLOAD_CONFIG, FILE_TYPE_MAP, CHATBOT_PLAN_LIMITS } from '@/lib/chatbots/types';
 import type { FileUploadConfig, FileUploadAllowedTypes } from '@/lib/chatbots/types';
 
 interface RouteParams {
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     // Get chatbot and its file upload config
     const { data: chatbot, error: chatbotError } = await supabase
       .from('chatbots')
-      .select('id, file_upload_config, is_published, status')
+      .select('id, user_id, file_upload_config, is_published, status')
       .eq('id', chatbotId)
       .single();
 
@@ -55,11 +55,22 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       throw APIError.badRequest('session_id is required');
     }
 
-    // Validate file size
-    const maxBytes = uploadConfig.max_file_size_mb * 1024 * 1024;
+    // Resolve owner's plan to get plan-level file size cap (Gap 6)
+    const { data: ownerSub } = await supabase
+      .from('subscriptions')
+      .select('plan')
+      .eq('user_id', (chatbot as any).user_id)
+      .maybeSingle();
+    const ownerPlan = (ownerSub as { plan: string } | null)?.plan || 'free';
+    const planMaxBytes = CHATBOT_PLAN_LIMITS[ownerPlan]?.maxFileSize ?? CHATBOT_PLAN_LIMITS.free.maxFileSize;
+
+    // Validate file size against both chatbot config and plan cap
+    const configMaxBytes = uploadConfig.max_file_size_mb * 1024 * 1024;
+    const maxBytes = Math.min(configMaxBytes, planMaxBytes);
     if (file.size > maxBytes) {
+      const maxMB = Math.floor(maxBytes / (1024 * 1024));
       throw APIError.badRequest(
-        `File too large. Maximum size is ${uploadConfig.max_file_size_mb}MB`
+        `File too large. Maximum size is ${maxMB}MB`
       );
     }
 

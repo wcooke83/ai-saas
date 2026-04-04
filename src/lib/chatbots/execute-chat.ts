@@ -42,6 +42,7 @@ import { handleCalendarToolCall } from './tools/calendar-handler';
 import { attemptAutoTopup, triggerPreemptiveTopup } from './auto-topup';
 import { emitWebhookEvent, emitTypedWebhookEvent } from '@/lib/webhooks/emit';
 import { isChatDebugMode } from '@/lib/settings';
+import { checkSubscriptionStatus } from '@/lib/usage/tracker';
 import { logAPICall } from '@/lib/api/logging';
 import type { Chatbot, Message, Attachment, FileUploadConfig, ConversationMemory } from './types';
 import { DEFAULT_FILE_UPLOAD_CONFIG } from './types';
@@ -575,6 +576,9 @@ async function setupPipeline(input: ExecuteChatInput): Promise<PipelineContext> 
   if (!chatbot.is_published || chatbot.status !== 'active') {
     throw new Error('Chatbot is not available');
   }
+
+  // Check chatbot owner's subscription status (Gap 3: enforce canceled/past_due/trial_expired)
+  await checkSubscriptionStatus(chatbot.user_id);
 
   // Quota check
   await checkAndIncrementQuota(chatbot, input.chatbotId, supabase);

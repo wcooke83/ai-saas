@@ -152,6 +152,21 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         ...widgetConfig,
         ...(input.widget_config as Partial<WidgetConfig>),
       };
+
+      // Gate branding removal behind Pro+ plan (Gap 1)
+      if (widgetConfig.showBranding === false) {
+        const adminSupabase = createAdminClient();
+        const { data: sub } = await adminSupabase
+          .from('subscriptions')
+          .select('plan')
+          .eq('user_id', user.id)
+          .single();
+        const planSlug = sub?.plan || 'free';
+        const brandingAllowed = CHATBOT_PLAN_LIMITS[planSlug]?.customBranding ?? false;
+        if (!brandingAllowed) {
+          throw APIError.forbidden('Removing branding requires a Pro or Agency plan');
+        }
+      }
     }
 
     // Merge file upload config if provided

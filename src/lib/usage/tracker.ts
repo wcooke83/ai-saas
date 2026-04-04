@@ -207,7 +207,7 @@ export async function canUseCredits(
 
 /**
  * Check if user's subscription is in good standing
- * Throws if grace period has expired (payment overdue > 7 days)
+ * Enforces grace period expiry and trial expiry.
  */
 export async function checkSubscriptionStatus(userId: string): Promise<void> {
   const supabase = createAdminClient();
@@ -215,25 +215,50 @@ export async function checkSubscriptionStatus(userId: string): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: subscription } = await (supabase as any)
     .from('subscriptions')
-    .select('status')
+    .select('status, grace_period_ends_at, trial_ends_at')
     .eq('user_id', userId)
     .maybeSingle();
 
   if (!subscription) return; // No subscription = free tier, allow
 
-  const sub = subscription as { status: string };
+  const sub = subscription as {
+    status: string;
+    grace_period_ends_at: string | null;
+    trial_ends_at: string | null;
+  };
 
-  // For now, allow past_due users (grace period enforcement will be added in future migration)
+  const now = new Date();
+
+  // Trial expiry (Gap 7): trialing subscription with an expired trial_ends_at
+  if (sub.status === 'trialing' && sub.trial_ends_at) {
+    if (new Date(sub.trial_ends_at) < now) {
+      throw new APIError(
+        'Your free trial has expired. Please subscribe to continue using the service.',
+        402,
+        'TRIAL_EXPIRED'
+      );
+    }
+  }
+
+  // Canceled or unpaid — hard block
   if (sub.status === 'canceled' || sub.status === 'unpaid') {
-    throw APIError.forbidden(
-      'Your subscription is not active. Please update your subscription to continue using the service.'
+    throw new APIError(
+      'Your subscription is not active. Please update your subscription to continue using the service.',
+      402,
+      'SUBSCRIPTION_INACTIVE'
     );
   }
 
-  if (sub.status === 'unpaid' || sub.status === 'canceled') {
-    throw APIError.forbidden(
-      'Your subscription is inactive. Please renew your subscription to continue using the service.'
-    );
+  // Past due — allow during grace period, block after expiry (Gap 4)
+  if (sub.status === 'past_due') {
+    if (sub.grace_period_ends_at && new Date(sub.grace_period_ends_at) < now) {
+      throw new APIError(
+        'Your subscription payment is overdue and the grace period has expired. Please update your payment method to continue.',
+        402,
+        'GRACE_PERIOD_EXPIRED'
+      );
+    }
+    // Still within grace period — allow but do not throw
   }
 }
 
