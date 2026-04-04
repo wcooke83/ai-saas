@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarCheck, Users, Activity, CheckCircle2 } from 'lucide-react';
+import { CalendarCheck, Users, Globe, Code2, CheckCircle2 } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 
 const trustSignals = [
@@ -13,6 +13,22 @@ const trustSignals = [
 const differentiators = [
   {
     number: '01',
+    word: 'Channels',
+    icon: Globe,
+    badge: 'Multi-channel at $29',
+    heading: 'Widget, Slack, and Telegram — included on every Base plan',
+    body: 'No competitor offers multi-channel deployment at $29/mo. Deploy your chatbot as a site widget, inside Slack, or on Telegram the moment you sign up — no add-ons, no upgrade required.',
+  },
+  {
+    number: '02',
+    word: 'Pricing',
+    icon: Code2,
+    badge: 'Pro plan at $79',
+    heading: 'Branding removal + API access + all channels for $79/mo',
+    body: 'White-label your chatbot, connect via REST API, and deploy across every supported channel. Chatbase charges $189 for this. Dante AI charges $400. We charge $79 — and nothing is hidden.',
+  },
+  {
+    number: '03',
     word: 'Booking',
     icon: CalendarCheck,
     badge: 'In-chat booking',
@@ -20,20 +36,12 @@ const differentiators = [
     body: 'Your chatbot checks real availability and confirms calendar bookings mid-conversation — no redirects, no friction, no follow-up email needed. Connects to Easy!Appointments out of the box.',
   },
   {
-    number: '02',
+    number: '04',
     word: 'Handoff',
     icon: Users,
     badge: 'Embeddable agent console',
     heading: 'Live agent handoff that fits how your team already works',
     body: 'When a conversation needs a human, agents take over instantly. The agent console embeds in any internal tool via SDK — your team never has to log into a separate platform.',
-  },
-  {
-    number: '03',
-    word: 'Telemetry',
-    icon: Activity,
-    badge: 'Performance telemetry',
-    heading: 'See exactly where every millisecond goes',
-    body: 'A Firefox-style waterfall chart breaks your RAG pipeline into 10+ labeled stages — retrieval, rerank, generation, fallback. Find bottlenecks instead of guessing.',
   },
 ];
 
