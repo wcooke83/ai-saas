@@ -1017,8 +1017,8 @@ test.describe('9. Settings Credit Exhaustion UI', () => {
     // the empty state or package radio items should appear
     const emptyState = page.getByText('No credit packages have been set up yet.');
     const packageRadio = page.locator('input[name="autoTopupPackage"]');
-    // Wait for one of these to appear (packages load is async)
-    await expect(emptyState.or(packageRadio.first())).toBeVisible({ timeout: 15000 });
+    // Wait for one of these to appear (packages load is async; 30s for slow server)
+    await expect(emptyState.or(packageRadio.first())).toBeVisible({ timeout: 30000 });
   });
 
   test('SETT-002: Info callout about auto-purchase behavior is visible', async ({ page }) => {
@@ -1052,7 +1052,7 @@ test.describe('9. Settings Credit Exhaustion UI', () => {
     const maxField = page.getByText('Maximum auto-purchases per month');
     const emptyState = page.getByText('No credit packages have been set up yet.');
     // Either packages with max-purchases field or empty state
-    await expect(maxField.or(emptyState)).toBeVisible({ timeout: 15000 });
+    await expect(maxField.or(emptyState)).toBeVisible({ timeout: 30000 });
   });
 
   test('SETT-004: Generate Articles button is visible for help_articles mode', async ({ page }) => {

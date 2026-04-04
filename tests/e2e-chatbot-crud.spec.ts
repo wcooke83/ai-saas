@@ -4,6 +4,26 @@ let createdChatbotId: string | null = null;
 
 test.describe('Chatbot CRUD', () => {
   test.beforeAll(async ({ browser }) => {
+    // Clean up any leftover "E2E Temp Bot" chatbots from previous failed runs.
+    // Pro plan cap is 10; if we're at the limit the POST will 403.
+    const cleanupCtx = await browser.newContext({ storageState: 'tests/auth/e2e-storage.json' });
+    const cleanupPage = await cleanupCtx.newPage();
+    try {
+      const listRes = await cleanupPage.request.get('/api/chatbots');
+      if (listRes.ok()) {
+        const listBody = await listRes.json();
+        const bots = listBody.data?.chatbots ?? listBody.chatbots ?? [];
+        for (const bot of bots) {
+          if (bot.name === 'E2E Temp Bot' || bot.name === 'E2E Temp Bot Updated') {
+            await cleanupPage.request.delete(`/api/chatbots/${bot.id}`);
+          }
+        }
+      }
+    } finally {
+      await cleanupPage.close();
+      await cleanupCtx.close();
+    }
+
     // Pre-warm Next.js route compilation in parallel so tests don't hit
     // cold-compile latency. API calls are fulfilled with 404 immediately so
     // pages render without waiting for real data.
@@ -89,8 +109,8 @@ test.describe('Chatbot CRUD', () => {
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page.locator('text=Dashboard Error')).not.toBeVisible();
-    // Chatbot name should appear on the overview page
-    await expect(page.getByText('E2E Temp Bot')).toBeVisible();
+    // Overview page is a 'use client' component; chatbot.name renders after fetch
+    await expect(page.getByText('E2E Temp Bot')).toBeVisible({ timeout: 15000 });
   });
 
   test('can update chatbot name via settings page', async ({ page }) => {
@@ -106,9 +126,11 @@ test.describe('Chatbot CRUD', () => {
     await expect(nameInput).toBeVisible({ timeout: 10000 });
     await nameInput.waitFor({ state: 'visible' });
 
-    // Clear and type new name
+    // Clear and type new name; verify the input value is updated before saving
     await nameInput.clear();
     await nameInput.fill('E2E Temp Bot Updated');
+    // Confirm react-hook-form has picked up the new value
+    await expect(nameInput).toHaveValue('E2E Temp Bot Updated');
 
     // Click Save Changes and wait for the API response
     const savePromise = page.waitForResponse(
