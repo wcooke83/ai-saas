@@ -128,7 +128,7 @@
 | 119 | e2e-zapier | ✅ Done | ✅ | | | | | | canada | 19/19 passed | 2026-04-04 |
 | 120 | e2e-zero-state-dashboard | ✅ Done | ✅ | | | | | | canada | 6/6 passed | 2026-04-04 |
 | 121 | e2e-zz-widget-chat-interaction | ✅ Done | ✅ | | | | | | canada | 1/1 passed | 2026-04-04 |
-| 122 | e2e-status-pages | ✅ Done | | 🔧 | | | Selector / Auth / State | Test Code | 3/3 | canada | tab role fix (button not tab); beforeAll e2e-set-admin (global-credit-packages.afterAll clears is_admin); component names ('Web App', 'Database / API'); Schedule exact:true; 042 cleanup pre-existing incidents+maintenance | 2026-04-04 |
+| 122 | e2e-status-pages | ✅ Done | | 🔧 | | | Selector / Auth / State | Test Code | 3/3 | canada + mum | TabsTrigger renders as button (no role=tab); component names Web App/Database API; try/finally on tests 013-015; Schedule btn scoped to dialog; maintenance window + incident cleanup for ADMIN-STATUS-042 | 2026-04-04 |
 
 ## Summary
 

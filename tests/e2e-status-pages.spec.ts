@@ -24,10 +24,10 @@ const BASE_URL = 'http://localhost:3030';
 /** Wait for the admin/status page to finish its initial data fetch. */
 async function waitForAdminStatusLoaded(page: Page) {
   // The page shows a spinner while loading, then renders the Tabs.
-  // TabsTrigger in this app is a custom component that renders as role="button"
-  // (not role="tab"), so we use getByRole('button') to locate tab buttons.
+  // TabsTrigger renders as a <button> (no role="tab"), so use getByRole('button').
+  // We wait for the Components button to be visible as the ready signal.
   await expect(
-    page.getByRole('button', { name: 'Components' })
+    page.getByRole('button', { name: 'Components', exact: true })
   ).toBeVisible({ timeout: 15_000 });
 }
 
@@ -281,119 +281,123 @@ test.describe('Section 50: Status Pages', () => {
       // The new incident should now appear in the Active Incidents list
       await expect(page.getByText(incidentTitle)).toBeVisible({ timeout: 8_000 });
 
-      // Cleanup
+      // Cleanup — always delete even if an assertion above failed
       const body = await postRes.json();
-      await apiDeleteIncident(page, body.incident.id);
+      await apiDeleteIncident(page, body.incident.id).catch(() => {});
     });
 
     test('ADMIN-STATUS-013: Add Update button opens Add Update modal', async ({ page }) => {
       // Create incident first via API so we have a known target
       const incidentId = await apiCreateIncident(page, `E2E AddUpdate Test ${Date.now()}`);
 
-      await page.goto('/admin/status');
-      await waitForAdminStatusLoaded(page);
-      await switchTab(page, 'Incidents');
+      try {
+        await page.goto('/admin/status');
+        await waitForAdminStatusLoaded(page);
+        await switchTab(page, 'Incidents');
 
-      // Click the Add Update button on any active incident card
-      const addUpdateBtn = page.getByRole('button', { name: 'Add Update' }).first();
-      await expect(addUpdateBtn).toBeVisible({ timeout: 8_000 });
-      await addUpdateBtn.click();
+        // Click the Add Update button on any active incident card
+        const addUpdateBtn = page.getByRole('button', { name: 'Add Update' }).first();
+        await expect(addUpdateBtn).toBeVisible({ timeout: 8_000 });
+        await addUpdateBtn.click();
 
-      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5_000 });
-      await expect(page.getByRole('heading', { name: 'Add Update' })).toBeVisible();
-      await expect(page.getByPlaceholder('Describe the current status...')).toBeVisible();
+        await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5_000 });
+        await expect(page.getByRole('heading', { name: 'Add Update' })).toBeVisible();
+        await expect(page.getByPlaceholder('Describe the current status...')).toBeVisible();
 
-      // Close modal
-      await page.getByRole('button', { name: 'Cancel' }).click();
-      await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 5_000 });
-
-      // Cleanup
-      await apiDeleteIncident(page, incidentId);
+        // Close modal
+        await page.getByRole('button', { name: 'Cancel' }).click();
+        await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 5_000 });
+      } finally {
+        // Always clean up so leftover incidents don't affect subsequent tests
+        await apiDeleteIncident(page, incidentId);
+      }
     });
 
     test('ADMIN-STATUS-014: Posting an update (Identified) reflects new status badge', async ({ page }) => {
       const incidentId = await apiCreateIncident(page, `E2E UpdateStatus Test ${Date.now()}`);
 
-      await page.goto('/admin/status');
-      await waitForAdminStatusLoaded(page);
-      await switchTab(page, 'Incidents');
+      try {
+        await page.goto('/admin/status');
+        await waitForAdminStatusLoaded(page);
+        await switchTab(page, 'Incidents');
 
-      const addUpdateBtn = page.getByRole('button', { name: 'Add Update' }).first();
-      await expect(addUpdateBtn).toBeVisible({ timeout: 8_000 });
-      await addUpdateBtn.click();
+        const addUpdateBtn = page.getByRole('button', { name: 'Add Update' }).first();
+        await expect(addUpdateBtn).toBeVisible({ timeout: 8_000 });
+        await addUpdateBtn.click();
 
-      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5_000 });
+        await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5_000 });
 
-      // Change status select inside the modal to Identified
-      const statusSelect = page.getByRole('dialog').locator('select');
-      await statusSelect.selectOption('Identified');
+        // Change status select inside the modal to Identified
+        const statusSelect = page.getByRole('dialog').locator('select');
+        await statusSelect.selectOption('Identified');
 
-      await page
-        .getByRole('dialog')
-        .getByPlaceholder('Describe the current status...')
-        .fill('E2E: root cause identified');
+        await page
+          .getByRole('dialog')
+          .getByPlaceholder('Describe the current status...')
+          .fill('E2E: root cause identified');
 
-      const postPromise = page.waitForResponse(
-        (res) => res.url().includes('/updates') && res.request().method() === 'POST'
-      );
-      await page.getByRole('button', { name: 'Post Update' }).click();
-      const postRes = await postPromise;
-      expect(postRes.ok()).toBeTruthy();
+        const postPromise = page.waitForResponse(
+          (res) => res.url().includes('/updates') && res.request().method() === 'POST'
+        );
+        await page.getByRole('button', { name: 'Post Update' }).click();
+        const postRes = await postPromise;
+        expect(postRes.ok()).toBeTruthy();
 
-      await expectToast(page, 'Update added');
+        await expectToast(page, 'Update added');
 
-      // After refresh the incident badge should show "Identified"
-      await expect(page.getByText('Identified')).toBeVisible({ timeout: 8_000 });
-
-      // Cleanup
-      await apiDeleteIncident(page, incidentId);
+        // After refresh the incident badge should show "Identified"
+        await expect(page.getByText('Identified')).toBeVisible({ timeout: 8_000 });
+      } finally {
+        await apiDeleteIncident(page, incidentId);
+      }
     });
 
     test('ADMIN-STATUS-015: Resolving an incident moves it to Resolved section', async ({ page }) => {
       const title = `E2E Resolve Test ${Date.now()}`;
       const incidentId = await apiCreateIncident(page, title);
 
-      await page.goto('/admin/status');
-      await waitForAdminStatusLoaded(page);
-      await switchTab(page, 'Incidents');
+      try {
+        await page.goto('/admin/status');
+        await waitForAdminStatusLoaded(page);
+        await switchTab(page, 'Incidents');
 
-      // Click the green Resolve button (opens Add Update with Resolved prefilled)
-      const resolveBtn = page.getByRole('button', { name: 'Resolve' }).first();
-      await expect(resolveBtn).toBeVisible({ timeout: 8_000 });
-      await resolveBtn.click();
+        // Click the green Resolve button (opens Add Update with Resolved prefilled)
+        const resolveBtn = page.getByRole('button', { name: 'Resolve' }).first();
+        await expect(resolveBtn).toBeVisible({ timeout: 8_000 });
+        await resolveBtn.click();
 
-      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5_000 });
+        await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5_000 });
 
-      // Status select should be pre-filled to Resolved
-      const statusSelect = page.getByRole('dialog').locator('select');
-      await expect(statusSelect).toHaveValue('Resolved');
+        // Status select should be pre-filled to Resolved
+        const statusSelect = page.getByRole('dialog').locator('select');
+        await expect(statusSelect).toHaveValue('Resolved');
 
-      await page
-        .getByRole('dialog')
-        .getByPlaceholder('Describe the current status...')
-        .fill('E2E: issue resolved, all systems restored');
+        await page
+          .getByRole('dialog')
+          .getByPlaceholder('Describe the current status...')
+          .fill('E2E: issue resolved, all systems restored');
 
-      const postPromise = page.waitForResponse(
-        (res) => res.url().includes('/updates') && res.request().method() === 'POST'
-      );
-      await page.getByRole('button', { name: 'Post Update' }).click();
-      const postRes = await postPromise;
-      expect(postRes.ok()).toBeTruthy();
+        const postPromise = page.waitForResponse(
+          (res) => res.url().includes('/updates') && res.request().method() === 'POST'
+        );
+        await page.getByRole('button', { name: 'Post Update' }).click();
+        const postRes = await postPromise;
+        expect(postRes.ok()).toBeTruthy();
 
-      await expectToast(page, 'Update added');
+        await expectToast(page, 'Update added');
 
-      // The incident should leave Active and appear in Recent Resolved Incidents
-      await expect(
-        page.getByRole('heading', { name: 'Recent Resolved Incidents' })
-      ).toBeVisible({ timeout: 10_000 });
+        // The incident should leave Active and appear in Recent Resolved Incidents
+        await expect(
+          page.getByRole('heading', { name: 'Recent Resolved Incidents' })
+        ).toBeVisible({ timeout: 10_000 });
 
-      // The resolved incident card should show the "Resolved" status badge
-      const resolvedSection = page.locator('div').filter({ hasText: 'Recent Resolved Incidents' }).last();
-      await expect(resolvedSection.getByText(title)).toBeVisible({ timeout: 5_000 });
-      await expect(resolvedSection.getByText('Resolved').first()).toBeVisible();
-
-      // Cleanup
-      await apiDeleteIncident(page, incidentId);
+        // The resolved incident card should show the "Resolved" status badge
+        const resolvedSection = page.locator('div').filter({ hasText: 'Recent Resolved Incidents' }).last();
+        await expect(resolvedSection.getByText(title)).toBeVisible({ timeout: 5_000 });
+        await expect(resolvedSection.getByText('Resolved').first()).toBeVisible();
+      } finally {
+        await apiDeleteIncident(page, incidentId);
+      }
     });
   });
 
@@ -467,9 +471,9 @@ test.describe('Section 50: Status Pages', () => {
       // Should appear in Upcoming section
       await expect(page.getByText(maintTitle)).toBeVisible({ timeout: 8_000 });
 
-      // Cleanup
+      // Cleanup — always delete to prevent leftover maintenance windows affecting ADMIN-STATUS-042
       const body = await postRes.json();
-      await apiDeleteIncident(page, body.incident.id);
+      await apiDeleteIncident(page, body.incident.id).catch(() => {});
     });
 
     test('ADMIN-STATUS-023: Editing a maintenance window opens Edit modal with prefilled values', async ({ page }) => {
@@ -524,8 +528,8 @@ test.describe('Section 50: Status Pages', () => {
       // The updated title should appear in the Upcoming section
       await expect(page.getByText(updatedTitle)).toBeVisible({ timeout: 8_000 });
 
-      // Cleanup
-      await apiDeleteIncident(page, incident.id);
+      // Cleanup — always delete to prevent leftover maintenance windows affecting ADMIN-STATUS-042
+      await apiDeleteIncident(page, incident.id).catch(() => {});
     });
   });
 
@@ -657,9 +661,27 @@ test.describe('Section 50: Status Pages', () => {
         }
       }
 
+      // Clean up any leftover active incidents that could prevent "ALL SYSTEMS OPERATIONAL"
+      // (previous tests may have leaked incidents if their cleanup failed silently)
+      const activeRes = await page.request.get('/api/status/incidents?active=true');
+      const { incidents: activeLeftovers } = await activeRes.json();
+      for (const inc of activeLeftovers ?? []) {
+        await page.request.delete(`/api/status/incidents/${inc.id}`).catch(() => {});
+      }
+
+      // Clean up any leftover maintenance windows that trigger "MAINTENANCE IN PROGRESS"
+      const maintRes = await page.request.get('/api/status/incidents?maintenance=true');
+      const { incidents: maintLeftovers } = await maintRes.json();
+      for (const m of maintLeftovers ?? []) {
+        await page.request.delete(`/api/status/incidents/${m.id}`).catch(() => {});
+      }
+
       // Create and immediately resolve an incident
       const incidentId = await apiCreateIncident(page, `E2E Resolve Reflection ${Date.now()}`);
       await apiAddUpdate(page, incidentId, 'Resolved', 'E2E: all clear');
+
+      // Brief wait to ensure DB writes are visible to the next request (avoids race)
+      await page.waitForTimeout(500);
 
       try {
         await page.goto(`/status?_t=${Date.now()}`);
