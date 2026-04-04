@@ -67,7 +67,7 @@ const planStyles: Record<string, {
     accentBg: 'bg-secondary-100 dark:bg-secondary-700',
     accentBorder: 'border-secondary-200 dark:border-secondary-700',
     checkColor: 'text-secondary-400 dark:text-secondary-500',
-    cta: 'Create Free Chatbot',
+    cta: 'Get started free',
     featured: false,
   },
   base: {
@@ -460,7 +460,9 @@ function PricingCard({
 
   const cardHref = isCustom
     ? '/help?subject=enterprise'
-    : `/signup?plan=${plan.slug}${isYearly ? '&interval=yearly' : ''}`;
+    : plan.slug === 'free'
+      ? '/signup'
+      : `/signup?plan=${plan.slug}${isYearly ? '&interval=yearly' : ''}`;
 
   return (
     <motion.div
@@ -608,7 +610,7 @@ export default function PricingClient({ plans }: { plans: SubscriptionPlan[] }) 
 
               {/* Left column — copy, toggle, trust */}
               <motion.div
-                className="lg:col-span-5 flex flex-col items-start text-left"
+                className="lg:col-span-4 flex flex-col items-start text-left"
                 initial={prefersReducedMotion ? false : 'hidden'}
                 animate="visible"
                 variants={stagger}
@@ -680,9 +682,9 @@ export default function PricingClient({ plans }: { plans: SubscriptionPlan[] }) 
                 </motion.div>
               </motion.div>
 
-              {/* Right column — 3 pricing cards */}
+              {/* Right column — pricing cards */}
               <motion.div
-                className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-4 items-start"
+                className="lg:col-span-8 grid grid-cols-2 lg:grid-cols-4 gap-4 items-start"
                 variants={staggerCards}
                 initial={prefersReducedMotion ? false : 'hidden'}
                 animate="visible"
